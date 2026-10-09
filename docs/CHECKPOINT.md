@@ -56,6 +56,27 @@ kept there). This file is the short "where are we right now".
   (`curl -sI https://api.deepseek.com/models` - from this machine it was resetting),
   `kill 54979` (a leftover test server of a sub-agent on :5199).
 
+## Paused (2026-10-10, on the user's request)
+
+- All build agents were stopped mid-build so the project could go to GitHub:
+  https://github.com/Lucascalculus/mathnim (private, branch `main`).
+- State of the fine-tuning course build when paused:
+  - Plans for parts A-F and labs are done (docs/lessons/llm-finetuning/part-*.md, labs.md).
+  - Partly built: visuals in packages/visuals/src/ft/{a,b,c,d,e,f}, lessons in
+    apps/mathnim/src/lessons/ft/, figures in apps/mathnim/public/ft/. None of it is
+    wired into course.ts or visuals/src/index.ts yet; some files may be half written.
+  - Platform work (read/derive/code steps, L10n, `text` questions, case groups,
+    language switch) was nearly done; it was updating DEVELOPMENT.md and
+    ARCHITECTURE.md when stopped.
+  - research-sft.md (verified citations and API names) is done and lists
+    corrections the B/C lessons must apply (RL's Razor KL direction, the 70/30
+    numbers, assistant-token masks, etc.).
+- To resume: each part agent continues per BUILD.md plus INTERACTION-BAR.md
+  (high bar; toolkit features only where they truly add meaning).
+- packages/manim-web used to be its own git repo (one commit, no remote); it is
+  now plain files in this monorepo. Its old .git is kept locally in .local/manim-web.git
+  (ignored).
+
 ## Next
 
 1. The fine-tuning course outline (user's priority); later WP7 (AI lesson
