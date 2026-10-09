@@ -83,7 +83,7 @@ export const lesson: Lesson = {
     },
     {
       id: 'z-q', kind: 'checkpoint', skill: 'dpo-derive', purpose: 'predict', title: t('Bet first', '先下注'),
-      prompt: t('π* = π_ref·e^{r/β}/Z(x), and Z(x) is a sum over every possible answer - impossible to compute. How does DPO deal with Z?', 'π* = π_ref·e^{r/β}/Z(x)，而 Z(x) 是对所有可能回答的求和——根本算不出来。DPO 怎么处理 Z？'),
+      prompt: t('$\\pi^* = \\pi_{ref}\\, e^{r/\\beta} / Z(x)$, and $Z(x)$ is a sum over every possible answer - impossible to compute. How does DPO deal with Z?', '$\\pi^* = \\pi_{ref}\\, e^{r/\\beta} / Z(x)$，而 $Z(x)$ 是对所有可能回答的求和——根本算不出来。DPO 怎么处理 Z？'),
       question: {
         type: 'choice', options: [
           { id: 'a', label: t('Estimates it by sampling', '用采样估计它') },
@@ -106,7 +106,7 @@ export const lesson: Lesson = {
         { tex: 'Z_\\theta(x) = \\sum_y \\pi_{ref}(y\\mid x)\\,e^{\\hat r_\\theta(x,y)/\\beta} = \\sum_y \\pi_\\theta(y\\mid x) = 1', why: t('Plug r̂_θ back into the optimum formula: π_ref·(π_θ/π_ref) = π_θ, and probabilities sum to one. So π_θ is exactly the optimal policy for its own implicit reward - fitting the reward and finding the policy are one step.', '把 r̂_θ 代回最优解的公式：π_ref·(π_θ/π_ref) = π_θ，而概率之和为 1。所以 π_θ 恰好就是它自己隐式奖励的最优策略——拟合奖励和求最优策略合成了一步。') },
         { tex: '\\mathcal L_{DPO}(\\theta) = -\\,\\mathbb E\\Big[\\log\\sigma\\Big(\\beta\\log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)} - \\beta\\log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)}\\Big)\\Big]', why: t('D1’s reward-model loss with r̂_θ in place of r_φ. "Your language model is secretly a reward model" (the DPO paper’s title).', '就是 D1 的奖励模型损失，只是把 r_φ 换成了 r̂_θ。"你的语言模型其实是一个奖励模型"（DPO 论文的标题）。') },
       ],
-      blank: { line: 5, answer: '1', prompt: t('Σ_y π_ref·e^{r̂_θ/β} = Σ_y π_θ(y|x) = ?', 'Σ_y π_ref·e^{r̂_θ/β} = Σ_y π_θ(y|x) = ?') },
+      blank: { line: 5, answer: '1', prompt: t('$\\sum_y \\pi_{ref}\\, e^{\\hat r_\\theta/\\beta} = \\sum_y \\pi_\\theta(y\\mid x) = \\,?$', '$\\sum_y \\pi_{ref}\\, e^{\\hat r_\\theta/\\beta} = \\sum_y \\pi_\\theta(y\\mid x) = \\,?$') },
       outro: t('Same objective, same preference model, same β as the KL strength. What changes is that nothing is sampled during training.', '目标相同，偏好模型相同，β 仍是 KL 的强度。变的只是：训练时什么都不采样。'),
     },
     {
@@ -127,7 +127,7 @@ export const lesson: Lesson = {
       question: {
         type: 'choice', shuffle: true, options: [
           { id: 'a', label: '$-\\log\\sigma\\big(\\beta\\log\\frac{\\pi_\\theta(y_w)}{\\pi_{ref}(y_w)} - \\beta\\log\\frac{\\pi_\\theta(y_l)}{\\pi_{ref}(y_l)}\\big)$', correct: true },
-          { id: 'b', label: '$-\\log\\sigma\\big(\\beta\\log\\pi_\\theta(y_w) - \\beta\\log\\pi_\\theta(y_l)\\big)$', misconception: 'ref-irrelevant', feedback: t('Without π_ref there is no implicit reward and no anchor: this is not the KL-regularized objective any more (D4’s reference-free variants make this choice on purpose and pay for it).', '没有 π_ref，就没有隐式奖励，也没有锚：它不再是带 KL 约束的那个目标了（D4 的无参考模型变体是故意这样做的，也要为此付出代价）。') },
+          { id: 'b', label: '$-\\log\\sigma\\big(\\beta\\log\\pi_\\theta(y_w) - \\beta\\log\\pi_\\theta(y_l)\\big)$', misconception: 'ref-irrelevant', feedback: t('Without $\\pi_{ref}$ there is no implicit reward and no anchor: this is not the KL-regularized objective any more (D4’s reference-free variants make this choice on purpose and pay for it).', '没有 $\\pi_{ref}$，就没有隐式奖励，也没有锚：它不再是带 KL 约束的那个目标了（D4 的无参考模型变体是故意这样做的，也要为此付出代价）。') },
           { id: 'c', label: '$-\\log\\sigma\\big(\\beta\\log\\frac{\\pi_\\theta(y_w)}{\\pi_{ref}(y_w)} - \\beta\\log\\frac{\\pi_\\theta(y_l)}{\\pi_{ref}(y_l)} + \\beta\\log Z(x)\\big)$', feedback: t('Z(x) appears once for each answer and cancels; nothing is left of it.', 'Z(x) 每个回答各出现一次，相互抵消，一点不剩。') },
           { id: 'd', label: '$-\\log\\sigma\\big(\\beta\\log\\frac{\\pi_\\theta(y_l)}{\\pi_{ref}(y_l)} - \\beta\\log\\frac{\\pi_\\theta(y_w)}{\\pi_{ref}(y_w)}\\big)$', feedback: t('Swapped: this would train the model to prefer the rejected answer.', '方向反了：这会教模型偏爱被拒的回答。') },
         ],
@@ -144,7 +144,7 @@ export const lesson: Lesson = {
         { tex: '\\nabla_\\theta\\mathcal L = -\\beta\\,\\mathbb E\\big[\\sigma(\\hat r_l - \\hat r_w)\\,\\big(\\nabla\\log\\pi_\\theta(y_w) - \\nabla\\log\\pi_\\theta(y_l)\\big)\\big]', why: t('Gradient descent raises log π(y_w) and lowers log π(y_l). Pairs the implicit reward ranks wrongly get weight ≈ 1; pairs already ranked right by a wide margin get ≈ 0. The DPO paper reports that dropping this weight makes the model degenerate.', '梯度下降会提高 log π(y_w)、压低 log π(y_l)。隐式奖励排错的对权重约为 1；已经以大差距排对的对权重约为 0。DPO 论文报告：去掉这个权重，模型会退化。') },
         { tex: '\\log\\pi(y) = \\sum_t \\log\\pi(y_t\\mid x, y_{<t})', why: t('If y_w and y_l share a prefix, those tokens appear with the same context in both terms and their gradients cancel exactly: only the tokens after the two answers diverge get a gradient.', '如果 y_w 和 y_l 有一段相同的前缀，这些 token 在两项里上下文相同、梯度完全抵消：只有两个回答分叉之后的 token 才有梯度。') },
       ],
-      blank: { line: 0, answer: '-u', variables: ['u'], prompt: t('d/du log σ(u) = σ( ? )', 'd/du log σ(u) = σ( ? )') },
+      blank: { line: 0, answer: '-u', variables: ['u'], prompt: t('$\\frac{d}{du}\\log\\sigma(u) = \\sigma(\\,?\\,)$', '$\\frac{d}{du}\\log\\sigma(u) = \\sigma(\\,?\\,)$') },
       outro: t('"Cancels in direction" is not "unchanged": the step moves shared weights, so the shared tokens’ probabilities still change - and both answers can become less likely together. Keep that in mind for the world.', '"方向上抵消"不等于"概率不变"：这一步更新的是共享的参数，共享部分的概率照样会跟着变——两个回答甚至可能一起变得更不可能。带着这一点进入下面的世界。'),
     },
     {
@@ -158,10 +158,10 @@ export const lesson: Lesson = {
     },
     {
       id: 'compute-q', kind: 'checkpoint', skill: 'dpo-gradient', purpose: 'practice', title: t('One pair, by hand', '手算一对'),
-      prompt: t('β = 0.1. log π_θ(y_w) = −40, log π_ref(y_w) = −42, log π_θ(y_l) = −55, log π_ref(y_l) = −50. What is the DPO loss of this pair?', 'β = 0.1。log π_θ(y_w) = −40，log π_ref(y_w) = −42，log π_θ(y_l) = −55，log π_ref(y_l) = −50。这一对的 DPO 损失是多少？'),
-      question: { type: 'number', answer: 0.4032, tolerance: 0.005, wrong: [{ answer: 0.5968, feedback: t('That is σ(0.7). The loss is −log σ(0.7).', '这是 σ(0.7)。损失是 −log σ(0.7)。') }] },
-      hints: [t('r̂_w = 0.1·(−40 + 42) = 0.2; r̂_l = 0.1·(−55 + 50) = −0.5.', 'r̂_w = 0.1·(−40 + 42) = 0.2；r̂_l = 0.1·(−55 + 50) = −0.5。'), t('u = 0.7; the loss is −log σ(0.7).', 'u = 0.7；损失是 −log σ(0.7)。')],
-      explain: t('u = 0.2 − (−0.5) = 0.7, loss = log(1 + e^{−0.7}) ≈ 0.403, and the pair’s weight is σ(−0.7) ≈ 0.33: it is ranked right, but not by much.', 'u = 0.2 − (−0.5) = 0.7，损失 = log(1 + e^{−0.7}) ≈ 0.403，这一对的权重是 σ(−0.7) ≈ 0.33：排对了，但差得不算开。'),
+      prompt: t('$\\beta = 0.1$. $\\log \\pi_\\theta(y_w) = -40$, $\\log \\pi_{ref}(y_w) = -42$, $\\log \\pi_\\theta(y_l) = -55$, $\\log \\pi_{ref}(y_l) = -50$. What is the DPO loss of this pair?', '$\\beta = 0.1$。$\\log \\pi_\\theta(y_w) = -40$，$\\log \\pi_{ref}(y_w) = -42$，$\\log \\pi_\\theta(y_l) = -55$，$\\log \\pi_{ref}(y_l) = -50$。这一对的 DPO 损失是多少？'),
+      question: { type: 'number', answer: 0.4032, tolerance: 0.005, wrong: [{ answer: 0.5968, feedback: t('That is $\\sigma(0.7)$. The loss is $-\\log \\sigma(0.7)$.', '这是 $\\sigma(0.7)$。损失是 $-\\log \\sigma(0.7)$。') }] },
+      hints: [t('$\\hat r_w = 0.1\\cdot(-40 + 42) = 0.2$; $\\hat r_l = 0.1\\cdot(-55 + 50) = -0.5$.', '$\\hat r_w = 0.1\\cdot(-40 + 42) = 0.2$；$\\hat r_l = 0.1\\cdot(-55 + 50) = -0.5$。'), t('$u = 0.7$; the loss is $-\\log \\sigma(0.7)$.', '$u = 0.7$；损失是 $-\\log \\sigma(0.7)$。')],
+      explain: t('$u = 0.2 - (-0.5) = 0.7$, the loss is $\\log(1 + e^{-0.7}) \\approx 0.403$, and the pair’s weight is $\\sigma(-0.7) \\approx 0.33$: it is ranked right, but not by much.', '$u = 0.2 - (-0.5) = 0.7$，损失 $= \\log(1 + e^{-0.7}) \\approx 0.403$，这一对的权重是 $\\sigma(-0.7) \\approx 0.33$：排对了，但差得不算开。'),
     },
     {
       id: 'beta-ref', kind: 'read', title: t('The two knobs: β and the reference', '两个旋钮：β 和参考模型'),
@@ -192,15 +192,17 @@ export const lesson: Lesson = {
       id: 'gap', kind: 'explore', title: t('Lower the loss, lose the answer', '损失降了，回答没了'), skill: 'likelihood-displacement',
       scene: vis('dpo_gap_plane', { story: 'setup', nll_switch: false }),
       prompt: t(
-        '(1) **You are the optimizer.** Drag the gold point on the left - how far the chosen (Δ_w) and rejected (Δ_l) log-probabilities move - to get the loss below 0.3 **while the chosen answer becomes less likely**. (2) Now press **Train 20 steps** a few times: a real toy model trains on this pair. Watch the bars. (3) Drag **y_l** (the rejected answer, right) so that training makes the chosen answer **more** likely, and train again.',
-        '(1) **你来当优化器**：拖动左边的金色点——它表示被选（Δ_w）和被拒（Δ_l）回答的对数概率各变了多少——让损失低于 0.3，**同时被选回答变得更不可能**。(2) 然后按几次 **训练 20 步**：一个真正的玩具模型在这一对上训练。盯住下面的柱子。(3) 拖动右边的 **y_l**（被拒回答），让训练使被选回答变得**更**可能，再训练一次。'),
+        '(1) **You are the optimizer.** Drag the gold point on the left - how far the chosen ($\\Delta_w$) and rejected ($\\Delta_l$) log-probabilities move - to get the loss below 0.3 **while the chosen answer becomes less likely**. (2) Now press **Train 20 steps** a few times: a real toy model trains on this pair. Watch the bars. (3) Drag $y_l$ (**the rejected answer**, right) so that training makes the chosen answer **more** likely, and train again.',
+        '(1) **你来当优化器**：拖动左边的金色点——它表示被选（$\\Delta_w$）和被拒（$\\Delta_l$）回答的对数概率各变了多少——让损失低于 0.3，**同时被选回答变得更不可能**。(2) 然后按几次 **训练 20 步**：一个真正的玩具模型在这一对上训练。盯住下面的柱子。(3) 拖动右边的 $y_l$（**被拒回答**），让训练使被选回答变得**更**可能，再训练一次。'),
       setup: (scene: any, ui, ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
         gap_handles(scene, ui, ctx, { point: true });
       },
+      // one cue at a time: the gold point; y_l only once training has displaced the chosen answer (step 3)
+      cue: [t('the point (Δ_w, Δ_l)', '点 (Δ_w, Δ_l)')],
       actions: [{ id: 'train', label: t('Train 20 steps', '训练 20 步'), primary: true, run: (scene: any, _ctx, world) => train_press(scene, world) }],
       goals: [
-        { id: 'gap-only', check: (_s, _c, w) => !!w.state.gap_only, message: t('Both log-probabilities fell, the rejected one more: the loss only sees the gap Δ_w − Δ_l.', '两个对数概率都降了，被拒的降得更多：损失只看差距 Δ_w − Δ_l。') },
+        { id: 'gap-only', check: (_s, _c, w) => !!w.state.gap_only, message: t('Both log-probabilities fell, the rejected one more: the loss only sees the gap $\\Delta_w - \\Delta_l$.', '两个对数概率都降了，被拒的降得更多：损失只看差距 $\\Delta_w - \\Delta_l$。') },
         { id: 'displaced', check: (_s, _c, w) => !!w.state.displaced, message: t('The loss fell every step - and the chosen answer lost its probability to an answer that was never in the data.', '损失每一步都在降——被选回答的概率却流到了一个数据里从没出现过的回答上。') },
         { id: 'fixed', check: (_s, _c, w) => !!w.state.fixed, message: t('A rejected answer unlike the chosen one: now the push d points toward the chosen answer, and it gains.', '被拒回答和被选回答不再相像：推的方向 d 指向了被选回答，它的概率就上去了。') },
       ],
@@ -214,7 +216,10 @@ export const lesson: Lesson = {
             }
             if (e.type === 'trained') {
               const default_pair = d.ches > -0.3 && d.ches < -0.2;
-              if (default_pair && d.steps >= 40 && d.pw < 0.2) w.state.displaced = true;
+              if (default_pair && d.steps >= 40 && d.pw < 0.2 && !w.state.displaced) {
+                w.state.displaced = true;
+                w.cue([t('the rejected answer y_l', '被拒回答 y_l')]);
+              }
               if (d.ches < -0.5 && d.steps >= 100 && d.pw > 0.3) w.state.fixed = true;
               if (d.ches > -0.15 && d.steps >= 40) return { kind: 'misconception', id: 'similar-pairs-safe' };
               if (d.loss < 0.1 && d.pw < 0.05) return { kind: 'misconception', id: 'dpo-metrics-good' };
@@ -277,7 +282,7 @@ export const lesson: Lesson = {
     },
     {
       id: 'nll-q', kind: 'checkpoint', skill: 'likelihood-displacement', purpose: 'predict', title: t('Add an NLL term?', '加一项 NLL？'),
-      prompt: t('Same similar pair as before. You add α·(−log π(y_w)) - an SFT loss on the chosen answer, α = 0.5 - to the DPO loss and train 100 steps. What happens to the chosen answer?', '还是刚才那对相似的回答。你在 DPO 损失上加一项 α·(−log π(y_w))——对被选回答的 SFT 损失，α = 0.5——然后训练 100 步。被选回答会怎样？'),
+      prompt: t('Same similar pair as before. You add $\\alpha\\cdot(-\\log \\pi(y_w))$ - an SFT loss on the chosen answer, $\\alpha = 0.5$ - to the DPO loss and train 100 steps. What happens to the chosen answer?', '还是刚才那对相似的回答。你在 DPO 损失上加一项 $\\alpha\\cdot(-\\log \\pi(y_w))$——对被选回答的 SFT 损失，$\\alpha = 0.5$——然后训练 100 步。被选回答会怎样？'),
       question: {
         type: 'choice', options: [
           { id: 'a', label: t('Still displaced: the gap term dominates', '照样被挤走：差距那一项占主导') },
@@ -295,13 +300,14 @@ export const lesson: Lesson = {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
         scene.mode.set_value(1);
         gap_handles(scene, ui, ctx, { point: false });
+        world.cue([t('the +NLL switch', '+NLL 开关')]);
         scene.nll_switch.attach(ui, say(ctx, 'the +NLL switch', '+NLL 开关'), () => {
           scene.steps.set_value(0);
           world.emit('nll', { on: scene.nll.get_value() > 0.5 });
         });
       },
       actions: [{ id: 'train', label: t('Train 20 steps', '训练 20 步'), primary: true, run: (scene: any, _ctx, world) => train_press(scene, world) }],
-      goals: [{ id: 'rescue', check: (_s, _c, w) => !!w.state.rescued, message: t('With the NLL term the push gains a component toward y_w itself, and the chosen answer keeps its probability.', '加上 NLL 项，推的方向里多了一个指向 y_w 本身的分量，被选回答就保住了概率。') }],
+      goals: [{ id: 'rescue', check: (_s, _c, w) => !!w.state.rescued, message: t('With the NLL term the push gains a component toward $y_w$ itself, and the chosen answer keeps its probability.', '加上 NLL 项，推的方向里多了一个指向 $y_w$ 本身的分量，被选回答就保住了概率。') }],
       detectors: [
         {
           id: 'events', on: (e, w) => {
@@ -345,7 +351,7 @@ def dpo_loss(pi_w, pi_l, ref_w, ref_l, beta=0.1):
       notes: [
         { lines: [1, 4], text: t('mask is 1 on the answer’s tokens only (the prompt is not scored). Summing, not averaging, is standard DPO; dividing by the length gives the length-normalized variant, whose β lives on a different scale.', 'mask 只在回答的 token 上为 1（提示不计分）。求和而不是求平均，才是标准 DPO；除以长度就是长度归一化的版本，它的 β 尺度完全不同。'), shapes: 'logits: [B, T, V] → lp: [B, T] → log π(y|x): [B]' },
         { lines: [6, 9], text: t('The implicit rewards are β × the log-ratios; the loss is the same line as D1’s reward-model loss.', '隐式奖励是 β × 对数比；损失和 D1 奖励模型的损失是同一行。'), shapes: 'pi_w, pi_l, ref_w, ref_l: [B]' },
-        { lines: [10, 13], text: t('Return the implicit rewards for logging: their mean, their margin and how often r_w > r_l are what TRL logs as rewards/*.', '把隐式奖励返回去记日志：它们的均值、差距、以及 r_w > r_l 的比例，就是 TRL 记录的 rewards/* 各项。') },
+        { lines: [10, 13], text: t('Return the implicit rewards for logging: their mean, their margin and how often `r_w > r_l` are what TRL logs as rewards/*.', '把隐式奖励返回去记日志：它们的均值、差距、以及 `r_w > r_l` 的比例，就是 TRL 记录的 rewards/* 各项。') },
       ],
     },
     {

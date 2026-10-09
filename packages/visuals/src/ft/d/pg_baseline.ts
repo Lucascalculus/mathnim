@@ -10,7 +10,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { arrow, dashed, tex } from '../../linalg/kit';
 import { best_baseline, pg_estimates, plane3 } from './math';
-import { LANG_SPEC, clamp, label, label_at, live_number, pick, polyline, rect, resolve_lang, seg, x_ticks, type Lang, type P3 } from './kit';
+import { LANG_SPEC, clamp, label, label_at, live_number, mixed, pick, polyline, rect, resolve_lang, seg, x_ticks, type Lang, type P3 } from './kit';
 
 export interface PgBaselineParams extends Record<string, unknown> {
   story: string;
@@ -97,7 +97,8 @@ export const pg_baseline = define_visual<PgBaselineParams>({
         advantages.name = 'advantages';
 
         // ---- right top: the one-sample updates as points
-        const rcap = label(pick(lang, 'one-sample updates ĝ (3 possible)', '单样本更新 ĝ（3 种可能）'), 22, c.muted);
+        // ĝ is not in the canvas font: the symbols are TeX
+        const rcap = mixed([pick(lang, 'one-sample updates', '单样本更新'), { tex: '\\hat g' }, pick(lang, '(3 possible)', '（3 种可能）')], 0, 3.5, 22, c.muted);
         rcap.move_to([PC[0], 3.5, 0]);
         const axes = VGroup(...rays.map((v, i) => {
           const end = Pt([v[0] * 8.4, v[1] * 8.4]);
@@ -110,7 +111,7 @@ export const pg_baseline = define_visual<PgBaselineParams>({
         spread.name = 'spread';
         const mean_arrow = VGroup(arrow(Pt([0, 0]), Pt(mean), c.gold, 7, 0.16));
         mean_arrow.name = 'mean_arrow';
-        const mean_note = label(pick(lang, 'gold arrow = mean E[ĝ], same for every b', '金色箭头 = 均值 E[ĝ]，对每个 b 都一样'), 22, c.gold);
+        const mean_note = mixed([pick(lang, 'gold arrow = mean', '金色箭头 = 均值'), { tex: '\\mathbb{E}[\\hat g]' }, pick(lang, ', same for every b', '，对每个 b 都一样')], 0, 3.05, 22, c.gold);
         if (mean_note.width > 6.2) mean_note.scale(6.2 / mean_note.width);
         // centred over the plane, but never past the right edge of the frame
         mean_note.move_to([Math.min(PC[0], 6.85 - mean_note.width / 2), 3.05, 0]);

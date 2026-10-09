@@ -8,7 +8,7 @@
 //   share = Σ_{t∈A} w_t ℓ_t / Σ_t w_t ℓ_t,  A = the assistant's tokens.
 // Explore: move a card up or down to the other row (each card is a handle);
 // drag λ. Lessons read scene.mask / scene.lam and call attach_cards(ui, on_move).
-import { DecimalNumber, FadeIn, GrowFromEdge, Indicate, LaggedStart, MathTex, Scene, VGroup, VMobject, ValueTracker, DOWN } from 'manim-web';
+import { DecimalNumber, FadeIn, GrowFromEdge, Indicate, LaggedStart, MathTex, Scene, VGroup, VMobject, ValueTracker, DOWN, RIGHT } from 'manim-web';
 import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { box, fit, label } from '../f/kit';
@@ -338,7 +338,12 @@ export class TokenLossMaskScene extends Scene {
     formula.submobjects[2]?.set_color(c.gold);
     formula.move_to([-6.85 + formula.width / 2, -3.0, 0]);
     formula.name = 'formula';
-    const legend = fit(label(pick(lang, 'A = the assistant\'s tokens · ℓ = −log p', 'A = 助手的 token · ℓ = −log p'), 22, c.muted), 6.3, 0.38);
+    // ℓ is not in the text font: the definition is drawn in TeX next to the words
+    const legend_words = label(pick(lang, 'A = the assistant\'s tokens ·', 'A = 助手的 token ·'), 22, c.muted);
+    const legend_tex = (MathTex as any)('\\ell_t = -\\log p_t', { font_size: 26, color: c.muted });
+    const legend_row = VGroup(legend_words, legend_tex);
+    legend_row.arrange(RIGHT, { buff: 0.12 });
+    const legend = fit(legend_row, 6.3, 0.42);
     legend.move_to([-6.85 + legend.width / 2, -3.62, 0]);
     this.slider_ctl = slider(this.lam, { x: 2.3, y: -3.0, width: 3.0, min: 0.001, max: 1, log: true, zero: true, title: pick(lang, 'λ', 'λ'), label: pick(lang, 'the prompt-loss weight λ', '提示损失权重 λ'), decimals: 3, color: c.gold });
     this.slider_ctl.group.name = 'lambda_slider';

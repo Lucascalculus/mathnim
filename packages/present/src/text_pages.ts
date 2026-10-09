@@ -11,6 +11,7 @@ import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { Interaction } from 'manim-web/ext/interact';
 import { ScenePlayer, preload } from 'manim-web/ext/player';
 import { highlight_lines, lang_label } from './highlight';
+import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
 import { display_math_html, esc, math_html } from './math';
 
@@ -297,6 +298,7 @@ class VisualSlot {
   private player: ScenePlayer | null = null;
   private ui: Interaction | null = null;
   private aff: AffordanceLayer | null = null;
+  private cue: CueGuide | null = null;
   private io: IntersectionObserver | null = null;
   private disposed = false;
   private hint: HTMLElement;
@@ -349,13 +351,16 @@ class VisualSlot {
     v.explore(p.scene, this.ui);
     p.start_live();
     this.aff = new AffordanceLayer(this.ui, { color: this.ctx.accent ?? '#2f5bd3', hint: drag_hint(this.ui.handles, this.ctx.lang) });
-    setTimeout(() => this.aff?.coach(), 400);
+    this.cue = new CueGuide(this.aff, this.ui); // one pulsing control at a time
+    setTimeout(() => this.aff?.coach(this.cue?.target()), 400);
     this.hint.innerHTML = t('visual_explore', undefined, this.ctx.lang);
   }
   private async replay(v: EmbeddedVisual): Promise<void> {
     if (!this.player) return this.load(v);
     this.ui?.dispose();
     this.ui = null;
+    this.cue?.dispose();
+    this.cue = null;
     this.aff?.dispose();
     this.aff = null;
     this.hint.innerHTML = '';
@@ -367,6 +372,7 @@ class VisualSlot {
   dispose(): void {
     this.disposed = true;
     this.io?.disconnect();
+    this.cue?.dispose();
     this.aff?.dispose();
     this.ui?.dispose();
     this.player?.pause();

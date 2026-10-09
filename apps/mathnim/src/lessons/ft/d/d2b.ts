@@ -66,7 +66,7 @@ export const lesson: Lesson = {
         { tex: '= -\\beta\\,\\mathrm{KL}(\\pi\\,\\Vert\\,\\pi^*) + \\beta\\log Z', why: t('π_ref·e^{r/β} = Z·π*; split log(Z·π*) and use Σπ = 1.', 'π_ref·e^{r/β} = Z·π*；把 log(Z·π*) 拆开，再用 Σπ = 1。') },
         { tex: '\\pi^*(y\\mid x) = \\frac{1}{Z(x)}\\,\\pi_{ref}(y\\mid x)\\,e^{\\,r(x,y)/\\beta}', why: t('Z does not depend on π, and KL ≥ 0 with equality only at π = π*: the objective is largest exactly at π*.', 'Z 与 π 无关，而 KL ≥ 0，只有 π = π* 时取等：目标恰好在 π* 处最大。') },
       ],
-      blank: { line: 5, answer: 'exp(r/beta)', variables: ['r', 'beta'], prompt: t('π*(y) = π_ref(y) · ( ? ) / Z — what tilts the reference?', 'π*(y) = π_ref(y) · ( ? ) / Z —— 是什么让参考分布倾斜？'), ranges: { r: [-2, 2], beta: [0.3, 3] } },
+      blank: { line: 5, answer: 'exp(r/beta)', variables: ['r', 'beta'], prompt: t('$\\pi^*(y) = \\pi_{ref}(y) \\cdot (\\,?\\,) / Z$ — what tilts the reference?', '$\\pi^*(y) = \\pi_{ref}(y) \\cdot (\\,?\\,) / Z$ —— 是什么让参考分布倾斜？'), ranges: { r: [-2, 2], beta: [0.3, 3] } },
       outro: t('Read it as: start from the reference and tilt it toward high reward; β sets how hard. A Bayesian reading: π_ref is the prior, e^{r/β} the likelihood (Korbak et al., 2022).', '读法：从参考分布出发，往高奖励的方向倾斜；β 决定倾斜多猛。贝叶斯的读法：π_ref 是先验，e^{r/β} 是似然（Korbak 等，2022）。'),
     },
     {
@@ -102,8 +102,8 @@ export const lesson: Lesson = {
       id: 'leash', kind: 'explore', title: t('Loosen the leash', '放松缰绳'), skill: 'overoptimization',
       scene: vis('kl_leash_policy', { story: 'setup' }),
       prompt: t(
-        'Drag **β** (the gold slider; left is loose). The bars are π* = π_ref·e^{r/β}/Z, computed exactly. (1) Loosen the leash until the flattering exploit holds most of the probability. (2) Then the true quality column appears: find the β with the **best true quality** and leave the slider there. (3) Switch off "the reference can say the exploit" and loosen the leash all the way. Where does the probability go now?',
-        '拖动 **β**（金色滑块，往左是松）。柱子是精确算出的 π* = π_ref·e^{r/β}/Z。(1) 放松缰绳，直到奉承漏洞拿走大部分概率。(2) 这时真实质量那一列会出现：找到**真实质量最好**的 β，把滑块停在那里。(3) 关掉"参考模型会说漏洞回答"，再把缰绳彻底放松。概率现在去哪了？'),
+        'Drag **β** (the gold slider; left is loose). The bars are $\\pi^* = \\pi_{ref}\\, e^{r/\\beta} / Z$, computed exactly. (1) Loosen the leash until the flattering exploit holds most of the probability. (2) Then the true quality column appears: find the β with the **best true quality** and leave the slider there. (3) Switch off "the reference can say the exploit" and loosen the leash all the way. Where does the probability go now?',
+        '拖动 **β**（金色滑块，往左是松）。柱子是精确算出的 $\\pi^* = \\pi_{ref}\\, e^{r/\\beta} / Z$。(1) 放松缰绳，直到奉承漏洞拿走大部分概率。(2) 这时真实质量那一列会出现：找到**真实质量最好**的 β，把滑块停在那里。(3) 关掉"参考模型会说漏洞回答"，再把缰绳彻底放松。概率现在去哪了？'),
       setup: (scene: any, ui, ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
         scene.slider.attach(ui, say(ctx, 'β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）'), {
@@ -127,7 +127,10 @@ export const lesson: Lesson = {
           id: 'release', on: (e, w) => {
             if (e.type !== 'released') return null;
             const d = e.data as { beta: number; eg: number; can: boolean; revealed: boolean };
-            if (d.revealed && d.can && d.eg >= 0.55) w.state.best = true;
+            if (d.revealed && d.can && d.eg >= 0.55 && !w.state.best) {
+              w.state.best = true;
+              w.cue([t('the exploit switch', '漏洞回答开关')]); // step (3) begins
+            }
             if (!d.can && d.beta <= 0.06) w.state.wall = true;
             if (d.revealed && d.can && d.beta < 0.3) return { kind: 'misconception', id: 'reward-up-means-better' };
             return null;
@@ -141,7 +144,9 @@ export const lesson: Lesson = {
         { text: t('The proxy reward is still climbing here, but the true quality is falling. Loosening the leash further only feeds the exploit.', '这里代理奖励还在涨，真实质量却在跌。缰绳再放松，只是在喂那个漏洞。'), when: { finding: 'reward-up-means-better' } },
         { text: t('The leash limits how far you exploit the reward model. It does not fix the reward model.', '缰绳限制的是你能把奖励模型的毛病利用到多远，它修不好奖励模型本身。'), when: 'goal' },
       ],
-      hints: [t('In step 2 watch E[g], not E[r].', '第 2 步看 E[g]，不要看 E[r]。'), t('The wall: the switch next to the trace, then β all the way left.', '那堵墙：轨迹图旁边的开关，然后把 β 拖到最左。')],
+      // one cue at a time: the slider; the switch after step (2)
+      cue: [t('β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）')],
+      hints: [t('In step 2 watch $\\mathbb{E}[g]$, not $\\mathbb{E}[r]$.', '第 2 步看 $\\mathbb{E}[g]$，不要看 $\\mathbb{E}[r]$。'), t('The wall: the switch next to the trace, then β all the way left.', '那堵墙：轨迹图旁边的开关，然后把 β 拖到最左。')],
       solve: (s: any, _c, w) => {
         s.lb.set_value(Math.log10(0.2));
         check_reveal(s, w);

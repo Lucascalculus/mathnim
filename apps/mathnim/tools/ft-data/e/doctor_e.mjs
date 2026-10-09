@@ -12,4 +12,5 @@ await build({
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
 });
 process.env.MANIM_WEB_FONTS = pk('manim-web/src/ext/text/fonts');
+process.env.MATHNIM_PUBLIC = path.resolve(here, '../../../public');
 await import(pathToFileURL(out).href);

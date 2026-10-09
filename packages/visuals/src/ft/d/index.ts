@@ -11,7 +11,7 @@ import { dpo_gap_plane } from './dpo_gap_plane';
 export { bradley_terry_fit, ppo_clip, pg_baseline, kl_leash_policy, dpo_gap_plane };
 export { DPO_STEPS_MAX } from './dpo_gap_plane';
 export { leash_state, LEASH_LB } from './kl_leash_policy';
-export { attach_bt_cards, league, fit_from, BT_CARDS } from './bradley_terry_fit';
+export { attach_bt_cards, league, fit_from, BT_CARDS, BT_START } from './bradley_terry_fit';
 export { PG_REWARDS, PG_PROBS, PG_BEST } from './pg_baseline';
 export * as dmath from './math';
 

@@ -98,7 +98,11 @@ describe('lowrank_update (C2 D1-D2, I2)', () => {
       expect(s.crop.length).toBe(s.N);
       expect(s.U.length).toBe(s.N);
       expect(s.V.length).toBe(s.N);
-      expect(s.U[0].length).toBeGreaterThanOrEqual(64);
+      // the top 64 components, or all of them when the rank is lower (rank16 keeps 16; the rest have σ = 0)
+      const comps = Math.min(64, s.sigma.filter((x) => x > 0).length);
+      expect(s.U[0].length).toBe(comps);
+      expect(s.V[0].length).toBe(comps);
+      expect(s.crop[0].length).toBe(s.N);
       for (let i = 1; i < s.sigma.length; i++) expect(s.sigma[i]).toBeLessThanOrEqual(s.sigma[i - 1] + 1e-12);
     }
   });

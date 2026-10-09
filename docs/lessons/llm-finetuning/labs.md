@@ -2,6 +2,8 @@
 
 2026-10-10。对应 [README.md](README.md) 第 6 节：只给教程，不托管算力。
 
+> **制作结果（2026-10-10）：** 教程在 `labs/L1-rag.md`、`L2-sft-lora.md`、`L3-dpo.md`、`L4-grpo.md`、`L5-distill.md`，代码在 `labs/code/`（`common.py`、各实验脚本、`grpo_minimal.py`、`requirements.txt`）。所有脚本都在 Mac 上用微型模型做过冒烟测试，尚未在 T4 上实跑。与本大纲的差异：L4 的主线改为 TRL + `Qwen2.5-0.5B-Instruct`（Unsloth 1.5B 作为未运行的选做路线）；L1 第 1 部分直接复用 A2 的行星语料；大模型评委默认用本地小模型，API 版本只从环境变量读密钥；没有单独做 Colab 笔记本。
+
 制作阶段，每个实验写成一份中英双语教程（中文在前），放在 `labs/<lab>.md`（见 [BUILD.md](BUILD.md)），另附一个可以直接运行的 Colab 笔记本。出处标注沿用 [part-e-reasoning.md](part-e-reasoning.md) 的写法：[T§n]、[P§n]、[A§n]、[核对]。凡是写着"以实测为准"的数字，制作时都要先完整跑一遍，再把实测值写进教程。
 
 ## 0. 共同约定

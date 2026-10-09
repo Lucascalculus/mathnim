@@ -99,6 +99,11 @@ or `?mode=game` in the URL) turns it into a level with stars.
   `{ event }` or `{ finding }`, optionally with a condition `if`. Keep their
   text fixed (no variant numbers) so they can be recorded: `npm run narration`
   records every line of every world.
+* **Cues**: only one control pulses at a time (with the "drag me" label and the
+  coach demonstration): the first one not used yet, in creation order (handles,
+  then items); the others show their plain ring. A world can choose the order
+  with `cue: ['B', 'C']` (handle or item labels; L10n allowed) and move it
+  later with `world.cue([...])`, from setup or e.g. when a goal unlocks a control.
 * **Scrubbable numbers**: `{scrub:name}` in the prompt becomes a number the
   learner drags left/right, bound to a tracker of the scene.
 * **solve** is a scripted winner: `npm run doctor` plays every world

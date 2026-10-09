@@ -143,7 +143,7 @@ def build():
     s.line(px, gy0 + gh, px, py, C['gold'], 1.5, dash='4 3')
     s.line(gx0 + gw / 2, py, px, py, C['gold'], 1.5, dash='4 3')
     s.dot(px, py, 5, C['gold'])
-    s.text(px + 8, py - 8, 'σ(2) = 0.88', 14, C['gold'])
+    s.text(px + 10, py + 24, 'σ(2) = 0.88', 14, C['gold'])  # below the curve, clear of the axis title
     s.text(gx0 + gw, gy0 + gh + 20, 'r₂ − r₁', 14, C['ink'], 'end')
     s.text(gx0 + gw / 2 + 6, gy0 + 12, 'P(y₂ ≻ y₁)', 13, C['ink'])
     for v in (-6, 0, 6):

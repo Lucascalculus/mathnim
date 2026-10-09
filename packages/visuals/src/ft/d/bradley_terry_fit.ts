@@ -18,10 +18,13 @@ export interface BradleyTerryFitParams extends Record<string, unknown> {
 }
 
 const ITEMS = ['A', 'B', 'C', 'D'];
-// bars
-const BX = [-5.75, -4.55, -3.35, -2.15];
-const R_LO = -2.5, R_HI = 8.5;
-const BY0 = -3.0, BY1 = 2.35;
+// bars: spaced so that the handle rings (and the hint pill of the cued one) stay apart at a 700 px canvas;
+// the reward scale uses the panel's full height
+const BX = [-6.05, -4.6, -3.15, -1.7];
+const R_LO = -2.5, R_HI = 5.5;
+const BY0 = -2.85, BY1 = 1.9;
+/** The rewards a world starts from: a first guess (A is pinned at 0), so the bars are visible and wrong. */
+export const BT_START = [0, 2.5, 1.5, 0.5];
 const Yr = (r: number) => BY0 + ((clamp(r, R_LO, R_HI) - R_LO) / (R_HI - R_LO)) * (BY1 - BY0);
 const RofY = (y: number) => R_LO + ((y - BY0) / (BY1 - BY0)) * (R_HI - R_LO);
 // matchup rows
@@ -30,7 +33,8 @@ const Px = (p: number) => TX0 + p * (TX1 - TX0);
 const ROW_Y = [2.6, 1.9, 1.2, 0.5];
 /** The extra comparisons that can be added to the data: [winner, loser]. */
 export const BT_CARDS: [number, number][] = [[2, 3], [3, 2], [0, 2]];
-const CARD_X = [1.3, 2.9, 4.5], CARD_Y = -2.45;
+// tray, left to right: A ≻ C, D ≻ C, C ≻ D (the card that gives D a loss is not first)
+const CARD_X = [4.5, 2.9, 1.3], CARD_Y = -2.45;
 /** Where a card sits once it is in the data. */
 const ADDED_Y = -1.0;
 
@@ -76,7 +80,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
   scene: (p) => {
     const lang: Lang = resolve_lang(p.lang);
     class BradleyTerryFit extends Scene {
-      r = [ValueTracker(0), ValueTracker(0), ValueTracker(0), ValueTracker(0)];
+      r = BT_START.map((v) => ValueTracker(v));
       steps = ValueTracker(0);
       /** Card k is in the data (1) or not (0). */
       cards = [ValueTracker(0), ValueTracker(0), ValueTracker(0)];
@@ -143,9 +147,9 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
         const formula = tex('P(i \\succ j) = \\sigma(r_i - r_j)', 32, c.ink).move_to([-4.1, 3.45, 0]);
         formula.name = 'formula';
         const note = label(pick(lang, 'A is pinned at 0: only differences count', 'A 固定为 0：只有差值有意义'), 22, c.muted);
-        note.move_to([-4.1, 2.9, 0]);
-        const base = seg([-6.5, Yr(0)], [-1.5, Yr(0)], c.muted, 2);
-        const zero = tex('0', 24, c.muted).move_to([-6.7, Yr(0), 0]);
+        note.move_to([-6.5 + note.width / 2, 2.9, 0]); // left-aligned: clear of D's value when D runs away
+        const base = seg([-6.5, Yr(0)], [-1.25, Yr(0)], c.muted, 2);
+        const zero = tex('0', 24, c.muted).move_to([-6.75, Yr(0), 0]);
         const bars = VGroup(...ITEMS.map((_, k) => always_redraw(() => {
           const r = this.r[k].get_value();
           const top = Yr(r);
@@ -156,13 +160,13 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
           return g;
         })));
         bars.name = 'bars';
-        const names = VGroup(...ITEMS.map((n, k) => tex(n, 34, COL[k]).move_to([BX[k], -3.5, 0])));
+        const names = VGroup(...ITEMS.map((n, k) => tex(n, 34, COL[k]).move_to([BX[k], -3.62, 0])));
         const values = VGroup(...ITEMS.map((_, k) => {
           const v = live_number(() => this.r[k].get_value(), { decimals: 2, size: 24, color: c.ink });
           v.add_updater((m: any) => {
             const r = this.r[k].get_value();
-            const y = r >= 0 ? Yr(r) + 0.28 + (r > R_HI ? 0.42 : 0) : Yr(r) - 0.28;
-            m.move_to([BX[k], Math.min(y, 3.0), 0]);
+            const y = r >= 0 ? Yr(r) + 0.28 + (r > R_HI ? 0.37 : 0) : Yr(r) - 0.28;
+            m.move_to([BX[k], Math.min(y, 2.55), 0]); // below the note at 2.9
           });
           return v;
         }));
@@ -245,7 +249,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
           this.play(this.r[1].animate.set_value(-0.89), this.r[2].animate.set_value(-1.33), { run_time: 2.5, rate_func: smooth });
           this.wait(0.8);
           // gradient ascent: D runs away (1, 10, 100, 1000, 10 000 steps)
-          const traj = fit_from([0, -0.89, -1.33, 0], BT_TOY, 10000);
+          const traj = fit_from([0, -0.89, -1.33, BT_START[3]], BT_TOY, 10000);
           for (const n of [10, 100, 1000, 10000]) {
             const s = traj[n - 1];
             this.play(this.r[3].animate.set_value(s[3]), this.r[1].animate.set_value(s[1]), this.r[2].animate.set_value(s[2]), this.steps.animate.set_value(n), { run_time: 1.6, rate_func: linear });
@@ -278,7 +282,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
         },
         constraint: (pt: P3) => [BX[k], clamp(pt[1], BY0, BY1), 0],
         step: (BY1 - BY0) / (R_HI - R_LO) * 0.05,
-        radius: 0.42,
+        radius: 0.35,
         label: pick(lang, `the reward of ${ITEMS[k]}`, `${ITEMS[k]} 的奖励`),
         on_end: () => scene.emit('dragged', { item: ITEMS[k], r: scene.r[k].get_value(), err: scene.abc_error() }),
       });

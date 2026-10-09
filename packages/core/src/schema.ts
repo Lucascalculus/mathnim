@@ -111,6 +111,13 @@ export interface ExploreStep extends StepBase {
    * be reached - and that they are not reached before anyone acts.
    */
   solve?: (scene: Scene, ctx: LessonContext, world: WorldApi) => void;
+  /**
+   * The controls to point at, in order (handle or item labels, as given to
+   * add_handle / items): only the first unused one pulses and gets the coach
+   * demonstration; when it has been used the cue moves on. Default: every
+   * control in creation order (handles, then items). world.cue() changes it later.
+   */
+  cue?: L10n[];
   /** Buttons next to Continue (e.g. "Serve", "Pour"): they act on the world. */
   actions?: { id: string; label: L10n; run: (scene: Scene, ctx: LessonContext, world: WorldApi) => void; primary?: boolean }[];
 }

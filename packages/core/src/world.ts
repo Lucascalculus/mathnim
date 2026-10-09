@@ -23,6 +23,13 @@ export interface Finding {
 export interface WorldApi {
   emit(type: string, data?: Record<string, unknown>): void;
   state: Record<string, unknown>;
+  /**
+   * Which controls the figure should point at next, in order (handle or item
+   * labels): only the first unused one pulses. Call it from setup to start
+   * elsewhere than the first control, or later (e.g. when a goal unlocks a new
+   * control) to move the cue. Presenters without cues ignore it.
+   */
+  cue(targets: L10n[]): void;
 }
 export interface Goal {
   id: string;
@@ -57,7 +64,9 @@ export type WorldOutput =
   | { type: 'semantic'; event: SemanticEvent }
   | { type: 'finding'; finding: Finding }
   | { type: 'goal'; goal: Goal; message: L10n; final: boolean; stars?: 1 | 2 | 3 }
-  | { type: 'line'; line: Line };
+  | { type: 'line'; line: Line }
+  /** The world asked the presenter to cue these controls (WorldApi.cue). */
+  | { type: 'cue'; targets: L10n[] };
 
 export interface WorldSpec {
   goals?: Goal[];
@@ -91,7 +100,7 @@ export class WorldSession {
     private now: () => number = () => performance.now(),
   ) {
     this.t0 = this.last_input = now();
-    this.api = { state: {}, emit: (type, data) => this.event({ type, data, t: this.now() }) };
+    this.api = { state: {}, emit: (type, data) => this.event({ type, data, t: this.now() }), cue: (targets) => this.out({ type: 'cue', targets: [...targets] }) };
   }
 
   /** Say the 'enter' lines and start watching for idleness. */

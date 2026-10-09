@@ -216,7 +216,7 @@ export const lesson: Lesson = {
     {
       id: 'choose', kind: 'read', chapter: t('How to choose', '怎么选'), title: t('Plan for forgetting', '为遗忘做好准备'),
       blocks: choose_card({
-        upto: 'B3', highlight: 'X3', card: '',
+        upto: 'B4', highlight: 'X', card: 'B4',
         rule: t('If you change weights, run general-capability and safety regression evals, every time. If you need both the new task and the old abilities, default to replay (about 30% general data) and a smaller learning rate; if that is not enough, use LoRA, a KL constraint or on-policy methods (E3). Track KL to the base model during training as an early warning.', '只要改了权重，就每次都跑通用能力和安全两类回归评测。如果新任务和原有能力都要，默认用回放（约 30% 的通用数据）加较小的学习率；还不够，就用 LoRA、KL 约束或在线方法（E3）。训练时跟踪相对基座的 KL，作为早期预警。'),
         counter: t('"Our data is clean, so we do not need to test safety." Benign fine-tuning data weakened GPT-3.5’s safety behaviour (Qi et al.). And "we used LoRA, so nothing is forgotten": it forgets less, not nothing.', '"我们的数据很干净，不用测安全。"良性的微调数据也削弱了 GPT-3.5 的安全行为（Qi 等）。还有"我们用了 LoRA，所以什么都不会忘"：它忘得少，不是不忘。'),
       }),

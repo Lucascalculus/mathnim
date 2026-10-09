@@ -30,6 +30,8 @@ export type RuntimeEvent =
   | { type: 'page'; step: TextStep }
   /** The fill-in line of a derivation was answered (or shown: `revealed`). */
   | { type: 'blank'; step: DeriveStep; grade: Grade; attempt: number; revealed?: boolean }
+  /** The world moved the cue to these controls (WorldApi.cue; also from setup, before 'explore'). */
+  | { type: 'cue'; step: ExploreStep; targets: L10n[] }
   | { type: 'finished' };
 
 export interface RuntimeOptions {
@@ -256,6 +258,8 @@ export class LessonRuntime {
           this.emit({ type: 'goal', step, message: this.text(o.message), id: o.goal.id, final: o.final, stars: o.stars });
         } else if (o.type === 'line') {
           this.emit({ type: 'line', step, line: { ...o.line, text: this.text(o.line.text) } });
+        } else if (o.type === 'cue') {
+          this.emit({ type: 'cue', step, targets: o.targets });
         }
       });
       this.world = world;

@@ -74,7 +74,7 @@ export function home(root: HTMLElement): void {
       home(root);
     });
   }
-  void draw_thumbnails(root);
+  draw_thumbnails(root);
   new AskPanel(root.querySelector<HTMLElement>('#ask')!, {
     provider, validate: worker_validator(), log,
     suggestions: course.suggestions
@@ -84,35 +84,114 @@ export function home(root: HTMLElement): void {
   });
 }
 
-/** Each card shows the final frame of its lesson's first scene, rendered live by manim-web. */
-async function draw_thumbnails(root: HTMLElement): Promise<void> {
-  for (const c of root.querySelectorAll<HTMLCanvasElement>('canvas.thumb')) {
-    const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
-    const lesson = cl && playable(cl);
-    const step = (cl?.thumb && lesson?.steps.find((s: any) => s.id === cl.thumb && s.scene)) || lesson?.steps.find((s: any) => s.scene);
-    if (!step) {
-      c.classList.add('empty');
-      if (lesson) text_thumbnail(c, lesson);
-      else {
-        const g = c.getContext('2d')!;
-        g.fillStyle = '#2f5bd3';
-        g.globalAlpha = 0.85;
-        g.font = '600 30px Inter, ui-sans-serif, system-ui, sans-serif';
-        g.textAlign = 'center';
-        g.fillText(t('thumb_ai'), c.width / 2, c.height / 2 + 10);
-      }
-      continue;
+/**
+ * Each card shows the final frame of its lesson's first scene, rendered live by manim-web.
+ * Rendering a scene means running its whole timeline, so cards are drawn lazily: only
+ * when they scroll near the viewport, one at a time with a pause in between (the page
+ * stays responsive), and each finished frame is kept so switching courses or coming
+ * back to the home page redraws it instantly.
+ */
+const THUMBS = new Map<string, CanvasImageSource>();
+const queue: HTMLCanvasElement[] = [];
+let drawing = false;
+
+function draw_thumbnails(root: HTMLElement): void {
+  const canvases = [...root.querySelectorAll<HTMLCanvasElement>('canvas.thumb')];
+  const lazy: HTMLCanvasElement[] = [];
+  for (const c of canvases) {
+    const hit = THUMBS.get(thumb_key(c));
+    if (hit) c.getContext('2d')!.drawImage(hit, 0, 0, c.width, c.height);
+    else lazy.push(c);
+  }
+  if (!lazy.length) return;
+  // pre-rendered images (npm run thumbs) first; only lessons without one are rendered live
+  void Promise.all(lazy.map(prerendered)).then((ok) => observe(lazy.filter((_, i) => !ok[i])));
+}
+
+/** Draw public/thumbs/<lesson>.<lang>.webp (English for one-language lessons) if it exists. */
+function prerendered(c: HTMLCanvasElement): Promise<boolean> {
+  const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
+  if (!cl?.lesson) return Promise.resolve(false);
+  const lang = lesson_langs(cl.lesson).length > 1 ? ui_lang() : 'en';
+  return new Promise((done) => {
+    const img = new Image();
+    img.onload = () => {
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      THUMBS.set(thumb_key(c), img);
+      done(true);
+    };
+    img.onerror = () => done(false);
+    img.src = `thumbs/${cl.id}.${lang}.webp`;
+  });
+}
+
+function observe(lazy: HTMLCanvasElement[]): void {
+  if (!lazy.length) return;
+  if (typeof IntersectionObserver === 'undefined') {
+    queue.push(...lazy);
+    void pump();
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      io.unobserve(e.target);
+      queue.push(e.target as HTMLCanvasElement);
     }
-    try {
-      const spec: any = (step as any).scene;
-      const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: Math.random, lang: ui_lang() });
-      const player = new ScenePlayer(scene, c, { audio: false });
-      apply_theme(player);
-      await player.load();
-      player.show_end();
-    } catch {
-      c.classList.add('empty');
+    void pump();
+  }, { rootMargin: '200px 0px' });
+  for (const c of lazy) io.observe(c);
+}
+
+const thumb_key = (c: HTMLCanvasElement) => `${c.dataset.lesson}|${ui_lang()}`;
+const idle = () => new Promise<void>((r) => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(() => r(), { timeout: 300 }) : setTimeout(r, 30)));
+
+async function pump(): Promise<void> {
+  if (drawing) return;
+  drawing = true;
+  try {
+    while (queue.length) {
+      const c = queue.shift()!;
+      if (!c.isConnected) continue; // the page was re-rendered meanwhile
+      await idle();
+      await draw_one(c);
+      const keep = document.createElement('canvas');
+      keep.width = c.width;
+      keep.height = c.height;
+      keep.getContext('2d')!.drawImage(c, 0, 0);
+      THUMBS.set(thumb_key(c), keep);
     }
+  } finally {
+    drawing = false;
+  }
+}
+
+async function draw_one(c: HTMLCanvasElement): Promise<void> {
+  const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
+  const lesson = cl && playable(cl);
+  const step = (cl?.thumb && lesson?.steps.find((s: any) => s.id === cl.thumb && s.scene)) || lesson?.steps.find((s: any) => s.scene);
+  if (!step) {
+    c.classList.add('empty');
+    if (lesson) text_thumbnail(c, lesson);
+    else {
+      const g = c.getContext('2d')!;
+      g.fillStyle = '#2f5bd3';
+      g.globalAlpha = 0.85;
+      g.font = '600 30px Inter, ui-sans-serif, system-ui, sans-serif';
+      g.textAlign = 'center';
+      g.fillText(t('thumb_ai'), c.width / 2, c.height / 2 + 10);
+    }
+    return;
+  }
+  try {
+    const spec: any = (step as any).scene;
+    const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: Math.random, lang: ui_lang() });
+    const player = new ScenePlayer(scene, c, { audio: false });
+    apply_theme(player);
+    await player.load();
+    player.show_end();
+  } catch {
+    c.classList.add('empty');
   }
 }
 

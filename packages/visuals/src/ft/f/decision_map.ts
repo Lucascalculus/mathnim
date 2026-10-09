@@ -26,7 +26,7 @@ export const decision_map = define_visual<DecisionMapParams>({
   summary: 'The fine-tuning course decision map: evals, context baseline, fixed labels, then knowledge / behaviour / capability / efficiency branches down to methods (RAG, SFT, DPO, RLVR, distillation...). Shows the nodes unlocked up to a lesson, highlights nodes, traces a case path, and shows a lesson\'s one-line rule. A figure, no handles.',
   topics: ['fine-tuning', 'llm', 'decision', 'rag', 'sft', 'dpo', 'rlvr', 'distillation', 'how to choose'],
   params: {
-    upto: { type: 'enum', values: [...LESSONS], default: 'F1', doc: 'show the nodes taught up to this lesson (A1, A2, A2b, B1-B3, F0, C1-C3, D1, D2a, D2b, D3, D4, E1-E3, F1; D2 = D2b); later nodes are not drawn' },
+    upto: { type: 'enum', values: [...LESSONS], default: 'F1', doc: 'show the nodes taught up to this lesson (A1, A2, A2b, B1-B4, F0, C1-C3, D1, D2a, D2b, D3, D4, E1-E3, F1; D2 = D2b); later nodes are not drawn' },
     highlight: { type: 'text', max_length: 120, default: '', doc: "node ids to highlight, comma separated, e.g. 'K2,K3' (ids: 0 1 T ENC 2 K1-K5 B1 B2 B3 R C1-C4 E1-E3 S X V; a 'DM-' prefix is fine)" },
     path: { type: 'text', max_length: 160, default: '', doc: "a case's route, lit node by node in order, e.g. '0,1,T,2,K1,K2,K3'" },
     card: { type: 'enum', values: ['', ...LESSONS], default: '', doc: "show this lesson's one-line 'how to choose' rule under the map ('' for none)" },
@@ -37,6 +37,7 @@ export const decision_map = define_visual<DecisionMapParams>({
     {},
     { upto: 'A1', card: 'A1', lang: 'zh' },
     { upto: 'A2', highlight: 'K2,K3', card: 'A2' },
+    { upto: 'B4', highlight: 'X', card: 'B4', lang: 'zh' },
     { upto: 'F1', path: '0,1,T,2,K1,K2,K3', lang: 'zh' },
     { upto: 'E1', highlight: 'C1,C2', card: 'E1', lang: 'zh', show_out_of_scope: false },
   ],

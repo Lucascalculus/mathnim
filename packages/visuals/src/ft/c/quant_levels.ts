@@ -266,7 +266,7 @@ export const quant_levels = define_visual<QuantLevelsParams>({
         // the rule in use, with its numbers
         // the rule in use (one static formula per format) and its numbers (live, cheap Latin text)
         const rules = (['int4', 'nf4', 'int8'] as Format[]).map((f) => {
-          if (f !== 'nf4') return at_left(tex(`\\hat w = s\\cdot\\operatorname{round}(w/s),\\quad s = \\text{absmax}/${f === 'int8' ? 127 : 7}`, 30), -6.85, -2.5);
+          if (f !== 'nf4') return at_left(tex(`\\hat w = s\\cdot\\lfloor w/s \\rceil,\\quad s = \\text{absmax}/${f === 'int8' ? 127 : 7}`, 30), -6.85, -2.5);
           const m = tex('\\hat w = \\text{absmax}\\cdot q,', 30);
           const words = txt(L('q = the NF4 level nearest to w / absmax', 'q = 离 w / absmax 最近的 NF4 格点'), 24, c.ink);
           return at_left(VGroup(m, words).arrange(RIGHT, { buff: 0.2 }), -6.85, -2.5);

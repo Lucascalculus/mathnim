@@ -1,0 +1,12 @@
+# Cloudflare Pages response headers.
+# Built assets have content hashes in their names: cache them for a year.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+# Narration audio is keyed by its text, but can be re-recorded with another voice.
+/narration/*
+  Cache-Control: public, max-age=86400
+# Thumbnails and figures keep their names when regenerated: cache for a day.
+/thumbs/*
+  Cache-Control: public, max-age=86400
+/ft/*
+  Cache-Control: public, max-age=86400

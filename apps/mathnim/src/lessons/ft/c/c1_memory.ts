@@ -68,9 +68,9 @@ export const lesson: Lesson = {
       id: 'bytes', kind: 'derive', chapter: t('Per parameter', '每个参数'), title: t('Sixteen bytes per trained parameter', '每个被训练的参数 16 字节'), skill: 'vram-static',
       intro: t('Mixed-precision AdamW, the usual setup, keeps five numbers for every trained parameter. Add them up.', '常用的混合精度 AdamW，为每个被训练的参数保存五个数。把它们加起来。'),
       lines: [
-        { tex: '\\underbrace{2}_{\\text{bf16 weight}} + \\underbrace{2}_{\\text{bf16 grad}} + \\underbrace{4}_{\\text{fp32 master}} + \\underbrace{4}_{m} + \\underbrace{4}_{v} = 16 \\text{ bytes}', why: t('Compute in bf16; keep an fp32 master copy of each weight and Adam’s first and second moments $m$, $v$ in fp32 (the ZeRO paper writes it $2\\Psi + 2\\Psi + 12\\Psi$).', '计算用 bf16；每个权重另存一份 fp32 主权重，以及 Adam 的一阶矩 $m$ 和二阶矩 $v$（也是 fp32；ZeRO 论文写作 $2\\Psi + 2\\Psi + 12\\Psi$）。') },
-        { tex: '\\text{bf16 spacing near 1: } 2^{-7} \\approx 0.0078; \\quad \\frac{\\eta}{|w|} = \\frac{10^{-5}}{0.02} = 5 \\times 10^{-4} \\ll 2^{-8}', why: t('Why the fp32 copy: bf16 has 7 mantissa bits, so a typical update to a weight of 0.02 is far smaller than half a step between bf16 numbers and rounds away to nothing. (The mixed-precision paper made this argument for fp16; these numbers adapt it to bf16.)', '为什么要 fp32 副本：bf16 只有 7 位尾数，一个大小为 0.02 的权重，典型的一次更新远小于 bf16 相邻两数间距的一半，四舍五入后就没了。（混合精度论文是针对 fp16 讲的；这里的数字是改写到 bf16 的类比。）') },
-        { tex: '\\text{8-bit Adam: } 2 + 2 + 4 + 1 + 1 = 10, \\qquad \\text{pure bf16: } 2 + 2 + 2 + 2 = 8', why: t('Cheaper variants: quantise $m$ and $v$ to 8 bits, or keep everything in bf16 (which needs tricks such as stochastic rounding to stop updates vanishing).', '更省的变体：把 $m$、$v$ 量化到 8 位，或者全部用 bf16（这需要随机舍入之类的技巧，免得更新被吞掉）。') },
+        { tex: '\\underbrace{2}_{w,\ \\text{bf16}} + \\underbrace{2}_{g,\ \\text{bf16}} + \\underbrace{4}_{w,\ \\text{fp32}} + \\underbrace{4}_{m,\ \\text{fp32}} + \\underbrace{4}_{v,\ \\text{fp32}} = 16', why: t('Bytes per parameter. Compute in bf16 (weight $w$ and gradient $g$, 2 bytes each); keep an fp32 master copy of each weight and Adam’s first and second moments $m$, $v$ in fp32 (the ZeRO paper writes it $2\\Psi + 2\\Psi + 12\\Psi$).', '每个参数占的字节数。计算用 bf16（权重 $w$ 和梯度 $g$ 各 2 字节）；每个权重另存一份 fp32 主权重，以及 Adam 的一阶矩 $m$ 和二阶矩 $v$（也是 fp32；ZeRO 论文写作 $2\\Psi + 2\\Psi + 12\\Psi$）。') },
+        { tex: '\\varepsilon_{\\text{bf16}} = 2^{-7} \\approx 0.0078; \\quad \\frac{\\eta}{|w|} = \\frac{10^{-5}}{0.02} = 5 \\times 10^{-4} \\ll 2^{-8}', why: t('Why the fp32 copy: bf16 has 7 mantissa bits, so neighbouring bf16 numbers near 1 are $\\varepsilon = 2^{-7}$ apart, and a typical update to a weight of 0.02 is far smaller than half a step between bf16 numbers and rounds away to nothing. (The mixed-precision paper made this argument for fp16; these numbers adapt it to bf16.)', '为什么要 fp32 副本：bf16 只有 7 位尾数，1 附近相邻两个 bf16 数相差 $\\varepsilon = 2^{-7}$；一个大小为 0.02 的权重，典型的一次更新远小于 bf16 相邻两数间距的一半，四舍五入后就没了。（混合精度论文是针对 fp16 讲的；这里的数字是改写到 bf16 的类比。）') },
+        { tex: '2 + 2 + 4 + \\underbrace{1 + 1}_{m,\ v:\ \\text{int8}} = 10, \\qquad \\underbrace{2 + 2 + 2 + 2}_{w,\ g,\ m,\ v:\ \\text{bf16}} = 8', why: t('Cheaper variants: 8-bit Adam quantises $m$ and $v$ to 8 bits (left), or keep everything in bf16 with no fp32 copy (right; this needs tricks such as stochastic rounding to stop updates vanishing).', '更省的变体：8-bit Adam 把 $m$、$v$ 量化到 8 位（左），或者全部用 bf16、不留 fp32 副本（右；这需要随机舍入之类的技巧，免得更新被吞掉）。') },
         { tex: '16 \\times 8.03 \\times 10^{9} \\approx 128.5 \\text{ GB}', why: t('Llama-3.1-8B, all parameters trained: the static part alone needs two 80 GB cards.', 'Llama-3.1-8B 全部参数参与训练：光静态部分就要两张 80 GB 的卡。') },
       ],
       blank: { line: 0, answer: '16', prompt: t('Bytes per trained parameter with mixed-precision AdamW?', '混合精度 AdamW 下，每个被训练的参数要几个字节？') },
@@ -96,8 +96,8 @@ export const lesson: Lesson = {
     {
       id: 'activations', kind: 'read', chapter: t('Per token', '每个 token'), title: t('Activations: the forward pass is remembered', '激活值：前向传播要被记住'),
       blocks: [
-        { type: 'p', text: t('Backpropagation needs the inputs of every operation of the forward pass, so they are kept until the backward pass uses them. Their size grows with every token in the batch, not with the parameter count. Per transformer layer, with 16-bit activations[^korthikanti]:', '反向传播要用到前向传播里每个运算的输入，所以它们会一直保留到反向传播用完为止。它们的大小随 batch 里的每个 token 增长，而不是随参数量增长。每个 Transformer 层（16 位激活值）[^korthikanti]：') },
-        { type: 'math', tex: 's\\,b\\,h\\,\\Big(34 + \\frac{5\\,a\\,s}{h}\\Big) \\text{ bytes}' },
+        { type: 'p', text: t('Backpropagation needs the inputs of every operation of the forward pass, so they are kept until the backward pass uses them. Their size grows with every token in the batch, not with the parameter count. Per transformer layer, with 16-bit activations, the number of bytes stored is[^korthikanti]:', '反向传播要用到前向传播里每个运算的输入，所以它们会一直保留到反向传播用完为止。它们的大小随 batch 里的每个 token 增长，而不是随参数量增长。每个 Transformer 层（16 位激活值）要存的字节数是[^korthikanti]：') },
+        { type: 'math', tex: 's\\,b\\,h\\,\\Big(34 + \\frac{5\\,a\\,s}{h}\\Big)' },
         { type: 'list', items: [
           t('$s\\,b\\,h$: sequence length × batch × hidden size, the size of one hidden-state tensor.', '$s\\,b\\,h$：序列长度 × batch × 隐藏维度，也就是一个隐藏状态张量的大小。'),
           t('34: the tensors kept per layer (attention 11, MLP 19, two LayerNorms 4, in units of $sbh$ bytes).', '34：每层保留的张量（注意力 11、MLP 19、两个 LayerNorm 4，单位是 $sbh$ 字节）。'),
@@ -112,8 +112,8 @@ export const lesson: Lesson = {
     {
       id: 'logits', kind: 'read', title: t('The hidden giant: logits', '隐藏的大块头：logits'),
       blocks: [
-        { type: 'p', text: t('The last layer scores every word of the vocabulary at every position, and the loss is computed in fp32:', '最后一层要在每个位置上给词表里的每个词打分，损失还要用 fp32 计算：') },
-        { type: 'math', tex: 'b \\cdot s \\cdot V \\cdot 4 \\text{ bytes} = 1 \\times 4096 \\times 128{,}256 \\times 4 \\approx 2.1 \\text{ GB}' },
+        { type: 'p', text: t('The last layer scores every word of the vocabulary at every position, and the loss is computed in fp32, 4 bytes per score:', '最后一层要在每个位置上给词表里的每个词打分，损失还要用 fp32 计算，每个分数 4 字节：') },
+        { type: 'math', tex: 'b \\cdot s \\cdot V \\cdot 4 = 1 \\times 4096 \\times 128{,}256 \\times 4 \\approx 2.1 \\text{ GB}' },
         { type: 'p', text: t('Its gradient needs the same again: 4.2 GB at 4k tokens, about 34 GB at 32k, more than all of QLoRA’s weights. **Chunked (fused) cross-entropy** computes the loss a few tokens at a time and never stores the whole tensor (e.g. Cut Cross-Entropy[^cce], Liger kernels). TRL v1.15’s SFTTrainer already computes log-probabilities in chunks by default; plain PyTorch and the `Trainer` store them unless you switch it on (`use_liger_kernel=True`).', '它的梯度还要再占一份：4k token 时共 4.2 GB，32k 时约 34 GB，比 QLoRA 的全部权重还大。**分块（融合）交叉熵**每次只算一小段 token 的损失，从不把整个张量放进显存（例如 Cut Cross-Entropy[^cce]、Liger 内核）。TRL v1.15 的 SFTTrainer 默认已经分块计算对数概率；普通 PyTorch 和 `Trainer` 则会完整保存，除非你打开它（`use_liger_kernel=True`）。') },
         { type: 'cite', key: 'cce', text: t('Wijmans et al. (2025). Cut Your Losses in Large-Vocabulary Language Models. ICLR.', 'Wijmans 等（2025）。Cut Your Losses in Large-Vocabulary Language Models。ICLR。'), url: 'https://arxiv.org/abs/2411.09009' },
       ],
@@ -235,7 +235,7 @@ export const lesson: Lesson = {
     {
       id: 'choose', kind: 'read', chapter: t('How to choose', '怎么选'), title: t('Budget before you rent', '先算账，再租卡'),
       blocks: choose_card({
-        upto: 'C1', highlight: 'X1', card: 'C1',
+        upto: 'C1', highlight: 'X', card: 'C1',
         rule: t('Do the budget before renting a GPU: full fine-tuning needs about 16 bytes × N plus activations and logits. If it does not fit, try LoRA, then QLoRA, then sharding or offloading. With long sequences or large batches, the big blocks are activations and logits: turn on recomputation and chunked cross-entropy before reaching for quantisation.', '租卡之前先算账：全量微调约需 16 字节 × N，再加激活值和 logits。装不下，就依次考虑 LoRA → QLoRA → 多卡分片或卸载。序列长或 batch 大时，大头是激活值和 logits：先开激活重算和分块交叉熵，再考虑量化。'),
         counter: t('"My card can hold the model for inference, so it can fine-tune it": training adds gradients, optimizer states and activations (8B full fine-tuning is about 135–150 GB). And "32k sequences don’t fit, so switch to QLoRA": that saves about 10 GB of weights while logits and activations need tens of GB.', '"我的卡能装下模型做推理，所以也能微调"：训练还要梯度、优化器状态和激活值（8B 全量微调约需 135–150 GB）。还有"32k 序列装不下，所以换 QLoRA"：那只省下约 10 GB 权重，而 logits 和激活值要几十 GB。'),
       }),

@@ -18,7 +18,7 @@
 <line x1="710.0" y1="260.0" x2="710.0" y2="66.2" stroke="#B8860B" stroke-width="1.5" stroke-opacity="1.0" stroke-dasharray="4 3"/>
 <line x1="650.0" y1="66.2" x2="710.0" y2="66.2" stroke="#B8860B" stroke-width="1.5" stroke-opacity="1.0" stroke-dasharray="4 3"/>
 <circle cx="710.0" cy="66.2" r="5" fill="#B8860B"/>
-<text x="718.0" y="58.2" text-anchor="start" style="font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #B8860B; font-weight: normal">σ(2) = 0.88</text>
+<text x="720.0" y="90.2" text-anchor="start" style="font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #B8860B; font-weight: normal">σ(2) = 0.88</text>
 <text x="830.0" y="280.0" text-anchor="end" style="font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">r₂ − r₁</text>
 <text x="656.0" y="52.0" text-anchor="start" style="font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; fill: #111113; font-weight: normal">P(y₂ ≻ y₁)</text>
 <text x="470.0" y="276.0" text-anchor="middle" style="font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; fill: #86868B; font-weight: normal">-6</text>

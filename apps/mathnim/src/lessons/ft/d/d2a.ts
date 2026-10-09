@@ -127,7 +127,7 @@ for step in range(300):
     },
     {
       id: 'baseline-sketch', kind: 'checkpoint', skill: 'baseline-advantage', purpose: 'predict', title: t('Sketch the noise', '画出噪声'),
-      prompt: t('Three answers with rewards 2, 5 and 9, equally likely. Each sample gives a one-sample update (R − b)∇log π. Sketch how the **variance** of that update changes as the zero line b goes from 0 to 12.', '三个回答，奖励分别是 2、5、9，被采到的概率相同。每采一个样本，就得到一个单样本更新 (R − b)∇log π。画出这个更新的**方差**怎样随零线 b 从 0 变到 12 而变化。'),
+      prompt: t('Three answers with rewards 2, 5 and 9, equally likely. Each sample gives a one-sample update $(R - b)\\,\\nabla \\log \\pi$. Sketch how the **variance** of that update changes as the zero line b goes from 0 to 12.', '三个回答，奖励分别是 2、5、9，被采到的概率相同。每采一个样本，就得到一个单样本更新 $(R - b)\\,\\nabla \\log \\pi$。画出这个更新的**方差**怎样随零线 b 从 0 变到 12 而变化。'),
       question: { type: 'sketch', f: (b: number) => pg_variance(b), x_range: [0, 12], y_range: [0, 35] },
       explain: t('A U-shape with its bottom at the mean reward (5.33): too low or too high a baseline both add noise. The scene shows why.', 'U 形，最低点在平均奖励 5.33 处：基线太低或太高都会增加噪声。下面的场景会说明为什么。'),
       reveal: 'baseline-scene',
@@ -176,12 +176,12 @@ for step in range(300):
         { tex: '\\nabla J = \\mathbb E\\big[(R(y) - b)\\,\\nabla\\log\\pi(y)\\big]', why: t('Subtracting something with zero mean keeps the expectation - but not the variance, which contains (R − b)². That is the trade the scene showed.', '减去一个均值为零的东西，期望不变——方差却变了，因为方差里有 (R − b)²。这正是场景里看到的。') },
         { tex: 'A(x, y) = R(x, y) - b(x)', why: t('This difference is called the advantage: how much better than usual this answer was. b may depend on the prompt, never on the answer.', '这个差叫优势（advantage）：这条回答比"通常"好多少。b 可以依赖提示，但不能依赖回答本身。') },
       ],
-      blank: { line: 1, answer: '1', prompt: t('Σ_y π(y) = ?', 'Σ_y π(y) = ?') },
+      blank: { line: 1, answer: '1', prompt: t('$\\sum_y \\pi(y) = \\,?$', '$\\sum_y \\pi(y) = \\,?$') },
     },
     {
       id: 'two-q1', kind: 'checkpoint', skill: 'baseline-advantage', purpose: 'check', title: t('Two actions, by hand', '两个动作，手算'),
-      prompt: t('A policy picks between two answers with probability ½ each; ∇_θ log π is +0.5 for the first and −0.5 for the second; their rewards are 11 and 10. Without a baseline, a one-sample estimate is either 11·0.5 = 5.5 or 10·(−0.5) = −5. What is its **variance**?', '一个策略在两个回答之间各以 ½ 的概率选择；∇_θ log π 对第一个是 +0.5，对第二个是 −0.5；奖励分别是 11 和 10。不用基线时，单样本估计要么是 11·0.5 = 5.5，要么是 10·(−0.5) = −5。它的**方差**是多少？'),
-      question: { type: 'number', answer: 27.5625, rtol: 0.02, wrong: [{ answer: 27.625, feedback: t('That is E[g²]. Subtract the square of the mean, 0.25² = 0.0625.', '这是 E[g²]，还要减去均值的平方 0.25² = 0.0625。') }] },
+      prompt: t('A policy picks between two answers with probability ½ each; $\\nabla_\\theta \\log \\pi$ is +0.5 for the first and −0.5 for the second; their rewards are 11 and 10. Without a baseline, a one-sample estimate is either 11·0.5 = 5.5 or 10·(−0.5) = −5. What is its **variance**?', '一个策略在两个回答之间各以 ½ 的概率选择；$\\nabla_\\theta \\log \\pi$ 对第一个是 +0.5，对第二个是 −0.5；奖励分别是 11 和 10。不用基线时，单样本估计要么是 11·0.5 = 5.5，要么是 10·(−0.5) = −5。它的**方差**是多少？'),
+      question: { type: 'number', answer: 27.5625, rtol: 0.02, wrong: [{ answer: 27.625, feedback: t('That is $\\mathbb{E}[g^2]$. Subtract the square of the mean, 0.25² = 0.0625.', '这是 $\\mathbb{E}[g^2]$，还要减去均值的平方 0.25² = 0.0625。') }] },
       hints: [t('The mean is ½·5.5 + ½·(−5) = 0.25.', '均值是 ½·5.5 + ½·(−5) = 0.25。')],
       explain: t('Mean 0.25, variance ½(5.5 − 0.25)² + ½(−5 − 0.25)² ≈ 27.56: the noise is a hundred times the signal.', '均值 0.25，方差 ½(5.5 − 0.25)² + ½(−5 − 0.25)² ≈ 27.56：噪声是信号的一百多倍。'),
     },
@@ -232,7 +232,7 @@ for step in range(300):
         { tex: '\\hat A > 0,\\ \\rho > 1+\\varepsilon:\\ \\ \\min = (1+\\varepsilon)\\hat A \\;\\Rightarrow\\; \\partial L/\\partial\\rho = 0', why: t('A good token that has already become more likely by ε is left alone: no incentive to push it further on these old samples.', '一个好 token，概率已经涨了 ε 以上，就不再管它：在这批旧样本上，没有理由再推。') },
         { tex: '\\hat A > 0,\\ \\rho < 1-\\varepsilon:\\ \\ \\min = \\rho\\hat A \\;\\Rightarrow\\; \\partial L/\\partial\\rho = \\hat A', why: t('The same good token pushed the wrong way (less likely) keeps its full gradient: corrections are never clipped. The world lets you check every case.', '同一个好 token 如果被推错了方向（变得更不可能），梯度原样保留：纠错从来不会被截断。下面的世界让你逐个情况检验。') },
       ],
-      blank: { line: 2, answer: '1', prompt: t('At θ = θ_old, ρ = ?', 'θ = θ_old 时，ρ = ?') },
+      blank: { line: 2, answer: '1', prompt: t('At $\\theta = \\theta_{old}$, $\\rho = \\,?$', '$\\theta = \\theta_{old}$ 时，$\\rho = \\,?$') },
       outro: t('In a language model all of this is per token: ρ_t = π_θ(y_t|s_t)/π_old(y_t|s_t), with Â_t from the value model, plus a regression loss for the value model. GRPO (E1) keeps ρ and the clip and replaces Â_t by the group-normalized reward.', '在语言模型里，这些都按 token 计算：ρ_t = π_θ(y_t|s_t)/π_old(y_t|s_t)，Â_t 来自价值模型，另外还有价值模型自己的回归损失。E1 的 GRPO 保留了 ρ 和截断，把 Â_t 换成组内归一化的奖励。'),
     },
     {
@@ -252,6 +252,7 @@ for step in range(300):
       scene: vis('ppo_clip', { story: 'setup' }),
       prompt: t('Drag the gold point (this token’s ratio ρ) and flip good/bad token. Find three places: (1) a **good** token the gradient leaves alone; (2) a **bad** token the gradient leaves alone; (3) a token **outside** the blue band that still gets pushed. Release the point at each.', '拖动金色的点（这个 token 的概率比 ρ），并在好 token 与坏 token 之间切换。找到三个地方：(1) 梯度不再管的**好** token；(2) 梯度不再管的**坏** token；(3) 在蓝色区间**外面**、却仍然被推动的 token。每找到一个，就在那里松手。'),
       setup: world_setup('ppo_clip', { story: 'setup' }),
+      cue: [t('the ratio ρ of this token', '这个 token 的概率比 ρ'), t('the good / bad token switch', '好 token / 坏 token 开关')],
       goals: [
         { id: 'flat-good', check: (_s, _c, w) => !!w.state.flat_good, message: t('A good token already up by more than ε: the clipped term wins the min, the slope is 0.', '好 token 的概率已经涨了 ε 以上：min 取到截断项，斜率为 0。') },
         { id: 'flat-bad', check: (_s, _c, w) => !!w.state.flat_bad, message: t('A bad token already down by more than ε: left alone too.', '坏 token 的概率已经降了 ε 以上：同样不再管它。') },
@@ -303,7 +304,7 @@ for step in range(300):
     },
     {
       id: 'clip-check', kind: 'checkpoint', skill: 'ppo-clip', purpose: 'check', title: t('One more case', '再判断一种情况'),
-      prompt: t('A bad token (Â < 0) whose probability fell to ρ = 0.7 of its old value, ε = 0.2. What does the gradient of L^CLIP do to it?', '一个坏 token（Â < 0），它的概率已经降到旧值的 ρ = 0.7 倍，ε = 0.2。L^CLIP 的梯度会对它做什么？'),
+      prompt: t('A bad token ($\\hat A < 0$) whose probability fell to ρ = 0.7 of its old value, ε = 0.2. What does the gradient of $L^{CLIP}$ do to it?', '一个坏 token（$\\hat A < 0$），它的概率已经降到旧值的 ρ = 0.7 倍，ε = 0.2。$L^{CLIP}$ 的梯度会对它做什么？'),
       question: {
         type: 'choice', options: [
           { id: 'a', label: t('Nothing: the gradient is 0', '什么都不做：梯度为 0'), correct: true },

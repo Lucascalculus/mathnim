@@ -3,6 +3,7 @@
 // game view is the same class with mode 'game'.
 export { LessonView, type ViewOptions, type TextGrader } from './view';
 export { SketchPad, type SketchMapping } from './sketchpad';
+export { CueGuide } from './cue';
 export { Narrator } from './narrator';
 export { math_html, display_math_html, set_math, set_tex_renderer, esc, type TexRenderer, type MarkupOptions } from './math';
 export { inject_styles, CSS } from './styles';

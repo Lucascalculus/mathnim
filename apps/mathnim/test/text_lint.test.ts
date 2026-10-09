@@ -1,7 +1,7 @@
 // The lesson doctor's lint for text pages and bilingual lessons.
 import { describe, expect, it } from 'vitest';
 import type { Lesson } from '@mathnim/core';
-import { lint_lesson_text, type LintDeps } from '../tools/text_lint';
+import { lint_lesson_text, tex_english, type LintDeps } from '../tools/text_lint';
 
 const deps: LintDeps = {
   figure_exists: (src) => src === 'ft/ok.svg',
@@ -86,6 +86,23 @@ describe('text lint', () => {
     const q = { id: 'q', kind: 'checkpoint', skill: 's', narration: 'Which one?', prompt: 'Q', question: { type: 'choice', options: [{ id: 'a', label: 'A', correct: true }] } } as any;
     expect(msgs(base([q], { title: 'Old lesson' }))[0]).toContain('questions are only voiced in game lessons');
     expect(msgs(base([q], { title: 'Old lesson', mode: 'game' }))).toEqual([]); // the game character speaks it
+  });
+  it('warns about English words in shared TeX of a bilingual lesson', () => {
+    expect(tex_english('\\text{loss}_{\\text{SFT}} = \\mathrm{bf16} + \\operatorname*{arg\\,max} + \\pi_{\\text{ref}} + \\text{pass@}k + \\text{chosen}')).toEqual(['loss', 'chosen']);
+    const l = base([
+      { id: 'r', kind: 'read', blocks: [
+        { type: 'math', tex: 'L = -\\log \\sigma(\\text{margin})' },
+        { type: 'p', text: { en: 'Here $\\text{gap}$ is fine', zh: '这里 $\\text{差距}$ 按语言分开' } },
+        { type: 'p', text: 'shared: $\\text{reward} = 1$ (not translated here)' },
+      ] },
+      { id: 'd', kind: 'derive', lines: [{ tex: '\\text{win rate} = 0.5', why: { en: 'w', zh: '为什么' } }] },
+    ]);
+    const m = msgs(l).filter((x) => x.includes('English words in the formula'));
+    expect(m).toEqual([
+      expect.stringContaining('steps.r.blocks[2].text: Chinese learners see these English words in the formula: move them into the `why` text or the prose (or use a symbol): reward'),
+      expect.stringContaining('steps.r.blocks[0]: Chinese learners see these English words in the formula: move them into the `why` text or the prose (or use a symbol): margin'),
+      expect.stringContaining('steps.d.lines[0]: Chinese learners see these English words in the formula: move them into the `why` text or the prose (or use a symbol): win, rate'),
+    ]);
   });
   it('leaves English-only lessons alone', () => {
     expect(msgs(base([{ id: 'r', kind: 'read', blocks: [{ type: 'p', text: 'Plain English is fine here.' }] }], { title: 'Old lesson' }))).toEqual([]);

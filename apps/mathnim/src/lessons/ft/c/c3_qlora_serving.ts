@@ -75,7 +75,7 @@ export const lesson: Lesson = {
       intro: t('Eight weights: $x = [0.12, -0.05, 0.31, -0.27, 0.02, 0.44, -0.18, 0.07]$. Use 4-bit integers $-7 \\dots 7$, scaled so the largest weight lands on the last level.', '八个权重：$x = [0.12, -0.05, 0.31, -0.27, 0.02, 0.44, -0.18, 0.07]$。用 4 位整数 $-7 \\dots 7$，缩放到让最大的权重正好落在最后一个格点上。'),
       lines: [
         { tex: 's = \\frac{\\max |x|}{7} = \\frac{0.44}{7} \\approx 0.0629', why: t('The scale: one number per group, chosen from the largest absolute value (absmax).', '缩放系数：每组一个数，由最大的绝对值（absmax）决定。') },
-        { tex: 'q = \\operatorname{round}(x / s) = [2, -1, 5, -4, 0, 7, -3, 1]', why: t('Store these small integers: 4 bits each.', '存的就是这些小整数，每个 4 位。') },
+        { tex: 'q = \\lfloor x / s \\rceil = [2, -1, 5, -4, 0, 7, -3, 1]', why: t('Round to the nearest integer ($\\lfloor \\cdot \\rceil$) and store these small integers: 4 bits each.', '四舍五入到最近的整数（$\\lfloor \\cdot \\rceil$），存的就是这些小整数，每个 4 位。') },
         { tex: '\\hat x = s\\,q \\approx [0.126, -0.063, 0.314, -0.251, 0, 0.44, -0.189, 0.063]', why: t('Dequantise when computing.', '计算时再反量化回来。') },
         { tex: '|x - \\hat x| \\le s/2 \\approx 0.031', why: t('The error is at most half a step, so it depends on $s$, which depends on the largest weight. That is the weak point.', '误差最多半个格距，所以它取决于 $s$，而 $s$ 取决于最大的那个权重。这就是弱点所在。') },
       ],
@@ -146,8 +146,8 @@ export const lesson: Lesson = {
       id: 'overhead', kind: 'derive', title: t('What the scales cost, and double quantisation', '缩放系数的开销，以及双重量化'), skill: 'nf4',
       intro: t('Small blocks protect against outliers, but every block stores its own fp32 scale. Count the bits per weight.', '小块能抵御异常值，可每一块都要存一个 fp32 的缩放系数。算一算每个权重摊到多少比特。'),
       lines: [
-        { tex: '\\frac{32}{B}: \\quad B = 64 \\Rightarrow 0.5 \\text{ bits per weight}', why: t('One 32-bit scale shared by $B$ weights. At 64, the scales add an eighth of a 4-bit weight.', '一个 32 位的缩放系数由 $B$ 个权重分摊。块大小为 64 时，缩放系数相当于在 4 位权重之上再加八分之一。') },
-        { tex: '\\frac{8}{64} + \\frac{32}{64 \\cdot 256} \\approx 0.127 \\text{ bits per weight}', why: t('Double quantisation: store the scales themselves in 8 bits (after subtracting their mean), with one fp32 scale for every 256 of them.', '双重量化：把缩放系数本身也存成 8 位（先减去它们的均值），每 256 个缩放系数再共用一个 fp32 的二级系数。') },
+        { tex: '\\frac{32}{B} \\,\\Big|_{B = 64} = 0.5', why: t('Bits per weight spent on scales: one 32-bit scale shared by $B$ weights. At 64, the scales add an eighth of a 4-bit weight.', '每个权重摊到的缩放系数比特数：一个 32 位的缩放系数由 $B$ 个权重分摊。块大小为 64 时，缩放系数相当于在 4 位权重之上再加八分之一。') },
+        { tex: '\\frac{8}{64} + \\frac{32}{64 \\cdot 256} \\approx 0.127', why: t('Double quantisation cuts that to 0.127 bits per weight: store the scales themselves in 8 bits (after subtracting their mean), with one fp32 scale for every 256 of them.', '双重量化把它降到每个权重 0.127 比特：把缩放系数本身也存成 8 位（先减去它们的均值），每 256 个缩放系数再共用一个 fp32 的二级系数。') },
         { tex: '(0.5 - 0.127) \\times 65 \\times 10^{9} / 8 \\approx 3.0 \\text{ GB}', why: t('Saved on a 65B model.', '在 65B 模型上省下的显存。') },
         { tex: '6.98 \\times 10^{9} \\times \\frac{4 + 0.127}{8} \\approx 3.6 \\text{ GB}', why: t('Llama-3.1-8B’s linear layers in NF4 with double quantisation (13.96 GB in bf16); the embedding and the output head stay in bf16 (2.1 GB).', 'Llama-3.1-8B 的线性层用 NF4 加双重量化存储（bf16 时是 13.96 GB）；嵌入层和输出头仍是 bf16（2.1 GB）。') },
       ],
@@ -197,7 +197,7 @@ export const lesson: Lesson = {
       id: 'serve', kind: 'read', title: t('One base, many adapters', '一个基座，许多适配器'),
       blocks: [
         { type: 'p', text: t('An adapter for an 8B model with $r = 16$ is about 84 MB; the base is 16 GB. If 100 customers each get their own style, merging means 100 full models; serving the adapters on one shared base does not:', '一个 8B 模型、$r = 16$ 的适配器约 84 MB，基座是 16 GB。如果 100 个客户各有自己的风格，合并就意味着 100 份完整模型；在一个共享基座上服务这些适配器则不然：') },
-        { type: 'math', tex: '100 \\times 16 \\text{ GB} = 1.6 \\text{ TB} \\qquad\\text{vs}\\qquad 16 \\text{ GB} + 100 \\times 84 \\text{ MB} \\approx 24.4 \\text{ GB}' },
+        { type: 'math', tex: '100 \\times 16 \\text{ GB} = 1.6 \\text{ TB} \;\\gg\; 16 \\text{ GB} + 100 \\times 84 \\text{ MB} \\approx 24.4 \\text{ GB}' },
         { type: 'figure', src: 'ft/c/c3-deploy.svg', alt: t('Left: 100 merged 16 GB models, 1.6 TB. Right: one 16 GB base with 100 small adapters, about 24.4 GB.', '左：100 个合并后的 16 GB 模型，共 1.6 TB。右：一个 16 GB 基座加 100 个小适配器，约 24.4 GB。'), credit: 'Own drawing; areas to scale, arithmetic on this page · 自绘；面积按比例，算术见本页' },
         { type: 'p', text: t('Serving engines batch requests for different adapters together (S-LoRA, Punica’s kernels[^slora]); Fireworks runs up to 100 LoRA adapters on one deployment. The cost: an unmerged adapter adds latency (Fireworks’ docs report time-to-first-token often 10–30% higher). All adapters must share the same base model.', '推理引擎会把不同适配器的请求放进同一个 batch 一起算（S-LoRA、Punica 的内核[^slora]）；Fireworks 能在一个部署上同时跑最多 100 个 LoRA 适配器。代价是：不合并的适配器会增加延迟（Fireworks 文档报告首 token 延迟常常高 10–30%）。所有适配器必须基于同一个基座模型。') },
         { type: 'code', lang: 'python', code: SERVE, caption: t('vLLM: one base, a different adapter per request (v0.31 names).', 'vLLM：一个基座，每个请求用不同的适配器（v0.31 的参数名）。') },
@@ -215,7 +215,7 @@ export const lesson: Lesson = {
             [t('PTQ (GPTQ, AWQ, …)', 'PTQ（GPTQ、AWQ 等）'), t('after training', '训练后'), t('inference memory and speed; may lose some quality', '推理显存和速度；可能损失一些质量')],
             [t('QAT', 'QAT'), t('during (post-)training', '（后）训练时'), t('inference with less quality loss: the model learns weights that survive quantisation', '推理时质量损失更小：模型学会了"经得起量化"的权重')],
           ] },
-        { type: 'p', text: t('**QAT** runs the forward pass with quantised weights $\\hat w = s \\cdot \\operatorname{round}(w / s)$ and passes gradients straight through the rounding ($\\partial \\hat w / \\partial w \\approx 1$, the straight-through estimator). Google trained Gemma 3 this way for about 5,000 steps against the bf16 model’s outputs, cutting the 4-bit perplexity drop by 54% and fitting the 27B model in 14.1 GB; Kimi K2 Thinking applies INT4 QAT in post-training[^gemma].', '**QAT（量化感知训练）**在前向传播时用量化后的权重 $\\hat w = s \\cdot \\operatorname{round}(w / s)$，反向时让梯度直接穿过取整（$\\partial \\hat w / \\partial w \\approx 1$，即直通估计）。Google 用这种方法让 Gemma 3 对着 bf16 模型的输出训练了约 5000 步，4 位量化后的困惑度损失减少了 54%，27B 模型只要 14.1 GB；Kimi K2 Thinking 在后训练里用了 INT4 QAT[^gemma]。') },
+        { type: 'p', text: t('**QAT** runs the forward pass with quantised weights $\\hat w = s \\cdot \\lfloor w / s \\rceil$ and passes gradients straight through the rounding ($\\partial \\hat w / \\partial w \\approx 1$, the straight-through estimator). Google trained Gemma 3 this way for about 5,000 steps against the bf16 model’s outputs, cutting the 4-bit perplexity drop by 54% and fitting the 27B model in 14.1 GB; Kimi K2 Thinking applies INT4 QAT in post-training[^gemma].', '**QAT（量化感知训练）**在前向传播时用量化后的权重 $\\hat w = s \\cdot \\lfloor w / s \\rceil$，反向时让梯度直接穿过取整（$\\partial \\hat w / \\partial w \\approx 1$，即直通估计）。Google 用这种方法让 Gemma 3 对着 bf16 模型的输出训练了约 5000 步，4 位量化后的困惑度损失减少了 54%，27B 模型只要 14.1 GB；Kimi K2 Thinking 在后训练里用了 INT4 QAT[^gemma]。') },
         { type: 'figure', src: 'ft/c/c3-qat-timeline.svg', alt: t('A timeline: QLoRA during fine-tuning, QAT during (post-)training, PTQ after training.', '一条时间线：QLoRA 在微调时，QAT 在（后）训练时，PTQ 在训练后。'), credit: 'Own drawing · 自绘' },
         { type: 'cite', key: 'gemma', text: t('Google Developers Blog (2025). Gemma 3 QAT models.', 'Google Developers Blog（2025）。Gemma 3 QAT 模型。'), url: 'https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/' },
       ],
@@ -259,7 +259,7 @@ export const lesson: Lesson = {
     {
       id: 'choose', kind: 'read', chapter: t('How to choose', '怎么选'), title: t('Fit it, then ship it', '先装下，再上线'),
       blocks: choose_card({
-        upto: 'C3', highlight: 'E2,E3,X1', card: 'C3',
+        upto: 'C3', highlight: 'E3,X', card: 'C3',
         rule: t('Not enough training memory: LoRA; still not enough: QLoRA (paying speed and a little accuracy for memory). Many tenants or tasks on one base: serve adapters on a shared base; one high-traffic product: merge, and re-evaluate after merging a QLoRA adapter. Inference memory: PTQ (GPTQ, AWQ…), or QAT when you can change training and need the quality.', '训练显存不够：用 LoRA；还不够：用 QLoRA（用速度和一点精度换显存）。多租户、多任务共用一个基座：在共享基座上服务适配器；单一产品、高并发：合并，合并 QLoRA 适配器后要重新评测。推理显存：用 PTQ（GPTQ、AWQ 等）；能改训练流程、又在乎质量时，用 QAT。'),
         counter: t('"We trained with QLoRA, so the deployed model is 4-bit and cheap": merged into bf16 it is bf16-sized. And "200 customers means 200 deployments": an adapter is tens of MB and they can share one base.', '"我们用 QLoRA 训练，所以上线的模型是 4 位、很便宜"：合并到 bf16 后就是 bf16 的大小。还有"200 个客户就要部署 200 份模型"：一个适配器只有几十 MB，它们可以共享一个基座。'),
       }),

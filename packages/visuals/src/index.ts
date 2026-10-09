@@ -40,4 +40,5 @@ export * as ft_a from './ft/a';
 export * as ft_b from './ft/b';
 export * as ft_c from './ft/c';
 export * as ft_d from './ft/d';
+export * as ft_e from './ft/e';
 export * as ft_f from './ft/f';

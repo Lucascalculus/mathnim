@@ -9,7 +9,9 @@
 // grade its own answer as correct; code notes outside the code; table rows of
 // the wrong width; TeX that does not render; a footnote to a missing source.
 // Warnings: plain-string prose in a bilingual lesson (untranslated), Chinese
-// identical to English, Chinese inside TeX, unknown code languages.
+// identical to English, Chinese inside TeX, English words inside shared TeX
+// (\text{…} etc. in math blocks, derive lines and plain-string $…$), unknown
+// code languages.
 import {
   code_line_count, expr, grade_blank, has_cjk, is_bilingual, is_voiced, lesson_langs, lesson_strings, step_strings, tr,
   type Block, type CheckpointStep, type L10n, type Lesson, type Step,
@@ -29,6 +31,33 @@ export interface LintDeps {
   /** The TeX error message, or null when it renders. */
   tex_error?: (tex: string, display: boolean) => string | null;
 }
+
+// ---- English words inside TeX that a Chinese learner would see (bilingual lessons)
+/** Words that may stay in TeX: units, formats, function names, method and model names, standard subscripts. */
+const TEX_WORDS_OK = new Set([
+  'bytes', 'byte', 'bits', 'softmax', 'sigmoid', 'adam', 'adamw', 'lora', 'qlora', 'max', 'min', 'arg', 'argmax', 'argmin', 'log', 'exp', 'rank',
+  'var', 'cov', 'tanh', 'relu', 'gelu', 'clip', 'sign', 'std', 'diag', 'det', 'tr',
+  'recall', 'pass', 'maj',
+  // standard subscripts of the literature (π_ref, π_old, π_new, θ_init)
+  'ref', 'old', 'new', 'init',
+  // model families
+  'llama', 'qwen', 'mistral', 'mixtral', 'gemma', 'deepseek', 'claude', 'gpt', 'bert', 'phi', 'falcon', 'olmo', 'tulu', 'zephyr', 'vicuna', 'alpaca', 'kimi', 'glm', 'yi',
+]);
+/** The words of \text{…}, \mathrm{…}, \operatorname{…} in `tex` that would show English (3+ letters, not acronyms, units, formats or names). */
+export function tex_english(tex: string): string[] {
+  const out = new Set<string>();
+  for (const m of tex.matchAll(/\\(?:text|textrm|textit|textbf|mathrm|mathit|mathbf|operatorname\*?)\s*\{([^{}]*)\}/g)) {
+    for (const w of m[1].match(/[A-Za-z][A-Za-z0-9@]*/g) ?? []) {
+      if (w.replace(/[^A-Za-z]/g, '').length < 3) continue;
+      if (/[\d@]/.test(w)) continue; // formats and metrics: bf16, int8, BM25, pass@k
+      if (/^[A-Z]{2,}s?$/.test(w)) continue; // acronyms and names: KL, MRR, DPO, GRPO, RLHF, GPUs
+      if (TEX_WORDS_OK.has(w.toLowerCase())) continue;
+      out.add(w);
+    }
+  }
+  return [...out];
+}
+const TEX_ENGLISH_HINT = 'Chinese learners see these English words in the formula: move them into the `why` text or the prose (or use a symbol)';
 
 const CODE_LANGS = new Set(['python', 'py', 'python3', 'bash', 'sh', 'shell', 'zsh', 'console', 'json', 'jsonl', 'yaml', 'yml', 'text', 'txt', '']);
 /** Prose that reads as English sentences (three or more words outside TeX and code). */
@@ -50,6 +79,11 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
       // (Chinese punctuation counts: an English paper title in a Chinese citation is fine)
       if (v.zh && looks_english(v.zh) && !has_cjk(v.zh) && !/[\u3000-\u303f\uff00-\uffef]/.test(v.zh)) warn(x.where, 'the Chinese text has no Chinese characters (not translated?)');
     } else if (typeof v === 'string') {
+      if (bilingual) {
+        // a shared string shows the same TeX in both languages
+        const words = [...v.replace(/`[^`]*`/g, '').matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)].flatMap((m) => tex_english(m[1] ?? m[2]));
+        if (words.length) warn(x.where, `${TEX_ENGLISH_HINT}: ${[...new Set(words)].join(', ')}`);
+      }
       if (bilingual && x.role !== 'label' && looks_english(v)) warn(x.where, 'plain English text in a bilingual lesson: write { en, zh }');
       else if (bilingual && x.role === 'label' && looks_english(v) && v.split(/\s+/).length >= 4) warn(x.where, 'plain English label in a bilingual lesson: write { en, zh }');
     } else err(x.where, 'expected a string or { en, zh }');
@@ -79,9 +113,12 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
         case 'h':
           if (b.level !== undefined && b.level !== 2 && b.level !== 3) err(where, 'heading level must be 2 or 3');
           break;
-        case 'math':
+        case 'math': {
           check_tex(where, b.tex, true);
+          const words = bilingual ? tex_english(b.tex) : [];
+          if (words.length) warn(where, `${TEX_ENGLISH_HINT}: ${words.join(', ')}`);
           break;
+        }
         case 'code': {
           if (!b.code.trim()) err(where, 'empty code block');
           if (!CODE_LANGS.has(b.lang.toLowerCase())) warn(where, `code language '${b.lang}' is not highlighted (python, bash, json, yaml, text)`);
@@ -163,7 +200,11 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
       footnotes(s, new Set(keys.keys()), at);
     } else if (s.kind === 'derive') {
       if (!s.lines.length) err(at, 'a derivation needs lines');
-      s.lines.forEach((l, i) => check_tex(`${at}.lines[${i}]`, l.tex, true));
+      s.lines.forEach((l, i) => {
+        check_tex(`${at}.lines[${i}]`, l.tex, true);
+        const words = bilingual ? tex_english(l.tex) : [];
+        if (words.length) warn(`${at}.lines[${i}]`, `${TEX_ENGLISH_HINT}: ${words.join(', ')}`);
+      });
       const b = s.blank;
       if (b) {
         if (!Number.isInteger(b.line) || b.line < 0 || b.line >= s.lines.length) err(`${at}.blank`, `blank.line ${b.line} is not a line (0-based: 0..${s.lines.length - 1})`);

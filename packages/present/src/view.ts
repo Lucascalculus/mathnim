@@ -22,6 +22,7 @@ import { esc, math_html, set_math, set_tex_renderer, type TexRenderer } from './
 import { Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
 import { inject_styles } from './styles';
+import { CueGuide } from './cue';
 import { BlockRenderer, blocks_html, text_page, type PageController, type VisualResolver } from './text_pages';
 
 const { parse, to_latex } = expr;
@@ -90,6 +91,10 @@ export class LessonView {
   private o: ViewOptions;
   private answer: (() => Response | null) | null = null;
   private affordance: AffordanceLayer | null = null;
+  /** Which control of a world is cued (one pulse at a time). */
+  private cue: CueGuide | null = null;
+  /** A cue order the world asked for before its controls were on screen (world.cue from setup). */
+  private pending_cue: L10n[] | null = null;
   private juice: Juice | null = null;
   private confidence: 1 | 2 | 3 | undefined;
   private final = false;
@@ -390,8 +395,11 @@ export class LessonView {
         // the game view gives every snap, drop and win a sound and a little motion
         this.juice = this.game ? new Juice(e.ui) : null;
         this.affordance = new AffordanceLayer(e.ui, { color: this.accent(), hint: drag_hint(e.ui.handles, this.lang) });
-        // show the gesture once the learner has had a moment to look
-        setTimeout(() => this.affordance?.coach(), 900);
+        // one cue at a time: the world's order (step.cue, or world.cue from setup), else creation order
+        this.cue = new CueGuide(this.affordance, e.ui, this.pending_cue ?? e.step.cue);
+        this.pending_cue = null;
+        // show the gesture on the cued control once the learner has had a moment to look
+        setTimeout(() => this.affordance?.coach(this.cue?.target()), 900);
         break;
       }
       case 'goal': {
@@ -421,6 +429,11 @@ export class LessonView {
         void this.narrator.say(this.tr(e.line.text));
         break;
       case 'semantic':
+        break;
+      case 'cue':
+        // from setup the controls are not on screen yet: keep the order for them
+        if (this.cue) this.cue.set(e.targets);
+        else this.pending_cue = e.targets;
         break;
       case 'checkpoint':
         this.show_checkpoint(e.step, e.prompt, e.vars);
@@ -495,9 +508,13 @@ export class LessonView {
     this.runtime.player?.pause();
     this.runtime.player?.stop_live();
     this.runtime.ui?.dispose();
+    this.cue?.dispose();
     this.root.innerHTML = '';
   }
   private reset_panel(): void {
+    this.cue?.dispose();
+    this.cue = null;
+    this.pending_cue = null;
     this.affordance?.dispose();
     this.affordance = null;
     this.juice = null;
@@ -608,6 +625,7 @@ export class LessonView {
         show();
         this.runtime.ui?.on_change();
         // the learner found a way to act: the figure's "drag me" cues can stop asking
+        this.cue?.stop();
         this.affordance?.mark_all_used();
       };
       el.onpointerdown = (ev) => {

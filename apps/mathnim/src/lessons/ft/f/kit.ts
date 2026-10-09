@@ -25,10 +25,9 @@ export function hold(name: string, raw: Record<string, unknown> = {}, start?: (s
     v.explore?.(scene, ui, check_params(v, raw).params);
   };
 }
-/** A figure from public/ft/<part>/<base>.<lang>.svg: the file in the learner's language is chosen when the page is drawn. */
+/** A figure from public/ft/<part>/<base>.<lang>.svg (an L10n src: the presenter picks the learner's language). */
 export function figure(base: string, alt: L10n, caption?: L10n, credit?: string | { en: string; zh: string }): Block {
-  const b: any = { type: 'figure', alt, ...(caption ? { caption } : {}) };
-  Object.defineProperty(b, 'src', { get: () => `${base}.${ft_lang()}.svg`, enumerable: true });
+  const b: any = { type: 'figure', src: { en: `${base}.en.svg`, zh: `${base}.zh.svg` }, alt, ...(caption ? { caption } : {}) };
   if (credit) Object.defineProperty(b, 'credit', { get: () => (typeof credit === 'string' ? credit : credit[ft_lang()]), enumerable: true });
   return b as Block;
 }

@@ -4,7 +4,8 @@
 // Other parts call the `decision_map` visual with these ids, so they are stable.
 
 /** Lessons in course order (C may be taken after D; the map only needs an order). */
-export const LESSONS = ['A1', 'A2', 'A2b', 'B1', 'B2', 'B3', 'F0', 'C1', 'C2', 'C3', 'D1', 'D2a', 'D2b', 'D2', 'D3', 'D4', 'E1', 'E2', 'E3', 'F1'] as const;
+export const LESSONS = ['A1', 'A2', 'A2b', 'B1', 'B2', 'B3', 'B4', 'F0', 'C1', 'C2', 'C3', 'D1', 'D2a', 'D2b', 'D2', 'D3', 'D4', 'E1', 'E2', 'E3', 'F1'] as const;
+// B3 was split into B3 (training dynamics and evaluation) and B4 (forgetting).
 // D2 was split into D2a (policy gradient to PPO) and D2b (the KL-regularised optimum and RLHF); 'D2' is kept as an alias of D2b.
 export type LessonId = (typeof LESSONS)[number];
 export const lesson_index = (id: string): number => {
@@ -90,7 +91,8 @@ export const CARDS: Record<LessonId, { en: string; zh: string; nodes: string[] }
   A2b: { en: 'In the top 100: tune the reranker; never retrieved: tune the embedder and re-index', zh: '在前 100 内就微调重排；进不了候选池才微调向量模型并重建索引', nodes: ['K3'] },
   B1: { en: "Demos, and prompting can't hold it: SFT with the exact inference template", zh: '能写示范、提示词稳不住：SFT，并用和线上一样的模板', nodes: ['B2'] },
   B2: { en: 'Data decides: a teacher means synthetic data plus filtering; a verifier, rejection sampling', zh: '数据定方案：有老师就合成加过滤，有验证器就拒绝采样', nodes: ['S', 'C3', 'K5'] },
-  B3: { en: 'Evals before training; pick checkpoints by task and regression evals, not loss', zh: '先建评测再训练；选检查点看任务和回归评测，不看 loss', nodes: ['V', 'X'] },
+  B3: { en: 'Evals before training; pick checkpoints by task and regression evals, not loss', zh: '先建评测再训练；选检查点看任务和回归评测，不看 loss', nodes: ['V'] },
+  B4: { en: 'Changed weights? Rerun regression and safety evals; keep old skills with replay and a small LR', zh: '每次改权重都跑回归和安全评测；要保住旧能力，先用回放加小学习率', nodes: ['X', 'V'] },
   F0: { en: 'Midway: knowledge to context, demonstrations to SFT, fixed labels to an encoder', zh: '中场：知识放上下文，示范做 SFT，固定标签用编码器', nodes: ['T', 'K2', 'B2'] },
   C1: { en: 'Do the memory sum: about 16 bytes per parameter plus activations, else LoRA or QLoRA', zh: '先算显存账：约 16 字节/参数加激活值，不够就 LoRA、QLoRA', nodes: ['X'] },
   C2: { en: 'LoRA by default (all linear layers, about 10x the LR); full tuning for very large data', zh: '默认 LoRA（全部线性层，学习率约 10 倍）；数据极多才全量', nodes: ['B2', 'X'] },

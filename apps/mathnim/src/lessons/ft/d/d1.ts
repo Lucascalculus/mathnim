@@ -8,6 +8,12 @@ import type { Lesson } from '@mathnim/core';
 import { choose_card, cite, details, fig, h, list, math, myth, note, open_q, p, t, table, text_q, vis, warn, world_setup } from './common';
 
 /** One press of "Fit 1000 steps": record what the learner will see once the animation ends. */
+/** The comparison cards in the tray, left to right (labels as the visual gives them). */
+const CARD_CUES = [t('the card A beats C', '“A 胜 C”这张卡片'), t('the card D beats C', '“D 胜 C”这张卡片'), t('the card C beats D', '“C 胜 D”这张卡片')];
+
+/** D has run away: fitted at least three times with no loss, and its reward is past 4.5. */
+const ran_away = (scene: any, s: Record<string, unknown>): boolean => ((s.fits_undefeated as number) ?? 0) >= 3 && ((s.last_rd as number) ?? 0) > 4.5 && !scene.d_lost();
+
 function fit_press(scene: any, world: any): void {
   const undefeated = !scene.d_lost();
   const last = scene.fit(1000);
@@ -16,6 +22,11 @@ function fit_press(scene: any, world: any): void {
   s.since = ((s.since as number) ?? 0) + 1000;
   if (undefeated) s.fits_undefeated = ((s.fits_undefeated as number) ?? 0) + 1;
   world.emit('fit', { undefeated, r_d: last[3], n: s.fits_undefeated ?? 0 });
+  // step (3) begins: only now point at the cards
+  if (!s.cards_cued && ran_away(scene, s)) {
+    s.cards_cued = true;
+    world.cue(CARD_CUES);
+  }
 }
 
 export const lesson: Lesson = {
@@ -121,7 +132,7 @@ export const lesson: Lesson = {
         { tex: '\\nabla_\\phi \\mathcal L = -\\,\\mathbb E\\big[\\sigma(r_l - r_w)\\,(\\nabla_\\phi r_w - \\nabla_\\phi r_l)\\big]', why: t('Because d log σ(Δ)/dΔ = σ(−Δ). Pairs already ranked right by a wide margin get weight ≈ 0; pairs ranked wrong get weight ≈ 1. DPO (D3) has exactly this weight.', '因为 d log σ(Δ)/dΔ = σ(−Δ)。已经排对、而且差得很开的对，权重约为 0；排错的对，权重接近 1。D3 里的 DPO 有完全一样的权重。') },
         { tex: '-\\log\\sigma(\\Delta) > 0 \\;\\;\\forall\\, \\Delta, \\qquad \\lim_{\\Delta\\to\\infty} -\\log\\sigma(\\Delta) = 0', why: t('Suppose an answer won every match it played. Then every term it appears in is −log σ(Δ) with Δ = its reward minus the opponent’s: raising its reward always lowers the loss, but the loss never reaches 0. There is no finite best reward. The world below shows it.', '假设某个回答参加的每一场都赢了。那么它出现的每一项都是 −log σ(Δ)，Δ 是它的奖励减去对手的奖励：把它的奖励调高总能让损失再降一点，却永远到不了 0。不存在有限的最优奖励。下面的世界会让你亲眼看到。') },
       ],
-      blank: { line: 2, answer: 'r1 - r2', variables: ['r1', 'r2'], prompt: t('P(y₁ ≻ y₂) = σ( ? )  (write it with r1 and r2)', 'P(y₁ ≻ y₂) = σ( ? )（用 r1 和 r2 写）') },
+      blank: { line: 2, answer: 'r1 - r2', variables: ['r1', 'r2'], prompt: t('$P(y_1 \\succ y_2) = \\sigma(\\,?\\,)$  (write it with r1 and r2)', '$P(y_1 \\succ y_2) = \\sigma(\\,?\\,)$（用 r1 和 r2 写）') },
       outro: t('A reward model is this loss with r_φ a neural network: a language model with a scalar head.', '奖励模型就是用这个损失训练的 r_φ：一个接了标量输出头的语言模型。'),
     },
     {
@@ -129,7 +140,7 @@ export const lesson: Lesson = {
       prompt: t('A reward model scores every answer to a prompt, then you add 10 to all those scores. What changes?', '奖励模型给某个提示下的每个回答打了分，然后你给这些分数都加上 10。什么会变？'),
       question: {
         type: 'choice', options: [
-          { id: 'a', label: t('The predicted win probabilities', '预测的胜率'), misconception: 'reward-has-units', feedback: t('σ(r₁ − r₂) only sees the difference, and the difference did not change.', 'σ(r₁ − r₂) 只看差值，而差值没有变。') },
+          { id: 'a', label: t('The predicted win probabilities', '预测的胜率'), misconception: 'reward-has-units', feedback: t('$\\sigma(r_1 - r_2)$ only sees the difference, and the difference did not change.', '$\\sigma(r_1 - r_2)$ 只看差值，而差值没有变。') },
           { id: 'b', label: t('The reward model’s loss', '奖励模型的损失'), feedback: t('The loss is built from the same differences.', '损失也是由同样的差值组成的。') },
           { id: 'c', label: t('Nothing', '什么都不变'), correct: true },
           { id: 'd', label: t('The best answer now wins more often', '原本领先的回答胜率更高了'), misconception: 'reward-has-units' },
@@ -156,8 +167,10 @@ export const lesson: Lesson = {
       id: 'league', kind: 'explore', title: t('Make D stop', '让 D 停下来'), skill: 'bradley-terry',
       scene: vis('bradley_terry_fit', { story: 'setup' }),
       prompt: t(
-        'Every row is a matchup: the **blue dot** is the win rate the rewards predict, σ(r_i − r_j); the **gold tick** is what the data says. (1) Drag **B** and **C** until every dot of the first three rows sits on its tick. (2) Press **Fit 1000 steps** a few times and watch **D**. (3) Change the data so that D’s reward stops.',
-        '每一行是一对对局：**蓝点**是奖励预测的胜率 σ(r_i − r_j)，**金色刻线**是数据里的实际胜率。(1) 拖动 **B** 和 **C**，让前三行的蓝点都落到刻线上。(2) 按几次 **拟合 1000 步**，盯住 **D**。(3) 改动数据，让 D 的奖励停下来。'),
+        'Every row is a matchup: the **blue dot** is the win rate the rewards predict, $\\sigma(r_i - r_j)$; the **gold tick** is what the data says. (1) Drag **B** and **C** until every dot of the first three rows sits on its tick. (2) Press **Fit 1000 steps** a few times and watch **D**. (3) Change the data so that D’s reward stops.',
+        '每一行是一对对局：**蓝点**是奖励预测的胜率 $\\sigma(r_i - r_j)$，**金色刻线**是数据里的实际胜率。(1) 拖动 **B** 和 **C**，让前三行的蓝点都落到刻线上。(2) 按几次 **拟合 1000 步**，盯住 **D**。(3) 改动数据，让 D 的奖励停下来。'),
+      // one cue at a time: B, then C; the cards only once D has run away (fit_press)
+      cue: [t('the reward of B', 'B 的奖励'), t('the reward of C', 'C 的奖励')],
       setup: world_setup('bradley_terry_fit', { story: 'setup' }, (scene: any, ui, _ctx, world) => {
         const emit = scene.emit;
         scene.emit = (type: string, data?: Record<string, unknown>) => {
@@ -172,7 +185,7 @@ export const lesson: Lesson = {
       ],
       goals: [
         { id: 'match3', check: (_s, _c, w) => w.state.hand === true, message: t('Rows A:B, B:C and A:C now agree with the data: three rewards were enough to explain six counts.', 'A:B、B:C、A:C 三行都和数据对上了：三个奖励就解释了这些战绩。') },
-        { id: 'runaway', check: (s: any, _c, w) => ((w.state.fits_undefeated as number) ?? 0) >= 3 && ((w.state.last_rd as number) ?? 0) > 4.5 && !s.d_lost(), message: t('D keeps climbing - about the same amount per thousand steps, with no ceiling.', 'D 一直在涨，每一千步都涨一截，没有上限。') },
+        { id: 'runaway', check: (s: any, _c, w) => ran_away(s, w.state), message: t('D keeps climbing - more slowly each time, but it never stops: no finite reward fits best.', 'D 一直在涨——越涨越慢，但永远不停：没有哪个有限的奖励是最优的。') },
         { id: 'stopped', check: (s: any, _c, w) => s.d_lost() && ((w.state.since as number) ?? 0) >= 2000 && ((w.state.last_rd as number) ?? 1) < 0, message: t('One loss in the data and D settles - below A.', '数据里有了一场负局，D 停下来了，而且停在 A 之下。') },
       ],
       detectors: [
@@ -217,9 +230,9 @@ export const lesson: Lesson = {
     {
       id: 'compute-q', kind: 'checkpoint', skill: 'bradley-terry', purpose: 'practice', title: t('From scores to a win rate', '从分数到胜率'),
       prompt: t('A reward model gives answer A a score of 1.5 and answer B −0.5. With what probability does it predict that people prefer A?', '奖励模型给回答 A 打 1.5 分，给回答 B 打 −0.5 分。它预测人们更喜欢 A 的概率是多少？'),
-      question: { type: 'number', answer: 0.881, tolerance: 0.01, wrong: [{ answer: 0.75, misconception: 'reward-has-units', feedback: t('That treats the scores as strengths and divides them. Only the difference counts: σ(1.5 − (−0.5)) = σ(2).', '这是把分数当成强度直接相除。只有差值有意义：σ(1.5 − (−0.5)) = σ(2)。') }] },
-      hints: [t('Take the difference first.', '先求差。'), t('σ(2) = 1/(1 + e⁻²).', 'σ(2) = 1/(1 + e⁻²)。')],
-      explain: t('σ(2) = 1/(1 + e^{−2}) ≈ 0.88.', 'σ(2) = 1/(1 + e^{−2}) ≈ 0.88。'),
+      question: { type: 'number', answer: 0.881, tolerance: 0.01, wrong: [{ answer: 0.75, misconception: 'reward-has-units', feedback: t('That treats the scores as strengths and divides them. Only the difference counts: $\\sigma(1.5 - (-0.5)) = \\sigma(2)$.', '这是把分数当成强度直接相除。只有差值有意义：$\\sigma(1.5 - (-0.5)) = \\sigma(2)$。') }] },
+      hints: [t('Take the difference first.', '先求差。'), t('$\\sigma(2) = 1/(1 + e^{-2})$.', '$\\sigma(2) = 1/(1 + e^{-2})$。')],
+      explain: t('$\\sigma(2) = 1/(1 + e^{-2}) \\approx 0.88$.', '$\\sigma(2) = 1/(1 + e^{-2}) \\approx 0.88$。'),
     },
 
     // ---------------------------------------------------------------- 4. the reward model in code
@@ -247,7 +260,7 @@ def bt_loss(rm, chosen_ids, chosen_mask, rejected_ids, rejected_mask):
       notes: [
         { lines: [1, 5], text: t('Start from your SFT model (or a model of the same family) and add a linear layer that outputs one number.', '从 SFT 模型（或同系列的模型）出发，加一个只输出一个数的线性层。') },
         { lines: [7, 10], text: t('Why the last token? With causal attention only the last position has seen the whole answer.', '为什么取最后一个 token？在因果注意力下，只有最后一个位置看过整段回答。'), shapes: 'ids: [2B, T] → h: [2B, T, H] → reward: [2B]' },
-        { lines: [12, 15], text: t('Chosen and rejected share one forward pass, then split back into r_w and r_l.', '被选回答和被拒回答一起做一次前向，再拆回 r_w 和 r_l。'), shapes: 'r: [2B] → r_w, r_l: [B]' },
+        { lines: [12, 15], text: t('Chosen and rejected share one forward pass, then split back into `r_w` and `r_l`.', '被选回答和被拒回答一起做一次前向，再拆回 `r_w` 和 `r_l`。'), shapes: 'r: [2B] → r_w, r_l: [B]' },
         { lines: [16, 18], text: t('The loss is the Bradley–Terry negative log-likelihood; `logsigmoid` is the numerically stable form. Accuracy is what you monitor - on held-out pairs.', '损失就是 Bradley–Terry 的负对数似然；`logsigmoid` 是数值稳定的写法。要监控的是准确率，而且要看留出集。') },
       ],
     },

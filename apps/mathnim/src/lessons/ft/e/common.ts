@@ -1,16 +1,17 @@
 // Helpers shared by the part E lessons (reasoning: GRPO, the R1 recipe,
 // distillation). The visuals are registered by packages/visuals/src/ft/e.
-import type { Block, ExploreStep, L10n } from '@mathnim/core';
+import type { Block, ExploreStep, L10n, LessonContext } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
 
 /** Two-language text. */
 export const t = (en: string, zh: string): L10n => ({ en, zh });
 
-/** A visual's scene with checked parameters. */
-export const vis = (name: string, raw: Record<string, unknown> = {}) => () => {
+/** A visual's scene with checked parameters, drawn in the learner's language unless the lesson fixed one. */
+export const vis = (name: string, raw: Record<string, unknown> = {}) => (ctx?: LessonContext) => {
   const v = get_visual(name);
   if (!v) throw new Error(`visual '${name}' is not registered`);
-  return v.scene(check_params(v, raw).params);
+  const p = 'lang' in v.params && ctx?.lang && raw.lang === undefined ? { ...raw, lang: ctx.lang } : raw;
+  return v.scene(check_params(v, p).params);
 };
 
 /**

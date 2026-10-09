@@ -12,7 +12,8 @@
     "test": "vitest run --config test/vitest.config.ts",
     "doctor": "node tools/lesson_doctor.mjs",
     "snapshots": "node tools/snapshots.mjs",
-    "narration": "mkdir -p node_modules/.cache && node tools/narration_texts.mjs > node_modules/.cache/narration.json && ../../reference/.venv/bin/python tools/gen_narration.py node_modules/.cache/narration.json public/narration"
+    "narration": "mkdir -p node_modules/.cache && node tools/narration_texts.mjs > node_modules/.cache/narration.json && ../../reference/.venv/bin/python tools/gen_narration.py node_modules/.cache/narration.json public/narration",
+    "thumbs": "node tools/thumbnails.mjs"
   },
   "dependencies": {
     "@mathnim/ai": "*",

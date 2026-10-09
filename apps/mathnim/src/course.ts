@@ -12,6 +12,7 @@ import * as ftA from './lessons/ft/a/unit';
 import * as ftB from './lessons/ft/b/unit';
 import * as ftC from './lessons/ft/c/unit';
 import * as ftD from './lessons/ft/d/unit';
+import * as ftE from './lessons/ft/e/unit';
 import * as ftF from './lessons/ft/f/unit';
 
 export interface CourseLesson {
@@ -116,6 +117,7 @@ export const FT_COURSE: Course = {
     { id: 'ft-f0', title: { en: 'Fine-tuning · Choosing, halfway', zh: '微调 · 中场选择练习' }, lessons: [ftF.midway] },
     ftC.unit,
     ftD.unit,
+    ftE.unit,
     { id: 'ft-f1', title: { en: 'Fine-tuning F · How to choose', zh: '微调 F · 怎么选' }, lessons: [ftF.capstone] },
   ],
 };

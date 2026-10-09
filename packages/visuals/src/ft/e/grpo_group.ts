@@ -260,8 +260,8 @@ function build(p: GrpoGroupParams): Scene {
         const ucount = VGroup(ulab, live_number(() => this.updates.get_value(), [ulab.get_right()[0] + 0.15, -1.66], { decimals: 0, size: 22, color: c.muted }));
         extra.add(mcap, track, fill, pnum, ucount, tag(pick(lang, 'p: toy model', 'p：玩具模型'), X, -2.2, 18));
       } else {
-        const acap = label_at(pick(lang, 'average the loss per…', '损失怎么平均'), X, 0.4, 20, c.ink);
-        this.agg_c = new Choice(this.agg, X, -0.08, [pick(lang, 'answer', '按回答'), pick(lang, 'token', '按 token'), pick(lang, 'constant', '常数')], { size: 18, cell: 0.95 });
+        const acap = label_at(pick(lang, 'average the loss by', '损失怎么平均'), X, 0.4, 20, c.ink);
+        this.agg_c = new Choice(this.agg, X, -0.08, [pick(lang, 'answer', '按回答'), pick(lang, 'token', '按 token'), pick(lang, 'const.', '常数')], { size: lang === 'zh' ? 18 : 17, cell: 0.95 });
         this.std_t = new Toggle(this.std, X, -0.72, pick(lang, 'divide by σ', '除以标准差 σ'), { size: 20 });
         controls.add(acap, this.agg_c.group, this.std_t.group);
         const rcap = label_at(pick(lang, 'per-token push:', '每个 token 的推力：'), X, -1.35, 18, c.ink);
