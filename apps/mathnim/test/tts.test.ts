@@ -3,7 +3,7 @@ import { RateLimiter } from '../server/http';
 import { tts, tts_cache_key } from '../server/tts/handler';
 import { js_date, parse_binary_frame, parse_text_frame, parse_word_boundaries, synthesize_ws } from '../server/tts/protocol';
 import { azure_messages, choose_provider, edge_messages, edge_url, sec_ms_gec, tts_mode } from '../server/tts/providers';
-import { build_ssml, clean_text, estimate_words, escape_xml, parse_tts_request, ssml_text, MAX_TTS_CHARS } from '../server/tts/text';
+import { build_ssml, clean_text, estimate_words, escape_xml, parse_tts_request, ssml_text, voice_for, MAX_TTS_CHARS } from '../server/tts/text';
 import { MemoryCache } from '../server/dev';
 import { audio_msg, post, scripted, text_msg, word_msg } from './fakes';
 
@@ -20,7 +20,10 @@ describe('text and SSML', () => {
     );
   });
   it('validates requests', () => {
-    expect(parse_tts_request('{"text":"Hello."}')).toEqual({ ok: true, value: { text: 'Hello.' } });
+    expect(parse_tts_request('{"text":"Hello."}')).toEqual({ ok: true, value: { text: 'Hello.', lang: 'en' } });
+    expect(parse_tts_request('{"text":"秩是多少？"}')).toEqual({ ok: true, value: { text: '秩是多少？', lang: 'zh' } });
+    expect(parse_tts_request('{"text":"LoRA","lang":"zh"}')).toEqual({ ok: true, value: { text: 'LoRA', lang: 'zh' } });
+    expect(parse_tts_request('{"text":"LoRA","lang":"fr"}')).toEqual({ ok: true, value: { text: 'LoRA', lang: 'en' } });
     expect(parse_tts_request('nope')).toMatchObject({ ok: false, status: 400 });
     expect(parse_tts_request('{"text":"  "}')).toMatchObject({ ok: false, status: 400 });
     expect(parse_tts_request('{"text":5}')).toMatchObject({ ok: false, status: 400 });
@@ -116,6 +119,18 @@ describe('provider choice', () => {
   });
 });
 
+describe('voices by language', () => {
+  it('reads English with Andrew and Chinese with Yunxi, unless the environment names another voice', () => {
+    expect(voice_for('en')).toMatchObject({ voice: 'en-US-AndrewMultilingualNeural', lang: 'en-US' });
+    expect(voice_for('zh')).toMatchObject({ voice: 'zh-CN-YunxiNeural', lang: 'zh-CN' });
+    expect(voice_for('zh', { MATHNIM_VOICE_ZH: 'zh-CN-XiaoxiaoNeural' }).voice).toBe('zh-CN-XiaoxiaoNeural');
+    expect(voice_for('zh', { MATHNIM_VOICE_ZH: "x'><evil/>" }).voice).toBe('zh-CN-YunxiNeural');
+    expect(build_ssml('你好', voice_for('zh'))).toContain("xml:lang='zh-CN'><voice name='zh-CN-YunxiNeural'>");
+    expect(ssml_text('面积是 r²')).toBe('面积是 r的平方');
+    expect(estimate_words('秩 r 很小', 1).map((w) => w[2])).toEqual(['秩', 'r', '很', '小']);
+  });
+});
+
 describe('POST /api/tts', () => {
   const script = () => scripted([word_msg('Hello', 1_000_000, 2_500_000), audio_msg(new Array(6000).fill(7)), text_msg('turn.end')]);
   it('returns a recording and caches it', async () => {
@@ -143,6 +158,17 @@ describe('POST /api/tts', () => {
     expect((await tts(new Request('https://mathnim.pages.dev/api/tts'), {}, deps, {})).status).toBe(405);
     expect((await tts(post('/api/tts', 'x'.repeat(9000)), {}, deps, {})).status).toBe(413);
     expect((await tts(post('/api/tts', { text: 'x' }), { TTS: 'off' }, deps, {})).status).toBe(503);
+  });
+  it('reads a Chinese line with the Chinese voice and caches it per voice', async () => {
+    const s = scripted([word_msg('你好', 1_000_000, 2_500_000), audio_msg(new Array(6000).fill(7)), text_msg('turn.end')]);
+    const cache = new MemoryCache();
+    const note = {};
+    const res = await tts(post('/api/tts', { text: '你好。', lang: 'zh' }), {}, { connect: s.connect, cache, limiter: null }, note);
+    expect(await res.json()).toMatchObject({ text: '你好。', voice: 'zh-CN-YunxiNeural', words: [[0.1, 0.35, '你好']] });
+    expect(s.calls[0] && s.calls[0].sent.join('')).toContain("voice name='zh-CN-YunxiNeural'");
+    await (note as { after?: Promise<unknown> }).after;
+    expect(await cache.get(await tts_cache_key('你好。', voice_for('zh')))).toBeTruthy();
+    expect(await cache.get(await tts_cache_key('你好。'))).toBeFalsy();
   });
   it('reports a failing service as 502', async () => {
     const note: { error?: string } = {};

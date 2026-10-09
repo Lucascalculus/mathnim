@@ -140,11 +140,30 @@ languages; all older lessons) or `{ en, zh }`.
   Lessons with `{ en, zh }` texts switch; plain-string lessons stay as they
   are. The interface strings live in one dictionary (`t('key')`:
   `packages/present/src/i18n.ts`, the app's own in `apps/mathnim/src/i18n.ts`).
-* **Narration** keys are computed from the text in each language, so both
-  languages are recorded: `npm run narration` reads English lines with
+* **Narration** is for "videos": scene steps (and worlds with their triggered
+  lines) are voiced, and in game lessons the character also speaks the
+  questions; text pages are never voiced and questions are silent in essay
+  lessons (the doctor warns when they carry `narration`). Lines without a
+  recording are read live by `/api/tts` in the voice of their language
+  (same voices; `MATHNIM_VOICE_EN` / `MATHNIM_VOICE_ZH`). Keys are computed from the text in each
+  language, so both languages are recorded: `npm run narration` reads English lines with
   en-US-AndrewMultilingualNeural and Chinese ones with zh-CN-YunxiNeural
   (`MATHNIM_VOICE_EN` / `MATHNIM_VOICE_ZH` override; `--revoice` re-records
   lines made with another voice).
+* **Visual labels in Chinese**: `linear_map`, `symmetric_ellipse`,
+  `pca_projection` and `pca_3d` take `lang` ('auto' follows the learner, like
+  the course's own visuals). Canvas text needs a Chinese font: the app
+  registers Noto Sans SC (`apps/mathnim/src/cjk_font.ts`; from
+  `public/fonts/noto-sans-sc-chinese-simplified-400-normal.woff` when present,
+  else the jsDelivr CDN) before drawing in Chinese, and keeps English labels if
+  it cannot load one. The node-side tools (`npm run check -w @mathnim/visuals`,
+  `npm run doctor`) register a local Chinese font the first time a zh label is
+  drawn, so zh contact sheets show real glyphs: `$MATHNIM_CJK_FONT` (a path),
+  else `apps/mathnim/public/fonts/noto-sans-sc-chinese-simplified-400-normal.woff`,
+  else macOS's `/System/Library/Fonts/Supplemental/Arial Unicode.ttf` (one line
+  says which; with Arial Unicode the metrics are close to, not the same as, the
+  app's Noto Sans SC). Add `lang: 'zh'` examples to a visual to see its Chinese
+  sheet. The check also registers the fine-tuning visuals (`src/ft/<part>/index.ts`).
 * **Doctor**: `npm run doctor` lints every lesson's text (both languages
   present, untranslated prose, TeX renders, figures exist, visuals registered
   with valid params, code not empty, notes inside the code, blanks parse and

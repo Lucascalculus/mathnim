@@ -4,12 +4,13 @@
 // break-even volume N* = F / (c_A - c_B). Prompt caching lowers A's input cost,
 // long outputs make the shorter prompt matter less, and F = 0 (per-token LoRA
 // hosting) moves N* to zero. Exact arithmetic; the prices are examples.
-// Explore: drag N, the cache-hit share, the output length and the fixed cost.
-import { Create, DashedLine, Dot, FadeIn, Scene, VGroup, VMobject, ValueTracker, always_redraw, smooth } from 'manim-web';
+// Explore: drag N, the cache-hit share and the fixed cost (the output length is a
+// parameter). The lesson's action locks a volume in (a pin on the plot).
+import { Create, DashedLine, Dot, FadeIn, MathTex, Rectangle, Scene, VGroup, VMobject, ValueTracker, always_redraw, smooth } from 'manim-web';
 import { Slider } from 'manim-web/ext/widgets';
 import { palette } from '../../theme';
 import { define_visual } from '../../visual';
-import { fit, group, label, LANG_SPEC, live, num, pick, resolve_lang, seg, type Lang } from '../f/kit';
+import { fit, group, label, LANG_SPEC, live, num, pick, resolve_lang, seg, value_row, type Lang } from '../f/kit';
 
 export interface CostCrossoverParams extends Record<string, unknown> {
   requests_per_day: number;
@@ -64,7 +65,7 @@ function polyline(pts: ([number, number] | null)[], color: string, width: number
 
 export const cost_crossover = define_visual<CostCrossoverParams>({
   name: 'cost_crossover',
-  summary: 'Does fine-tuning save money? Daily cost of a large model with a long prompt (A) vs a fine-tuned small model with a short prompt plus a fixed daily cost (B), log-log; the lines cross at the break-even volume N* = F/(c_A - c_B). Student drags requests per day, prompt-cache hit share, output length and fixed cost. Exact; prices are examples.',
+  summary: 'Does fine-tuning save money? Daily cost of a large model with a long prompt (A) vs a fine-tuned small model with a short prompt plus a fixed daily cost (B), log-log; the lines cross at the break-even volume N* = F/(c_A - c_B). Student drags requests per day, prompt-cache hit share and fixed cost; a lesson action pins a guessed break-even. Exact; prices are examples.',
   topics: ['fine-tuning', 'llm', 'cost', 'latency', 'prompt caching', 'distillation', 'how to choose'],
   params: {
     requests_per_day: { type: 'number', min: 10, max: 1e6, default: 2000, doc: 'requests per day at the start' },
@@ -87,27 +88,34 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
     { fixed_per_day: 0, requests_per_day: 50 },
     { price_in_a: 0.2, price_out_a: 0.8, requests_per_day: 1e6 },
   ],
-  ids: ['plot', 'line_a', 'line_b', 'marker', 'readouts', 'sliders'],
+  ids: ['plot', 'line_a', 'line_b', 'marker', 'readouts', 'formula', 'sliders'],
   scene: (p) => {
     const lang: Lang = resolve_lang(p.lang);
     class CostCrossover extends Scene {
       lgN = ValueTracker(1);
       h = ValueTracker(p.cache_hit);
-      tout = ValueTracker(p.tokens_out);
       F = ValueTracker(p.fixed_per_day);
+      /** The volume the learner locked in (log10), or -1. */
+      locked = ValueTracker(-1);
+      /** Which input was moved last: 0 none, 1 F, 2 the cache share (it changes c_A), 3 N. */
+      last = ValueTracker(0);
       sN!: any;
       sh!: any;
-      sout!: any;
       sF!: any;
       /** Cost per request of A and B (USD). */
-      cA = () => per_request(p.tokens_in_a, p.price_in_a, this.tout.get_value(), p.price_out_a, this.h.get_value(), p.cache_price_ratio);
-      cB = () => per_request(p.tokens_in_b, p.price_in_b, this.tout.get_value(), p.price_out_b);
+      cA = () => per_request(p.tokens_in_a, p.price_in_a, p.tokens_out, p.price_out_a, this.h.get_value(), p.cache_price_ratio);
+      cB = () => per_request(p.tokens_in_b, p.price_in_b, p.tokens_out, p.price_out_b);
       /** Break-even requests per day (Infinity when B is never cheaper). */
       nstar = () => break_even(this.cA(), this.cB(), this.F.get_value());
       N = () => 10 ** this.lgN.get_value();
+      /** Lock in the current volume (the lesson's 'This is break-even' action). Returns it. */
+      lock = () => {
+        this.locked.set_value(this.lgN.get_value());
+        return this.N();
+      };
       override construct() {
         const c = palette();
-        this.track(this.lgN, this.h, this.tout, this.F);
+        this.track(this.lgN, this.h, this.F, this.locked, this.last);
         const L = (en: string, zh: string) => pick(lang, en, zh);
         // ---- axes
         const frame = group(
@@ -131,8 +139,8 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
           }
           return pts;
         };
-        const line_a = always_redraw(() => polyline(curve((n) => n * this.cA()), c.coral, 5));
-        const line_b = always_redraw(() => polyline(curve((n) => this.F.get_value() + n * this.cB()), c.accent, 5));
+        const line_a = live(() => this.cA().toPrecision(6), () => polyline(curve((n) => n * this.cA()), c.coral, 5));
+        const line_b = live(() => `${this.F.get_value().toFixed(2)}|${this.cB().toPrecision(6)}`, () => polyline(curve((n) => this.F.get_value() + n * this.cB()), c.accent, 5));
         line_a.name = 'line_a';
         line_b.name = 'line_b';
         const legend_row = (y: number, color: string, text: string) => {
@@ -168,38 +176,59 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
             if (!inside) d.set_opacity(0);
             ms.push(d);
           }
+          const lk = this.locked.get_value(), on = lk >= LX[0];
+          const px = X(on ? lk : lg);
+          const pin = VGroup(seg([px, PLOT.y1 - 0.02], [px, PLOT.y1 + 0.32], c.ink, 3), Rectangle({ width: 0.34, height: 0.2, stroke_width: 0, fill_color: c.ink, fill_opacity: 1 }).move_to([px + 0.17, PLOT.y1 + 0.22, 0]));
+          if (!on) pin.set_opacity(0);
+          ms.push(pin);
           return VGroup(...ms);
         });
         marker.name = 'marker';
         // ---- readouts
-        const per_day = L(' /day', ' /天');
-        const money = (v: number) => `$${num(v, v < 100 ? 2 : 0)}`;
-        const ro = (y: number, f: () => string, color: string) => live(f, () => fit(label(f(), 26, color), 5.8).move_to([0, y, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]));
+        const per_day = L('/day', '/天');
         const readouts = VGroup(
-          ro(3.25, () => `N = ${num(Math.round(this.N()))}${L(' requests/day', ' 次/天')}`, c.ink),
-          ro(2.72, () => `A: ${money(this.N() * this.cA())}${per_day}`, c.coral),
-          ro(2.19, () => `B: ${money(this.F.get_value() + this.N() * this.cB())}${per_day}`, c.accent),
-          ro(1.66, () => {
-            const n = this.nstar();
-            return Number.isFinite(n) ? `${L('break-even', '持平点')} N* ≈ ${num(Math.round(n))}` : L('B is never cheaper', 'B 永远不会更便宜');
-          }, c.ink),
+          value_row({ before: 'N =', after: L('requests/day', '次/天'), get: () => Math.round(this.N()), at: [PANEL_X, 3.3] }),
+          value_row({ before: 'A: $', after: per_day, get: () => this.N() * this.cA(), decimals: 2, color: c.coral, at: [PANEL_X, 2.82] }),
+          value_row({ before: 'B: $', after: per_day, get: () => this.F.get_value() + this.N() * this.cB(), decimals: 2, color: c.accent, at: [PANEL_X, 2.34] }),
         );
+        // the break-even formula with today's numbers; the term the learner moved last is underlined
+        const f_sym = MathTex('N^* = \\frac{F}{c_A - c_B}', { font_size: 34, color: c.ink }).move_to([0, 1.55, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
+        const sig = (v: number) => (v >= 0.01 ? v.toFixed(4) : v.toPrecision(2));
+        const f_num = live(() => `${this.F.get_value().toFixed(0)}|${sig(this.cA())}|${sig(this.cB())}|${this.last.get_value()}`, () => {
+          const n = this.nstar();
+          const parts = [
+            MathTex(`= ${this.F.get_value().toFixed(0)}`, { font_size: 30, color: c.ink }),
+            MathTex('/\\,(', { font_size: 30, color: c.ink }),
+            MathTex(sig(this.cA()), { font_size: 30, color: c.coral }),
+            MathTex(`-\\,${sig(this.cB())}`, { font_size: 30, color: c.accent }),
+            MathTex(Number.isFinite(n) ? `)\\approx ${num(Math.round(n)).replace(/,/g, '{,}')}` : ')\\;\\to\\;\\infty', { font_size: 30, color: c.ink }),
+          ];
+          const row = VGroup(...parts).arrange([1, 0, 0], { buff: 0.1 });
+          fit(row as any, 5.9);
+          row.move_to([0, 0.92, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
+          const which = this.last.get_value() === 1 ? 0 : this.last.get_value() === 2 ? 2 : -1;
+          const t = parts[Math.max(0, which)];
+          const u = seg([t.get_left()[0], t.get_bottom()[1] - 0.07], [t.get_right()[0], t.get_bottom()[1] - 0.07], c.gold, 5);
+          if (which < 0) u.set_opacity(0);
+          return VGroup(row, u);
+        });
+        const formula = VGroup(f_sym, f_num);
+        formula.name = 'formula';
         readouts.name = 'readouts';
         // ---- sliders (captions in Text so both languages work)
         const look = { length: 3.3, color: c.accent, track_color: c.faint, stroke_width: 8, knob_radius: 0.15, font_size: 26, label: null };
         const SX = 4.35;
-        this.sN = new Slider(this.lgN, { ...look, x_range: LX, show_value: false }).move_to([SX, 0.55, 0]);
-        this.sh = new Slider(this.h, { ...look, x_range: [0, 1], decimals: 2 }).move_to([SX, -0.45, 0]);
-        this.sout = new Slider(this.tout, { ...look, x_range: [10, 2000], decimals: 0 }).move_to([SX, -1.45, 0]);
-        this.sF = new Slider(this.F, { ...look, x_range: [0, Math.max(200, p.fixed_per_day * 2)], decimals: 0 }).move_to([SX, -2.45, 0]);
+        this.sN = new Slider(this.lgN, { ...look, x_range: LX, show_value: false }).move_to([SX, -0.05, 0]);
+        this.sh = new Slider(this.h, { ...look, x_range: [0, 1], show_value: false }).move_to([SX, -1.15, 0]);
+        this.sF = new Slider(this.F, { ...look, x_range: [0, Math.max(200, p.fixed_per_day * 2)], show_value: false }).move_to([SX, -2.25, 0]);
         const cap = (y: number, en: string, zh: string) => label(L(en, zh), 24, c.muted).move_to([0, y + 0.42, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
         const caps = VGroup(
-          cap(0.55, 'requests per day (log scale)', '每天请求数（对数刻度）'),
-          cap(-0.45, "share of A's prompt served from cache", 'A 的提示命中缓存的比例'),
-          cap(-1.45, 'output tokens per request', '每次请求的输出 token'),
-          cap(-2.45, "B's fixed cost per day (USD)", 'B 每天的固定成本（美元）'),
+          cap(-0.05, 'requests per day N (log scale)', '每天请求数 N（对数刻度）'),
+          value_row({ before: L("share of A's prompt from cache", 'A 的提示命中缓存的比例'), get: () => this.h.get_value(), decimals: 2, size: 24, color: c.muted, value_color: c.coral, at: [PANEL_X, -0.73] }),
+          value_row({ before: L("B's fixed cost per day F, $", 'B 每天的固定成本 F（美元）'), get: () => this.F.get_value(), decimals: 0, size: 24, color: c.muted, value_color: c.ink, at: [PANEL_X, -1.83] }),
         );
-        const sliders = VGroup(this.sN, this.sh, this.sout, this.sF, caps);
+        const sliders = VGroup(this.sN, this.sh, this.sF, caps);
+        sliders.update(0);
         sliders.name = 'sliders';
         const prices = fit(label(L(
           `example prices, USD per million tokens: A ${p.price_in_a}/${p.price_out_a}, B ${p.price_in_b}/${p.price_out_b}; prompt ${p.tokens_in_a} vs ${p.tokens_in_b} tokens`,
@@ -212,21 +241,28 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
         this.play(Create(line_b), FadeIn(legend.submobjects[1]), { run_time: 1.2 });
         this.add(cross);
         this.play(FadeIn(prices), { run_time: 0.8 });
-        for (const r of readouts.submobjects) (r as any).update(0);
-        this.play(FadeIn(readouts), FadeIn(marker), { run_time: 1 });
+        readouts.update(0);
+        formula.update(0);
+        this.play(FadeIn(readouts), FadeIn(marker), FadeIn(formula), { run_time: 1 });
         const target = Math.log10(Math.min(1e6, Math.max(10, p.requests_per_day)));
         this.play(this.lgN.animate.set_value(target), { run_time: 2.5, rate_func: smooth });
         this.play(FadeIn(sliders), { run_time: 1 });
-        this.add(plot, legend, prices);
+        this.add(plot, legend, prices, formula);
         this.wait(1.2);
       }
     }
     return new CostCrossover();
   },
   explore: (scene: any, ui) => {
-    scene.sN.attach(ui, { step: 0.02, label: 'requests per day' });
-    scene.sh.attach(ui, { step: 0.05, label: 'cache hit share' });
-    scene.sout.attach(ui, { step: 10, label: 'output tokens' });
-    scene.sF.attach(ui, { step: 5, label: 'fixed cost per day' });
+    const mark = (h: any, code: number) => {
+      const prev = h.spec.on_change;
+      h.spec.on_change = (pt: any) => {
+        scene.last.set_value(code);
+        prev?.(pt);
+      };
+    };
+    mark(scene.sN.attach(ui, { step: 0.02, label: 'requests per day' }), 3);
+    mark(scene.sh.attach(ui, { step: 0.05, label: 'cache hit share' }), 2);
+    mark(scene.sF.attach(ui, { step: 5, label: 'fixed cost per day' }), 1);
   },
 });

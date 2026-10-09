@@ -50,14 +50,43 @@ only; images are welcome where they explain better.
   - the visuals check passes for your visuals;
   - `npm run doctor` passes for your lessons, once the main session has
     registered your unit (if it has not, say so).
+- **Narration only where it is needed:** scene steps (the "videos") get
+  `narration`. Text pages (read / derive / code) and checkpoints get none: the
+  learner reads them. Add triggered lines to worlds only where the learner's eyes
+  are on the canvas and a short voiced line helps.
 - **Do not run `npm run narration`:** the main session records narration once
   all texts are final.
+
+## The only acceptance criterion: 讲明白
+
+The user judges the course by one thing: does it make the learner genuinely
+understand? Think about that, section by section. Do not tick boxes.
+
+Things that often decide it (examples, not a checklist; add only what this
+section needs in order to be understood):
+- the learner knows what problem this technique solves, and why they would want
+  it, before the mechanics;
+- a high-level intuition comes before the math, and the math intuition (what
+  each term does, why the formula has this shape) before the formal details;
+- where the learner would naturally ask "why this and not X?", the page answers
+  it;
+- details, hyperparameters and code arrive once the learner has a place to hang
+  them, not as the opening.
+
+Signs a section fails: it opens with definitions, configs or a formula; it
+introduces a technique without saying what it is for; a formula has no "what
+does this term do"; it piles on details the learner has no reason to want yet.
+
+Test: after the section, could the student explain the idea to a colleague in
+their own words, and say when they would use it? If not, fix what is missing.
+If something does not serve that, cut it or move it into a `details` block.
 
 ## Product-manager pass (required before reporting)
 
 Re-read your lessons as the product manager of Mathnim and as a student who
 knows neural networks but not this topic. Check:
-- Would they understand?
+- Would they understand (the criterion above)? Does each section give the
+  purpose and intuition before the details?
 - Is any page a wall of text?
 - Does each interaction pass the three rules?
 - Is the "怎么选" card actionable?

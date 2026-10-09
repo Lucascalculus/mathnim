@@ -84,7 +84,13 @@ export function mount_shell(routes: Record<string, Page>): void {
       <a href="#/settings" class="${here === 'settings' ? 'on' : ''}">${t('nav_settings')}</a>
       <span class="mode">${t('nav_ai', { p: provider_label(active_provider(s)) })}</span>
       <span class="langs" role="group" aria-label="${t('language')} / Language">${LANGS.map((l) => `<button type="button" data-lang="${l}" lang="${l === 'zh' ? 'zh-CN' : 'en'}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('')}</span>`;
-    nav.querySelectorAll<HTMLButtonElement>('.langs button').forEach((b) => (b.onclick = () => set_language(b.dataset.lang as Lang)));
+    nav.querySelectorAll<HTMLButtonElement>('.langs button').forEach((b) => (b.onclick = async () => {
+      // switching to Chinese may first load the Chinese font for the visuals (a second or two, once)
+      if (b.getAttribute('aria-pressed') === 'true') return;
+      b.setAttribute('aria-busy', 'true');
+      b.style.opacity = '0.6';
+      await set_language(b.dataset.lang as Lang);
+    }));
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   };
   const route = async (keep_scroll = false) => {

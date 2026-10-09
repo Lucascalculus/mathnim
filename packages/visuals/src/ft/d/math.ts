@@ -21,13 +21,13 @@ export const BT_CYCLE: Matchup[] = [[0, 1, 7, 3], [1, 2, 7, 3], [2, 0, 7, 3]];
 export const BT_EVEN: Matchup[] = [[0, 1, 5, 5], [1, 2, 5, 5], [0, 2, 5, 5], [3, 2, 5, 5]];
 
 /** Log-likelihood of the matchups under rewards r. */
-export function bt_loglik(r: readonly number[], games: readonly Matchup[]): number {
+export function bt_loglik(r: ArrayLike<number>, games: readonly Matchup[]): number {
   let s = 0;
   for (const [i, j, w, l] of games) s += w * log_sigmoid(r[i] - r[j]) + l * log_sigmoid(r[j] - r[i]);
   return s;
 }
 /** Predicted probability that i beats j. */
-export const bt_prob = (r: readonly number[], i: number, j: number): number => sigmoid(r[i] - r[j]);
+export const bt_prob = (r: ArrayLike<number>, i: number, j: number): number => sigmoid(r[i] - r[j]);
 
 /**
  * Gradient ascent on the log-likelihood from all-zero rewards (item `pinned`

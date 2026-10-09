@@ -6,7 +6,7 @@
 // highlighted pill to another stop or clicks one; the checker drags it to the
 // extremes, where it snaps to the first or last stop. Words are drawn with
 // part F's `label` (sans font, both languages).
-import { RoundedRectangle, VGroup, VMobject, type ValueTracker } from 'manim-web';
+import { ImageMobject, RESAMPLING_ALGORITHMS, RoundedRectangle, VGroup, VMobject, type ValueTracker } from 'manim-web';
 import type { Mobject } from 'manim-web';
 import { palette } from '../../theme';
 import { label } from '../f/kit';
@@ -114,8 +114,15 @@ export function live_label(text: () => string, size: number, color: string | (()
     const key = `${s}|${col}`;
     if (m._key !== key) {
       m._key = key;
-      const t = txt(s, size, col, { weight: o.weight });
-      if (o.max_width && t.width > o.max_width) t.scale(o.max_width / t.width);
+      // texts already made for this string are reused (dragging back and forth is cheap)
+      const cache: Map<string, Mobject> = (m._cache ??= new Map());
+      let t = cache.get(key);
+      if (!t) {
+        t = txt(s, size, col, { weight: o.weight });
+        if (o.max_width && t.width > o.max_width) t.scale(o.max_width / t.width);
+        if (cache.size > 96) cache.clear();
+        cache.set(key, t);
+      }
       m.submobjects = s ? [t] : [];
     }
     if (m.submobjects.length) place(m.submobjects[0]);
@@ -279,6 +286,8 @@ export interface TipLabel {
   tip: () => [readonly number[], readonly number[]];
   /** Hide the label while false. */
   visible?: () => boolean;
+  /** May be left out when there is no free spot (otherwise it is put where it overlaps least). */
+  optional?: boolean;
 }
 const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 /**
@@ -289,44 +298,115 @@ const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y
  */
 export function tip_labels(items: TipLabel[], box: Box, avoid: () => Box[] = () => [], gap = 0.14): VGroup {
   const g = VGroup(...items.map((i) => i.m));
+  const show = (m: any, on: boolean) => {
+    if (m._on === on) return;
+    m._on = on;
+    m.set_opacity(on ? 1 : 0);
+  };
   const upd = () => {
-    const taken: Box[] = [...avoid()];
+    const placed: Box[] = [], lines = avoid();
     for (const it of items) {
-      const on = it.visible ? it.visible() : true;
       const m: any = it.m;
-      if (m._on !== on) {
-        m._on = on;
-        m.set_opacity(on ? 1 : 0);
+      if (it.visible && !it.visible()) {
+        show(m, false);
+        continue;
       }
-      if (!on) continue;
       const [a, b] = it.tip();
       let base = Math.atan2(b[1] - a[1], b[0] - a[0]);
       if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 1e-6) base = Math.PI / 4;
       const w = m.width / 2, h = m.height / 2;
-      let best: Box | null = null, best_c: number[] = [b[0], b[1]], best_hits = Infinity;
+      let best: Box | null = null, best_c: number[] = [b[0], b[1]], best_score = Infinity;
       for (let k = 0; k < 36; k++) {
         const j = k % 12, ring = Math.floor(k / 12);
         const ang = base + (j % 2 ? 1 : -1) * Math.ceil(j / 2) * (Math.PI / 6);
         const ux = Math.cos(ang), uy = Math.sin(ang);
         const r = Math.min(Math.abs(ux) > 1e-9 ? w / Math.abs(ux) : Infinity, Math.abs(uy) > 1e-9 ? h / Math.abs(uy) : Infinity) + gap + 0.45 * ring;
-        let cx = b[0] + ux * r, cy = b[1] + uy * r;
-        cx = clamp(cx, box.x0 + w, box.x1 - w);
-        cy = clamp(cy, box.y0 + h, box.y1 - h);
+        const cx = clamp(b[0] + ux * r, box.x0 + w, box.x1 - w), cy = clamp(b[1] + uy * r, box.y0 + h, box.y1 - h);
         const bb = { x0: cx - w, x1: cx + w, y0: cy - h, y1: cy + h };
-        const hits = taken.filter((t) => hit(t, bb)).length;
-        if (hits < best_hits) {
-          best_hits = hits;
+        // another label on top is far worse than a line underneath
+        const score = 10 * placed.filter((t) => hit(t, bb)).length + lines.filter((t) => hit(t, bb)).length;
+        if (score < best_score) {
+          best_score = score;
           best = bb;
           best_c = [cx, cy];
-          if (!hits) break;
+          if (!score) break;
         }
       }
+      // an optional label that can only sit on another one is left out for this frame
+      const on = !(it.optional && best_score >= 10);
+      show(m, on);
+      if (!on) continue;
       const c = m.get_center();
       if (Math.abs(c[0] - best_c[0]) > 1e-9 || Math.abs(c[1] - best_c[1]) > 1e-9) m.move_to([best_c[0], best_c[1], 0]);
-      if (best) taken.push(best);
+      if (best) placed.push(best);
     }
   };
   upd();
   g.add_updater(upd);
+  return g;
+}
+
+// ---------------------------------------------------------------- heatmaps
+/** Diverging colours of a value v scaled by m: positive towards `pos`, negative towards `neg`, 0 = background. */
+export function diverging(v: number, m: number, bg: string, pos: string, neg: string, gamma = 0.75): [number, number, number] {
+  const t = Math.min(1, Math.abs(v) / (m || 1)) ** gamma;
+  return mix_rgb(bg, v >= 0 ? pos : neg, t);
+}
+/**
+ * A heatmap of a rows x cols grid as an image with sharp cells (nearest
+ * resampling), w x h scene units, centred at (x, y). `paint(values)` redraws
+ * it; the pixel array is replaced (never changed in place) so snapshots stay exact.
+ */
+export function heatmap(rows: number, cols: number, x: number, y: number, w: number, h: number): ImageMobject & { paint(values: readonly (readonly number[])[], colour: (v: number) => readonly number[]): void } {
+  const data = new Uint8ClampedArray(rows * cols * 4).fill(255);
+  const im: any = ImageMobject({ filename_or_array: { width: cols, height: rows, data } });
+  im.set_resampling_algorithm(RESAMPLING_ALGORITHMS.nearest);
+  im.stretch_to_fit_width(w);
+  im.stretch_to_fit_height(h);
+  im.move_to([x, y, 0]);
+  im.paint = (values: readonly (readonly number[])[], colour: (v: number) => readonly number[]) => {
+    const d = new Uint8ClampedArray(rows * cols * 4);
+    for (let a = 0; a < rows; a++) {
+      for (let b = 0; b < cols; b++) {
+        const c = colour(values[a][b]), o = 4 * (a * cols + b);
+        d[o] = c[0];
+        d[o + 1] = c[1];
+        d[o + 2] = c[2];
+        d[o + 3] = 255;
+      }
+    }
+    im.pixel_array = { width: cols, height: rows, data: d };
+  };
+  return im;
+}
+
+/**
+ * A line of words and live values laid out left to right from (x, y): static
+ * strings are drawn once, functions are live labels (cached per value), so a
+ * drag only rebuilds the short changing pieces (cheap Latin digits) and never
+ * the words (CJK text is slow to lay out).
+ */
+export function live_line(parts: (string | (() => string))[], x: number, y: number, size: number, color: string | (() => string), o: { weight?: string; colors?: (string | (() => string) | undefined)[]; gap?: number } = {}): VGroup {
+  const col = (i: number) => o.colors?.[i] ?? color;
+  const dyn = parts.map((p) => typeof p === 'function');
+  const pieces: Mobject[] = parts.map((p, i) => {
+    const ci = col(i);
+    if (typeof p === 'string') return txt(p, size, typeof ci === 'function' ? ci() : ci, { weight: o.weight });
+    return live_label(p, size, ci, () => {}, { weight: o.weight });
+  });
+  const g = VGroup(...pieces);
+  const gap = o.gap ?? 0.1;
+  const lay = () => {
+    let cx = x;
+    pieces.forEach((m: any, i) => {
+      if (dyn[i]) m.update(0);
+      const t = dyn[i] ? m.submobjects[0] : m;
+      if (!t || !t.width) return;
+      t.move_to([cx + t.width / 2, y, 0]);
+      cx += t.width + gap;
+    });
+  };
+  lay();
+  g.add_updater(lay);
   return g;
 }

@@ -36,7 +36,8 @@ TEAL = "#0D9488"
 WHITE = "#FFFFFF"
 
 SANS_STACK = "'Helvetica Neue', Helvetica, Arial, sans-serif"
-MONO_STACK = "ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace"
+# Menlo and DejaVu Sans Mono share the 0.602 em advance the layout assumes; Consolas is narrower.
+MONO_STACK = "Menlo, 'DejaVu Sans Mono', Consolas, monospace"
 
 # font sizes (px at 100% width)
 FS_TITLE = 15
@@ -172,6 +173,19 @@ def mono_width(s: str, size: float) -> float:
     return len(s) * size * MONO_W
 
 
+def text_width(s: str, size: float = FS, weight: str = "normal") -> float:
+    """Advance width (px) of sans-serif text as laid out (DejaVu Sans)."""
+    from matplotlib.font_manager import FontProperties
+    from matplotlib.textpath import TextToPath
+    w, _, _ = TextToPath().get_text_width_height_descent(
+        s, FontProperties(family="sans-serif", size=size, weight=weight), ismath=False)
+    return w
+
+
+def set_hatch_color(p, color):
+    _set_hatch_color(p, color)
+
+
 def credit(fig, note: str, where: str = "br", pad: float = 8):
     """Small corner note: 'Schematic redraw after ...' or 'Data: ...'."""
     W = fig.get_figwidth() * 72.0
@@ -218,7 +232,10 @@ def _postprocess(svg: str, W: float, H: float, title: str) -> str:
     # px size instead of pt, keep the viewBox
     svg = re.sub(r'<svg([^>]*?) width="[^"]*" height="[^"]*"',
                  lambda m: f'<svg{m.group(1)} width="{W:g}" height="{H:g}"', svg, count=1)
-    svg = svg.replace("<svg ", '<svg role="img" ', 1)
+    svg = svg.replace("<svg ", '<svg role="img" xml:space="preserve" ', 1)
+    # keep runs of spaces inside <text> (aligned code); every <text> holds a single line
+    svg = svg.replace("*{stroke-linejoin: round; stroke-linecap: butt}",
+                      "*{stroke-linejoin: round; stroke-linecap: butt} text{white-space: pre}", 1)
     # generic font stacks (layout was measured with DejaVu Sans / Sans Mono)
     svg = re.sub(r"font-family: ([^;\"]*)",
                  lambda m: "font-family: " + (MONO_STACK if "Mono" in m.group(1) or "monospace" in m.group(1)

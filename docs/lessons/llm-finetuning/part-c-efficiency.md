@@ -26,6 +26,17 @@
 - "前两个主成分保留了 (9+4)/14 的方差"（`reduce-q`）。
 - C2 直接引用这三处。
 
+> **修订记录（2026-10-10，据 [research-sft.md](research-sft.md) §2）：**
+> 1. 容量"2 比特/参数"出自 Allen-Zhu & Li（Physics of LMs 3.3），不是 LoRA 的测量；D5 是量级假设，"每 token 0.1 比特"是本计划的假设。
+> 2. NF4"每格质量相等"只对精确的 N(0,1) 成立；Yoshida 2023 已核实（删去"待核实"）。
+> 3. 偏移 0.9677 与 $1-\tfrac12(\tfrac1{32}+\tfrac1{30})$ 只是数值相等；bnb 称其为经验值。
+> 4. TRL v1.15 SFTTrainer 默认分块计算 log 概率；"不融合 4.2 GB"适用于普通 PyTorch / `Trainer`。
+> 5. D4 的 SGD 一步与 rsLoRA 附录 A 的证明一致；Adam 一步是本计划自己的推理。按协调者决定，课程正文只讲已发表结论，直觉解释放在折叠块里。
+> 6. "只挂注意力层 r≈49 才与 all-linear r=16 参数量相同"是本计划的推算；Thinking Machines 的同参数量对比是 attention r=256 对 MLP r=128，且 MLP-only ≈ 全部层。
+> 7. Biderman：代码上 LoRA 的学–忘权衡更好，数学上全量更好；Tülu-v2-mix 上两者相当。
+> 8. 混合精度论文讨论的是 FP16（相差 2048 倍时更新被吞）；本课 bf16 的数字是类比改写，课程中已注明。
+> 9. Fireworks"一个部署 100 个适配器"出自其 SFT 教程博客；文档链接已迁移。
+
 ---
 
 ## C1 显存账
@@ -215,7 +226,7 @@
 |---|---|---|---|
 | C1-c1 | 实测峰值显存：`reset_peak_memory_stats` → 跑一步训练 → `max_memory_allocated`，并和计算器的估算对照。 | PyTorch | ~12 |
 | C1-c2 | 显存快照：`torch.cuda.memory._record_memory_history()` → 导出 → 用 PyTorch 的显存可视化页面查看（图 C1-2 就是这样得到的）。 | PyTorch | ~8 |
-| C1-c3 | 三个开关：`gradient_checkpointing=True`、`optim="adamw_8bit"`、融合交叉熵（`use_liger_kernel=True`，以 transformers 文档为准）。 | transformers / TRL | ~10 |
+| C1-c3 | 三个开关：`gradient_checkpointing=True`、`optim="adamw_8bit"`、融合/分块交叉熵（TRL v1.15 的 SFTTrainer 默认已分块计算 log 概率；在普通 PyTorch / `Trainer` 里用 `use_liger_kernel=True`）。 | transformers / TRL | ~10 |
 | C1-c4 | 估算函数：把推导 D1–D5 写成约 30 行的 Python，计算器就是它的界面版。 | Python | ~30 |
 
 ### 图片清单
@@ -436,7 +447,7 @@
    - 两种说法的前提不同，"哪个对"取决于秩和训练阶段，这是开放问题。
 
 **D5 容量与信息量**（量级估算）
-1. 容量：Thinking Machines 估计 LoRA 每个参数大约能存 2 比特（[技] §4）。
+1. 容量（**量级假设**）：Thinking Machines 引用 Allen-Zhu & Li（Physics of LMs 3.3）"每个参数约 2 比特"的结论，那是一般神经网络、合成数据、长训练极限下的结果，不是对 LoRA 的测量。
    - 8B、r = 16、all-linear：41.9M 个参数，约 84M 比特；
    - r = 1：2.62M 个参数，约 5.2M 比特。
 2. **RL：** 二值奖励每个回合最多带 1 比特。10 万个回合 ≤ 10⁵ 比特，比秩 1 的容量还小 50 倍，所以秩 1 就够（Thinking Machines）。
@@ -532,7 +543,7 @@
 
 | id | 误解 | 实际情况与证据 |
 |---|---|---|
-| `nf4-uniform` | 4 位就是 16 个等距的格点 | NF4 把格点放在正态分布的分位点上，每个格分到的权重一样多；并且专门留出一个精确的 0（[QLoRA](https://arxiv.org/abs/2305.14314)；推导 D1）。 |
+| `nf4-uniform` | 4 位就是 16 个等距的格点 | NF4 把格点放在正态分布的分位点上（按"每格概率质量相等"设计，前提是输入恰好服从 N(0,1)；经过按块 absmax 归一化后并不严格相等，见 Yoshida 2023）；并且专门留出一个精确的 0（[QLoRA](https://arxiv.org/abs/2305.14314)；推导 D1）。 |
 | `outlier-local` | 一个异常值只影响它自己 | absmax 缩放时，异常值决定了整块的格距：同一块里的其他权重会挤到 0 附近的少数几个格点上（I1）。按块缩放把影响限制在 64 个权重之内。 |
 | `qlora-trains-4bit` | QLoRA 是在 4 位精度上训练，更新的是 4 位权重 | 4 位只是**存储**格式：基座冻结，前向和反向时临时反量化成 bf16 再计算；梯度只流向 bf16 或 fp32 的适配器（[QLoRA](https://arxiv.org/abs/2305.14314)）。 |
 | `qlora-faster` | 量化之后训练更快 | 每一层都要反量化，所以每一步通常比 bf16 的 LoRA 慢；QLoRA 换来的是显存。 |
@@ -621,7 +632,7 @@
    - 正半边 8 个格点：概率取 linspace(0.9677, 0.5, 9) 去掉最后一个；
    - 负半边 7 个格点：概率取 linspace(0.9677, 0.5, 8) 去掉最后一个，取负；
    - 再加上 0，共 16 个。
-3. **偏移 0.9677 的来历：** $\Phi^{-1}(1)=\infty$，所以最外侧的格点取在 $1-\tfrac12(\tfrac1{32}+\tfrac1{30})\approx0.9677$，$\Phi^{-1}(0.9677)\approx1.848$。
+3. **偏移 0.9677：** $\Phi^{-1}(1)=\infty$，所以最外侧的格点不能取在 1。bitsandbytes 称这个偏移是经验选取的；它在数值上恰好等于 $1-\tfrac12(\tfrac1{32}+\tfrac1{30})$，但这个推导是第三方的重构，不要当作官方来历。$\Phi^{-1}(0.9677)\approx1.848$。
 4. **除以 1.848 归一化到 [−1, 1]，得到 16 个值：**
    - 负半边：−1、−0.6962、−0.5251、−0.3949、−0.2844、−0.1848、−0.0911；
    - 0；

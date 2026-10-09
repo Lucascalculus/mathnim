@@ -47,20 +47,39 @@ function tex_html(tex: string, display: boolean): string {
   return `<code>${esc(tex)}</code>`;
 }
 
+// Chinese punctuation must not start a line: closing marks after inline math stay with it
+// (and opening marks before it), e.g. "预训练好的 $W_0$，只学习" never breaks before "，".
+const CJK_CLOSE = /^[，。、；：！？）」』”’》〉】…—·%]+/;
+const CJK_OPEN = /[（「『“‘《〈【]+$/;
+
 /** HTML for text containing $inline$ and $$display$$ TeX; **bold**, *italic*, `code` and [links](url) are supported. */
 export function math_html(text: string, o: MarkupOptions = {}): string {
   return text
     .split(/(`[^`\n]+`)/g)
     .map((chunk) => {
       if (/^`[^`\n]+`$/.test(chunk)) return `<code>${esc(chunk.slice(1, -1))}</code>`;
-      return chunk
-        .split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g)
-        .map((part) => {
-          const m = /^\$\$([^$]+)\$\$$|^\$([^$]+)\$$/.exec(part);
-          if (!m) return prose_html(part, o);
-          return tex_html(m[1] ?? m[2], !!m[1]);
-        })
-        .join('');
+      const parts = chunk.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+      const out: string[] = [];
+      for (let i = 0; i < parts.length; i++) {
+        const m = /^\$\$([^$]+)\$\$$|^\$([^$]+)\$$/.exec(parts[i]);
+        if (!m) {
+          out.push(prose_html(parts[i], o));
+          continue;
+        }
+        let html = tex_html(m[1] ?? m[2], !!m[1]);
+        if (!m[1]) {
+          // inline math: glue the punctuation around it so the line cannot break between them
+          const before = CJK_OPEN.exec(parts[i - 1] ?? '')?.[0] ?? '';
+          const after = CJK_CLOSE.exec(parts[i + 1] ?? '')?.[0] ?? '';
+          if (before || after) {
+            if (before) out[out.length - 1] = prose_html(parts[i - 1].slice(0, -before.length), o);
+            if (after) parts[i + 1] = parts[i + 1].slice(after.length);
+            html = `<span class="mn-nowrap">${esc(before)}${html}${esc(after)}</span>`;
+          }
+        }
+        out.push(html);
+      }
+      return out.join('');
     })
     .join('');
 }

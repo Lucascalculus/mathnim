@@ -1,11 +1,13 @@
 // Collect every narration line of the course (authored lessons + recorded
 // generated lesson, including the triggered lines of worlds) with its audio
-// key, for tools/gen_narration.py. Bilingual lines give one item per
+// key, for tools/gen_narration.py. Only "videos" are voiced: scene steps and
+// worlds (core's spoken_strings); text pages and questions have no audio.
+// Bilingual lines give one item per
 // language: the key is computed from the text itself, so each language has
 // its own recording, and `lang` picks the voice. `spoken` is what the voice
 // reads (core's to_spoken: TeX and symbols as words, in that language).
 import { INSCRIBED_PLAN } from '@mathnim/ai';
-import { is_bilingual, lesson_strings, narration_key, spoken_lang, to_spoken, type Lang } from '@mathnim/core';
+import { is_bilingual, narration_key, spoken_lang, spoken_strings, to_spoken, type Lang } from '@mathnim/core';
 import { COURSE } from '../src/course';
 
 const items = new Map<string, { key: string; text: string; lang: Lang; spoken: string }>();
@@ -16,13 +18,12 @@ const add = (text: string, lang: Lang = spoken_lang(text)) => {
 };
 for (const l of COURSE.units.flatMap((u) => u.lessons)) {
   if (!l.lesson) continue;
-  // step narration and the triggered lines of worlds (enter, idle, events, findings, goal)
-  for (const x of lesson_strings(l.lesson)) {
-    if (x.role !== 'narration' && x.role !== 'line') continue;
-    if (is_bilingual(x.value)) {
-      add(x.value.en, 'en');
-      add(x.value.zh, 'zh');
-    } else add(x.value);
+  // the narration of scenes and worlds, and the triggered lines of worlds (enter, idle, events, findings, goal)
+  for (const v of spoken_strings(l.lesson)) {
+    if (is_bilingual(v)) {
+      add(v.en, 'en');
+      add(v.zh, 'zh');
+    } else add(v);
   }
 }
 for (const s of INSCRIBED_PLAN.steps) if (s.kind === 'scene' && s.narration) add(s.narration);

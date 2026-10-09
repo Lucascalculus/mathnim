@@ -1,6 +1,7 @@
 // Styles for the lesson UI. Colours are CSS variables so a theme (or the
 // host page) can restyle everything; the defaults are the quiet white theme.
 export const CSS = `
+.mn-nowrap{white-space:nowrap}
 .mn-app{--mn-bg:#fbfbfa;--mn-fg:#15171a;--mn-muted:#6b7077;--mn-faint:#e7e7e3;--mn-panel:#ffffff;--mn-border:#e3e3de;
  --mn-accent:#2f5bd3;--mn-good:#1f8a5b;--mn-bad:#c2412d;--mn-warn:#b7791f;--mn-radius:14px;--mn-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
  --mn-code-bg:#f6f7f9;--mn-purple:#7c3aed;

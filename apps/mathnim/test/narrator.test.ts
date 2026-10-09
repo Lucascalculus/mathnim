@@ -69,11 +69,18 @@ async function narrator() {
 }
 
 describe('Narrator with live narration', () => {
+  it('asks for a Chinese line in Chinese (read by the Chinese voice)', async () => {
+    const { Narrator } = await import('../../../packages/present/src/narrator');
+    const n = new Narrator({ textContent: '' } as any);
+    await n.say('秩越小，参数越少。');
+    const body = calls.map((c) => c.body).find(Boolean)!;
+    expect(JSON.parse(body)).toEqual({ text: '秩越小，参数越少。', lang: 'zh' });
+  });
   it('speaks a line without a recording through /api/tts, with cues', async () => {
     const { n, cues } = await narrator();
     await n.say('Drag P along the circle.');
     expect(calls.map((c) => c.url)).toEqual(['narration/' + (await import('../../../packages/core/src/narration')).narration_key('Drag P along the circle.') + '.json', '/api/providers', '/api/tts']);
-    expect(JSON.parse(calls[2].body!)).toEqual({ text: 'Drag P along the circle.' });
+    expect(JSON.parse(calls[2].body!)).toEqual({ text: 'Drag P along the circle.', lang: 'en' }); // the server picks the voice by language
     expect(played[0]).toMatch(/^data:audio\/mpeg;base64,/);
     expect(cues.at(-1)![1]).toBe(cues.at(-1)![0].length); // finished
     // the same line again: no new request, providers asked once

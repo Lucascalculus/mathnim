@@ -1,508 +1,514 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="980" height="520" viewBox="0 0 980 520" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <title>The same system/user/assistant conversation rendered with the Qwen2.5 ChatML template and the Llama 3 template; special tokens highlighted; end-of-turn tokens &lt;|im_end|&gt; and &lt;|eot_id|&gt; versus the tokenizers' eos_token.</title>
+<svg role="img" xml:space="preserve" xmlns:xlink="http://www.w3.org/1999/xlink" width="980" height="494" viewBox="0 0 980 494" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>The same system/user/assistant conversation rendered with the Qwen2.5 ChatML template and the Llama 3 format; special tokens highlighted; the end-of-turn tokens &lt;|im_end|&gt; and &lt;|eot_id|&gt; versus each tokenizer's eos_token.</title>
  <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt} text{white-space: pre}</style>
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 520 
-L 980 520 
+   <path d="M 0 494 
+L 980 494 
 L 980 0 
 L 0 0 
-L 0 520 
+L 0 494 
 z
 " style="fill: none"/>
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 121.5 61 
-L 208.815 61 
-Q 211.815 61 211.815 64 
-L 211.815 76 
-Q 211.815 79 208.815 79 
-L 121.5 79 
-Q 118.5 79 118.5 76 
-L 118.5 64 
-Q 118.5 61 121.5 61 
+    <path d="M 124 61 
+L 206.315 61 
+Q 209.315 61 209.315 64 
+L 209.315 76 
+Q 209.315 79 206.315 79 
+L 124 79 
+Q 121 79 121 76 
+L 121 64 
+Q 121 61 124 61 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_3">
-    <path d="M 449.5 61 
-L 574.44625 61 
-Q 577.44625 61 577.44625 64 
-L 577.44625 76 
-Q 577.44625 79 574.44625 79 
-L 449.5 79 
-Q 446.5 79 446.5 76 
-L 446.5 64 
-Q 446.5 61 449.5 61 
+    <path d="M 474 61 
+L 593.94625 61 
+Q 596.94625 61 596.94625 64 
+L 596.94625 76 
+Q 596.94625 79 593.94625 79 
+L 474 79 
+Q 471 79 471 76 
+L 471 64 
+Q 471 61 474 61 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_4">
-    <path d="M 577.44625 61 
-L 717.445 61 
-Q 720.445 61 720.445 64 
-L 720.445 76 
-Q 720.445 79 717.445 79 
-L 577.44625 79 
-Q 574.44625 79 574.44625 76 
-L 574.44625 64 
-Q 574.44625 61 577.44625 61 
+    <path d="M 601.94625 61 
+L 736.945 61 
+Q 739.945 61 739.945 64 
+L 739.945 76 
+Q 739.945 79 736.945 79 
+L 601.94625 79 
+Q 598.94625 79 598.94625 76 
+L 598.94625 64 
+Q 598.94625 61 601.94625 61 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_5">
-    <path d="M 765.6025 61 
-L 890.54875 61 
-Q 893.54875 61 893.54875 64 
-L 893.54875 76 
-Q 893.54875 79 890.54875 79 
-L 765.6025 79 
-Q 762.6025 79 762.6025 76 
-L 762.6025 64 
-Q 762.6025 61 765.6025 61 
+    <path d="M 790.1025 61 
+L 910.04875 61 
+Q 913.04875 61 913.04875 64 
+L 913.04875 76 
+Q 913.04875 79 910.04875 79 
+L 790.1025 79 
+Q 787.1025 79 787.1025 76 
+L 787.1025 64 
+Q 787.1025 61 790.1025 61 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_6">
-    <path d="M 332.235 86 
-L 404.4975 86 
-Q 407.4975 86 407.4975 89 
-L 407.4975 101 
-Q 407.4975 104 404.4975 104 
-L 332.235 104 
-Q 329.235 104 329.235 101 
-L 329.235 89 
-Q 329.235 86 332.235 86 
+    <path d="M 334.735 86 
+L 401.9975 86 
+Q 404.9975 86 404.9975 89 
+L 404.9975 101 
+Q 404.9975 104 401.9975 104 
+L 334.735 104 
+Q 331.735 104 331.735 101 
+L 331.735 89 
+Q 331.735 86 334.735 86 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
-    <path d="M 660.235 86 
-L 732.4975 86 
-Q 735.4975 86 735.4975 89 
-L 735.4975 101 
-Q 735.4975 104 732.4975 104 
-L 660.235 104 
-Q 657.235 104 657.235 101 
-L 657.235 89 
-Q 657.235 86 660.235 86 
+    <path d="M 684.735 86 
+L 751.9975 86 
+Q 754.9975 86 754.9975 89 
+L 754.9975 101 
+Q 754.9975 104 751.9975 104 
+L 684.735 104 
+Q 681.735 104 681.735 101 
+L 681.735 89 
+Q 681.735 86 684.735 86 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_8">
-    <path d="M 121.5 123 
-L 208.815 123 
-Q 211.815 123 211.815 126 
-L 211.815 138 
-Q 211.815 141 208.815 141 
-L 121.5 141 
-Q 118.5 141 118.5 138 
-L 118.5 126 
-Q 118.5 123 121.5 123 
+    <path d="M 124 121 
+L 206.315 121 
+Q 209.315 121 209.315 124 
+L 209.315 136 
+Q 209.315 139 206.315 139 
+L 124 139 
+Q 121 139 121 136 
+L 121 124 
+Q 121 121 124 121 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_9">
-    <path d="M 449.5 123 
-L 589.49875 123 
-Q 592.49875 123 592.49875 126 
-L 592.49875 138 
-Q 592.49875 141 589.49875 141 
-L 449.5 141 
-Q 446.5 141 446.5 138 
-L 446.5 126 
-Q 446.5 123 449.5 123 
+    <path d="M 474 121 
+L 608.99875 121 
+Q 611.99875 121 611.99875 124 
+L 611.99875 136 
+Q 611.99875 139 608.99875 139 
+L 474 139 
+Q 471 139 471 136 
+L 471 124 
+Q 471 121 474 121 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_10">
-    <path d="M 622.60375 123 
-L 747.55 123 
-Q 750.55 123 750.55 126 
-L 750.55 138 
-Q 750.55 141 747.55 141 
-L 622.60375 141 
-Q 619.60375 141 619.60375 138 
-L 619.60375 126 
-Q 619.60375 123 622.60375 123 
+    <path d="M 647.10375 121 
+L 767.05 121 
+Q 770.05 121 770.05 124 
+L 770.05 136 
+Q 770.05 139 767.05 139 
+L 647.10375 139 
+Q 644.10375 139 644.10375 136 
+L 644.10375 124 
+Q 644.10375 121 647.10375 121 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_11">
-    <path d="M 272.025 148 
-L 344.2875 148 
-Q 347.2875 148 347.2875 151 
-L 347.2875 163 
-Q 347.2875 166 344.2875 166 
-L 272.025 166 
-Q 269.025 166 269.025 163 
-L 269.025 151 
-Q 269.025 148 272.025 148 
+    <path d="M 274.525 146 
+L 341.7875 146 
+Q 344.7875 146 344.7875 149 
+L 344.7875 161 
+Q 344.7875 164 341.7875 164 
+L 274.525 164 
+Q 271.525 164 271.525 161 
+L 271.525 149 
+Q 271.525 146 274.525 146 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_12">
-    <path d="M 600.025 148 
-L 672.2875 148 
-Q 675.2875 148 675.2875 151 
-L 675.2875 163 
-Q 675.2875 166 672.2875 166 
-L 600.025 166 
-Q 597.025 166 597.025 163 
-L 597.025 151 
-Q 597.025 148 600.025 148 
+    <path d="M 624.525 146 
+L 691.7875 146 
+Q 694.7875 146 694.7875 149 
+L 694.7875 161 
+Q 694.7875 164 691.7875 164 
+L 624.525 164 
+Q 621.525 164 621.525 161 
+L 621.525 149 
+Q 621.525 146 624.525 146 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_13">
-    <path d="M 121.5 185 
-L 208.815 185 
-Q 211.815 185 211.815 188 
-L 211.815 200 
-Q 211.815 203 208.815 203 
-L 121.5 203 
-Q 118.5 203 118.5 200 
-L 118.5 188 
-Q 118.5 185 121.5 185 
+    <path d="M 124 181 
+L 206.315 181 
+Q 209.315 181 209.315 184 
+L 209.315 196 
+Q 209.315 199 206.315 199 
+L 124 199 
+Q 121 199 121 196 
+L 121 184 
+Q 121 181 124 181 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_14">
-    <path d="M 449.5 185 
-L 589.49875 185 
-Q 592.49875 185 592.49875 188 
-L 592.49875 200 
-Q 592.49875 203 589.49875 203 
-L 449.5 203 
-Q 446.5 203 446.5 200 
-L 446.5 188 
-Q 446.5 185 449.5 185 
+    <path d="M 474 181 
+L 608.99875 181 
+Q 611.99875 181 611.99875 184 
+L 611.99875 196 
+Q 611.99875 199 608.99875 199 
+L 474 199 
+Q 471 199 471 196 
+L 471 184 
+Q 471 181 474 181 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_15">
-    <path d="M 660.235 185 
-L 785.18125 185 
-Q 788.18125 185 788.18125 188 
-L 788.18125 200 
-Q 788.18125 203 785.18125 203 
-L 660.235 203 
-Q 657.235 203 657.235 200 
-L 657.235 188 
-Q 657.235 185 660.235 185 
+    <path d="M 684.735 181 
+L 804.68125 181 
+Q 807.68125 181 807.68125 184 
+L 807.68125 196 
+Q 807.68125 199 804.68125 199 
+L 684.735 199 
+Q 681.735 199 681.735 196 
+L 681.735 184 
+Q 681.735 181 684.735 181 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_16">
-    <path d="M 204.28875 210 
-L 276.55125 210 
-Q 279.55125 210 279.55125 213 
-L 279.55125 225 
-Q 279.55125 228 276.55125 228 
-L 204.28875 228 
-Q 201.28875 228 201.28875 225 
-L 201.28875 213 
-Q 201.28875 210 204.28875 210 
+    <path d="M 206.78875 206 
+L 274.05125 206 
+Q 277.05125 206 277.05125 209 
+L 277.05125 221 
+Q 277.05125 224 274.05125 224 
+L 206.78875 224 
+Q 203.78875 224 203.78875 221 
+L 203.78875 209 
+Q 203.78875 206 206.78875 206 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_17">
-    <path d="M 532.28875 210 
-L 604.55125 210 
-Q 607.55125 210 607.55125 213 
-L 607.55125 225 
-Q 607.55125 228 604.55125 228 
-L 532.28875 228 
-Q 529.28875 228 529.28875 225 
-L 529.28875 213 
-Q 529.28875 210 532.28875 210 
+    <path d="M 556.78875 206 
+L 624.05125 206 
+Q 627.05125 206 627.05125 209 
+L 627.05125 221 
+Q 627.05125 224 624.05125 224 
+L 556.78875 224 
+Q 553.78875 224 553.78875 221 
+L 553.78875 209 
+Q 553.78875 206 556.78875 206 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_18">
-    <path d="M 118 350 
-L 418 350 
-Q 424 350 424 356 
-L 424 440 
-Q 424 446 418 446 
-L 118 446 
-Q 112 446 112 440 
-L 112 356 
-Q 112 350 118 350 
+    <path d="M 118 334 
+L 426 334 
+Q 432 334 432 340 
+L 432 442 
+Q 432 448 426 448 
+L 118 448 
+Q 112 448 112 442 
+L 112 340 
+Q 112 334 118 334 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #f9f5eb; stroke: #b8860b; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #f9f5eb; stroke: #b8860b; stroke-linejoin: miter"/>
    </g>
    <g id="patch_19">
-    <path d="M 446 350 
-L 834 350 
-Q 840 350 840 356 
-L 840 440 
-Q 840 446 834 446 
-L 446 446 
-Q 440 446 440 440 
-L 440 356 
-Q 440 350 446 350 
+    <path d="M 468 334 
+L 856 334 
+Q 862 334 862 340 
+L 862 442 
+Q 862 448 856 448 
+L 468 448 
+Q 462 448 462 442 
+L 462 340 
+Q 462 334 468 334 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #f9f5eb; stroke: #b8860b; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #f9f5eb; stroke: #b8860b; stroke-linejoin: miter"/>
    </g>
    <g id="patch_20">
-    <path d="M 23 489 
-L 43 489 
-Q 46 489 46 492 
-L 46 504 
-Q 46 507 43 507 
-L 23 507 
-Q 20 507 20 504 
-L 20 492 
-Q 20 489 23 489 
+    <path d="M 23 469 
+L 43 469 
+Q 46 469 46 472 
+L 46 484 
+Q 46 487 43 487 
+L 23 487 
+Q 20 487 20 484 
+L 20 472 
+Q 20 469 23 469 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e5ecfd"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_21">
-    <path d="M 163 489 
-L 183 489 
-Q 186 489 186 492 
-L 186 504 
-Q 186 507 183 507 
-L 163 507 
-Q 160 507 160 504 
-L 160 492 
-Q 160 489 163 489 
+    <path d="M 163 469 
+L 183 469 
+Q 186 469 186 472 
+L 186 484 
+Q 186 487 183 487 
+L 163 487 
+Q 160 487 160 484 
+L 160 472 
+Q 160 469 163 469 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="line2d_1">
     <path d="M 100 61 
 L 100 104 
-" clip-path="url(#p9615e9f369)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_2">
-    <path d="M 100 123 
-L 100 166 
-" clip-path="url(#p9615e9f369)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+    <path d="M 100 121 
+L 100 164 
+" clip-path="url(#p0ed4b43d86)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_3">
-    <path d="M 100 185 
-L 100 228 
-" clip-path="url(#p9615e9f369)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+    <path d="M 100 181 
+L 100 224 
+" clip-path="url(#p0ed4b43d86)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="120" y="73.302734" transform="rotate(-0 120 73.302734)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="120" y="73.302734" transform="rotate(-0 120 73.302734)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="210.315" y="73.482422" transform="rotate(-0 210.315 73.482422)">system</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="210.315" y="73.482422" transform="rotate(-0 210.315 73.482422)">system</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="255.4725" y="73.482422" transform="rotate(-0 255.4725 73.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="255.4725" y="73.482422" transform="rotate(-0 255.4725 73.482422)">\n</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="448" y="73.302734" transform="rotate(-0 448 73.302734)">&lt;|begin_of_text|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="470" y="73.302734" transform="rotate(-0 470 73.302734)">&lt;|begin_of_text|&gt;</text>
    </g>
    <g id="text_5">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="575.94625" y="73.302734" transform="rotate(-0 575.94625 73.302734)">&lt;|start_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="597.94625" y="73.302734" transform="rotate(-0 597.94625 73.302734)">&lt;|start_header_id|&gt;</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="718.945" y="73.482422" transform="rotate(-0 718.945 73.482422)">system</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="740.945" y="73.482422" transform="rotate(-0 740.945 73.482422)">system</text>
    </g>
    <g id="text_7">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="764.1025" y="73.302734" transform="rotate(-0 764.1025 73.302734)">&lt;|end_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="786.1025" y="73.302734" transform="rotate(-0 786.1025 73.302734)">&lt;|end_header_id|&gt;</text>
    </g>
    <g id="text_8">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="892.04875" y="73.482422" transform="rotate(-0 892.04875 73.482422)">\n\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="914.04875" y="73.482422" transform="rotate(-0 914.04875 73.482422)">\n\n</text>
    </g>
    <g id="text_9">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="120" y="98.482422" transform="rotate(-0 120 98.482422)">You are a helpful assistant.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="120" y="98.482422" transform="rotate(-0 120 98.482422)">You are a helpful assistant.</text>
    </g>
    <g id="text_10">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="330.735" y="98.607422" transform="rotate(-0 330.735 98.607422)">&lt;|im_end|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="330.735" y="98.607422" transform="rotate(-0 330.735 98.607422)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_11">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="405.9975" y="98.482422" transform="rotate(-0 405.9975 98.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="405.9975" y="98.482422" transform="rotate(-0 405.9975 98.482422)">\n</text>
    </g>
    <g id="text_12">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="448" y="98.482422" transform="rotate(-0 448 98.482422)">You are a helpful assistant.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="470" y="98.482422" transform="rotate(-0 470 98.482422)">You are a helpful assistant.</text>
    </g>
    <g id="text_13">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="658.735" y="98.607422" transform="rotate(-0 658.735 98.607422)">&lt;|eot_id|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="680.735" y="98.607422" transform="rotate(-0 680.735 98.607422)">&lt;|eot_id|&gt;</text>
    </g>
    <g id="text_14">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="120" y="135.302734" transform="rotate(-0 120 135.302734)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="120" y="133.302734" transform="rotate(-0 120 133.302734)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_15">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="210.315" y="135.482422" transform="rotate(-0 210.315 135.482422)">user</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="210.315" y="133.482422" transform="rotate(-0 210.315 133.482422)">user</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="240.42" y="135.482422" transform="rotate(-0 240.42 135.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="240.42" y="133.482422" transform="rotate(-0 240.42 133.482422)">\n</text>
    </g>
    <g id="text_17">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="448" y="135.302734" transform="rotate(-0 448 135.302734)">&lt;|start_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="470" y="133.302734" transform="rotate(-0 470 133.302734)">&lt;|start_header_id|&gt;</text>
    </g>
    <g id="text_18">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="590.99875" y="135.482422" transform="rotate(-0 590.99875 135.482422)">user</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="612.99875" y="133.482422" transform="rotate(-0 612.99875 133.482422)">user</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="621.10375" y="135.302734" transform="rotate(-0 621.10375 135.302734)">&lt;|end_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="643.10375" y="133.302734" transform="rotate(-0 643.10375 133.302734)">&lt;|end_header_id|&gt;</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="749.05" y="135.482422" transform="rotate(-0 749.05 135.482422)">\n\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="771.05" y="133.482422" transform="rotate(-0 771.05 133.482422)">\n\n</text>
    </g>
    <g id="text_21">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="120" y="160.482422" transform="rotate(-0 120 160.482422)">Name a prime number.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="120" y="158.482422" transform="rotate(-0 120 158.482422)">Name a prime number.</text>
    </g>
    <g id="text_22">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="270.525" y="160.607422" transform="rotate(-0 270.525 160.607422)">&lt;|im_end|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="270.525" y="158.607422" transform="rotate(-0 270.525 158.607422)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="345.7875" y="160.482422" transform="rotate(-0 345.7875 160.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="345.7875" y="158.482422" transform="rotate(-0 345.7875 158.482422)">\n</text>
    </g>
    <g id="text_24">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="448" y="160.482422" transform="rotate(-0 448 160.482422)">Name a prime number.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="470" y="158.482422" transform="rotate(-0 470 158.482422)">Name a prime number.</text>
    </g>
    <g id="text_25">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="598.525" y="160.607422" transform="rotate(-0 598.525 160.607422)">&lt;|eot_id|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="620.525" y="158.607422" transform="rotate(-0 620.525 158.607422)">&lt;|eot_id|&gt;</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="120" y="197.302734" transform="rotate(-0 120 197.302734)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="120" y="193.302734" transform="rotate(-0 120 193.302734)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="210.315" y="197.482422" transform="rotate(-0 210.315 197.482422)">assistant</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="210.315" y="193.482422" transform="rotate(-0 210.315 193.482422)">assistant</text>
    </g>
    <g id="text_28">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="278.05125" y="197.482422" transform="rotate(-0 278.05125 197.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="278.05125" y="193.482422" transform="rotate(-0 278.05125 193.482422)">\n</text>
    </g>
    <g id="text_29">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="448" y="197.302734" transform="rotate(-0 448 197.302734)">&lt;|start_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="470" y="193.302734" transform="rotate(-0 470 193.302734)">&lt;|start_header_id|&gt;</text>
    </g>
    <g id="text_30">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="590.99875" y="197.482422" transform="rotate(-0 590.99875 197.482422)">assistant</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="612.99875" y="193.482422" transform="rotate(-0 612.99875 193.482422)">assistant</text>
    </g>
    <g id="text_31">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="658.735" y="197.302734" transform="rotate(-0 658.735 197.302734)">&lt;|end_header_id|&gt;</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="680.735" y="193.302734" transform="rotate(-0 680.735 193.302734)">&lt;|end_header_id|&gt;</text>
    </g>
    <g id="text_32">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="786.68125" y="197.482422" transform="rotate(-0 786.68125 197.482422)">\n\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="808.68125" y="193.482422" transform="rotate(-0 808.68125 193.482422)">\n\n</text>
    </g>
    <g id="text_33">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="120" y="222.482422" transform="rotate(-0 120 222.482422)">7 is prime.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="120" y="218.482422" transform="rotate(-0 120 218.482422)">7 is prime.</text>
    </g>
    <g id="text_34">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="202.78875" y="222.607422" transform="rotate(-0 202.78875 222.607422)">&lt;|im_end|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="202.78875" y="218.607422" transform="rotate(-0 202.78875 218.607422)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_35">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="278.05125" y="222.482422" transform="rotate(-0 278.05125 222.482422)">\n</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="278.05125" y="218.482422" transform="rotate(-0 278.05125 218.482422)">\n</text>
    </g>
    <g id="text_36">
-    <text style="font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="448" y="222.482422" transform="rotate(-0 448 222.482422)">7 is prime.</text>
+    <text style="font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="470" y="218.482422" transform="rotate(-0 470 218.482422)">7 is prime.</text>
    </g>
    <g id="text_37">
-    <text style="font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="530.78875" y="222.607422" transform="rotate(-0 530.78875 222.607422)">&lt;|eot_id|&gt;</text>
+    <text style="font-weight: 700; font-size: 12.5px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="552.78875" y="218.607422" transform="rotate(-0 552.78875 218.607422)">&lt;|eot_id|&gt;</text>
    </g>
    <g id="patch_22">
-    <path d="M 240.42 268 
-Q 240.42 249 240.42 231.246524 
-" clip-path="url(#p9615e9f369)" style="fill: none; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
-    <path d="M 236.02 238.446524 
-L 240.42 231.246524 
-L 244.82 238.446524 
+    <path d="M 240.42 260 
+Q 240.42 243 240.42 227.246524 
+" clip-path="url(#p0ed4b43d86)" style="fill: none; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 236.02 234.446524 
+L 240.42 227.246524 
+L 244.82 234.446524 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e4572e; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e4572e; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
    </g>
    <g id="patch_23">
-    <path d="M 568.42 268 
-Q 568.42 249 568.42 231.246524 
-" clip-path="url(#p9615e9f369)" style="fill: none; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
-    <path d="M 564.02 238.446524 
-L 568.42 231.246524 
-L 572.82 238.446524 
+    <path d="M 590.42 260 
+Q 590.42 243 590.42 227.246524 
+" clip-path="url(#p0ed4b43d86)" style="fill: none; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 586.02 234.446524 
+L 590.42 227.246524 
+L 594.82 234.446524 
 z
-" clip-path="url(#p9615e9f369)" style="fill: #e4572e; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
+" clip-path="url(#p0ed4b43d86)" style="fill: #e4572e; stroke: #e4572e; stroke-width: 1.3; stroke-linecap: round"/>
    </g>
    <g id="text_38">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="120" y="32.139063" transform="rotate(-0 120 32.139063)">ChatML · Qwen2.5</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="120" y="30.139063" transform="rotate(-0 120 30.139063)">ChatML · Qwen2.5</text>
    </g>
    <g id="text_39">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="448" y="32.139063" transform="rotate(-0 448 32.139063)">Llama 3 (Instruct)</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="470" y="30.139063" transform="rotate(-0 470 30.139063)">Llama 3 (Instruct format)</text>
    </g>
    <g id="text_40">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="120" y="51.17625" transform="rotate(-0 120 51.17625)">apply_chat_template(messages)</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="120" y="49.17625" transform="rotate(-0 120 49.17625)">apply_chat_template(messages)</text>
    </g>
    <g id="text_41">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="448" y="51.31125" transform="rotate(-0 448 51.31125)">hand-rendered from the Llama 3 template</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="470" y="49.31125" transform="rotate(-0 470 49.31125)">rendered by hand from Meta's prompt format</text>
    </g>
    <g id="text_42">
-    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="92" y="86.087188" transform="rotate(-0 92 86.087188)">system</text>
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="92" y="86.087188" transform="rotate(-0 92 86.087188)">system</text>
    </g>
    <g id="text_43">
-    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="92" y="148.087188" transform="rotate(-0 92 148.087188)">user</text>
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="92" y="146.087188" transform="rotate(-0 92 146.087188)">user</text>
    </g>
    <g id="text_44">
-    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="92" y="210.087188" transform="rotate(-0 92 210.087188)">assistant</text>
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="92" y="206.087188" transform="rotate(-0 92 206.087188)">assistant</text>
    </g>
    <g id="text_45">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #e4572e" x="120" y="283.434844" transform="rotate(-0 120 283.434844)">end-of-turn token: &lt;|im_end|&gt;</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #e4572e" x="120" y="275.434844" transform="rotate(-0 120 275.434844)">end-of-turn token: &lt;|im_end|&gt;</text>
    </g>
    <g id="text_46">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="120" y="303.31125" transform="rotate(-0 120 303.31125)">the model must learn to emit it here,</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="120" y="295.31125" transform="rotate(-0 120 295.31125)">the model must learn to emit it,</text>
    </g>
    <g id="text_47">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="120" y="321.31125" transform="rotate(-0 120 321.31125)">so it stays in the labels</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="120" y="313.31125" transform="rotate(-0 120 313.31125)">so it stays in the labels</text>
    </g>
    <g id="text_48">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #e4572e" x="448" y="283.434844" transform="rotate(-0 448 283.434844)">end-of-turn token: &lt;|eot_id|&gt;</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #e4572e" x="470" y="275.434844" transform="rotate(-0 470 275.434844)">end-of-turn token: &lt;|eot_id|&gt;</text>
    </g>
    <g id="text_49">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="448" y="303.31125" transform="rotate(-0 448 303.31125)">generation must stop on it</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="470" y="295.31125" transform="rotate(-0 470 295.31125)">generation must stop on it:</text>
    </g>
    <g id="text_50">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="448" y="321.144375" transform="rotate(-0 448 321.144375)">(generation_config.eos_token_id)</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="470" y="313.144375" transform="rotate(-0 470 313.144375)">generation_config.eos_token_id</text>
    </g>
    <g id="text_51">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #b8860b" x="124" y="371.463125" transform="rotate(-0 124 371.463125)">tokenizer.eos_token</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #b8860b" x="124" y="354.463125" transform="rotate(-0 124 354.463125)">tokenizer.eos_token</text>
    </g>
    <g id="text_52">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="124" y="391.170625" transform="rotate(-0 124 391.170625)">Qwen2.5 base:  &lt;|endoftext|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="124" y="375.170625" transform="rotate(-0 124 375.170625)">Qwen2.5 base:  &lt;|endoftext|&gt;</text>
    </g>
    <g id="text_53">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="124" y="409.170625" transform="rotate(-0 124 409.170625)">Qwen2.5 Instruct:  &lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="124" y="394.31125" transform="rotate(-0 124 394.31125)">(also its pad token)</text>
    </g>
    <g id="text_54">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="124" y="431.170625" transform="rotate(-0 124 431.170625)">SFT on the base: set eos to &lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="124" y="413.170625" transform="rotate(-0 124 413.170625)">Qwen2.5 Instruct:  &lt;|im_end|&gt;</text>
    </g>
    <g id="text_55">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #b8860b" x="452" y="371.463125" transform="rotate(-0 452 371.463125)">tokenizer.eos_token</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="124" y="432.170625" transform="rotate(-0 124 432.170625)">SFT on the base: set eos to &lt;|im_end|&gt;</text>
    </g>
    <g id="text_56">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="452" y="391.17625" transform="rotate(-0 452 391.17625)">Llama 3 base:  &lt;|end_of_text|&gt;</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #b8860b" x="474" y="354.463125" transform="rotate(-0 474 354.463125)">tokenizer.eos_token</text>
    </g>
    <g id="text_57">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="452" y="409.170625" transform="rotate(-0 452 409.170625)">the turn ends with &lt;|eot_id|&gt;, a different token</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="474" y="375.17625" transform="rotate(-0 474 375.17625)">Llama 3 base:  &lt;|end_of_text|&gt;</text>
    </g>
    <g id="text_58">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="452" y="431.31125" transform="rotate(-0 452 431.31125)">Instruct generation stops on both</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="474" y="394.31125" transform="rotate(-0 474 394.31125)">(no pad token)</text>
    </g>
    <g id="text_59">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="52" y="501.31125" transform="rotate(-0 52 501.31125)">special token</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="474" y="413.17625" transform="rotate(-0 474 413.17625)">Llama 3 Instruct:  &lt;|eot_id|&gt;</text>
    </g>
    <g id="text_60">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="192" y="501.31125" transform="rotate(-0 192 501.31125)">end-of-turn token</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="474" y="432.170625" transform="rotate(-0 474 432.170625)">SFT on the base: set eos to &lt;|eot_id|&gt;</text>
    </g>
    <g id="text_61">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="330" y="501.343125" transform="rotate(-0 330 501.343125)">\n</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="52" y="481.31125" transform="rotate(-0 52 481.31125)">special token</text>
    </g>
    <g id="text_62">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="352" y="501.31125" transform="rotate(-0 352 501.31125)">newline in the text; other line breaks are display wraps</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="192" y="481.31125" transform="rotate(-0 192 481.31125)">end-of-turn token</text>
+   </g>
+   <g id="text_63">
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="330" y="481.343125" transform="rotate(-0 330 481.343125)">\n</text>
+   </g>
+   <g id="text_64">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="352" y="481.31125" transform="rotate(-0 352 481.31125)">= newline in the text; line breaks without \n are display wraps</text>
    </g>
   </g>
  </g>
  <defs>
-  <clipPath id="p9615e9f369">
-   <rect x="0" y="0" width="980" height="520"/>
+  <clipPath id="p0ed4b43d86">
+   <rect x="0" y="0" width="980" height="494"/>
   </clipPath>
  </defs>
 </svg>

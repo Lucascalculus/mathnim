@@ -5,15 +5,16 @@
 // sends almost all of the push to the most similar negative - and if that
 // "negative" is really relevant (a false negative), it is pushed hardest.
 // Exact gradients on toy 2D vectors (lesson A2b, derivation D-A2-5).
-// Explore: the τ slider and the query's direction; the lesson's actions train,
-// reveal the true labels, filter the false negative and reset.
+// Explore: the τ slider (and, with drag_query, the query's direction); the
+// lesson's actions train (train(n)) and filter the false negative (set_filter).
 import { Circle, Dot, FadeIn, MathTex, Rectangle, Scene, VGroup, ValueTracker, smooth } from 'manim-web';
 import { constrain } from 'manim-web/ext/interact';
 import { Slider } from 'manim-web/ext/widgets';
 import { arrow } from '../../linalg/kit';
 import { palette } from '../../theme';
 import { define_visual } from '../../visual';
-import { fit, label, LANG_SPEC, live, pick, resolve_lang, type Lang } from '../f/kit';
+import { fit, label, LANG_SPEC, live, live_decimal, pick, resolve_lang, type Lang } from '../f/kit';
+void fit;
 import { angle_deg, grad_docs, grad_query, loss, push_shares, sgd_step, tangential, unit, weights } from './infonce';
 
 export interface ContrastiveParams extends Record<string, unknown> {
@@ -21,6 +22,7 @@ export interface ContrastiveParams extends Record<string, unknown> {
   n_neg: number;
   false_negative: boolean;
   lr: number;
+  drag_query: boolean;
   lang: string;
 }
 
@@ -41,9 +43,10 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
     n_neg: { type: 'integer', min: 1, max: 5, default: 5, doc: 'number of in-batch negatives (batch size - 1)' },
     false_negative: { type: 'boolean', default: true, doc: 'n₁, the negative most similar to q, is really relevant (revealed by the lesson)' },
     lr: { type: 'number', min: 0.001, max: 0.05, default: 0.008, doc: 'learning rate of one training step (on the angles)' },
+    drag_query: { type: 'boolean', default: false, doc: 'also let the student turn the query vector (changes every similarity at once)' },
     lang: LANG_SPEC,
   },
-  examples: [{}, { lang: 'zh', tau: 0.05 }, { tau: 1, n_neg: 2 }, { tau: 0.1, false_negative: false, lang: 'zh' }],
+  examples: [{}, { lang: 'zh', tau: 0.05 }, { tau: 1, n_neg: 2 }, { tau: 0.1, false_negative: false, lang: 'zh', drag_query: true }],
   ids: ['circle', 'query', 'positive', 'negatives', 'pushes', 'bars', 'formula', 'readouts', 'tau_slider'],
   scene: (p) => {
     const lang: Lang = resolve_lang(p.lang);
@@ -78,6 +81,18 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
           d = d.map((a, j) => cap(a, s.docs[j]));
         }
         return { q, d };
+      };
+      /** Train n steps (sets the angles; the lesson animates them). */
+      train = (n: number) => {
+        const a = this.after(n);
+        this.aq.set_value(a.q);
+        this.ad.forEach((t, j) => t.set_value(a.d[j]));
+        this.steps.set_value(this.steps.get_value() + n);
+      };
+      /** Turn filtering of the false negative on or off; training restarts from the start. */
+      set_filter = (on: boolean) => {
+        this.filt.set_value(on ? 1 : 0);
+        this.reset();
       };
       reset = () => {
         this.aq.set_value(deg(START.q));
@@ -140,35 +155,44 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
         // ---- right panel: softmax weights as bars
         const BX = 1.75, BW = 3.0, ROW = 0.44, Y0 = 3.05;
         const bars_title = label(L('softmax weights  w = softmax(q·d / τ)', 'softmax 权重  w = softmax(q·d / τ)'), 24, c.muted).move_to([0, 3.62, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
-        const bars = live(() => `${this.w().map((x) => x.toFixed(3)).join(',')}|${this.filt.get_value()}|${this.rev.get_value()}`, () => {
-          const w = this.w(), act = this.active(), ms: any[] = [];
-          for (let j = 0; j < N; j++) {
-            const y = Y0 - j * ROW;
-            ms.push(nm(j, 30, col(j)).move_to([BX - 0.75, y, 0]));
-            ms.push(Rectangle({ width: BW, height: 0.26, stroke_width: 0, fill_color: c.faint, fill_opacity: 1 }).move_to([BX + BW / 2, y, 0]));
-            const wj = act[j] ? w[j] : 0, bw = Math.max(0.01, BW * wj);
-            ms.push(Rectangle({ width: bw, height: 0.26, stroke_width: 0, fill_color: col(j), fill_opacity: wj > 0.002 ? 0.9 : 0 }).move_to([BX + bw / 2, y, 0]));
-            ms.push(label(act[j] ? wj.toFixed(2) : L('filtered', '已过滤'), 22, c.ink).move_to([BX + BW + 0.55, y, 0]));
-          }
-          return VGroup(...ms);
-        });
+        // bars: the names are set once; the rectangles follow w; the values are DecimalNumbers
+        const names = VGroup(...Array.from({ length: N }, (_, j) => nm(j, 30, j === 0 ? c.good : c.coral).move_to([BX - 0.75, Y0 - j * ROW, 0])));
+        const fn_name = this.fn ? live(() => `${this.rev.get_value()}`, () => nm(1, 30, col(1)).move_to([BX - 0.75, Y0 - ROW, 0])) : null;
+        if (fn_name) names.submobjects[1].set_opacity(0);
+        const tracks = VGroup(...Array.from({ length: N }, (_, j) => Rectangle({ width: BW, height: 0.26, stroke_width: 0, fill_color: c.faint, fill_opacity: 1 }).move_to([BX + BW / 2, Y0 - j * ROW, 0])));
+        const fills = live(() => `${this.w().map((x) => x.toFixed(3)).join(',')}|${this.filt.get_value()}|${this.rev.get_value()}`, () => VGroup(...this.w().map((w0, j) => {
+          const wj = this.active()[j] ? w0 : 0, bw = Math.max(0.01, BW * wj);
+          return Rectangle({ width: bw, height: 0.26, stroke_width: 0, fill_color: col(j), fill_opacity: wj > 0.002 ? 0.9 : 0 }).move_to([BX + bw / 2, Y0 - j * ROW, 0]);
+        })));
+        const values = VGroup(...Array.from({ length: N }, (_, j) => live_decimal(() => (this.active()[j] ? this.w()[j] : 0), {
+          decimals: 2, size: 28, place: (m) => m.move_to([BX + BW + 0.55, Y0 - j * ROW, 0]),
+        })));
+        const bars = VGroup(names, ...(fn_name ? [fn_name] : []), tracks, fills, values);
         bars.name = 'bars';
-        // ---- the formula of the push, with τ live
-        const formula = live(() => this.tau().toFixed(3), () => MathTex(`\\text{push on } n_j \\;=\\; -\\nabla_{n_j}\\mathcal L \\;=\\; -\\frac{w_j}{\\tau}\\,q,\\quad \\tau = ${this.tau().toFixed(this.tau() < 0.1 ? 3 : 2)}`, { font_size: 30, color: c.ink }).move_to([3.75, 0.05, 0]));
+        // ---- the formula of the push; τ is a live number next to it
+        const formula = VGroup(
+          MathTex('\\text{push on } n_j \\;=\\; -\\nabla_{n_j}\\mathcal L \\;=\\; -\\frac{w_j}{\\tau}\\,q', { font_size: 30, color: c.ink }),
+          VGroup(MathTex('\\tau =', { font_size: 30, color: c.ink }), live_decimal(() => this.tau(), { decimals: 3, color: c.accent })).arrange([1, 0, 0], { buff: 0.12 }),
+        ).arrange([1, 0, 0], { buff: 0.45 }).move_to([0, 0.05, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
         formula.name = 'formula';
-        const readouts = live(() => `${this.L().toFixed(2)}|${this.shares().map((x) => x.toFixed(2)).join(',')}|${Math.round(this.steps.get_value())}|${this.filt.get_value()}`, () => {
+        const jmax = () => {
           const sh = this.shares();
-          let jmax = 1;
-          for (let j = 2; j < N; j++) if (sh[j] > sh[jmax]) jmax = j;
-          const rows = VGroup(
-            MathTex(`\\mathcal L = -\\log w_0 = ${this.L().toFixed(2)}`, { font_size: 30, color: c.ink }),
-            fit(VGroup(label(L('most of the push goes to', '负例推力最集中在'), 24, c.ink), MathTex(`${name(jmax)}\\;\\;${Math.round(100 * sh[jmax])}\\%`, { font_size: 30, color: col(jmax) })).arrange([1, 0, 0], { buff: 0.15 }), 6.2),
-            fit(label(`${L('steps trained', '已训练步数')}: ${Math.round(this.steps.get_value())}   ${L('filter', '过滤假负例')}: ${this.filt.get_value() > 0.5 ? L('on', '开') : L('off', '关')}`, 24, c.muted), 6.2),
-          );
-          rows.arrange([0, -1, 0], { buff: 0.2, aligned_edge: [-1, 0, 0] });
-          rows.move_to([0, -1.05, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
-          return rows;
-        });
+          let k = 1;
+          for (let j = 2; j < N; j++) if (sh[j] > sh[k]) k = j;
+          return k;
+        };
+        const loss_row = VGroup(MathTex('\\mathcal L = -\\log w_0 =', { font_size: 30, color: c.ink }), live_decimal(() => this.L(), { decimals: 2 })).arrange([1, 0, 0], { buff: 0.12 });
+        const share_row = live(() => `${jmax()}|${this.rev.get_value()}`, () => VGroup(label(L('push on negatives mostly hits', '负例推力最集中在'), 24, c.ink), nm(jmax(), 30, col(jmax()))).arrange([1, 0, 0], { buff: 0.15 }));
+        const share_val = live_decimal(() => 100 * this.shares()[jmax()], { decimals: 0, unit: '\\%' });
+        const status = live(() => `${Math.round(this.steps.get_value())}|${this.filt.get_value()}`, () => label(`${L('steps trained', '已训练步数')}: ${Math.round(this.steps.get_value())}    ${L('false-negative filter', '过滤假负例')}: ${this.filt.get_value() > 0.5 ? L('on', '开') : L('off', '关')}`, 24, c.muted));
+        const readouts = VGroup(loss_row, VGroup(share_row, share_val), status);
+        const place = () => {
+          (readouts.submobjects[1] as any).arrange([1, 0, 0], { buff: 0.15 });
+          readouts.arrange([0, -1, 0], { buff: 0.22, aligned_edge: [-1, 0, 0] });
+          readouts.move_to([0, -1.1, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
+        };
+        place();
+        readouts.add_updater(place);
         readouts.name = 'readouts';
         const look = { length: 3.6, color: c.accent, track_color: c.faint, stroke_width: 8, knob_radius: 0.15, label: null, show_value: false };
         this.st = new Slider(this.lt, { ...look, x_range: LT }).move_to([3.95, -2.75, 0]);
@@ -180,7 +204,10 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
         // ---- the story
         this.play(FadeIn(circle), FadeIn(centre), { run_time: 0.8 });
         this.play(FadeIn(qv), FadeIn(pos), FadeIn(negs), { run_time: 1.4 });
+        bars.update(0);
         this.play(FadeIn(bars_title), FadeIn(bars), { run_time: 1 });
+        formula.update(0);
+        readouts.update(0);
         this.play(FadeIn(pushes), FadeIn(formula), FadeIn(readouts), FadeIn(honest), { run_time: 1.2 });
         this.play(FadeIn(tau_slider), { run_time: 0.6 });
         // cool down, then warm up: watch the push gather on the most similar negative
@@ -192,8 +219,9 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
     }
     return new Contrastive();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
     scene.st.attach(ui, { step: 0.05, label: 'temperature tau (log scale)' });
+    if (!p.drag_query) return;
     ui.add_handle({
       tracker: scene.aq,
       from_value: (a: number) => [C[0] + R * 0.92 * Math.cos(a), C[1] + R * 0.92 * Math.sin(a), 0],

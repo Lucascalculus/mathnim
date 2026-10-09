@@ -1,456 +1,452 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="600" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg role="img" xml:space="preserve" xmlns:xlink="http://www.w3.org/1999/xlink" width="980" height="560" viewBox="0 0 980 560" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>A tool-calling conversation rendered with the Qwen2.5 chat template: the assistant's tool call and final answer (each with &lt;|im_end|&gt;) are trained; system, tool schema, user question and tool result are not.</title>
  <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt} text{white-space: pre}</style>
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 600 
-L 1000 600 
-L 1000 0 
+   <path d="M 0 560 
+L 980 560 
+L 980 0 
 L 0 0 
-L 0 600 
+L 0 560 
 z
 " style="fill: none"/>
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 68 206 
-L 165.9276 206 
-L 165.9276 230 
-L 68 230 
+    <path d="M 68 200 
+L 165.9276 200 
+L 165.9276 224 
+L 68 224 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e0efe8"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e0efe8"/>
    </g>
    <g id="patch_3">
-    <path d="M 68 232 
-L 498.2868 232 
-L 498.2868 256 
-L 68 256 
+    <path d="M 68 226 
+L 498.2868 226 
+L 498.2868 250 
+L 68 250 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e0efe8"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e0efe8"/>
    </g>
    <g id="patch_4">
-    <path d="M 68 258 
-L 382.6836 258 
-L 382.6836 282 
-L 68 282 
+    <path d="M 68 252 
+L 368.2332 252 
+L 368.2332 276 
+L 68 276 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e0efe8"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e0efe8"/>
    </g>
    <g id="patch_5">
-    <path d="M 68 284 
-L 230.9544 284 
-L 230.9544 308 
-L 68 308 
+    <path d="M 68 278 
+L 230.9544 278 
+L 230.9544 302 
+L 68 302 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e0efe8"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e0efe8"/>
    </g>
    <g id="patch_6">
-    <path d="M 68 466 
-L 426.0348 466 
-L 426.0348 490 
-L 68 490 
+    <path d="M 68 434 
+L 426.0348 434 
+L 426.0348 458 
+L 68 458 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e0efe8"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e0efe8"/>
    </g>
    <g id="patch_7">
-    <path d="M 71.5 27.36 
-L 155.2024 27.36 
-Q 158.2024 27.36 158.2024 30.36 
-L 158.2024 41.64 
-Q 158.2024 44.64 155.2024 44.64 
-L 71.5 44.64 
-Q 68.5 44.64 68.5 41.64 
-L 68.5 30.36 
-Q 68.5 27.36 71.5 27.36 
+    <path d="M 74 21.36 
+L 152.7024 21.36 
+Q 155.7024 21.36 155.7024 24.36 
+L 155.7024 35.64 
+Q 155.7024 38.64 152.7024 38.64 
+L 74 38.64 
+Q 71 38.64 71 35.64 
+L 71 24.36 
+Q 71 21.36 74 21.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e5ecfd"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_8">
-    <path d="M 71.5 105.36 
-L 140.752 105.36 
-Q 143.752 105.36 143.752 108.36 
-L 143.752 119.64 
-Q 143.752 122.64 140.752 122.64 
-L 71.5 122.64 
-Q 68.5 122.64 68.5 119.64 
-L 68.5 108.36 
-Q 68.5 105.36 71.5 105.36 
+    <path d="M 160.7024 99.36 
+L 224.9544 99.36 
+Q 227.9544 99.36 227.9544 102.36 
+L 227.9544 113.64 
+Q 227.9544 116.64 224.9544 116.64 
+L 160.7024 116.64 
+Q 157.7024 116.64 157.7024 113.64 
+L 157.7024 102.36 
+Q 157.7024 99.36 160.7024 99.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_9">
-    <path d="M 71.5 131.36 
-L 155.2024 131.36 
-Q 158.2024 131.36 158.2024 134.36 
-L 158.2024 145.64 
-Q 158.2024 148.64 155.2024 148.64 
-L 71.5 148.64 
-Q 68.5 148.64 68.5 145.64 
-L 68.5 134.36 
-Q 68.5 131.36 71.5 131.36 
+    <path d="M 74 125.36 
+L 152.7024 125.36 
+Q 155.7024 125.36 155.7024 128.36 
+L 155.7024 139.64 
+Q 155.7024 142.64 152.7024 142.64 
+L 74 142.64 
+Q 71 142.64 71 139.64 
+L 71 128.36 
+Q 71 125.36 74 125.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e5ecfd"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_10">
-    <path d="M 505.012 157.36 
-L 574.264 157.36 
-Q 577.264 157.36 577.264 160.36 
-L 577.264 171.64 
-Q 577.264 174.64 574.264 174.64 
-L 505.012 174.64 
-Q 502.012 174.64 502.012 171.64 
-L 502.012 160.36 
-Q 502.012 157.36 505.012 157.36 
+    <path d="M 507.512 151.36 
+L 571.764 151.36 
+Q 574.764 151.36 574.764 154.36 
+L 574.764 165.64 
+Q 574.764 168.64 571.764 168.64 
+L 507.512 168.64 
+Q 504.512 168.64 504.512 165.64 
+L 504.512 154.36 
+Q 504.512 151.36 507.512 151.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_11">
-    <path d="M 71.5 183.36 
-L 155.2024 183.36 
-Q 158.2024 183.36 158.2024 186.36 
-L 158.2024 197.64 
-Q 158.2024 200.64 155.2024 200.64 
-L 71.5 200.64 
-Q 68.5 200.64 68.5 197.64 
-L 68.5 186.36 
-Q 68.5 183.36 71.5 183.36 
+    <path d="M 74 177.36 
+L 152.7024 177.36 
+Q 155.7024 177.36 155.7024 180.36 
+L 155.7024 191.64 
+Q 155.7024 194.64 152.7024 194.64 
+L 74 194.64 
+Q 71 194.64 71 191.64 
+L 71 180.36 
+Q 71 177.36 74 177.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e5ecfd"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_12">
-    <path d="M 158.2024 287.36 
-L 227.4544 287.36 
-Q 230.4544 287.36 230.4544 290.36 
-L 230.4544 301.64 
-Q 230.4544 304.64 227.4544 304.64 
-L 158.2024 304.64 
-Q 155.2024 304.64 155.2024 301.64 
-L 155.2024 290.36 
-Q 155.2024 287.36 158.2024 287.36 
+    <path d="M 160.7024 281.36 
+L 224.9544 281.36 
+Q 227.9544 281.36 227.9544 284.36 
+L 227.9544 295.64 
+Q 227.9544 298.64 224.9544 298.64 
+L 160.7024 298.64 
+Q 157.7024 298.64 157.7024 295.64 
+L 157.7024 284.36 
+Q 157.7024 281.36 160.7024 281.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_13">
-    <path d="M 71.5 339.36 
-L 155.2024 339.36 
-Q 158.2024 339.36 158.2024 342.36 
-L 158.2024 353.64 
-Q 158.2024 356.64 155.2024 356.64 
-L 71.5 356.64 
-Q 68.5 356.64 68.5 353.64 
-L 68.5 342.36 
-Q 68.5 339.36 71.5 339.36 
+    <path d="M 74 307.36 
+L 152.7024 307.36 
+Q 155.7024 307.36 155.7024 310.36 
+L 155.7024 321.64 
+Q 155.7024 324.64 152.7024 324.64 
+L 74 324.64 
+Q 71 324.64 71 321.64 
+L 71 310.36 
+Q 71 307.36 74 307.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e5ecfd"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_14">
-    <path d="M 187.1032 417.36 
-L 256.3552 417.36 
-Q 259.3552 417.36 259.3552 420.36 
-L 259.3552 431.64 
-Q 259.3552 434.64 256.3552 434.64 
-L 187.1032 434.64 
-Q 184.1032 434.64 184.1032 431.64 
-L 184.1032 420.36 
-Q 184.1032 417.36 187.1032 417.36 
+    <path d="M 189.6032 385.36 
+L 253.8552 385.36 
+Q 256.8552 385.36 256.8552 388.36 
+L 256.8552 399.64 
+Q 256.8552 402.64 253.8552 402.64 
+L 189.6032 402.64 
+Q 186.6032 402.64 186.6032 399.64 
+L 186.6032 388.36 
+Q 186.6032 385.36 189.6032 385.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_15">
-    <path d="M 71.5 443.36 
-L 155.2024 443.36 
-Q 158.2024 443.36 158.2024 446.36 
-L 158.2024 457.64 
-Q 158.2024 460.64 155.2024 460.64 
-L 71.5 460.64 
-Q 68.5 460.64 68.5 457.64 
-L 68.5 446.36 
-Q 68.5 443.36 71.5 443.36 
+    <path d="M 74 411.36 
+L 152.7024 411.36 
+Q 155.7024 411.36 155.7024 414.36 
+L 155.7024 425.64 
+Q 155.7024 428.64 152.7024 428.64 
+L 74 428.64 
+Q 71 428.64 71 425.64 
+L 71 414.36 
+Q 71 411.36 74 411.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #e5ecfd"/>
+" clip-path="url(#p910d5accc5)" style="fill: #e5ecfd"/>
    </g>
    <g id="patch_16">
-    <path d="M 353.2828 469.36 
-L 422.5348 469.36 
-Q 425.5348 469.36 425.5348 472.36 
-L 425.5348 483.64 
-Q 425.5348 486.64 422.5348 486.64 
-L 353.2828 486.64 
-Q 350.2828 486.64 350.2828 483.64 
-L 350.2828 472.36 
-Q 350.2828 469.36 353.2828 469.36 
+    <path d="M 355.7828 437.36 
+L 420.0348 437.36 
+Q 423.0348 437.36 423.0348 440.36 
+L 423.0348 451.64 
+Q 423.0348 454.64 420.0348 454.64 
+L 355.7828 454.64 
+Q 352.7828 454.64 352.7828 451.64 
+L 352.7828 440.36 
+Q 352.7828 437.36 355.7828 437.36 
 z
-" clip-path="url(#p30f4234063)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #fcebe6; stroke: #e4572e; stroke-linejoin: miter"/>
    </g>
    <g id="patch_17">
-    <path d="M 40 25 
-L 52 25 
-L 52 125 
-L 40 125 
+    <path d="M 40 19 
+L 52 19 
+L 52 119 
+L 40 119 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_18">
-    <path d="M 40 129 
-L 52 129 
-L 52 177 
-L 40 177 
+    <path d="M 40 123 
+L 52 123 
+L 52 171 
+L 40 171 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_19">
-    <path d="M 40 181 
-L 52 181 
-L 52 203 
-L 40 203 
+    <path d="M 40 175 
+L 52 175 
+L 52 197 
+L 40 197 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_20">
-    <path d="M 40 207 
-L 52 207 
-L 52 307 
-L 40 307 
+    <path d="M 40 201 
+L 52 201 
+L 52 301 
+L 40 301 
 z
-" clip-path="url(#p30f4234063)" style="fill: #1f8a5b"/>
+" clip-path="url(#p910d5accc5)" style="fill: #1f8a5b"/>
    </g>
    <g id="patch_21">
-    <path d="M 40 311 
-L 52 311 
-L 52 333 
-L 40 333 
+    <path d="M 40 305 
+L 52 305 
+L 52 405 
+L 40 405 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_22">
-    <path d="M 40 337 
-L 52 337 
-L 52 437 
-L 40 437 
+    <path d="M 40 409 
+L 52 409 
+L 52 431 
+L 40 431 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_23">
-    <path d="M 40 441 
-L 52 441 
-L 52 463 
-L 40 463 
+    <path d="M 40 435 
+L 52 435 
+L 52 457 
+L 40 457 
 z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_24">
-    <path d="M 40 467 
-L 52 467 
-L 52 489 
-L 40 489 
-z
-" clip-path="url(#p30f4234063)" style="fill: #1f8a5b"/>
-   </g>
-   <g id="patch_25">
-    <path d="M 40 493 
-L 52 493 
-L 52 515 
-L 40 515 
-z
-" clip-path="url(#p30f4234063)" style="fill: url(#h8e26e40ced); stroke: #86868b; stroke-width: 0.6; stroke-linejoin: miter"/>
+" clip-path="url(#p910d5accc5)" style="fill: #1f8a5b"/>
    </g>
    <g id="line2d_1">
-    <path d="M 642 75 
-L 652 75 
-" clip-path="url(#p30f4234063)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+    <path d="M 640 69 
+L 652 69 
+" clip-path="url(#p910d5accc5)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_2">
-    <path d="M 642 153 
-L 652 153 
-" clip-path="url(#p30f4234063)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+    <path d="M 640 147 
+L 652 147 
+" clip-path="url(#p910d5accc5)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_3">
-    <path d="M 642 257 
-L 652 257 
-" clip-path="url(#p30f4234063)" style="fill: none; stroke: #1f8a5b; stroke-width: 1.2"/>
+    <path d="M 640 251 
+L 652 251 
+" clip-path="url(#p910d5accc5)" style="fill: none; stroke: #1f8a5b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_4">
-    <path d="M 642 387 
-L 652 387 
-" clip-path="url(#p30f4234063)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
+    <path d="M 640 355 
+L 652 355 
+" clip-path="url(#p910d5accc5)" style="fill: none; stroke: #86868b; stroke-width: 1.2"/>
    </g>
    <g id="line2d_5">
-    <path d="M 642 478 
-L 652 478 
-" clip-path="url(#p30f4234063)" style="fill: none; stroke: #1f8a5b; stroke-width: 1.2"/>
+    <path d="M 640 446 
+L 652 446 
+" clip-path="url(#p910d5accc5)" style="fill: none; stroke: #1f8a5b; stroke-width: 1.2"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="70" y="39.170625" transform="rotate(-0 70 39.170625)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="70" y="33.170625" transform="rotate(-0 70 33.170625)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="156.7024" y="39.343125" transform="rotate(-0 156.7024 39.343125)">system</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="156.7024" y="33.343125" transform="rotate(-0 156.7024 33.343125)">system</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="200.0536" y="39.343125" transform="rotate(-0 200.0536 39.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="200.0536" y="33.343125" transform="rotate(-0 200.0536 33.343125)">\n</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="65.27" transform="rotate(-0 70 65.27)">You are a ticket-booking assistant.</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="59.27" transform="rotate(-0 70 59.27)">You are a ticket-booking assistant.</text>
    </g>
    <g id="text_5">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="322.882" y="65.343125" transform="rotate(-0 322.882 65.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="322.882" y="59.343125" transform="rotate(-0 322.882 59.343125)">\n</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="337.3324" y="65.343125" transform="rotate(-0 337.3324 65.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="337.3324" y="59.343125" transform="rotate(-0 337.3324 59.343125)">\n</text>
    </g>
    <g id="text_7">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="70" y="91.17625" transform="rotate(-0 70 91.17625)"># Tools … &lt;tools&gt;{"type": "function", "function": {"name": "search_trains", …}}&lt;/tools&gt; …</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="70" y="85.17625" transform="rotate(-0 70 85.17625)"># Tools … &lt;tools&gt;{… "name": "search_trains" …}&lt;/tools&gt; …</text>
    </g>
    <g id="text_8">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="70" y="117.463125" transform="rotate(-0 70 117.463125)">&lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="111.17625" transform="rotate(-0 70 111.17625)">&lt;/tool_call&gt;</text>
    </g>
    <g id="text_9">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="142.252" y="117.343125" transform="rotate(-0 142.252 117.343125)">\n</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="156.7024" y="111.463125" transform="rotate(-0 156.7024 111.463125)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_10">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="70" y="143.170625" transform="rotate(-0 70 143.170625)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="228.9544" y="111.343125" transform="rotate(-0 228.9544 111.343125)">\n</text>
    </g>
    <g id="text_11">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="156.7024" y="143.343125" transform="rotate(-0 156.7024 143.343125)">user</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="70" y="137.170625" transform="rotate(-0 70 137.170625)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_12">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="185.6032" y="143.343125" transform="rotate(-0 185.6032 143.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="156.7024" y="137.343125" transform="rotate(-0 156.7024 137.343125)">user</text>
    </g>
    <g id="text_13">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="169.301875" transform="rotate(-0 70 169.301875)">Earliest high-speed train from Shanghai to Beijing tomorrow?</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="185.6032" y="137.343125" transform="rotate(-0 185.6032 137.343125)">\n</text>
    </g>
    <g id="text_14">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="503.512" y="169.463125" transform="rotate(-0 503.512 169.463125)">&lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="163.301875" transform="rotate(-0 70 163.301875)">Earliest high-speed train from Shanghai to Beijing tomorrow?</text>
    </g>
    <g id="text_15">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="575.764" y="169.343125" transform="rotate(-0 575.764 169.343125)">\n</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="503.512" y="163.463125" transform="rotate(-0 503.512 163.463125)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="70" y="195.170625" transform="rotate(-0 70 195.170625)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="575.764" y="163.343125" transform="rotate(-0 575.764 163.343125)">\n</text>
    </g>
    <g id="text_17">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="156.7024" y="195.343125" transform="rotate(-0 156.7024 195.343125)">assistant</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="70" y="189.170625" transform="rotate(-0 70 189.170625)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_18">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="221.7292" y="195.343125" transform="rotate(-0 221.7292 195.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="156.7024" y="189.343125" transform="rotate(-0 156.7024 189.343125)">assistant</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="221.17625" transform="rotate(-0 70 221.17625)">&lt;tool_call&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="221.7292" y="189.343125" transform="rotate(-0 221.7292 189.343125)">\n</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="149.4772" y="221.343125" transform="rotate(-0 149.4772 221.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="215.17625" transform="rotate(-0 70 215.17625)">&lt;tool_call&gt;</text>
    </g>
    <g id="text_21">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="247.144375" transform="rotate(-0 70 247.144375)">{"name": "search_trains", "arguments": {"from": "Shanghai",</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="149.4772" y="215.343125" transform="rotate(-0 149.4772 215.343125)">\n</text>
    </g>
    <g id="text_22">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="273.27" transform="rotate(-0 70 273.27)">  "to": "Beijing", "date": "2026-10-11"}}</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="241.144375" transform="rotate(-0 70 241.144375)">{"name": "search_trains", "arguments": {"from": "Shanghai",</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="366.2332" y="273.343125" transform="rotate(-0 366.2332 273.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="267.27" transform="rotate(-0 70 267.27)">"to": "Beijing", "date": "2026-10-11"}}</text>
    </g>
    <g id="text_24">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="299.17625" transform="rotate(-0 70 299.17625)">&lt;/tool_call&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="351.7828" y="267.343125" transform="rotate(-0 351.7828 267.343125)">\n</text>
    </g>
    <g id="text_25">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="156.7024" y="299.463125" transform="rotate(-0 156.7024 299.463125)">&lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="293.17625" transform="rotate(-0 70 293.17625)">&lt;/tool_call&gt;</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="70" y="325.343125" transform="rotate(-0 70 325.343125)">\n</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="156.7024" y="293.463125" transform="rotate(-0 156.7024 293.463125)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="70" y="351.170625" transform="rotate(-0 70 351.170625)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="228.9544" y="293.343125" transform="rotate(-0 228.9544 293.343125)">\n</text>
    </g>
    <g id="text_28">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="156.7024" y="351.343125" transform="rotate(-0 156.7024 351.343125)">user</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="70" y="319.170625" transform="rotate(-0 70 319.170625)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_29">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="185.6032" y="351.343125" transform="rotate(-0 185.6032 351.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="156.7024" y="319.343125" transform="rotate(-0 156.7024 319.343125)">user</text>
    </g>
    <g id="text_30">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="377.17625" transform="rotate(-0 70 377.17625)">&lt;tool_response&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="185.6032" y="319.343125" transform="rotate(-0 185.6032 319.343125)">\n</text>
    </g>
    <g id="text_31">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="178.378" y="377.343125" transform="rotate(-0 178.378 377.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="345.17625" transform="rotate(-0 70 345.17625)">&lt;tool_response&gt;</text>
    </g>
    <g id="text_32">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="403.343125" transform="rotate(-0 70 403.343125)">[{"train": "G2", "dep": "07:00"}]</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="178.378" y="345.343125" transform="rotate(-0 178.378 345.343125)">\n</text>
    </g>
    <g id="text_33">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="308.4316" y="403.343125" transform="rotate(-0 308.4316 403.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="371.343125" transform="rotate(-0 70 371.343125)">[{"train": "G2", "dep": "07:00"}]</text>
    </g>
    <g id="text_34">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="429.17625" transform="rotate(-0 70 429.17625)">&lt;/tool_response&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="308.4316" y="371.343125" transform="rotate(-0 308.4316 371.343125)">\n</text>
    </g>
    <g id="text_35">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="185.6032" y="429.463125" transform="rotate(-0 185.6032 429.463125)">&lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="397.17625" transform="rotate(-0 70 397.17625)">&lt;/tool_response&gt;</text>
    </g>
    <g id="text_36">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="257.8552" y="429.343125" transform="rotate(-0 257.8552 429.343125)">\n</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="185.6032" y="397.463125" transform="rotate(-0 185.6032 397.463125)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_37">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #2563eb" x="70" y="455.170625" transform="rotate(-0 70 455.170625)">&lt;|im_start|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="257.8552" y="397.343125" transform="rotate(-0 257.8552 397.343125)">\n</text>
    </g>
    <g id="text_38">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="156.7024" y="455.343125" transform="rotate(-0 156.7024 455.343125)">assistant</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #2563eb" x="70" y="423.170625" transform="rotate(-0 70 423.170625)">&lt;|im_start|&gt;</text>
    </g>
    <g id="text_39">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="221.7292" y="455.343125" transform="rotate(-0 221.7292 455.343125)">\n</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="156.7024" y="423.343125" transform="rotate(-0 156.7024 423.343125)">assistant</text>
    </g>
    <g id="text_40">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #111113" x="70" y="481.301875" transform="rotate(-0 70 481.301875)">The earliest is G2, departing at 07:00.</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="221.7292" y="423.343125" transform="rotate(-0 221.7292 423.343125)">\n</text>
    </g>
    <g id="text_41">
-    <text style="font-weight: 700; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #e4572e" x="351.7828" y="481.463125" transform="rotate(-0 351.7828 481.463125)">&lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #111113" x="70" y="449.301875" transform="rotate(-0 70 449.301875)">The earliest is G2, departing at 07:00.</text>
    </g>
    <g id="text_42">
-    <text style="font-size: 12px; font-family: ui-monospace, Menlo, Consolas, 'ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace', monospace, monospace; text-anchor: start; fill: #86868b" x="70" y="507.343125" transform="rotate(-0 70 507.343125)">\n</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #e4572e" x="351.7828" y="449.463125" transform="rotate(-0 351.7828 449.463125)">&lt;|im_end|&gt;</text>
    </g>
    <g id="text_43">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="660" y="69.587188" transform="rotate(-0 660 69.587188)">no loss</text>
+    <text style="font-size: 12px; font-family: Menlo, 'DejaVu Sans Mono', Consolas, monospace; text-anchor: start; fill: #86868b" x="424.0348" y="449.343125" transform="rotate(-0 424.0348 449.343125)">\n</text>
    </g>
    <g id="text_44">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="660" y="88.31125" transform="rotate(-0 660 88.31125)">system prompt + tool schema (abbreviated)</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="660" y="54.587188" transform="rotate(-0 660 54.587188)">no loss</text>
    </g>
    <g id="text_45">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="660" y="147.587188" transform="rotate(-0 660 147.587188)">no loss</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="73.31125" transform="rotate(-0 660 73.31125)">system prompt + tool schema</text>
    </g>
    <g id="text_46">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="660" y="166.31125" transform="rotate(-0 660 166.31125)">user question</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="91.31125" transform="rotate(-0 660 91.31125)">(schema abbreviated)</text>
    </g>
    <g id="text_47">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #1f8a5b" x="660" y="251.587188" transform="rotate(-0 660 251.587188)">LOSS</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="660" y="141.587188" transform="rotate(-0 660 141.587188)">no loss</text>
    </g>
    <g id="text_48">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="660" y="270.170625" transform="rotate(-0 660 270.170625)">assistant tool call, incl. &lt;|im_end|&gt;</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="160.31125" transform="rotate(-0 660 160.31125)">user question</text>
    </g>
    <g id="text_49">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="660" y="381.587188" transform="rotate(-0 660 381.587188)">no loss</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #1f8a5b" x="660" y="236.587188" transform="rotate(-0 660 236.587188)">LOSS</text>
    </g>
    <g id="text_50">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="660" y="400.31125" transform="rotate(-0 660 400.31125)">tool result: environment output</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="255.31125" transform="rotate(-0 660 255.31125)">assistant tool call,</text>
    </g>
    <g id="text_51">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #1f8a5b" x="660" y="472.587188" transform="rotate(-0 660 472.587188)">LOSS</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="273.170625" transform="rotate(-0 660 273.170625)">incl. &lt;|im_end|&gt;</text>
    </g>
    <g id="text_52">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="660" y="491.170625" transform="rotate(-0 660 491.170625)">final answer, incl. &lt;|im_end|&gt;</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="660" y="340.587188" transform="rotate(-0 660 340.587188)">no loss</text>
    </g>
    <g id="text_53">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="40" y="563.144375" transform="rotate(-0 40 563.144375)">Qwen2.5 template (apply_chat_template(messages, tools=tools)); the tool message is rendered as a user turn wrapped in &lt;tool_response&gt;.</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="359.31125" transform="rotate(-0 660 359.31125)">tool result: environment output,</text>
    </g>
    <g id="text_54">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="40" y="583.170625" transform="rotate(-0 40 583.170625)">Assistant headers and the newline after each &lt;|im_end|&gt; are not trained. Line breaks without \n are display wraps.</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="377.31125" transform="rotate(-0 660 377.31125)">rendered as a user turn</text>
+   </g>
+   <g id="text_55">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #1f8a5b" x="660" y="440.587188" transform="rotate(-0 660 440.587188)">LOSS</text>
+   </g>
+   <g id="text_56">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="660" y="459.170625" transform="rotate(-0 660 459.170625)">final answer, incl. &lt;|im_end|&gt;</text>
+   </g>
+   <g id="text_57">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="40" y="525.144375" transform="rotate(-0 40 525.144375)">Qwen2.5 template: apply_chat_template(messages, tools=tools). The untagged hatched rows (assistant headers) are not trained either,</text>
+   </g>
+   <g id="text_58">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="40" y="545.170625" transform="rotate(-0 40 545.170625)">nor is the newline after each &lt;|im_end|&gt;. Line breaks without \n are display wraps.</text>
    </g>
   </g>
  </g>
  <defs>
-  <clipPath id="p30f4234063">
-   <rect x="0" y="0" width="1000" height="600"/>
+  <clipPath id="p910d5accc5">
+   <rect x="0" y="0" width="980" height="560"/>
   </clipPath>
  </defs>
  <defs>

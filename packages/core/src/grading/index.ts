@@ -3,7 +3,7 @@
 // are below).
 import { tr, type L10n, type Lang } from '../content';
 import type { Grade, Question, Response, Vars } from '../schema';
-import { equivalent, evaluate, form, parse, ParseError, to_string } from './expr';
+import { equivalent, evaluate, form, parse, parse_error_text, ParseError, to_string } from './expr';
 import { grade_sketch } from './sketch';
 
 const num = (x: number) => String(+x.toPrecision(6));
@@ -46,7 +46,7 @@ export function grade(q: Question, r: Response, vars: Vars = {}, lang: Lang = 'e
         const raw = r.type === 'number' ? r.value : r.text;
         value = typeof raw === 'number' ? raw : evalNumber(raw);
       } catch (e) {
-        return { correct: false, score: 0, feedback: [e instanceof ParseError ? say(MSG.unreadable, lang, { why: e.message }) : say(MSG.enter_number, lang)] };
+        return { correct: false, score: 0, feedback: [e instanceof ParseError ? say(MSG.unreadable, lang, { why: parse_error_text(e, lang) }) : say(MSG.enter_number, lang)] };
       }
       const tol = q.tolerance ?? 0, rtol = q.rtol ?? 1e-6;
       const ok = Math.abs(value - answer) <= tol + rtol * Math.abs(answer);
@@ -67,7 +67,7 @@ export function grade(q: Question, r: Response, vars: Vars = {}, lang: Lang = 'e
       try {
         node = parse(r.text, q.variables ?? []);
       } catch (e) {
-        return { correct: false, score: 0, feedback: [e instanceof ParseError ? say(MSG.unreadable, lang, { why: e.message }) : say(MSG.unreadable_plain, lang)] };
+        return { correct: false, score: 0, feedback: [e instanceof ParseError ? say(MSG.unreadable, lang, { why: parse_error_text(e, lang) }) : say(MSG.unreadable_plain, lang)] };
       }
       const expected = to_string(parse(answer, q.variables ?? []));
       if (equivalent(node, answer, opts)) {

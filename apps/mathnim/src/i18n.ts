@@ -48,7 +48,8 @@ define_ui({
   gen_ok: { en: 'ok', zh: '完成' },
   gen_done: { en: 'Done.', zh: '完成。' },
   gen_failed: { en: 'Failed: {e}', zh: '失败：{e}' },
-  why_true: { en: 'Why is it true that {o}?', zh: '为什么{o}？' },
+  why_true: { en: 'Why is it true that {o}?', zh: '为什么"{o}"成立？' },
+  is_it_true: { en: 'Is it true that {d}?', zh: '"{d}"——这个说法对吗？' },
   // ---- review
   review_done: { en: 'Review done', zh: '复习完成' },
   review_done_sub: { en: '{n} question{s} practised. Items you found hard come back sooner; easy ones later.', zh: '练习了 {n} 道题。觉得难的题会更早回来，容易的晚些。' },

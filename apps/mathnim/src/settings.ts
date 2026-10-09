@@ -1,6 +1,7 @@
 // App settings (kept in this browser only) and the model provider they select.
 import type { Lang } from '@mathnim/core';
 import { set_ui_lang, t } from '@mathnim/present';
+import { ensure_cjk_font } from './cjk_font';
 import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, type Provider } from '@mathnim/ai';
 
 export type ProviderChoice = 'auto' | 'deepseek' | 'anthropic' | 'offline';
@@ -32,13 +33,15 @@ export function load_settings(): Settings {
 export function save_settings(s: Settings): void {
   localStorage.setItem(KEY, JSON.stringify(s));
 }
-/** Switch the learner's language now (saved; the shell re-renders the page in it). */
-export function set_language(lang: Lang): void {
+/** Switch the learner's language (saved; the shell re-renders the page in it once Chinese visuals can be drawn). */
+export async function set_language(lang: Lang): Promise<void> {
   try {
     save_settings({ ...load_settings(), lang });
   } catch {
     /* no storage: this session only */
   }
+  // the canvas needs a Chinese font before visuals are drawn in Chinese (without one they stay English)
+  if (lang === 'zh') await ensure_cjk_font();
   set_ui_lang(lang);
 }
 /** The language's name as the AI tutor is told it. */

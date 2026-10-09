@@ -4,7 +4,7 @@
 export * from './schema';
 export * from './events';
 export { grade, expected_answer } from './grading';
-export { grade_blank, step_strings, lesson_strings, lesson_langs, narration_lines, has_cjk, code_line_count, case_position, describe_step, type LessonString } from './pages';
+export { grade_blank, step_strings, lesson_strings, lesson_langs, narration_lines, spoken_strings, is_voiced, has_cjk, code_line_count, case_position, describe_step, type LessonString } from './pages';
 export * as expr from './grading/expr';
 export { grade_sketch, type SketchResult, type SketchTarget, type XY } from './grading/sketch';
 export * from './learner/bkt';

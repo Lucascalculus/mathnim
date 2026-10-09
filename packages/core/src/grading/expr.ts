@@ -15,9 +15,28 @@ export type Node =
   | { k: 'fact'; a: Node };
 
 export class ParseError extends Error {
-  constructor(message: string, public pos: number) {
+  /**
+   * `code` says what went wrong in a language-neutral way (parse_error_text()
+   * words it in the learner's language): 'char' an unknown character `arg`,
+   * 'expected' a missing `arg`, 'end' the input stops too early, 'token' an
+   * unexpected `arg`. The message stays the English wording.
+   */
+  constructor(message: string, public pos: number, public code: 'char' | 'expected' | 'end' | 'token' = 'token', public arg = '') {
     super(message);
   }
+}
+const PARSE_TEXT = {
+  char: { en: "unexpected character '{a}'", zh: '无法识别的字符"{a}"' },
+  expected: { en: 'expected {a}', zh: '这里缺少 {a}' },
+  more: { en: 'expected more input', zh: '式子还没写完' },
+  end: { en: 'unexpected end of input', zh: '式子还没写完' },
+  token: { en: "unexpected '{a}'", zh: '这里不该出现"{a}"' },
+} as const;
+/** A parse error in the learner's language (English is the error's own message). */
+export function parse_error_text(e: ParseError, lang: 'en' | 'zh'): string {
+  if (lang === 'en') return e.message;
+  const key = e.code === 'expected' && !e.arg ? 'more' : e.code;
+  return PARSE_TEXT[key][lang].replace('{a}', e.arg);
 }
 
 const FUNCS: Record<string, (...x: number[]) => number> = {
@@ -86,7 +105,7 @@ function tokenize(s: string, known: Set<string>): Tok[] {
     if ('+-*/^'.includes(c)) out.push({ t: 'op', v: c, pos: i });
     else if (c === '(' || c === ')' || c === ',' || c === '|' || c === '!') out.push({ t: c, v: c, pos: i });
     else if (c === '%') out.push({ t: 'id', v: 'percent', pos: i });
-    else throw new ParseError(`unexpected character '${c}'`, i);
+    else throw new ParseError(`unexpected character '${c}'`, i, 'char', c);
     i++;
   }
   return out;
@@ -117,7 +136,7 @@ export function parse(input: string, variables: readonly string[] = []): Node {
   const peek = () => toks[p];
   const eat = (t?: string, v?: string) => {
     const k = toks[p];
-    if (!k || (t && k.t !== t) || (v && k.v !== v)) throw new ParseError(`expected ${v ?? t ?? 'more input'}`, k?.pos ?? input.length);
+    if (!k || (t && k.t !== t) || (v && k.v !== v)) throw new ParseError(`expected ${v ?? t ?? 'more input'}`, k?.pos ?? input.length, 'expected', v ?? t ?? '');
     p++;
     return k;
   };
@@ -174,7 +193,7 @@ export function parse(input: string, variables: readonly string[] = []): Node {
   }
   function atom(): Node {
     const k = peek();
-    if (!k) throw new ParseError('unexpected end of input', input.length);
+    if (!k) throw new ParseError('unexpected end of input', input.length, 'end');
     if (k.t === 'num') {
       eat();
       return { k: 'num', v: parseFloat(k.v), text: k.v };
@@ -222,7 +241,7 @@ export function parse(input: string, variables: readonly string[] = []): Node {
       }
       return { k: 'var', name: k.v };
     }
-    throw new ParseError(`unexpected '${k.v}'`, k.pos);
+    throw new ParseError(`unexpected '${k.v}'`, k.pos, 'token', k.v);
   }
   /** Argument of `sin x`: a power term, including a leading coefficient (`sin 2x`). */
   function implicitArg(): Node {
@@ -233,7 +252,7 @@ export function parse(input: string, variables: readonly string[] = []): Node {
   const parseBase = (b: string): Node => (/^\d+$/.test(b) ? { k: 'num', v: +b, text: b } : { k: 'var', name: b });
 
   const tree = sum();
-  if (p < toks.length) throw new ParseError(`unexpected '${toks[p].v}'`, toks[p].pos);
+  if (p < toks.length) throw new ParseError(`unexpected '${toks[p].v}'`, toks[p].pos, 'token', toks[p].v);
   return tree;
 }
 

@@ -1,9 +1,12 @@
-// Text for the speech services: request validation, the spoken form and SSML.
-import { to_spoken } from '../../../../packages/core/src/narration';
+// Text for the speech services: request validation, the spoken form, the voice
+// for the line's language, and SSML.
+import { spoken_lang, to_spoken } from '../../../../packages/core/src/narration';
 import type { Parsed } from '../http';
 
-/** The voice of the pre-generated narration (tools/gen_narration.py). */
+/** The voices of the pre-generated narration (tools/gen_narration.py): English and Chinese. */
 export const VOICE = 'en-US-AndrewMultilingualNeural';
+export const VOICE_ZH = 'zh-CN-YunxiNeural';
+export type SpokenLang = 'en' | 'zh';
 export const RATE = '+0%';
 /** 48 kbps CBR MP3: bytes -> seconds is exact, and parts concatenate. */
 export const OUTPUT_FORMAT = 'audio-24khz-48kbitrate-mono-mp3';
@@ -13,8 +16,8 @@ export const MAX_TTS_CHARS = 600;
 /** One SSML request to the Edge endpoint must stay under 4096 bytes of text. */
 export const MAX_SSML_TEXT_BYTES = 4000;
 
-/** Body of POST /api/tts: {text}. */
-export function parse_tts_request(body: string): Parsed<{ text: string }> {
+/** Body of POST /api/tts: {text, lang?}; without a (valid) lang the text's own script decides. */
+export function parse_tts_request(body: string): Parsed<{ text: string; lang: SpokenLang }> {
   let data: unknown;
   try {
     data = JSON.parse(body);
@@ -24,7 +27,9 @@ export function parse_tts_request(body: string): Parsed<{ text: string }> {
   const text = (data as { text?: unknown })?.text;
   if (typeof text !== 'string' || !text.trim()) return { ok: false, status: 400, error: 'Expected {"text": "..."}.' };
   if (text.length > MAX_TTS_CHARS) return { ok: false, status: 413, error: `Text too long (max ${MAX_TTS_CHARS} characters).` };
-  return { ok: true, value: { text } };
+  const asked = (data as { lang?: unknown }).lang;
+  const lang: SpokenLang = asked === 'zh' || asked === 'en' ? asked : spoken_lang(text);
+  return { ok: true, value: { text, lang } };
 }
 
 /** Control characters the service rejects (vertical tab from pasted PDFs etc.) become spaces. */
@@ -41,10 +46,24 @@ export interface Voice {
   volume?: string;
   lang?: string;
 }
-export const DEFAULT_VOICE: Voice = { voice: VOICE, rate: RATE };
+export const DEFAULT_VOICE: Voice = { voice: VOICE, rate: RATE, lang: 'en-US' };
+export const DEFAULT_VOICE_ZH: Voice = { voice: VOICE_ZH, rate: RATE, lang: 'zh-CN' };
+/** Voice overrides: MATHNIM_VOICE_EN / MATHNIM_VOICE_ZH (the same variables as tools/gen_narration.py). */
+export interface VoiceEnv {
+  MATHNIM_VOICE_EN?: string;
+  MATHNIM_VOICE_ZH?: string;
+}
+/** Neural voice names look like 'zh-CN-YunxiNeural'; anything else is ignored. */
+const voice_name = (s: string | undefined) => (s && /^[a-z]{2,3}-[A-Za-z]{2,4}(-[A-Za-z]+)?-[A-Za-z]+Neural$/.test(s.trim()) ? s.trim() : null);
+/** The voice for a line in `lang`: Andrew for English, Yunxi for Chinese, unless the environment names another. */
+export function voice_for(lang: SpokenLang, env: VoiceEnv = {}): Voice {
+  const base = lang === 'zh' ? DEFAULT_VOICE_ZH : DEFAULT_VOICE;
+  const name = voice_name(lang === 'zh' ? env.MATHNIM_VOICE_ZH : env.MATHNIM_VOICE_EN);
+  return name ? { ...base, voice: name } : base;
+}
 
-/** Caption text -> the escaped spoken text that goes inside the SSML. */
-export const ssml_text = (caption: string) => escape_xml(clean_text(to_spoken(caption)));
+/** Caption text -> the escaped spoken text that goes inside the SSML (in the line's language). */
+export const ssml_text = (caption: string, lang: SpokenLang = spoken_lang(caption)) => escape_xml(clean_text(to_spoken(caption, lang)));
 
 /** SSML as edge-tts builds it (voice + prosody). `escaped` must already be escaped. */
 export function build_ssml(escaped: string, v: Voice = DEFAULT_VOICE): string {
@@ -59,7 +78,8 @@ export function build_ssml(escaped: string, v: Voice = DEFAULT_VOICE): string {
 
 /** When a service returns no word boundaries: spread the words over the audio by length. */
 export function estimate_words(spoken: string, seconds: number): [number, number, string][] {
-  const words = spoken.split(/\s+/).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')).filter(Boolean);
+  // Chinese has no spaces: each Han character counts as a word
+  const words = spoken.split(/\s+|(?<=[\u3400-\u9fff])|(?=[\u3400-\u9fff])/u).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')).filter(Boolean);
   const total = words.reduce((n, w) => n + w.length + 1, 0);
   const lead = Math.min(0.1, seconds / 10), span = Math.max(0, seconds - 2 * lead);
   let acc = 0;

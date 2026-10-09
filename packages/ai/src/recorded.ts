@@ -4,6 +4,8 @@
 
 export interface RecordedAnswer {
   question: string;
+  /** The same question in Chinese (shown as a suggestion to Chinese learners; offline it replays the same recording). */
+  question_zh?: string;
   title: string;
   explanation: string;
   code: string;
@@ -14,6 +16,7 @@ export interface RecordedAnswer {
 export const RECORDED: RecordedAnswer[] = [
   {
     question: 'Why does the angle get smaller when she is very close to the goal line?',
+    question_zh: '她离球门线很近的时候，为什么角度反而变小了？',
     title: 'Too close: the posts line up',
     explanation:
       'Very close to the goal line, both posts are almost straight ahead of her, so her two lines of sight nearly lie on top of each other. The angle between them, $\\theta$, shrinks towards $0^\\circ$ - on the goal line itself she cannot see into the goal at all.',
@@ -64,6 +67,7 @@ function setup(scene, ui) {
   },
   {
     question: 'What is the inscribed angle theorem?',
+    question_zh: '什么是圆周角定理？',
     title: 'Same arc, same angle',
     explanation:
       'Pick two points $A$ and $B$ on a circle. From **any** point $P$ on the big arc, the angle $\\angle APB$ is the same - exactly half the central angle $\\angle AOB$. Move $P$ and watch the angle stay put.',
@@ -112,6 +116,7 @@ function setup(scene, ui) {
   },
   {
     question: 'Why is the best distance the geometric mean and not the average?',
+    question_zh: '为什么最佳距离是几何平均数，而不是算术平均数？',
     title: 'Geometric mean, not average',
     explanation:
       'The best distance satisfies $d^2 = a\\cdot b$: the square with side $d$ has the same area as the $a \\times b$ rectangle. For $9$ and $16$ that gives $d = \\sqrt{144} = 12$, a little less than the average $12.5$ - and $\\theta(12) \\approx 16.26^\\circ$ beats $\\theta(12.5) \\approx 16.25^\\circ$.',
@@ -143,6 +148,7 @@ function setup(scene, ui) {
   },
   {
     question: 'What if the goal were wider?',
+    question_zh: '如果球门更宽会怎样？',
     title: 'Move the far post',
     explanation:
       'The best distance is $d = \\sqrt{a\\,b}$. Keep the near post at $a = 9$ and drag the far post $b$: a wider goal pushes the best spot further out, but more slowly than the goal grows, because of the square root.',
@@ -183,6 +189,7 @@ function setup(scene, ui) {
   },
   {
     question: 'Where does the crust length 2πr come from?',
+    question_zh: '饼边的长度 2πr 是怎么来的？',
     title: 'Unrolling the crust',
     explanation:
       'Straighten the crust of a pizza with radius $r$ and measure it with the diameter $d = 2r$: it is a bit more than 3 diameters - that ratio is $\\pi \\approx 3.14$. So the crust is $\\pi d = 2\\pi r$.',
@@ -216,6 +223,7 @@ function setup(scene, ui) {
   },
   {
     question: 'Is a 12-inch pizza more than two 6-inch pizzas?',
+    question_zh: '一个 12 寸披萨比两个 6 寸披萨多吗？',
     title: 'One big or two small?',
     explanation:
       'A 12-inch pizza has radius 6: area $\\pi \\cdot 6^2 \\approx 113$ in². A 6-inch pizza has radius 3: $\\pi \\cdot 3^2 \\approx 28$ in², so two make about 57 in². Halving the diameter quarters the area - one 12-inch pizza is **twice** two 6-inch ones. Drag the slider to try other sizes.',
@@ -275,8 +283,12 @@ function setup(scene, ui) {
 export function recorded_responses(key: (q: string) => string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const r of RECORDED) {
-    const { question, ...answer } = r;
+    const { question, question_zh, ...answer } = r;
     out[key(question)] = JSON.stringify(answer);
+    if (question_zh) out[key(question_zh)] = JSON.stringify(answer);
   }
   return out;
 }
+
+/** A recorded question in the learner's language (suggestion chips). */
+export const recorded_question = (r: RecordedAnswer, lang: 'en' | 'zh'): string => (lang === 'zh' && r.question_zh) || r.question;

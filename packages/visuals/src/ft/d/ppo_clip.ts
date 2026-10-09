@@ -14,6 +14,7 @@ import { clip_objective, clip_slope } from './math';
 import { LANG_SPEC, Switch, clamp, label, live_number, pick, polyline, rect, resolve_lang, seg, switch_text, x_ticks, y_ticks, type Lang, type P3 } from './kit';
 
 export interface PpoClipParams extends Record<string, unknown> {
+  story: string;
   eps: number;
   eps_high: number;
   adv_sign: string;
@@ -33,13 +34,14 @@ export const ppo_clip = define_visual<PpoClipParams>({
   summary: "PPO's clipped objective min(ρA, clip(ρ,1-ε,1+ε)A) against the probability ratio ρ: the arrow shows whether the gradient pushes this token's probability up, down or not at all, and the formula lights the term the min takes. Clipping only blocks a further move in the advantage's direction, never a correction. Drag ρ and flip good/bad token; eps sets the band, eps_high > 0 gives DAPO's asymmetric band.",
   topics: ['ppo', 'clipping', 'policy gradient', 'rlhf', 'grpo', 'reinforcement learning', 'fine-tuning'],
   params: {
+    story: { type: 'enum', values: ['full', 'setup'], default: 'full', doc: "'full' sweeps a good token, then a bad one; 'setup' only builds the picture at ρ = 1 with a good token (for a world)" },
     eps: { type: 'number', min: 0.05, max: 0.5, default: 0.2, doc: 'clip range ε (lower side 1-ε); PPO uses 0.2' },
     eps_high: { type: 'number', min: 0, max: 0.5, default: 0, doc: 'upper clip range (1+ε_high); 0 = same as eps; DAPO uses 0.28 with eps 0.2' },
     adv_sign: { type: 'enum', values: ['+', '-'], default: '+', doc: "sign of the advantage A ('+' good token, '-' bad token) where the scene ends" },
     rho: { type: 'number', min: R0, max: R1, default: 1, doc: 'probability ratio ρ = π_θ/π_old where the scene ends' },
     lang: LANG_SPEC,
   },
-  examples: [{}, { adv_sign: '-', lang: 'zh' }, { eps: 0.2, eps_high: 0.28 }, { eps: 0.05, rho: 1.8, lang: 'zh' }],
+  examples: [{}, { adv_sign: '-', lang: 'zh' }, { eps: 0.2, eps_high: 0.28 }, { eps: 0.05, rho: 1.8, lang: 'zh' }, { story: 'setup', lang: 'zh' }],
   ids: ['formula', 'derivative', 'objective', 'unclipped', 'band', 'rho_point', 'grad_arrow', 'status', 'sign_switch', 'readouts'],
   scene: (p) => {
     const lang: Lang = resolve_lang(p.lang);
@@ -185,6 +187,12 @@ export const ppo_clip = define_visual<PpoClipParams>({
         this.play(FadeIn(band), FadeIn(band_labels), Create(unclipped), { run_time: 1 });
         this.play(Create(objective), { run_time: 1.5 });
         this.play(FadeIn(point), FadeIn(grad_arrow), FadeIn(readouts), FadeIn(status), FadeIn(why), FadeIn(deriv), FadeIn(this.switch_.group), { run_time: 1 });
+        if (p.story === 'setup') {
+          rho.set_value(1);
+          this.add(objective, unclipped, band, band_labels, point, grad_arrow, status, deriv, readouts, this.switch_.group);
+          this.wait(0.5);
+          return;
+        }
         this.wait(1);
         // a good token: pushed up until 1 + ε, then left alone
         this.play(rho.animate.set_value(1.7), { run_time: 4, rate_func: linear });

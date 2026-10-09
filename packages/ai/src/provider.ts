@@ -185,7 +185,8 @@ export class MockProvider implements Provider {
   name = 'mock';
   constructor(private answers: Record<string, string>, private fallback?: string) {}
   static key(q: string): string {
-    return q.toLowerCase().replace(/[^a-z0-9θ√]+/g, ' ').trim();
+    // (Chinese characters are kept, so Chinese questions have keys of their own)
+    return q.toLowerCase().replace(/[^a-z0-9θ√\u3400-\u9fff]+/g, ' ').trim();
   }
   async complete(req: CompletionRequest): Promise<string> {
     const last = req.messages.filter((m) => m.role === 'user').pop()?.content ?? '';

@@ -7,7 +7,26 @@ import {
 } from 'manim-web';
 import type { Mobject } from 'manim-web';
 import { palette } from '../theme';
+import { label as sans_label, resolve_lang, LANG_SPEC, type Lang } from '../ft/f/kit';
 import { col, morph2, type Mat2, type Vec2 } from './math';
+
+// ---------------------------------------------------------------- language
+// The linear-algebra visuals the fine-tuning course reuses take `lang` like the
+// course's own visuals (ft/f/kit.ts): 'en', 'zh' or 'auto' (the learner's
+// language, set with set_ft_lang). English keeps the TeX words it always had;
+// Chinese words are set in the sans font (MathJax has no CJK glyphs).
+export { LANG_SPEC, resolve_lang, type Lang };
+/** Chinese words at a size that matches TeX at `size`. */
+export const zh_words = (s: string, size = 32, color?: string): VMobject => sans_label(s, Math.round(size * 0.82), color ?? palette().ink);
+/**
+ * A line mixing Chinese words and TeX: plain strings are words, [tex] parts are math,
+ * e.g. mix(['第 1 列', ['= A\\hat{\\imath}']], 38, c.good).
+ */
+export function mix(parts: (string | [string])[], size = 32, color?: string): VGroup {
+  const g = VGroup(...parts.map((p) => (typeof p === 'string' ? zh_words(p, size, color) : tex(p[0], size, color))));
+  g.arrange(RIGHT, { buff: 0.16 });
+  return g;
+}
 
 export type P3 = [number, number, number];
 export interface Box { x0: number; x1: number; y0: number; y1: number }
@@ -387,7 +406,7 @@ export class LiveMatrix extends VGroup {
   }
 }
 /** "label = value" with the value following `get()`; the left edge stays put. */
-export function readout(label: string, get: () => number, o: { decimals?: number; font_size?: number; color?: string; value_color?: string; unit?: string; color_of?: (v: number) => string } = {}): VGroup {
+export function readout(label: string | Mobject, get: () => number, o: { decimals?: number; font_size?: number; color?: string; value_color?: string; unit?: string; color_of?: (v: number) => string } = {}): VGroup {
   const c = palette();
   const fs = o.font_size ?? 32;
   const dn = DecimalNumber(get(), { num_decimal_places: o.decimals ?? 2, font_size: fs, color: o.value_color ?? o.color ?? c.ink, unit: o.unit ?? null }) as any;
@@ -405,7 +424,8 @@ export function readout(label: string, get: () => number, o: { decimals?: number
     });
     return g;
   }
-  const lab = tex(label, fs, o.color ?? c.ink);
+  // a TeX label, or a ready-made one (e.g. Chinese words from mix())
+  const lab = typeof label === 'string' ? tex(label, fs, o.color ?? c.ink) : label;
   const g = VGroup(lab, dn);
   dn.next_to(lab, RIGHT, { buff: 0.15 });
   g.add_updater(() => {
@@ -551,7 +571,7 @@ export function basis_arrows(plane: Plane, M: MatrixTrackers, width = 7): [Arrow
   return [i, j];
 }
 /** Draggable tips of î and ĵ (entries snap to 0.1 and stay in [-range, range]). */
-export function basis_handles(ui: { add_handle(spec: any): unknown }, plane: Plane, M: MatrixTrackers, range = 3, box: Box = STAGE): void {
+export function basis_handles(ui: { add_handle(spec: any): unknown }, plane: Plane, M: MatrixTrackers, range = 3, box: Box = STAGE, lang: Lang = 'en'): void {
   for (const j of [0, 1] as const) {
     ui.add_handle({
       get: () => {
@@ -565,7 +585,7 @@ export function basis_handles(ui: { add_handle(spec: any): unknown }, plane: Pla
       constraint: (pt: P3) => [clamp(pt[0], box.x0 + 0.2, box.x1 - 0.2), clamp(pt[1], box.y0 + 0.2, box.y1 - 0.2), 0],
       step: plane.unit * 0.1,
       radius: 0.4,
-      label: j === 0 ? 'the tip of î (column 1 of the matrix)' : 'the tip of ĵ (column 2 of the matrix)',
+      label: lang === 'zh' ? (j === 0 ? 'î 的箭头尖（矩阵第 1 列）' : 'ĵ 的箭头尖（矩阵第 2 列）') : j === 0 ? 'the tip of î (column 1 of the matrix)' : 'the tip of ĵ (column 2 of the matrix)',
     });
   }
 }

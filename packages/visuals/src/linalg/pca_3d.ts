@@ -8,7 +8,7 @@ import { Cone, Dot, Line3D, FadeIn, LaggedStart, RoundedRectangle, ThreeDScene, 
 import { Slider } from 'manim-web/ext/widgets';
 import { palette } from '../theme';
 import { define_visual } from '../visual';
-import { readout, segment_points, tex, words, type P3 } from './kit';
+import { LANG_SPEC, mix, readout, resolve_lang, segment_points, tex, words, zh_words, type P3 } from './kit';
 import { pca, project_onto, rotation3, white_noise } from './math';
 
 export interface Pca3dParams extends Record<string, unknown> {
@@ -16,6 +16,8 @@ export interface Pca3dParams extends Record<string, unknown> {
   elongation: number;
   flatness: number;
   seed: number;
+  /** 'en', 'zh' or 'auto' (the learner's language). */
+  lang: string;
 }
 
 const S1 = 1.1;
@@ -54,11 +56,13 @@ export const pca_3d = define_visual<Pca3dParams>({
     elongation: { type: 'number', min: 0.2, max: 1, default: 0.55, doc: 'spread along the 2nd axis relative to the 1st' },
     flatness: { type: 'number', min: 0.03, max: 1, default: 0.18, doc: 'spread along the 3rd axis relative to the 1st (small = a flat pancake that a plane captures well; 1 = no good plane)' },
     seed: { type: 'integer', min: 1, max: 9999, default: 5, doc: 'random seed (same seed, same cloud)' },
+    lang: LANG_SPEC,
   },
-  examples: [{}, { flatness: 0.05, elongation: 0.8, n: 200 }, { flatness: 0.9, elongation: 0.95, n: 80, seed: 2 }, { flatness: 0.3, elongation: 0.25, n: 60 }],
+  examples: [{}, { flatness: 0.05, elongation: 0.8, n: 200 }, { flatness: 0.9, elongation: 0.95, n: 80, seed: 2 }, { flatness: 0.3, elongation: 0.25, n: 60 }, { lang: 'zh' }],
   ids: ['points', 'pc_axes', 'plane', 'drops', 'variance_bars', 'kept_readout', 'title', 'turn_slider', 'tilt_slider', 'project_slider'],
   scene: (p) => {
     const R = rotation3(0.75, -0.5, 0.65);
+    const zh = resolve_lang(p.lang) === 'zh';
     const data = trimmed_cloud(p.n, [S1, S1 * p.elongation, S1 * p.flatness], p.seed, R);
     const P = pca(data);
     const [c1, c2, c3] = P.components;
@@ -146,7 +150,7 @@ export const pca_3d = define_visual<Pca3dParams>({
         drops.name = 'drops';
 
         // ---- fixed-in-frame overlays
-        const title = VGroup(words('3D data', 36, c.ink), tex('\\to\\ \\text{the best plane}', 36, c.ink)).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
+        const title = (zh ? VGroup(zh_words('三维数据', 36, c.ink), mix([['\\to'], '最佳平面'], 36, c.ink)) : VGroup(words('3D data', 36, c.ink), tex('\\to\\ \\text{the best plane}', 36, c.ink))).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
         title.move_to([-6.85 + title.width / 2, 3.35, 0]);
         title.name = 'title';
         // variance bars: share of each principal axis
@@ -161,29 +165,40 @@ export const pca_3d = define_visual<Pca3dParams>({
           const lab = tex(`\\text{PC}_{${i + 1}}`, 28, colors[i]).move_to([x, BY - 0.3, 0]);
           bars.add(r, pct, lab);
         });
-        const bars_title = words('share of variance', 28, c.muted).move_to([BX + BW + 0.25, BY + BH + 0.75, 0]);
+        const bars_title = (zh ? zh_words('方差占比', 28, c.muted) : words('share of variance', 28, c.muted)).move_to([BX + BW + 0.25, BY + BH + 0.75, 0]);
         const variance_bars = VGroup(bars_title, bars);
         variance_bars.name = 'variance_bars';
-        const kept = VGroup(
-          tex(`\\text{plane keeps } ${Math.round((P.explained[0] + P.explained[1]) * 100)}\\%`, 32, c.ink),
-          tex(`\\text{loses } ${Math.round(P.explained[2] * 100)}\\%\\ (\\text{PC}_3)`, 28, c.coral),
-        ).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
+        const kept = (zh
+          ? VGroup(
+            mix(['平面保留', [`${Math.round((P.explained[0] + P.explained[1]) * 100)}\\%`]], 32, c.ink),
+            mix(['损失', [`${Math.round(P.explained[2] * 100)}\\%\\ (\\text{PC}_3)`]], 28, c.coral),
+          )
+          : VGroup(
+            tex(`\\text{plane keeps } ${Math.round((P.explained[0] + P.explained[1]) * 100)}\\%`, 32, c.ink),
+            tex(`\\text{loses } ${Math.round(P.explained[2] * 100)}\\%\\ (\\text{PC}_3)`, 28, c.coral),
+          )).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
         kept.move_to([BX - BW / 2 + kept.width / 2 - 0.05, BY - 1.1, 0]);
         kept.name = 'kept_readout';
-        const sl = (tr: any, range: [number, number], label: string, y: number, name: string) => {
-          const sd_: any = new Slider(tr, { x_range: range, length: 1.55, color: c.accent, track_color: c.faint, stroke_width: 6, knob_radius: 0.13, label, show_value: false, font_size: 28 });
+        const sl = (tr: any, range: [number, number], label: string, y: number, name: string, zh_label?: string) => {
+          const sd_: any = new Slider(tr, { x_range: range, length: 1.55, color: c.accent, track_color: c.faint, stroke_width: 6, knob_radius: 0.13, label: zh_label ? null : label, show_value: false, font_size: 28 });
+          if (zh_label) {
+            // the slider's own caption is TeX (no CJK glyphs): set the Chinese one in the sans font, where it would be
+            sd_.caption = zh_words(zh_label, 28, c.accent);
+            sd_.caption.next_to(sd_.track, LEFT, { buff: 0.55 });
+            sd_.add(sd_.caption);
+          }
           const t0 = sd_.track.get_start();
           sd_.shift([-5.15 - t0[0], y - t0[1], 0]);
           sd_.name = name;
           return sd_;
         };
-        const turn = sl(cam.theta_tracker, [-Math.PI, Math.PI], '\\text{turn}', 1.25, 'turn_slider');
-        const tilt = sl(cam.phi_tracker, [0, Math.PI / 2], '\\text{tilt}', 0.65, 'tilt_slider');
-        const flat = sl(s, [0, 1], '\\text{project}', 0.05, 'project_slider');
+        const turn = sl(cam.theta_tracker, [-Math.PI, Math.PI], '\\text{turn}', 1.25, 'turn_slider', zh ? '转动' : undefined);
+        const tilt = sl(cam.phi_tracker, [0, Math.PI / 2], '\\text{tilt}', 0.65, 'tilt_slider', zh ? '俯仰' : undefined);
+        const flat = sl(s, [0, 1], '\\text{project}', 0.05, 'project_slider', zh ? '投影' : undefined);
         this.sliders = [turn, tilt, flat];
         const legend = VGroup(
           tex('\\text{PC}_1, \\text{PC}_2, \\text{PC}_3:', 28, c.muted),
-          tex('\\text{eigenvectors of } \\Sigma_{3\\times 3}', 28, c.muted),
+          zh ? mix([['\\Sigma_{3\\times 3}'], '的特征向量'], 28, c.muted) : tex('\\text{eigenvectors of } \\Sigma_{3\\times 3}', 28, c.muted),
         ).arrange(DOWN, { buff: 0.08, aligned_edge: LEFT });
         legend.move_to([-6.85 + legend.width / 2, 2.25, 0]);
 
@@ -220,11 +235,12 @@ export const pca_3d = define_visual<Pca3dParams>({
     }
     return new Pca3d();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
     const [turn, tilt, flat] = scene.sliders;
-    turn.attach(ui, { step: 5 * DEGREES, label: 'turn the camera' });
-    tilt.attach(ui, { step: 3 * DEGREES, label: 'tilt the camera' });
-    flat.attach(ui, { step: 0.05, label: 'project onto the plane' });
+    const zh = resolve_lang(p.lang) === 'zh';
+    turn.attach(ui, { step: 5 * DEGREES, label: zh ? '转动镜头' : 'turn the camera' });
+    tilt.attach(ui, { step: 3 * DEGREES, label: zh ? '俯仰镜头' : 'tilt the camera' });
+    flat.attach(ui, { step: 0.05, label: zh ? '投影到平面上' : 'project onto the plane' });
   },
 });
 

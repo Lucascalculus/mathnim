@@ -1,4 +1,7 @@
-import { set_ui_lang } from '@mathnim/present';
+import { on_ui_lang, set_ui_lang } from '@mathnim/present';
+import type { Lang } from '@mathnim/core';
+import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
+import { cjk_ready, ensure_cjk_font } from './cjk_font';
 import './i18n';
 import { dashboard } from './pages/dashboard';
 import { home } from './pages/home';
@@ -9,5 +12,14 @@ import { detect_server_providers, load_settings } from './settings';
 import { mount_shell } from './shell';
 import { enable_dom_tex } from './tex_dom';
 
-set_ui_lang(load_settings().lang);
-Promise.allSettled([enable_dom_tex(), detect_server_providers()]).finally(() => mount_shell({ '': home, lesson: lesson_page, review, dashboard, settings: settings_page }));
+// Visuals draw their labels in the learner's language (lang 'auto'): Chinese once a Chinese font is loaded
+// (set_language waits for it), English otherwise. Subscribed before the shell, so a page re-rendered for a
+// new language already draws in it.
+const visual_lang = (l: Lang) => set_ft_lang(l === 'zh' && !cjk_ready() ? 'en' : l);
+on_ui_lang(visual_lang);
+const start_lang = load_settings().lang;
+Promise.allSettled([enable_dom_tex(), detect_server_providers(), start_lang === 'zh' ? ensure_cjk_font() : null]).finally(() => {
+  visual_lang(start_lang);
+  set_ui_lang(start_lang);
+  mount_shell({ '': home, lesson: lesson_page, review, dashboard, settings: settings_page });
+});

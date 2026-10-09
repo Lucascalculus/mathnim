@@ -11,7 +11,7 @@
 // Warnings: plain-string prose in a bilingual lesson (untranslated), Chinese
 // identical to English, Chinese inside TeX, unknown code languages.
 import {
-  code_line_count, expr, grade_blank, has_cjk, is_bilingual, lesson_langs, lesson_strings, step_strings, tr,
+  code_line_count, expr, grade_blank, has_cjk, is_bilingual, is_voiced, lesson_langs, lesson_strings, step_strings, tr,
   type Block, type CheckpointStep, type L10n, type Lesson, type Step,
 } from '@mathnim/core';
 
@@ -149,6 +149,7 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
   const groups = new Map<string, number[]>();
   lesson.steps.forEach((s, idx) => {
     const at = `steps.${s.id}`;
+    if (s.narration !== undefined && !is_voiced(s, lesson.mode)) warn(`${at}.narration`, s.kind === 'checkpoint' ? 'questions are only voiced in game lessons (mode: \'game\'): this narration is never spoken' : `a ${s.kind} step is not voiced (narration is for scenes): its narration is never spoken`);
     if (s.kind === 'read') {
       if (!s.blocks.length) err(at, 'empty read page');
       const keys = cite_keys(s.blocks);

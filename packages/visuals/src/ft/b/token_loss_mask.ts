@@ -106,7 +106,7 @@ export function is_assistant_only(parts: Part[], trained: (p: Part) => boolean):
 }
 
 const MAX_L = 8; // nats shown at full height (higher losses are capped and marked)
-const SKY = { x0: -6.85, x1: 6.85, y0: 1.75, h: 1.9 };
+const SKY = { x0: -6.85, x1: 6.85, y0: 1.7, h: 1.65 };
 const ROW_X0 = -6.85, ROW_X1 = 6.85, CARD_W = 1.5, CARD_H = 0.78, CARD_GAP = 0.12;
 const ROW_Y = { trained: -0.12, masked: -1.86 };
 
@@ -267,7 +267,7 @@ export class TokenLossMaskScene extends Scene {
     rows.forEach((_, i) => set_solid(i));
     bars.add_updater(() => rows.forEach((_, i) => set_solid(i)));
     const ylab = fit(label(pick(lang, 'loss per token  −log p', '每个 token 的 loss  −log p'), 22, c.muted), 6, 0.4);
-    ylab.move_to([SKY.x0 + ylab.width / 2, SKY.y0 + SKY.h + 0.2, 0]);
+    ylab.move_to([SKY.x0 + ylab.width / 2, SKY.y0 + SKY.h + 0.22, 0]);
     const skyline = VGroup(base, VGroup(...ghosts), bars, ylab);
     skyline.name = 'skyline';
 
@@ -287,7 +287,7 @@ export class TokenLossMaskScene extends Scene {
       const col = color_of(q);
       const b = box(0, 0, CARD_W, CARD_H, { stroke: col, width: 3, fill: col, fill_opacity: 0.14, radius: 0.1 });
       const t1 = fit(label(pick(lang, q.en, q.zh), 22, c.ink), CARD_W - 0.16, 0.34);
-      const t2 = fit(label(pick(lang, `${q.tokens.length} tokens`, `${q.tokens.length} 个 token`), 20, c.muted), CARD_W - 0.16, 0.3);
+      const t2 = fit(label(pick(lang, `${q.tokens.length} token${q.tokens.length === 1 ? '' : 's'}`, `${q.tokens.length} 个 token`), 20, c.muted), CARD_W - 0.16, 0.3);
       t1.move_to([0, 0.15, 0]);
       t2.move_to([0, -0.2, 0]);
       const g = VGroup(b, t1, t2) as unknown as VMobject;
@@ -338,11 +338,11 @@ export class TokenLossMaskScene extends Scene {
     formula.submobjects[2]?.set_color(c.gold);
     formula.move_to([-6.85 + formula.width / 2, -3.0, 0]);
     formula.name = 'formula';
-    const legend = fit(label(pick(lang, 'S_A: the answer\'s share · A = the assistant\'s tokens · ℓ = −log p', 'S_A：回答的占比 · A = 助手的 token · ℓ = −log p'), 20, c.muted), 6.3, 0.35);
+    const legend = fit(label(pick(lang, 'A = the assistant\'s tokens · ℓ = −log p', 'A = 助手的 token · ℓ = −log p'), 22, c.muted), 6.3, 0.38);
     legend.move_to([-6.85 + legend.width / 2, -3.62, 0]);
     this.slider_ctl = slider(this.lam, { x: 2.3, y: -3.0, width: 3.0, min: 0.001, max: 1, log: true, zero: true, title: pick(lang, 'λ', 'λ'), decimals: 3, color: c.gold });
     this.slider_ctl.group.name = 'lambda_slider';
-    const note = fit(label(pick(lang, 'Real data: Qwen2.5-0.5B on a Qwen2.5-template sample', '真实数据：Qwen2.5-0.5B 在 Qwen2.5 模板样本上的逐 token loss'), 18, c.muted), 6.5, 0.32);
+    const note = fit(label(pick(lang, 'real data: Qwen2.5-0.5B, Qwen2.5 chat template', '真实数据：Qwen2.5-0.5B，Qwen2.5 聊天模板'), 20, c.muted), 6.2, 0.36);
     note.move_to([6.85 - note.width / 2, -3.62, 0]);
     note.name = 'data_note';
 

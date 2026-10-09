@@ -1,0 +1,606 @@
+{
+ "base": "Qwen/Qwen2.5-0.5B",
+ "chat": "Qwen/Qwen2.5-0.5B-Instruct",
+ "decoding": "greedy",
+ "results": {
+  "en": {
+   "prompt": "Explain in three short sentences why the sky is blue.",
+   "answer": "The sky appears blue because it reflects sunlight and scatters other colors of light. The scattering of sunlight causes the shorter wavelengths (blue) to scatter more than longer wavelengths (red), which results in the color we perceive as blue. This phenomenon is known as Rayleigh scattering, named after James Clerk Maxwell, who first described it in 1879.",
+   "tokens": [
+    {
+     "tok": "The",
+     "rank": 1,
+     "base_top": "The"
+    },
+    {
+     "tok": " sky",
+     "rank": 1,
+     "base_top": " sky"
+    },
+    {
+     "tok": " appears",
+     "rank": 2,
+     "base_top": " is"
+    },
+    {
+     "tok": " blue",
+     "rank": 1,
+     "base_top": " blue"
+    },
+    {
+     "tok": " because",
+     "rank": 1,
+     "base_top": " because"
+    },
+    {
+     "tok": " it",
+     "rank": 1,
+     "base_top": " it"
+    },
+    {
+     "tok": " reflects",
+     "rank": 1,
+     "base_top": " reflects"
+    },
+    {
+     "tok": " sunlight",
+     "rank": 1,
+     "base_top": " sunlight"
+    },
+    {
+     "tok": " and",
+     "rank": 3,
+     "base_top": ","
+    },
+    {
+     "tok": " sc",
+     "rank": 6,
+     "base_top": " absorbs"
+    },
+    {
+     "tok": "atters",
+     "rank": 1,
+     "base_top": "atters"
+    },
+    {
+     "tok": " other",
+     "rank": 8,
+     "base_top": " the"
+    },
+    {
+     "tok": " colors",
+     "rank": 1,
+     "base_top": " colors"
+    },
+    {
+     "tok": " of",
+     "rank": 1,
+     "base_top": " of"
+    },
+    {
+     "tok": " light",
+     "rank": 1,
+     "base_top": " light"
+    },
+    {
+     "tok": ".",
+     "rank": 1,
+     "base_top": "."
+    },
+    {
+     "tok": " The",
+     "rank": 2,
+     "base_top": "<|endoftext|>"
+    },
+    {
+     "tok": " scattering",
+     "rank": 5,
+     "base_top": " blue"
+    },
+    {
+     "tok": " of",
+     "rank": 1,
+     "base_top": " of"
+    },
+    {
+     "tok": " sunlight",
+     "rank": 2,
+     "base_top": " light"
+    },
+    {
+     "tok": " causes",
+     "rank": 1,
+     "base_top": " causes"
+    },
+    {
+     "tok": " the",
+     "rank": 1,
+     "base_top": " the"
+    },
+    {
+     "tok": " shorter",
+     "rank": 18,
+     "base_top": " colors"
+    },
+    {
+     "tok": " wavelengths",
+     "rank": 1,
+     "base_top": " wavelengths"
+    },
+    {
+     "tok": " (",
+     "rank": 3,
+     "base_top": " of"
+    },
+    {
+     "tok": "blue",
+     "rank": 1,
+     "base_top": "blue"
+    },
+    {
+     "tok": ")",
+     "rank": 3,
+     "base_top": " and"
+    },
+    {
+     "tok": " to",
+     "rank": 1,
+     "base_top": " to"
+    },
+    {
+     "tok": " scatter",
+     "rank": 1,
+     "base_top": " scatter"
+    },
+    {
+     "tok": " more",
+     "rank": 1,
+     "base_top": " more"
+    },
+    {
+     "tok": " than",
+     "rank": 1,
+     "base_top": " than"
+    },
+    {
+     "tok": " longer",
+     "rank": 2,
+     "base_top": " the"
+    },
+    {
+     "tok": " wavelengths",
+     "rank": 1,
+     "base_top": " wavelengths"
+    },
+    {
+     "tok": " (",
+     "rank": 1,
+     "base_top": " ("
+    },
+    {
+     "tok": "red",
+     "rank": 1,
+     "base_top": "red"
+    },
+    {
+     "tok": "),",
+     "rank": 4,
+     "base_top": ")"
+    },
+    {
+     "tok": " which",
+     "rank": 1,
+     "base_top": " which"
+    },
+    {
+     "tok": " results",
+     "rank": 1,
+     "base_top": " results"
+    },
+    {
+     "tok": " in",
+     "rank": 1,
+     "base_top": " in"
+    },
+    {
+     "tok": " the",
+     "rank": 1,
+     "base_top": " the"
+    },
+    {
+     "tok": " color",
+     "rank": 2,
+     "base_top": " blue"
+    },
+    {
+     "tok": " we",
+     "rank": 2,
+     "base_top": " blue"
+    },
+    {
+     "tok": " perceive",
+     "rank": 1,
+     "base_top": " perceive"
+    },
+    {
+     "tok": " as",
+     "rank": 1,
+     "base_top": " as"
+    },
+    {
+     "tok": " blue",
+     "rank": 1,
+     "base_top": " blue"
+    },
+    {
+     "tok": ".",
+     "rank": 1,
+     "base_top": "."
+    },
+    {
+     "tok": " This",
+     "rank": 2,
+     "base_top": "<|endoftext|>"
+    },
+    {
+     "tok": " phenomenon",
+     "rank": 1,
+     "base_top": " phenomenon"
+    },
+    {
+     "tok": " is",
+     "rank": 1,
+     "base_top": " is"
+    },
+    {
+     "tok": " known",
+     "rank": 1,
+     "base_top": " known"
+    },
+    {
+     "tok": " as",
+     "rank": 1,
+     "base_top": " as"
+    },
+    {
+     "tok": " Ray",
+     "rank": 1,
+     "base_top": " Ray"
+    },
+    {
+     "tok": "leigh",
+     "rank": 1,
+     "base_top": "leigh"
+    },
+    {
+     "tok": " scattering",
+     "rank": 1,
+     "base_top": " scattering"
+    },
+    {
+     "tok": ",",
+     "rank": 2,
+     "base_top": "."
+    },
+    {
+     "tok": " named",
+     "rank": 1,
+     "base_top": " named"
+    },
+    {
+     "tok": " after",
+     "rank": 1,
+     "base_top": " after"
+    },
+    {
+     "tok": " James",
+     "rank": 5,
+     "base_top": " the"
+    },
+    {
+     "tok": " Clerk",
+     "rank": 1,
+     "base_top": " Clerk"
+    },
+    {
+     "tok": " Maxwell",
+     "rank": 1,
+     "base_top": " Maxwell"
+    },
+    {
+     "tok": ",",
+     "rank": 1,
+     "base_top": ","
+    },
+    {
+     "tok": " who",
+     "rank": 1,
+     "base_top": " who"
+    },
+    {
+     "tok": " first",
+     "rank": 1,
+     "base_top": " first"
+    },
+    {
+     "tok": " described",
+     "rank": 1,
+     "base_top": " described"
+    },
+    {
+     "tok": " it",
+     "rank": 1,
+     "base_top": " it"
+    },
+    {
+     "tok": " in",
+     "rank": 1,
+     "base_top": " in"
+    },
+    {
+     "tok": " ",
+     "rank": 1,
+     "base_top": " "
+    },
+    {
+     "tok": "1",
+     "rank": 1,
+     "base_top": "1"
+    },
+    {
+     "tok": "8",
+     "rank": 1,
+     "base_top": "8"
+    },
+    {
+     "tok": "7",
+     "rank": 1,
+     "base_top": "7"
+    },
+    {
+     "tok": "9",
+     "rank": 2,
+     "base_top": "8"
+    },
+    {
+     "tok": ".",
+     "rank": 1,
+     "base_top": "."
+    }
+   ],
+   "summary": {
+    "n": 72,
+    "unshifted": 54,
+    "marginal": 12,
+    "shifted": 6
+   }
+  },
+  "zh": {
+   "prompt": "用三句简短的话解释天空为什么是蓝色的。",
+   "answer": "天空之所以呈现蓝色，是因为太阳光在穿过地球大气层时，被各种颜色的气体分子散射和吸收后，蓝光被散射得最多，因此我们看到的是蓝色的天空。",
+   "tokens": [
+    {
+     "tok": "天空",
+     "rank": 1,
+     "base_top": "天空"
+    },
+    {
+     "tok": "之所以",
+     "rank": 1,
+     "base_top": "之所以"
+    },
+    {
+     "tok": "呈现",
+     "rank": 2,
+     "base_top": "是"
+    },
+    {
+     "tok": "蓝色",
+     "rank": 1,
+     "base_top": "蓝色"
+    },
+    {
+     "tok": "，",
+     "rank": 1,
+     "base_top": "，"
+    },
+    {
+     "tok": "是因为",
+     "rank": 1,
+     "base_top": "是因为"
+    },
+    {
+     "tok": "太阳",
+     "rank": 2,
+     "base_top": "它"
+    },
+    {
+     "tok": "光",
+     "rank": 1,
+     "base_top": "光"
+    },
+    {
+     "tok": "在",
+     "rank": 1,
+     "base_top": "在"
+    },
+    {
+     "tok": "穿过",
+     "rank": 1,
+     "base_top": "穿过"
+    },
+    {
+     "tok": "地球",
+     "rank": 2,
+     "base_top": "大气"
+    },
+    {
+     "tok": "大气",
+     "rank": 1,
+     "base_top": "大气"
+    },
+    {
+     "tok": "层",
+     "rank": 1,
+     "base_top": "层"
+    },
+    {
+     "tok": "时",
+     "rank": 1,
+     "base_top": "时"
+    },
+    {
+     "tok": "，",
+     "rank": 1,
+     "base_top": "，"
+    },
+    {
+     "tok": "被",
+     "rank": 1,
+     "base_top": "被"
+    },
+    {
+     "tok": "各种",
+     "rank": 6,
+     "base_top": "大气"
+    },
+    {
+     "tok": "颜色",
+     "rank": 1,
+     "base_top": "颜色"
+    },
+    {
+     "tok": "的",
+     "rank": 1,
+     "base_top": "的"
+    },
+    {
+     "tok": "气体",
+     "rank": 4,
+     "base_top": "粒子"
+    },
+    {
+     "tok": "分子",
+     "rank": 1,
+     "base_top": "分子"
+    },
+    {
+     "tok": "散",
+     "rank": 2,
+     "base_top": "吸收"
+    },
+    {
+     "tok": "射",
+     "rank": 1,
+     "base_top": "射"
+    },
+    {
+     "tok": "和",
+     "rank": 3,
+     "base_top": "，"
+    },
+    {
+     "tok": "吸收",
+     "rank": 1,
+     "base_top": "吸收"
+    },
+    {
+     "tok": "后",
+     "rank": 5,
+     "base_top": "，"
+    },
+    {
+     "tok": "，",
+     "rank": 1,
+     "base_top": "，"
+    },
+    {
+     "tok": "蓝",
+     "rank": 63,
+     "base_top": "形成了"
+    },
+    {
+     "tok": "光",
+     "rank": 1,
+     "base_top": "光"
+    },
+    {
+     "tok": "被",
+     "rank": 1,
+     "base_top": "被"
+    },
+    {
+     "tok": "散",
+     "rank": 1,
+     "base_top": "散"
+    },
+    {
+     "tok": "射",
+     "rank": 1,
+     "base_top": "射"
+    },
+    {
+     "tok": "得",
+     "rank": 1,
+     "base_top": "得"
+    },
+    {
+     "tok": "最多",
+     "rank": 1,
+     "base_top": "最多"
+    },
+    {
+     "tok": "，",
+     "rank": 1,
+     "base_top": "，"
+    },
+    {
+     "tok": "因此",
+     "rank": 1,
+     "base_top": "因此"
+    },
+    {
+     "tok": "我们",
+     "rank": 3,
+     "base_top": "天空"
+    },
+    {
+     "tok": "看到",
+     "rank": 1,
+     "base_top": "看到"
+    },
+    {
+     "tok": "的是",
+     "rank": 2,
+     "base_top": "的"
+    },
+    {
+     "tok": "蓝色",
+     "rank": 1,
+     "base_top": "蓝色"
+    },
+    {
+     "tok": "的",
+     "rank": 1,
+     "base_top": "的"
+    },
+    {
+     "tok": "天空",
+     "rank": 1,
+     "base_top": "天空"
+    },
+    {
+     "tok": "。",
+     "rank": 1,
+     "base_top": "。"
+    }
+   ],
+   "summary": {
+    "n": 43,
+    "unshifted": 32,
+    "marginal": 7,
+    "shifted": 4
+   }
+  }
+ }
+}

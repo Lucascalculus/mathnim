@@ -12,7 +12,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { tex } from '../../linalg/kit';
 import { LEASH, expect, kl, tilt } from './math';
-import { HSlider, LANG_SPEC, Switch, clamp, label, label_at, live_number, pick, polyline, rect, resolve_lang, seg, x_ticks, y_ticks, type Lang, type P3 } from './kit';
+import { HSlider, LANG_SPEC, Switch, clamp, label, label_at, live_number, mixed, pick, polyline, rect, resolve_lang, seg, x_ticks, y_ticks, type Lang, type P3 } from './kit';
 
 export interface KlLeashParams extends Record<string, unknown> {
   story: string;
@@ -87,18 +87,14 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
         this.track(lb, gold, can);
         this.add_updater(() => {
           const s = this.state();
-          this.visited.set(Math.round(lb.get_value() * 50) / 50 + (can.get_value() > 0.5 ? 0 : 100), { k: Math.sqrt(Math.max(0, s.kl)), er: s.er, eg: s.eg });
+          this.visited.set(Math.round(lb.get_value() * 25) / 25 + (can.get_value() > 0.5 ? 0 : 100), { k: Math.sqrt(Math.max(0, s.kl)), er: s.er, eg: s.eg });
         });
 
         // ---- left: the eight responses
         const hx = label_at(pick(lang, 'response', '回答'), -6.9, 3.2, 22, c.muted);
         const hr = tex('r', 28, c.accent).move_to([RX, 3.2, 0]);
         const hg = tex('g', 28, c.good).move_to([GX, 3.2, 0]);
-        const hb = always_redraw(() => {
-          const t = label(pick(lang, 'probability: π* solid, π_ref outline', '概率：实心 π*，空心 π_ref'), 22, c.muted);
-          t.move_to([BX0 + t.width / 2, 3.2, 0]);
-          return t;
-        });
+        const hb = mixed([pick(lang, 'probability: solid', '概率：实心'), { tex: '\\pi^*' }, pick(lang, ', outline', '，空心'), { tex: '\\pi_{ref}' }], BX0, 3.2, 22, c.muted);
         const rows = VGroup(...LEASH.map((x, i) => {
           const name = label(pick(lang, x.en, x.zh), 22, i === N - 1 ? c.coral : c.ink);
           name.move_to([-6.9 + name.width / 2, Ry(i), 0]);
@@ -120,7 +116,8 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
           return VGroup(name, r, g, q);
         }));
         rows.name = 'rows';
-        const scale = VGroup(seg([Bx(0), ROW0 + 0.42], [Bx(1), ROW0 + 0.42], c.faint, 2), tex('0', 22, c.muted).move_to([Bx(0), ROW0 + 0.62, 0]), tex('1', 22, c.muted).move_to([Bx(1), ROW0 + 0.62, 0]));
+        const SY = Ry(N - 1) - 0.42;
+        const scale = VGroup(seg([Bx(0), SY], [Bx(1), SY], c.muted, 2), seg([Bx(0), SY - 0.08], [Bx(0), SY + 0.08], c.muted, 2), seg([Bx(1), SY - 0.08], [Bx(1), SY + 0.08], c.muted, 2), tex('0', 22, c.muted).move_to([Bx(0), SY - 0.27, 0]), tex('1', 22, c.muted).move_to([Bx(1), SY - 0.27, 0]));
         const ref_bars = always_redraw(() => {
           const s = this.state();
           return VGroup(...s.ref.map((q, i) => rect(Bx(0), Ry(i) - 0.22, Bx(q), Ry(i) + 0.22, c.bg, 0, c.muted, 2)));
@@ -205,19 +202,19 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
           return g;
         });
         trace.name = 'trace';
-        const legend = always_redraw(() => {
-          const a = label(pick(lang, 'proxy E[r]', '代理 E[r]'), 20, c.accent);
-          a.move_to([TX0 + 0.15 + a.width / 2, TY1 + 0.25, 0]);
-          const g = VGroup(a);
-          if (gold.get_value() > 0.5) {
-            const b = label(pick(lang, 'gold E[g]', '真实 E[g]'), 20, c.good);
-            b.move_to([a.get_right()[0] + 0.35 + b.width / 2, TY1 + 0.25, 0]);
-            g.add(b);
-          }
-          return g;
+        const la = label(pick(lang, 'proxy E[r]', '代理 E[r]'), 20, c.accent);
+        la.move_to([TX0 + 0.15 + la.width / 2, TY1 + 0.25, 0]);
+        const lg = label(pick(lang, 'gold E[g]', '真实 E[g]'), 20, c.good);
+        lg.move_to([la.get_right()[0] + 0.35 + lg.width / 2, TY1 + 0.25, 0]);
+        lg.add_updater((m: any) => {
+          const k = gold.get_value() > 0.5 ? 1 : 0;
+          if (m._k === k) return;
+          m._k = k;
+          m.set_opacity(k);
         });
+        const legend = VGroup(la, lg);
         const toy = label(pick(lang, 'made-up numbers; π* exact', '示意数值；π* 是精确解'), 20, c.muted);
-        toy.move_to([6.9 - toy.width / 2, -3.7, 0]);
+        toy.move_to([-6.9 + toy.width / 2, -3.7, 0]);
         toy.name = 'toy_label';
 
         // ---- story

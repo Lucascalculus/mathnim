@@ -112,7 +112,9 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
         this.plane = plane;
         const box = { x0: STAGE.x0 + 0.08, x1: STAGE.x1 - 0.08, y0: STAGE.y0 + 0.08, y1: STAGE.y1 - 0.08 };
         const grid = transformed_grid(plane, () => this.W());
-        grid.group.name = 'grid';
+        // with W₀ ≠ I, W₀'s own grid is the reference (no third, square grid)
+        const grid_named = identity ? grid.group : VGroup(grid.lines, grid.axes);
+        grid_named.name = 'grid';
         // W₀'s own grid (faint) when it is not the identity: the "before" picture
         const g0 = transformed_grid(plane, () => this.W0.get(), { background: false, line_opacity: 0.35, width: 1.5 });
         g0.lines.set_stroke({ color: c.muted });
@@ -164,10 +166,20 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
           { m: l_v, tip: vec_tip(this.vv) },
           { m: l_u, tip: vec_tip(this.uv) },
           { m: l_x, tip: vec_tip(this.xv), visible: probe },
-          { m: l_W0x, tip: vec_tip(W0x), visible: () => !identity && probe() },
+          { m: l_W0x, tip: vec_tip(W0x), visible: () => !identity && probe(), optional: true },
           { m: l_Wx, tip: vec_tip(Wx), visible: () => probe() && norm2(this.change()) > 0.04 },
-          { m: null_words, tip: null_tip, visible: () => p.show_null_line && norm2(this.vv()) >= 0.05 && this.null_on.get_value() > 0.5 },
-        ], box);
+          { m: null_words, tip: null_tip, visible: () => p.show_null_line && norm2(this.vv()) >= 0.05 && this.null_on.get_value() > 0.5, optional: true },
+        ], box, () => {
+          // keep the words off the unchanged line itself
+          const v = this.vv(), n = norm2(v);
+          if (n < 0.05 || !p.show_null_line) return [];
+          const out = [];
+          for (let k = -14; k <= 14; k++) {
+            const q = plane.pv([(-v[1] / n) * k * 0.3, (v[0] / n) * k * 0.3]);
+            out.push({ x0: q[0] - 0.06, x1: q[0] + 0.06, y0: q[1] - 0.06, y1: q[1] + 0.06 });
+          }
+          return out;
+        });
         labels.name = 'labels';
 
         // ---- panel: u, v, u vᵀ, W, the formula and v·x
@@ -211,7 +223,7 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
         rule.name = 'rule';
 
         // ---- the story
-        this.add(grid.background);
+        if (identity) this.add(grid.background);
         this.play(Create(VGroup(grid.lines, grid.axes), { lag_ratio: 0.02 }), FadeIn(grid_W0), { run_time: 1.2 });
         this.add(labels);
         this.play(GrowArrow(arrow_v), GrowArrow(arrow_u), FadeIn(title), FadeIn(uv_line), { run_time: 1.2 });
@@ -233,7 +245,7 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
           this.x[1].set_value(q[1]);
         }, { run_time: 6, rate_func: linear }));
         this.play(FadeIn(rule), { run_time: 1 });
-        this.add(grid.group, title, uv_line, uv_eq, ...(identity ? [] : [W0_eq]), W_eq, formula, dot_ro, rule);
+        this.add(grid_named, title, uv_line, uv_eq, ...(identity ? [] : [W0_eq]), W_eq, formula, dot_ro, rule);
         this.wait(1.5);
       }
     }

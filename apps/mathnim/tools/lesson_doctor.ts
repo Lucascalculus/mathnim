@@ -15,6 +15,8 @@ import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
 import fs from 'node:fs';
 import path from 'node:path';
 import { lint_lesson_text } from './text_lint';
+// zh labels: a local Chinese font is loaded the first time one is drawn (no download)
+import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
 import { DragHandle } from 'manim-web/ext/interact';
 import { COURSE } from '../src/course';
 
@@ -25,14 +27,17 @@ type Row = { what: string; ok: boolean; errors: string[]; warnings: string[]; se
 const rows: Row[] = [];
 
 async function check(what: string, make: () => any) {
+  rows.push(await with_cjk(() => check_row(what, make)));
+}
+async function check_row(what: string, make: () => any): Promise<Row> {
   try {
     const player = new ScenePlayer(make(), createCanvas(960, 540) as any, { audio: false });
     apply_white(player);
     await player.load();
     const issues = lint_timeline(player);
-    rows.push({ what, ok: !issues.some((i) => i.severity === 'error'), errors: issues.filter((i) => i.severity === 'error').map((i) => i.message), warnings: issues.filter((i) => i.severity === 'warning').map((i) => i.message), seconds: player.duration });
+    return { what, ok: !issues.some((i) => i.severity === 'error'), errors: issues.filter((i) => i.severity === 'error').map((i) => i.message), warnings: issues.filter((i) => i.severity === 'warning').map((i) => i.message), seconds: player.duration };
   } catch (e: any) {
-    rows.push({ what, ok: false, errors: [`crash: ${e?.message ?? e}`], warnings: [] });
+    return { what, ok: false, errors: [`crash: ${e?.message ?? e}`], warnings: [] };
   }
 }
 
@@ -57,6 +62,9 @@ function stub_ui(): any {
 
 /** Play a world headlessly: its goals must be unreached at first and reached by its scripted solution. */
 async function check_world(what: string, step: ExploreStep, make: () => any) {
+  rows.push(await with_cjk(() => world_row(what, step, make)));
+}
+async function world_row(what: string, step: ExploreStep, make: () => any): Promise<Row> {
   const errors: string[] = [];
   try {
     const player = new ScenePlayer(make(), createCanvas(960, 540) as any, { audio: false });
@@ -80,7 +88,7 @@ async function check_world(what: string, step: ExploreStep, make: () => any) {
   } catch (e: any) {
     errors.push(`crash: ${e?.message ?? e}`);
   }
-  rows.push({ what: `${what} (world)`, ok: !errors.length, errors, warnings: [] });
+  return { what: `${what} (world)`, ok: !errors.length, errors, warnings: [] };
 }
 
 const ctx = { vars: { a: 4, b: 9 }, rng: () => 0.5 };

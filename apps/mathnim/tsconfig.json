@@ -33,6 +33,9 @@
       ],
       "@mathnim/visuals": [
         "../../packages/visuals/src/index.ts"
+      ],
+      "@mathnim/visuals/*": [
+        "../../packages/visuals/src/*"
       ]
     }
   },

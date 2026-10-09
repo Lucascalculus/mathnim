@@ -1,254 +1,257 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="470" viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg role="img" xml:space="preserve" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="440" viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>Expert iteration loop: sample n answers per prompt, verify or score, keep correct answers with a cap per problem, fine-tune, and repeat; notes on Llama 3 best-of-K and DeepSeek-R1's 600k + 200k samples.</title>
  <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt} text{white-space: pre}</style>
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 470 
-L 960 470 
+   <path d="M 0 440 
+L 960 440 
 L 960 0 
 L 0 0 
-L 0 470 
+L 0 440 
 z
 " style="fill: none"/>
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 40 40 
-L 270 40 
-Q 280 40 280 50 
-L 280 142 
-Q 280 152 270 152 
-L 40 152 
-Q 30 152 30 142 
-L 30 50 
-Q 30 40 40 40 
+    <path d="M 40 30 
+L 270 30 
+Q 280 30 280 40 
+L 280 132 
+Q 280 142 270 142 
+L 40 142 
+Q 30 142 30 132 
+L 30 40 
+Q 30 30 40 30 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #eef3fd; stroke: #2563eb; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #eef3fd; stroke: #2563eb; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
-    <path d="M 370 40 
-L 600 40 
-Q 610 40 610 50 
-L 610 142 
-Q 610 152 600 152 
-L 370 152 
-Q 360 152 360 142 
-L 360 50 
-Q 360 40 370 40 
+    <path d="M 370 30 
+L 600 30 
+Q 610 30 610 40 
+L 610 132 
+Q 610 142 600 142 
+L 370 142 
+Q 360 142 360 132 
+L 360 40 
+Q 360 30 370 30 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #ecf6f5; stroke: #0d9488; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #ecf6f5; stroke: #0d9488; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
-    <path d="M 370 280 
-L 600 280 
-Q 610 280 610 290 
-L 610 382 
-Q 610 392 600 392 
-L 370 392 
-Q 360 392 360 382 
-L 360 290 
-Q 360 280 370 280 
+    <path d="M 370 270 
+L 600 270 
+Q 610 270 610 280 
+L 610 372 
+Q 610 382 600 382 
+L 370 382 
+Q 360 382 360 372 
+L 360 280 
+Q 360 270 370 270 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #edf6f2; stroke: #1f8a5b; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #edf6f2; stroke: #1f8a5b; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
-    <path d="M 40 280 
-L 270 280 
-Q 280 280 280 290 
-L 280 382 
-Q 280 392 270 392 
-L 40 392 
-Q 30 392 30 382 
-L 30 290 
-Q 30 280 40 280 
+    <path d="M 40 270 
+L 270 270 
+Q 280 270 280 280 
+L 280 372 
+Q 280 382 270 382 
+L 40 382 
+Q 30 382 30 372 
+L 30 280 
+Q 30 270 40 270 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #f5effe; stroke: #7c3aed; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #f5effe; stroke: #7c3aed; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
-    <path d="M 658 40 
-L 932 40 
-Q 940 40 940 48 
-L 940 144 
-Q 940 152 932 152 
-L 658 152 
-Q 650 152 650 144 
-L 650 48 
-Q 650 40 658 40 
-L 658 40 
+    <path d="M 658 30 
+L 932 30 
+Q 940 30 940 38 
+L 940 134 
+Q 940 142 932 142 
+L 658 142 
+Q 650 142 650 134 
+L 650 38 
+Q 650 30 658 30 
+L 658 30 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
-    <path d="M 658 172 
-L 932 172 
-Q 940 172 940 180 
-L 940 276 
-Q 940 284 932 284 
-L 658 284 
-Q 650 284 650 276 
-L 650 180 
-Q 650 172 658 172 
-L 658 172 
+    <path d="M 658 154 
+L 932 154 
+Q 940 154 940 162 
+L 940 258 
+Q 940 266 932 266 
+L 658 266 
+Q 650 266 650 258 
+L 650 162 
+Q 650 154 658 154 
+L 658 154 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
    </g>
    <g id="patch_8">
-    <path d="M 658 304 
-L 932 304 
-Q 940 304 940 312 
-L 940 384 
-Q 940 392 932 392 
-L 658 392 
-Q 650 392 650 384 
-L 650 312 
-Q 650 304 658 304 
-L 658 304 
+    <path d="M 658 278 
+L 932 278 
+Q 940 278 940 286 
+L 940 382 
+Q 940 390 932 390 
+L 658 390 
+Q 650 390 650 382 
+L 650 286 
+Q 650 278 658 278 
+L 658 278 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #86868b; stroke-linejoin: miter"/>
    </g>
    <g id="patch_9">
-    <path d="M 286 96 
-Q 320 96 352.274044 96 
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
-    <path d="M 345.074044 91.6 
-L 352.274044 96 
-L 345.074044 100.4 
+    <path d="M 286 86 
+Q 320 86 352.274044 86 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 345.074044 81.6 
+L 352.274044 86 
+L 345.074044 90.4 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
    </g>
    <g id="patch_10">
-    <path d="M 485 158 
-Q 485 216 485 272.274044 
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
-    <path d="M 489.4 265.074044 
-L 485 272.274044 
-L 480.6 265.074044 
+    <path d="M 485 148 
+Q 485 206 485 262.274044 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 489.4 255.074044 
+L 485 262.274044 
+L 480.6 255.074044 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
    </g>
    <g id="patch_11">
-    <path d="M 354 336 
-Q 320 336 287.725956 336 
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
-    <path d="M 294.925956 340.4 
-L 287.725956 336 
-L 294.925956 331.6 
+    <path d="M 354 326 
+Q 320 326 287.725956 326 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 294.925956 330.4 
+L 287.725956 326 
+L 294.925956 321.6 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
    </g>
    <g id="patch_12">
-    <path d="M 155 274 
-Q 155 216 155 159.725956 
-" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
-    <path d="M 150.6 166.925956 
-L 155 159.725956 
-L 159.4 166.925956 
+    <path d="M 155 264 
+Q 155 206 155 149.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 150.6 156.925956 
+L 155 149.725956 
+L 159.4 156.925956 
 z
-" clip-path="url(#pdad6a5c53b)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
    </g>
    <g id="text_1">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #2563eb" x="46" y="68.139063" transform="rotate(-0 46 68.139063)">1  Sample</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #2563eb" x="46" y="58.139063" transform="rotate(-0 46 58.139063)">1  Sample</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="95.449219" transform="rotate(-0 46 95.449219)">n answers per prompt</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="85.449219" transform="rotate(-0 46 85.449219)">n answers per prompt</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="115.449219" transform="rotate(-0 46 115.449219)">from the current model k</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="105.449219" transform="rotate(-0 46 105.449219)">from the current model k</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="135.449219" transform="rotate(-0 46 135.449219)">(e.g. n = 8, temperature 0.8)</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="125.449219" transform="rotate(-0 46 125.449219)">(e.g. n = 8, temperature 0.8)</text>
    </g>
    <g id="text_5">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #0d9488" x="376" y="68.080469" transform="rotate(-0 376 68.080469)">2  Verify / score</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #0d9488" x="376" y="58.080469" transform="rotate(-0 376 58.080469)">2  Verify / score</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="95.449219" transform="rotate(-0 376 95.449219)">checker: answer match,</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="85.449219" transform="rotate(-0 376 85.449219)">checker: answer match,</text>
    </g>
    <g id="text_7">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="115.449219" transform="rotate(-0 376 115.449219)">unit tests, tool execution;</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="105.449219" transform="rotate(-0 376 105.449219)">unit tests, tool execution;</text>
    </g>
    <g id="text_8">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="135.449219" transform="rotate(-0 376 135.449219)">or a reward model</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="125.449219" transform="rotate(-0 376 125.449219)">or a reward model</text>
    </g>
    <g id="text_9">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #1f8a5b" x="376" y="308.139063" transform="rotate(-0 376 308.139063)">3  Keep the correct ones</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #1f8a5b" x="376" y="298.139063" transform="rotate(-0 376 298.139063)">3  Keep the correct ones</text>
    </g>
    <g id="text_10">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="335.449219" transform="rotate(-0 376 335.449219)">at most c per problem;</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="325.449219" transform="rotate(-0 376 325.449219)">at most c per problem;</text>
    </g>
    <g id="text_11">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="355.449219" transform="rotate(-0 376 355.449219)">prompts with no correct answer</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="345.449219" transform="rotate(-0 376 345.449219)">prompts with no correct answer</text>
    </g>
    <g id="text_12">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="376" y="375.449219" transform="rotate(-0 376 375.449219)">drop out (p ≈ 0 gives no data)</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="376" y="365.449219" transform="rotate(-0 376 365.449219)">drop out (p ≈ 0 gives no data)</text>
    </g>
    <g id="text_13">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #7c3aed" x="46" y="308.139063" transform="rotate(-0 46 308.139063)">4  SFT</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #7c3aed" x="46" y="298.139063" transform="rotate(-0 46 298.139063)">4  SFT</text>
    </g>
    <g id="text_14">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="335.449219" transform="rotate(-0 46 335.449219)">fine-tune on the kept answers</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="325.449219" transform="rotate(-0 46 325.449219)">fine-tune on the kept answers</text>
    </g>
    <g id="text_15">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="355.449219" transform="rotate(-0 46 355.449219)">→ model k + 1</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="345.449219" transform="rotate(-0 46 345.449219)">→ model k + 1</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="46" y="375.449219" transform="rotate(-0 46 375.449219)">(same loss as B1)</text>
+    <text style="font-size: 12.5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="46" y="365.449219" transform="rotate(-0 46 365.449219)">(the same loss as B1)</text>
    </g>
    <g id="text_17">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="167" y="219.31125" transform="rotate(-0 167 219.31125)">repeat with the new model</text>
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="320" y="198.139062" transform="rotate(-0 320 198.139062)">expert iteration</text>
    </g>
    <g id="text_18">
-    <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="320" y="220.139062" transform="rotate(-0 320 220.139062)">expert iteration</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #86868b" x="320" y="219.31125" transform="rotate(-0 320 219.31125)">rejection-sampling SFT, repeated</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #86868b" x="320" y="239.31125" transform="rotate(-0 320 239.31125)">(rejection-sampling SFT, looped)</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #86868b" x="320" y="237.31125" transform="rotate(-0 320 237.31125)">with the new model</text>
    </g>
    <g id="text_20">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="65.587188" transform="rotate(-0 664 65.587188)">Llama 3</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="55.587188" transform="rotate(-0 664 55.587188)">Llama 3</text>
    </g>
    <g id="text_21">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="89.31125" transform="rotate(-0 664 89.31125)">K samples per prompt; a reward model</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="81.31125" transform="rotate(-0 664 81.31125)">K = 10–30 samples per prompt;</text>
    </g>
    <g id="text_22">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="108.31125" transform="rotate(-0 664 108.31125)">picks the best (best-of-K) → SFT,</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="100.31125" transform="rotate(-0 664 100.31125)">a reward model picks the best</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="127.31125" transform="rotate(-0 664 127.31125)">then DPO; several rounds</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="119.31125" transform="rotate(-0 664 119.31125)">→ SFT, then DPO; six rounds</text>
    </g>
    <g id="text_24">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="197.587188" transform="rotate(-0 664 197.587188)">DeepSeek-R1</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="179.587188" transform="rotate(-0 664 179.587188)">DeepSeek-R1</text>
    </g>
    <g id="text_25">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="221.31125" transform="rotate(-0 664 221.31125)">after RL, rejection sampling gives</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="205.31125" transform="rotate(-0 664 205.31125)">after RL, rejection sampling gives</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="240.31125" transform="rotate(-0 664 240.31125)">~600k reasoning + ~200k other</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="224.31125" transform="rotate(-0 664 224.31125)">~600k reasoning + ~200k other</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="259.31125" transform="rotate(-0 664 259.31125)">samples → SFT</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="243.31125" transform="rotate(-0 664 243.31125)">samples → SFT</text>
    </g>
    <g id="text_28">
-    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="329.587188" transform="rotate(-0 664 329.587188)">With a 0/1 reward</text>
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="303.587188" transform="rotate(-0 664 303.587188)">With a 0/1 reward</text>
    </g>
    <g id="text_29">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="353.31125" transform="rotate(-0 664 353.31125)">the SFT gradient = policy gradient,</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="329.31125" transform="rotate(-0 664 329.31125)">the SFT gradient = a policy</text>
    </g>
    <g id="text_30">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="664" y="372.31125" transform="rotate(-0 664 372.31125)">without baseline or negatives</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="348.31125" transform="rotate(-0 664 348.31125)">gradient without baseline</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="664" y="367.31125" transform="rotate(-0 664 367.31125)">or negative samples</text>
    </g>
   </g>
-  <g id="text_31">
-   <text style="font-style: italic; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #86868b" x="952" y="459.712344" transform="rotate(-0 952 459.712344)">Recipes: Llama 3 (Meta, 2024); DeepSeek-R1 (DeepSeek-AI, 2025)</text>
+  <g id="text_32">
+   <text style="font-style: italic; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #86868b" x="952" y="429.712344" transform="rotate(-0 952 429.712344)">Recipes: Llama 3 (Meta, 2024); DeepSeek-R1 (DeepSeek-AI, 2025)</text>
   </g>
  </g>
  <defs>
-  <clipPath id="pdad6a5c53b">
-   <rect x="0" y="0" width="960" height="470"/>
+  <clipPath id="pc1030cf3d9">
+   <rect x="0" y="0" width="960" height="440"/>
   </clipPath>
  </defs>
 </svg>

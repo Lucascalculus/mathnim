@@ -187,7 +187,7 @@ export class HSlider {
   value_of(x: number): number {
     return this.lo + (clamp((x - this.x0) / (this.x1 - this.x0), 0, 1)) * (this.hi - this.lo);
   }
-  attach(ui: { add_handle(spec: any): unknown }, name: string, o: { snap?: number; on_change?: () => void } = {}): void {
+  attach(ui: { add_handle(spec: any): unknown }, name: string, o: { snap?: number; on_change?: () => void; on_end?: () => void } = {}): void {
     ui.add_handle({
       tracker: this.t,
       from_value: (v: number) => [this.x_of(v), this.y, 0],
@@ -201,6 +201,7 @@ export class HSlider {
       radius: 0.35,
       label: name,
       on_change: o.on_change,
+      on_end: o.on_end,
     });
   }
 }
@@ -209,6 +210,19 @@ export class HSlider {
 export function row_at(parts: Mobject[], x: number, y: number, buff = 0.15): VGroup {
   const g = VGroup(...parts);
   g.arrange(RIGHT, { buff });
+  g.move_to([x + g.width / 2, y, 0]);
+  return g;
+}
+
+/**
+ * Words and formulas in one line: plain strings are set as Text, `{ tex }`
+ * parts as MathTex (so subscripts render), left edge at x.
+ */
+export function mixed(parts: (string | { tex: string })[], x: number, y: number, size = 22, color?: string): VGroup {
+  const c = palette();
+  const ms = parts.map((q) => (typeof q === 'string' ? label(q, size, color ?? c.ink) : tex(q.tex, size + 4, color ?? c.ink)));
+  const g = VGroup(...ms);
+  g.arrange(RIGHT, { buff: 0.06 });
   g.move_to([x + g.width / 2, y, 0]);
   return g;
 }

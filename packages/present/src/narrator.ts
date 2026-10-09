@@ -5,7 +5,7 @@
 // live narration (/api/providers says {tts: true}); otherwise, or when that
 // fails, they are shown as captions only, unless the learner turns on the
 // browser's own voice.
-import { caption_cues, merge_recordings, narration_key, to_spoken, tts_parts, type Cue, type Recording, type TtsReply } from '@mathnim/core';
+import { caption_cues, merge_recordings, narration_key, spoken_lang, to_spoken, tts_parts, type Cue, type Recording, type TtsReply } from '@mathnim/core';
 
 /** A line ready to play: its word timing and its audio. */
 interface Take {
@@ -75,7 +75,7 @@ export class Narrator {
     if (take) return this.play(take, text, my);
     if (this.system_voice && typeof speechSynthesis !== 'undefined') {
       const u = new SpeechSynthesisUtterance(to_spoken(text));
-      u.lang = this.lang;
+      u.lang = spoken_lang(text) === 'zh' ? 'zh-CN' : this.lang;
       u.rate = this.rate;
       speechSynthesis.speak(u);
     }
@@ -168,13 +168,15 @@ function live_available(endpoint: string): Promise<boolean> {
 }
 
 async function live_take(endpoint: string, text: string): Promise<Take | null> {
+  // the server reads it with the voice of its language (Yunxi for Chinese, Andrew for English)
+  const lang = spoken_lang(text);
   if (failures >= 3 || !(await live_available(endpoint))) return null;
   const key = narration_key(text);
   let p = takes.get(key);
   if (p) {
     takes.delete(key); // refresh its place
   } else {
-    const mine = (p = synthesize(endpoint, text));
+    const mine = (p = synthesize(endpoint, text, lang));
     void mine.then((t) => t || (takes.get(key) === mine && takes.delete(key))); // do not keep failures
   }
   takes.set(key, p);
@@ -182,10 +184,10 @@ async function live_take(endpoint: string, text: string): Promise<Take | null> {
   return p;
 }
 
-async function synthesize(endpoint: string, text: string): Promise<Take | null> {
+async function synthesize(endpoint: string, text: string, lang: 'en' | 'zh'): Promise<Take | null> {
   const parts = tts_parts(text, PART_CHARS);
   if (!parts.length || parts.length > MAX_PARTS) return null;
-  const replies = await Promise.all(parts.map((p) => fetch_part(endpoint, p)));
+  const replies = await Promise.all(parts.map((p) => fetch_part(endpoint, p, lang)));
   if (replies.some((r) => !r)) return null;
   const rs = replies as TtsReply[];
   if (rs.length === 1) return { rec: rs[0], src: `data:audio/mpeg;base64,${rs[0].audio}` };
@@ -202,11 +204,11 @@ async function synthesize(endpoint: string, text: string): Promise<Take | null> 
   return { rec: merge_recordings(text, rs), src: `data:audio/mpeg;base64,${btoa(bin)}` };
 }
 
-async function fetch_part(endpoint: string, text: string): Promise<TtsReply | null> {
+async function fetch_part(endpoint: string, text: string, lang: 'en' | 'zh'): Promise<TtsReply | null> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
   try {
-    const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }), signal: ctl.signal });
+    const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, lang }), signal: ctl.signal });
     if (r.ok) {
       failures = 0;
       return await r.json();

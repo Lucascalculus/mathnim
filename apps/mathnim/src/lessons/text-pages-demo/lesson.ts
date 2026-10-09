@@ -54,7 +54,6 @@ export const lesson: Lesson = {
     // ---------------------------------------------------------------- a read page with every block type
     {
       id: 'idea', kind: 'read', chapter: { en: 'The idea', zh: '思路' }, title: { en: 'Why a low-rank update?', zh: '为什么是低秩更新？' },
-      narration: { en: 'Full fine-tuning changes every weight. LoRA keeps them frozen and learns a small, low-rank correction instead.', zh: '全量微调要改动每一个权重。LoRA 把它们冻结，只学一个小小的低秩修正。' },
       blocks: [
         { type: 'p', text: {
           en: 'Full fine-tuning updates every weight. One $d \\times k$ projection with $d = k = 4096$ already has about **16.8 million** entries. LoRA freezes the pretrained $W_0$ and learns only a correction $\\Delta W = BA$ built from two thin matrices[^hu2021].',
@@ -80,8 +79,8 @@ export const lesson: Lesson = {
           zh: '"秩越高越好。"在 LoRA 论文测试的任务上，秩只有 1 到 8 时的效果就和 64 差不多[^hu2021]。更高的秩买来的容量，你未必用得上。',
         } },
         { type: 'h', text: { en: 'See what a low rank means', zh: '看看"低秩"是什么意思' } },
-        { type: 'visual', name: 'linear_map', params: { A: [[2, -1], [1, -0.5]], show_vector: false }, explore: true,
-          caption: { en: 'A rank-1 matrix squeezes the whole plane onto one line. Drag $\\hat\\imath$ or $\\hat\\jmath$ off that line and the rank goes back up to 2. A rank-$r$ update can only move outputs within $r$ directions.', zh: '秩为 1 的矩阵把整个平面压到一条直线上。把 $\\hat\\imath$ 或 $\\hat\\jmath$ 拖离这条线，秩就回到 2。秩为 $r$ 的更新只能在 $r$ 个方向上改变输出。' } },
+        { type: 'visual', name: 'linear_map', params: { A: [[2, -1], [1, 1]], show_vector: false }, explore: true,
+          caption: { en: 'The columns of the matrix are where $\\hat\\imath$ and $\\hat\\jmath$ land. When it has played, drag $\\hat\\jmath$ onto the line through $\\hat\\imath$: the whole plane collapses onto that line, and the matrix has rank 1. A rank-$r$ update can only move outputs within $r$ directions.', zh: '矩阵的两列就是 $\\hat\\imath$ 和 $\\hat\\jmath$ 落到的位置。播放完后，把 $\\hat\\jmath$ 拖到 $\\hat\\imath$ 所在的直线上：整个平面被压到这条线上，矩阵的秩变成 1。秩为 $r$ 的更新只能在 $r$ 个方向上改变输出。' } },
         { type: 'h', text: { en: 'In code', zh: '写成代码' } },
         { type: 'p', text: { en: 'The same adapter by hand and with the `peft` library. Pick a tab; every code block on the page follows your choice.', zh: '同一个适配器，手写一遍，再用 `peft` 库写一遍。选一个标签页，本页所有代码块都会跟着切换。' } },
         { type: 'code', lang: 'python', label: 'PyTorch', code: LORA_TORCH, tabs: [{ label: 'PEFT', lang: 'python', code: LORA_PEFT }],
@@ -113,7 +112,6 @@ export const lesson: Lesson = {
     // ---------------------------------------------------------------- a derivation with a fill-in line
     {
       id: 'count', kind: 'derive', chapter: { en: 'Counting', zh: '算一算' }, title: { en: 'How many parameters does LoRA train?', zh: 'LoRA 到底训练多少参数？' }, skill: 'demo-lora-params',
-      narration: { en: 'Count the parameters one matrix at a time, then compare with the full matrix.', zh: '一个矩阵一个矩阵地数参数，再和完整矩阵比一比。' },
       intro: { en: 'We adapt one $d \\times k$ weight matrix with rank $r$. Reveal one line at a time.', zh: '我们用秩 $r$ 去适配一个 $d \\times k$ 的权重矩阵。一次展开一行。' },
       lines: [
         { tex: '\\Delta W = B A, \\qquad B \\in \\mathbb{R}^{d \\times r},\\; A \\in \\mathbb{R}^{r \\times k}', why: { en: 'LoRA writes the update as a product of two thin matrices whose inner size is the rank $r$.', zh: 'LoRA 把更新写成两个"瘦"矩阵的乘积，中间那一维就是秩 $r$。' } },

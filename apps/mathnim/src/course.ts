@@ -29,23 +29,23 @@ export interface Unit {
 }
 
 export const COURSE: { title: L10n; units: Unit[] } = {
-  title: 'Geometry through motion',
+  title: { en: 'Geometry through motion', zh: '在运动中学几何' },
   units: [
     {
-      id: 'area', title: 'Circles and area',
+      id: 'area', title: { en: 'Circles and area', zh: '圆与面积' },
       lessons: [
         { id: pizzaGame.id, title: 'Pizza shop', summary: 'A game: bet on the deal, cover, cut and rebuild the pizza, run the shop - and find out why a circle’s area is πr².', lesson: pizzaGame, minutes: 15, level: 'grades 7-9', thumb: 'bet' },
         { id: pizza.id, title: 'The pizza deal', summary: 'One 16-inch pizza or two 8-inch ones? Slice a circle into a rectangle and see why its area is πr².', lesson: pizza, minutes: 15, level: 'grades 7-9' },
       ],
     },
     {
-      id: 'linalg', title: 'Linear algebra (university)',
+      id: 'linalg', title: { en: 'Linear algebra (university)', zh: '线性代数（大学）' },
       lessons: [
         { id: eigenPca.id, title: 'The directions a matrix can’t turn', summary: 'Eigenvectors and eigenvalues from the picture up - hold the matrix in your hands - and why they are exactly what PCA needs.', lesson: eigenPca, minutes: 20, level: 'university, first-year linear algebra', thumb: 'why' },
       ],
     },
     {
-      id: 'circles', title: 'Angles and circles',
+      id: 'circles', title: { en: 'Angles and circles', zh: '角与圆' },
       lessons: [
         { id: INSCRIBED_ENTRY.id, title: INSCRIBED_ENTRY.title, summary: 'Why every point on an arc sees a chord at the same angle.', entry: INSCRIBED_ENTRY, minutes: 8 },
         { id: bestAngle.id, title: bestAngle.title, summary: 'A winger runs in: where is the goal widest? Circles give the answer.', lesson: bestAngle, minutes: 15, thumb: 'explore', level: 'grades 9-11' },
@@ -56,7 +56,7 @@ export const COURSE: { title: L10n; units: Unit[] } = {
       ],
     },
     {
-      id: 'functions', title: 'Functions in motion',
+      id: 'functions', title: { en: 'Functions in motion', zh: '动起来的函数' },
       lessons: [
         {
           id: 'graph-transformations', title: 'Transforming graphs', summary: 'Slide, stretch and flip y = f(x) with sliders.', minutes: 12,

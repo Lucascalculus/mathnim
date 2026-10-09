@@ -41,6 +41,8 @@ describe('light markup', () => {
     expect(math_html('[x](javascript:void)')).toBe('x');
     expect(math_html('claim[^hu]', { footnote: (k) => `<sup>${k}</sup>` })).toBe('claim<sup>hu</sup>');
     expect(math_html('a $x$ and `$y$`')).toBe('a <code>x</code> and <code>$y$</code>');
+    // Chinese punctuation never starts a line: it is glued to the math before it (and opening marks to the math after)
+    expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap"><code>W_0</code>，</span>只学<span class="mn-nowrap">（<code>r</code>）。</span>');
   });
 });
 

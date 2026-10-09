@@ -60,7 +60,7 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
     seq: { type: 'integer', min: 512, max: 32768, default: 4096, doc: 'sequence length s in tokens (512-32768); activations and logits grow with s·b' },
     batch: { type: 'integer', min: 1, max: 32, default: 1, doc: 'micro-batch b per GPU (1-32)' },
     ckpt: { type: 'boolean', default: true, doc: 'activation recomputation ("gradient checkpointing"): keep only each layer input, about 1.6 GB instead of 18 GB for 8B at 4k, +33% compute' },
-    fused_ce: { type: 'boolean', default: false, doc: 'fused / chunked cross-entropy: the b·s·V fp32 logits and their gradient are never stored (≈ 0 instead of 4.2 GB for 8B at 4k)' },
+    fused_ce: { type: 'boolean', default: false, doc: 'chunked / fused cross-entropy: the b·s·V fp32 logits and their gradient are never stored whole (≈ 0 instead of 4.2 GB for 8B at 4k). TRL SFTTrainer computes log-probs in chunks by default; plain PyTorch / Trainer stores them (false)' },
     gpus: { type: 'integer', min: 1, max: 8, default: 1, doc: 'number of GPUs; only matters with zero3 (sharding), otherwise each GPU holds everything' },
     zero3: { type: 'boolean', default: false, doc: 'ZeRO-3 / FSDP: weights, gradients and optimizer states are split over the GPUs (activations are not)' },
     act_const: { type: 'integer', min: 34, max: 41, default: 34, doc: 'bytes per s·b·h per layer kept for backward: 34 (Korthikanti, default) or 41 (rough Llama estimate)' },
@@ -327,17 +327,21 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
         const seq_c = mk(this.seq, SEQS.map(ks), 1.22, { values: SEQS, log: true });
         const batch_c = mk(this.batch, BATCHES.map(String), 0.27, { values: BATCHES, log: true });
         const rank_c = mk(this.rank, RANKS.map(String), -0.68, { values: RANKS, log: true, enabled: () => cfg_now().method !== 'full' });
-        const ckpt_c = mk(this.ckpt, [L('off', '关'), L('on', '开')], -1.5, { x0: -3.75 });
-        const fused_c = mk(this.fused, [L('off', '关'), L('on', '开')], -2.2, { x0: -3.75 });
+        const ckpt_c = mk(this.ckpt, [L('off', '关'), L('on', '开')], -1.5, { x0: -3.2 });
+        const fused_c = mk(this.fused, [L('off', '关'), L('on', '开')], -2.2, { x0: -3.2 });
         const card_c = mk(this.gpu, CARDS.map((v) => `${v} GB`), -3.3, { values: CARDS, log: true });
+        const fit_w = (m: Mobject, w: number) => {
+          if (m.width > w) m.scale(w / m.width).align_to([CTRL.x0, 0, 0], [-1, 0, 0]);
+          return m;
+        };
         const caps = VGroup(
           cap_live(() => { const e = this.estimate(); return L(`model: ${e.arch.name} (${(e.n_total / 1e9).toFixed(2)}B params)`, `模型：${e.arch.name}（${(e.n_total / 1e9).toFixed(2)}B 参数）`); }, CTRL.x0, 3.56),
           caption(L('method', '方法'), CTRL.x0, 2.61),
           cap_live(() => L(`sequence length s = ${cfg_now().seq}`, `序列长度 s = ${cfg_now().seq}`), CTRL.x0, 1.66),
           cap_live(() => L(`micro-batch b = ${cfg_now().batch}`, `微批 b = ${cfg_now().batch}`), CTRL.x0, 0.71),
           cap_live(() => (cfg_now().method === 'full' ? L('LoRA rank r (not used by full)', 'LoRA 秩 r（全量不用）') : L(`LoRA rank r = ${cfg_now().rank} · ${(this.estimate().n_lora / 1e6).toFixed(1)}M params`, `LoRA 秩 r = ${cfg_now().rank} · ${(this.estimate().n_lora / 1e6).toFixed(1)}M 参数`)), CTRL.x0, -0.24),
-          caption(L('activation recomp.', '激活重算'), CTRL.x0, -1.5),
-          caption(L('fused cross-entropy', '融合交叉熵'), CTRL.x0, -2.2),
+          fit_w(caption(L('activation recomputation', '激活重算'), CTRL.x0, -1.5), 3.45),
+          fit_w(caption(L('chunked/fused CE (TRL default)', '分块/融合交叉熵（TRL 默认）'), CTRL.x0, -2.2), 3.45),
           caption(L('GPU memory (card)', '显卡显存'), CTRL.x0, -2.86),
         );
         const names_c = ['model_control', 'method_control', 'seq_control', 'batch_control', 'rank_control', 'ckpt_control', 'fused_control', 'card_control'];
@@ -364,7 +368,7 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
   explore: (scene: any, ui) => {
     const u = ui as unknown as UiLike;
     const said = (name: string) => (value: number) => emit(scene, 'control', { name, value });
-    const labels = ['the model preset', 'the fine-tuning method (full, LoRA, QLoRA)', 'the sequence length', 'the micro-batch size', 'the LoRA rank', 'activation recomputation on or off', 'fused cross-entropy on or off', 'the GPU memory of the card'];
+    const labels = ['the model preset', 'the fine-tuning method (full, LoRA, QLoRA)', 'the sequence length', 'the micro-batch size', 'the LoRA rank', 'activation recomputation on or off', 'chunked (fused) cross-entropy on or off', 'the GPU memory of the card'];
     const keys = ['model', 'method', 'seq', 'batch', 'rank', 'ckpt', 'fused_ce', 'gpu'];
     (scene.controls as Choice[]).forEach((ch, i) => ch.attach(u, labels[i], said(keys[i])));
   },

@@ -7,7 +7,7 @@
 import { Create, Dot, FadeIn, Flash, GrowArrow, LaggedStart, NumberLine, Rectangle, Scene, VGroup, VMobject, ValueTracker, Write, always_redraw, linear, smooth, DOWN, LEFT, RIGHT } from 'manim-web';
 import { palette } from '../theme';
 import { define_visual } from '../visual';
-import { LiveMatrix, PANEL, backed, clamp, clip_line, fit_plane, lattice_segments, live_arrow, path, plane_axes, readout, segment_points, tex, type Box, type P3, type Plane } from './kit';
+import { LANG_SPEC, LiveMatrix, PANEL, backed, clamp, clip_line, fit_plane, lattice_segments, live_arrow, mix, path, plane_axes, readout, resolve_lang, segment_points, tex, zh_words, type Box, type P3, type Plane } from './kit';
 import { cloud2, cov2, fmt, from_angle, projection_variance, sym_eig2, type Vec2 } from './math';
 
 export interface PcaProjectionParams extends Record<string, unknown> {
@@ -16,6 +16,8 @@ export interface PcaProjectionParams extends Record<string, unknown> {
   aspect: number;
   n: number;
   seed: number;
+  /** 'en', 'zh' or 'auto' (the learner's language). */
+  lang: string;
 }
 
 const DATA_BOX: Box = { x0: -6.95, x1: -0.45, y0: -3.85, y1: 3.85 };
@@ -38,11 +40,13 @@ export const pca_projection = define_visual<PcaProjectionParams>({
     aspect: { type: 'number', min: 0.3, max: 3, default: 0.8, doc: 'standard deviation of y divided by that of x' },
     n: { type: 'integer', min: 10, max: 200, default: 50, doc: 'number of points' },
     seed: { type: 'integer', min: 1, max: 9999, default: 11, doc: 'random seed (same seed, same cloud)' },
+    lang: LANG_SPEC,
   },
-  examples: [{}, { correlation: 0.05, aspect: 1, n: 80 }, { correlation: 0.98, spread: 1.3, n: 40 }, { correlation: -0.5, spread: 0.8, aspect: 1.8, n: 120, seed: 5 }],
+  examples: [{}, { correlation: 0.05, aspect: 1, n: 80 }, { correlation: 0.98, spread: 1.3, n: 40 }, { correlation: -0.5, spread: 0.8, aspect: 1.8, n: 120, seed: 5 }, { lang: 'zh' }],
   ids: ['points', 'mean', 'line', 'projections', 'plot', 'plot_dot', 'variance_bar', 'angle_readout', 'along_readout', 'across_readout', 'cov_matrix', 'top_eigenvector', 'conclusion'],
   scene: (p) => {
     const data = cloud2({ n: p.n, correlation: p.correlation, spread: p.spread, aspect: p.aspect, seed: p.seed });
+    const zh = resolve_lang(p.lang) === 'zh';
     const { cov } = cov2(data);
     const { values: [L1, L2], vectors: [q1] } = sym_eig2(cov);
     const th1 = top_direction(data);
@@ -121,7 +125,7 @@ export const pca_projection = define_visual<PcaProjectionParams>({
           decimal_number_config: { num_decimal_places: 0, color: c.muted, unit: '^\\circ' },
         });
         theta_axis.shift([PLOT.x0 - theta_axis.number_to_point(0)[0], PLOT.y0 - theta_axis.number_to_point(0)[1], 0]);
-        const ylab = tex('\\text{variance along}', 28, c.gold).rotate(Math.PI / 2).move_to([PLOT.x0 - 0.35, (PLOT.y0 + PLOT.y1) / 2 + 0.1, 0]);
+        const ylab = (zh ? zh_words('沿线方差', 28, c.gold) : tex('\\text{variance along}', 28, c.gold)).rotate(Math.PI / 2).move_to([PLOT.x0 - 0.35, (PLOT.y0 + PLOT.y1) / 2 + 0.1, 0]);
         const yaxis = path(c.muted, 2, 0.7);
         yaxis.points = segment_points([[[PLOT.x0, PLOT.y0, 0], [PLOT.x0, PLOT.y1 + 0.1, 0]]]);
         const curve = always_redraw(() => {
@@ -160,13 +164,13 @@ export const pca_projection = define_visual<PcaProjectionParams>({
           const across = Rectangle({ width: Math.max(0.01, BAR.x1 - BAR.x0 - w), height: BAR.h, fill_color: c.muted, fill_opacity: 0.45, stroke_width: 0 }).move_to([BAR.x0 + w + (BAR.x1 - BAR.x0 - w) / 2, BAR.y, 0]);
           return VGroup(along, across);
         });
-        const bar_caption = tex(`\\text{along} + \\text{across} = \\text{total} = ${fmt(total)}`, 28, c.muted).move_to([(BAR.x0 + BAR.x1) / 2, BAR.y - 0.42, 0]);
+        const bar_caption = (zh ? mix(['沿线 + 垂直 = 总方差', [`= ${fmt(total)}`]], 28, c.muted) : tex(`\\text{along} + \\text{across} = \\text{total} = ${fmt(total)}`, 28, c.muted)).move_to([(BAR.x0 + BAR.x1) / 2, BAR.y - 0.42, 0]);
         const variance_bar = VGroup(bar, bar_caption);
         variance_bar.name = 'variance_bar';
         const deg = (a: number) => ((((a % Math.PI) + Math.PI) % Math.PI) * 180) / Math.PI;
         const ang_ro = readout('\\theta =', () => deg(th.get_value()), { decimals: 1, font_size: 34, unit: '^\\circ' });
-        const along_ro = readout('\\text{along} =', () => var_along(th.get_value()), { decimals: 2, font_size: 34, color: c.gold });
-        const across_ro = readout('\\text{across} =', () => total - var_along(th.get_value()), { decimals: 2, font_size: 34, color: c.muted });
+        const along_ro = readout(zh ? zh_words('沿线 =', 34, c.gold) : '\\text{along} =', () => var_along(th.get_value()), { decimals: 2, font_size: 34, color: c.gold });
+        const across_ro = readout(zh ? zh_words('垂直 =', 34, c.muted) : '\\text{across} =', () => total - var_along(th.get_value()), { decimals: 2, font_size: 34, color: c.muted });
         ang_ro.name = 'angle_readout';
         along_ro.name = 'along_readout';
         across_ro.name = 'across_readout';
@@ -183,10 +187,15 @@ export const pca_projection = define_visual<PcaProjectionParams>({
         // Σ's top eigenvector, drawn from the mean
         const ev = live_arrow(() => [plane.p(0, 0), plane.pv([q1[0] * 2 * Math.sqrt(L1), q1[1] * 2 * Math.sqrt(L1)])], c.coral, 6);
         ev.name = 'top_eigenvector';
-        const conclusion = at(VGroup(
-          tex(`\\text{max} = \\lambda_1 = ${fmt(L1)}\\text{, along the top}`, 30, c.coral),
-          tex(`\\text{eigenvector of } \\Sigma \\text{ (min} = \\lambda_2 = ${fmt(L2)}\\text{)}`, 30, c.coral),
-        ).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT }), -3.45);
+        const conclusion = at((zh
+          ? VGroup(
+            mix(['最大值', [`= \\lambda_1 = ${fmt(L1)}`], '，方向是'], 30, c.coral),
+            mix([['\\Sigma'], '的第一特征向量（最小值', [`= \\lambda_2 = ${fmt(L2)}`], '）'], 30, c.coral),
+          )
+          : VGroup(
+            tex(`\\text{max} = \\lambda_1 = ${fmt(L1)}\\text{, along the top}`, 30, c.coral),
+            tex(`\\text{eigenvector of } \\Sigma \\text{ (min} = \\lambda_2 = ${fmt(L2)}\\text{)}`, 30, c.coral),
+          )).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT }), -3.45);
         conclusion.name = 'conclusion';
         const max_mark = VGroup(
           Dot([X(th1), Y(L1), 0], { radius: 0.08, color: c.coral }),
@@ -215,7 +224,7 @@ export const pca_projection = define_visual<PcaProjectionParams>({
     }
     return new PcaProjection();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
     const plane: Plane = scene.plane, th = scene.th;
     const R = Math.min(plane.reach() * 0.9, 3.2);
     ui.add_handle({
@@ -227,7 +236,7 @@ export const pca_projection = define_visual<PcaProjectionParams>({
       },
       step: Math.PI / 90,
       radius: 0.45,
-      label: 'the end of the projection line',
+      label: resolve_lang(p.lang) === 'zh' ? '投影线的端点' : 'the end of the projection line',
     });
     void clamp;
   },

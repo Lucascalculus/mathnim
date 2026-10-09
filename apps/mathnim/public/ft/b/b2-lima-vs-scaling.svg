@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="470" viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg role="img" xml:space="preserve" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="470" viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>Left: LIMA's quantity ablation, generation quality stays flat from 2K to 32K examples. Right: fitted power laws of accuracy versus number of fine-tuning examples for math, multihop QA and code (Llama-3 8B, log-log).</title>
  <defs>
-  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt} text{white-space: pre}</style>
  </defs>
  <g id="figure_1">
   <g id="patch_1">
@@ -39,7 +39,7 @@ L 0 4
       </g>
      </g>
      <g id="text_1">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="103.56997" y="382.618125" transform="rotate(-0 103.56997 382.618125)">2K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="103.56997" y="382.618125" transform="rotate(-0 103.56997 382.618125)">2K</text>
      </g>
     </g>
     <g id="xtick_2">
@@ -49,7 +49,7 @@ L 0 4
       </g>
      </g>
      <g id="text_2">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="176.784985" y="382.618125" transform="rotate(-0 176.784985 382.618125)">4K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="176.784985" y="382.618125" transform="rotate(-0 176.784985 382.618125)">4K</text>
      </g>
     </g>
     <g id="xtick_3">
@@ -59,7 +59,7 @@ L 0 4
       </g>
      </g>
      <g id="text_3">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="250" y="382.618125" transform="rotate(-0 250 382.618125)">8K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="250" y="382.618125" transform="rotate(-0 250 382.618125)">8K</text>
      </g>
     </g>
     <g id="xtick_4">
@@ -69,7 +69,7 @@ L 0 4
       </g>
      </g>
      <g id="text_4">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="323.215015" y="382.618125" transform="rotate(-0 323.215015 382.618125)">16K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="323.215015" y="382.618125" transform="rotate(-0 323.215015 382.618125)">16K</text>
      </g>
     </g>
     <g id="xtick_5">
@@ -79,11 +79,11 @@ L 0 4
       </g>
      </g>
      <g id="text_5">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="396.43003" y="382.618125" transform="rotate(-0 396.43003 382.618125)">32K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="396.43003" y="382.618125" transform="rotate(-0 396.43003 382.618125)">32K</text>
      </g>
     </g>
     <g id="text_6">
-     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="250" y="398.991719" transform="rotate(-0 250 398.991719)"># training examples (quality-filtered Stack Exchange)</text>
+     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="250" y="398.991719" transform="rotate(-0 250 398.991719)"># training examples (quality-filtered Stack Exchange)</text>
     </g>
    </g>
    <g id="matplotlib.axis_2">
@@ -104,7 +104,7 @@ L -4 0
       </g>
      </g>
      <g id="text_7">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="370.559062" transform="rotate(-0 72.5 370.559062)">3.2</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="370.559062" transform="rotate(-0 72.5 370.559062)">3.2</text>
      </g>
     </g>
     <g id="ytick_2">
@@ -119,7 +119,7 @@ L 420 291
       </g>
      </g>
      <g id="text_8">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="295.559062" transform="rotate(-0 72.5 295.559062)">3.4</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="295.559062" transform="rotate(-0 72.5 295.559062)">3.4</text>
      </g>
     </g>
     <g id="ytick_3">
@@ -134,7 +134,7 @@ L 420 216
       </g>
      </g>
      <g id="text_9">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="220.559063" transform="rotate(-0 72.5 220.559063)">3.6</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="220.559063" transform="rotate(-0 72.5 220.559063)">3.6</text>
      </g>
     </g>
     <g id="ytick_4">
@@ -149,7 +149,7 @@ L 420 141
       </g>
      </g>
      <g id="text_10">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="145.559062" transform="rotate(-0 72.5 145.559062)">3.8</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="145.559062" transform="rotate(-0 72.5 145.559062)">3.8</text>
      </g>
     </g>
     <g id="ytick_5">
@@ -164,11 +164,11 @@ L 420 66
       </g>
      </g>
      <g id="text_11">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="70.559062" transform="rotate(-0 72.5 70.559062)">4.0</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="72.5" y="70.559062" transform="rotate(-0 72.5 70.559062)">4.0</text>
      </g>
     </g>
     <g id="text_12">
-     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="46.712656" y="216" transform="rotate(-90 46.712656 216)">generation quality (1–6, ChatGPT-graded)</text>
+     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="46.712656" y="216" transform="rotate(-90 46.712656 216)">generation quality (1–6, ChatGPT-graded)</text>
     </g>
    </g>
    <g id="line2d_16">
@@ -230,8 +230,8 @@ L -4 -0
     </g>
    </g>
    <g id="text_13">
-    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #111113" transform="translate(181.761172 231.058609)">16× more examples:</text>
-    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #111113" transform="translate(225.802734 245.615766)">no gain</text>
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #111113" transform="translate(181.761172 249.808609)">16× more examples:</text>
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #111113" transform="translate(225.802734 264.365766)">no gain</text>
    </g>
    <g id="line2d_19">
     <defs>
@@ -274,7 +274,7 @@ z
       </g>
      </g>
      <g id="text_14">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="545.919326" y="382.618125" transform="rotate(-0 545.919326 382.618125)">100</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="545.919326" y="382.618125" transform="rotate(-0 545.919326 382.618125)">100</text>
      </g>
     </g>
     <g id="xtick_7">
@@ -284,7 +284,7 @@ z
       </g>
      </g>
      <g id="text_15">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="675.282322" y="382.618125" transform="rotate(-0 675.282322 382.618125)">1K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="675.282322" y="382.618125" transform="rotate(-0 675.282322 382.618125)">1K</text>
      </g>
     </g>
     <g id="xtick_8">
@@ -294,7 +294,7 @@ z
       </g>
      </g>
      <g id="text_16">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="804.645318" y="382.618125" transform="rotate(-0 804.645318 382.618125)">10K</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="804.645318" y="382.618125" transform="rotate(-0 804.645318 382.618125)">10K</text>
      </g>
     </g>
     <g id="xtick_9">
@@ -422,7 +422,7 @@ L 0 2.5
      </g>
     </g>
     <g id="text_17">
-     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="675" y="398.991719" transform="rotate(-0 675 398.991719)"># fine-tuning examples</text>
+     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="675" y="398.991719" transform="rotate(-0 675 398.991719)"># fine-tuning examples</text>
     </g>
    </g>
    <g id="matplotlib.axis_4">
@@ -438,7 +438,7 @@ L 810 314.443347
       </g>
      </g>
      <g id="text_18">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="319.00241" transform="rotate(-0 532.5 319.00241)">20</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="319.00241" transform="rotate(-0 532.5 319.00241)">20</text>
      </g>
     </g>
     <g id="ytick_7">
@@ -453,7 +453,7 @@ L 810 241.778326
       </g>
      </g>
      <g id="text_19">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="246.337389" transform="rotate(-0 532.5 246.337389)">30</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="246.337389" transform="rotate(-0 532.5 246.337389)">30</text>
      </g>
     </g>
     <g id="ytick_8">
@@ -468,7 +468,7 @@ L 810 190.221674
       </g>
      </g>
      <g id="text_20">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="194.780736" transform="rotate(-0 532.5 194.780736)">40</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="194.780736" transform="rotate(-0 532.5 194.780736)">40</text>
      </g>
     </g>
     <g id="ytick_9">
@@ -483,7 +483,7 @@ L 810 117.556653
       </g>
      </g>
      <g id="text_21">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="122.115715" transform="rotate(-0 532.5 122.115715)">60</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="122.115715" transform="rotate(-0 532.5 122.115715)">60</text>
      </g>
     </g>
     <g id="ytick_10">
@@ -498,7 +498,7 @@ L 810 66
       </g>
      </g>
      <g id="text_22">
-      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="70.559062" transform="rotate(-0 532.5 70.559062)">80</text>
+      <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #111113" x="532.5" y="70.559062" transform="rotate(-0 532.5 70.559062)">80</text>
      </g>
     </g>
     <g id="ytick_11">
@@ -521,7 +521,7 @@ L -2.5 0
      </g>
     </g>
     <g id="text_23">
-     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="510.526406" y="216" transform="rotate(-90 510.526406 216)">accuracy (%)</text>
+     <text style="font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #111113" x="510.526406" y="216" transform="rotate(-90 510.526406 216)">accuracy (%)</text>
     </g>
    </g>
    <g id="line2d_52">
@@ -844,32 +844,32 @@ L 810 366
 " style="fill: none; stroke: #86868b; stroke-width: 0.9; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="text_24">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #2563eb" transform="translate(798.482869 107.093891)">Math (GSM8K)</text>
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #2563eb" transform="translate(798.482869 120.531266)">slope 0.13</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #2563eb" transform="translate(798.482869 107.093891)">Math (GSM8K)</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #2563eb" transform="translate(798.482869 120.531266)">slope 0.13</text>
    </g>
    <g id="text_25">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #7c3aed" transform="translate(741.084831 227.352364)">Multihop QA (SubQA)</text>
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #7c3aed" transform="translate(741.084831 240.789739)">slope 0.13</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #7c3aed" transform="translate(741.084831 227.352364)">Multihop QA (SubQA)</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #7c3aed" transform="translate(741.084831 240.789739)">slope 0.13</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #b8860b" transform="translate(814.645318 185.877034)">Code (HumanEval+)</text>
-    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; fill: #b8860b" transform="translate(814.645318 199.314409)">slope 0.04</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #b8860b" transform="translate(814.645318 185.877034)">Code (HumanEval+)</text>
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; fill: #b8860b" transform="translate(814.645318 199.314409)">slope 0.04</text>
    </g>
   </g>
   <g id="text_27">
-   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="80" y="33.397656" transform="rotate(-0 80 33.397656)">LIMA: more of the same kind of data</text>
+   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="80" y="31.397656" transform="rotate(-0 80 31.397656)">LIMA: more of the same kind of data</text>
   </g>
   <g id="text_28">
-   <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="80" y="51.118125" transform="rotate(-0 80 51.118125)">LLaMA 7B; dots = mean, bars = 95% CI</text>
+   <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="80" y="49.118125" transform="rotate(-0 80 49.118125)">LLaMA 7B; dots = mean, bars = 95% CI</text>
   </g>
   <g id="text_29">
-   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="540" y="33.397656" transform="rotate(-0 540 33.397656)">Math, multihop, code: a power law</text>
+   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #111113" x="540" y="31.397656" transform="rotate(-0 540 31.397656)">Math, multihop, code: a power law</text>
   </g>
   <g id="text_30">
-   <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="540" y="51.118125" transform="rotate(-0 540 51.118125)">Llama-3 8B; fitted P = a·D^(1/b), log-log axes</text>
+   <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: start; fill: #86868b" x="540" y="49.118125" transform="rotate(-0 540 49.118125)">Llama-3 8B; fitted P = a·D^(1/b), log-log axes</text>
   </g>
   <g id="text_31">
-   <text style="font-style: italic; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: end; fill: #86868b" x="952" y="459.712344" transform="rotate(-0 952 459.712344)">Data: LIMA (Zhou et al. 2023), Fig. 6, read from the vector figure; Raghavendra et al. 2024, Table 7 (fitted curves)</text>
+   <text style="font-style: italic; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-anchor: end; fill: #86868b" x="952" y="459.712344" transform="rotate(-0 952 459.712344)">Data: LIMA (Zhou et al. 2023), Fig. 6, read from the vector figure (±0.01); Raghavendra et al. 2024, Table 7 (fitted curves)</text>
   </g>
  </g>
  <defs>

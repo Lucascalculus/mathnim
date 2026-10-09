@@ -14,7 +14,7 @@ import { Interaction } from 'manim-web/ext/interact';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import type { Scene } from 'manim-web';
 import { type EventLog } from '@mathnim/core';
-import { Narrator, inject_styles, math_html } from '@mathnim/present';
+import { Narrator, define_ui, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
 import type { Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
@@ -68,7 +68,49 @@ function partial_math_html(s: string): string {
 }
 const secs = (ms?: number) => (ms === undefined ? '–' : `${(ms / 1000).toFixed(1)} s`);
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-const FREEFORM_PHASE = 'no ready-made picture fits: drawing one for you (about a minute)';
+// the panel's strings, in the learner's interface language (one dictionary with the lesson view's, see @mathnim/present i18n)
+define_ui({
+  ask_placeholder: { en: 'Ask about this…', zh: '问问这里的内容……' },
+  ask_question: { en: 'Your question', zh: '你的问题' },
+  ask_go: { en: 'Ask', zh: '提问' },
+  ask_read: { en: 'Read aloud', zh: '朗读' },
+  ask_stop: { en: 'Stop', zh: '停止' },
+  ask_thinking: { en: 'Thinking…', zh: '思考中……' },
+  ask_drawing: { en: 'Drawing a picture for you… {s} s', zh: '正在为你画图……{s} 秒' },
+  ask_choosing: { en: 'choosing a ready-made picture', zh: '正在挑选现成的图' },
+  ask_building: { en: 'building it', zh: '正在生成' },
+  ask_freeform: { en: 'no ready-made picture fits: drawing one for you (about a minute)', zh: '没有合适的现成图：正在为你现画一张（大约一分钟）' },
+  ask_checking_it: { en: 'checking it (attempt {n})', zh: '正在检查（第 {n} 次）' },
+  ask_fixing_it: { en: 'fixing a problem (attempt {n})', zh: '正在修复（第 {n} 次）' },
+  ask_checking_scene: { en: 'Checking the scene (attempt {n})…', zh: '正在检查场景（第 {n} 次）……' },
+  ask_fixing_scene: { en: 'Fixing a problem (attempt {n})…', zh: '正在修复问题（第 {n} 次）……' },
+  ask_watch: { en: 'Watch it play, then drag the glowing handles to explore.', zh: '先看它播放，再拖动发光的手柄探索。' },
+  ask_quick_check: { en: 'Quick check:', zh: '小测验：' },
+  ask_answer: { en: 'answer', zh: '答案' },
+  ask_how: { en: 'How this answer was made', zh: '这个回答是怎么生成的' },
+  ask_text_in: { en: 'text in {a} (done {b}), ', zh: '文字 {a}（完成 {b}），' },
+  ask_picture_in: { en: 'picture in {t}', zh: '图 {t}' },
+  ask_ready_made: { en: 'Ready-made visual <b>{v}</b>: chosen in {c}{r}, built in {b}', zh: '现成图 <b>{v}</b>：挑选用时 {c}{r}，生成用时 {b}' },
+  ask_one_repair: { en: ' (one repair)', zh: '（修复一次）' },
+  ask_parameters: { en: 'Parameters: {p}', zh: '参数：{p}' },
+  ask_adjusted: { en: 'Adjusted: {p}', zh: '已调整：{p}' },
+  ask_not_used: { en: 'Not used: {p}', zh: '未采用：{p}' },
+  ask_read_as: { en: 'Read as: {d}', zh: '理解为：{d}' },
+  ask_attempts: { en: '{n} attempt{s}', zh: '尝试 {n} 次' },
+  ask_from_scratch: { en: 'Drawn from scratch: {why}', zh: '从头绘制：{why}' },
+  ask_plan_in: { en: '; plan in {p}', zh: '；规划用时 {p}' },
+  ask_no_visual: { en: 'no ready-made visual fits this question', zh: '没有适合这个问题的现成图' },
+  ask_plan_invalid: { en: 'the picture plan could not be used', zh: '画图方案无法使用' },
+  ask_plan_failed: { en: 'the picture plan failed', zh: '画图方案失败了' },
+  ask_recomputed: { en: '{a}/{b} numbers re-computed', zh: '{a}/{b} 个数字已复核' },
+  ask_computed: { en: ' (computed {g})', zh: '（计算得 {g}）' },
+  ask_checked: { en: 'checked', zh: '已检查' },
+  ask_unverified: { en: 'unverified', zh: '未验证' },
+  ask_no_picture: { en: 'No picture this time ({m}).', zh: '这次没有图（{m}）。' },
+  ask_scene_failed: { en: 'The scene could not be shown: {m}', zh: '这个场景无法显示：{m}' },
+  ask_no_recording: { en: 'No recorded answer for this question. Add an API key in Settings to ask anything.', zh: '这个问题没有录好的回答。在设置里添加 API key 后就可以随便问了。' },
+});
+const FREEFORM_PHASE = () => t('ask_freeform');
 
 export interface AskPanelOptions {
   provider: () => Provider;
@@ -143,11 +185,11 @@ export class AskPanel {
     const form = document.createElement('form');
     this.input = document.createElement('input');
     this.input.className = 'mn-input';
-    this.input.placeholder = 'Ask about this…';
-    this.input.setAttribute('aria-label', 'Your question');
+    this.input.placeholder = t('ask_placeholder');
+    this.input.setAttribute('aria-label', t('ask_question'));
     const go = document.createElement('button');
     go.className = 'mn-btn primary';
-    go.textContent = 'Ask';
+    go.textContent = t('ask_go');
     form.append(this.input, go);
     form.onsubmit = (e) => {
       e.preventDefault();
@@ -183,15 +225,15 @@ export class AskPanel {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'mn-btn mn-read';
-    b.textContent = 'Read aloud';
+    b.textContent = t('ask_read');
     b.setAttribute('aria-pressed', 'false');
     b.onclick = () => {
       if (this.reading === b) return this.stop_reading();
       this.stop_reading();
-      const n = (this.narrator ??= new Narrator(this.narrator_caption));
+      const n = (this.narrator ??= new Narrator(this.narrator_caption, { lang: ui_lang() === 'zh' ? 'zh-CN' : 'en-US' }));
       n.enabled = true; // the learner asked to hear this answer, whatever the lesson narration setting
       this.reading = b;
-      b.textContent = 'Stop';
+      b.textContent = t('ask_stop');
       b.setAttribute('aria-pressed', 'true');
       void n.say([c.spoken.text, c.spoken.caption].filter(Boolean).join('\n\n')).finally(() => {
         if (this.reading === b) this.stop_reading(false);
@@ -204,7 +246,7 @@ export class AskPanel {
     const b = this.reading;
     this.reading = null;
     if (b) {
-      b.textContent = 'Read aloud';
+      b.textContent = t('ask_read');
       b.setAttribute('aria-pressed', 'false');
     }
   }
@@ -240,7 +282,7 @@ export class AskPanel {
     };
 
     // 1. the personal text answer, streamed (only for models that can stream; offline answers come whole)
-    status.textContent = 'Thinking…';
+    status.textContent = t('ask_thinking');
     c.fast = provider.stream
       ? explain(question, {
           provider, context: c.context, reasoning: this.o.text_reasoning ?? 'low',
@@ -280,7 +322,7 @@ export class AskPanel {
   private placeholder(c: Card): HTMLElement {
     const wait = document.createElement('div');
     wait.className = 'mn-wait';
-    const tick = () => (wait.textContent = `Drawing a picture for you… ${Math.round((performance.now() - c.t0) / 1000)} s`);
+    const tick = () => (wait.textContent = t('ask_drawing', { s: Math.round((performance.now() - c.t0) / 1000) }));
     tick();
     const timer = setInterval(() => (wait.isConnected ? tick() : clearInterval(timer)), 500);
     c.picture.append(wait);
@@ -290,7 +332,7 @@ export class AskPanel {
   /** The fast path: a ready-made visual chosen by the picture plan; the free-form scene when none fits. */
   private async visual_first(c: Card): Promise<AskResult | VisualAnswer | null> {
     const wait = this.placeholder(c);
-    wait.dataset.phase = 'choosing a ready-made picture';
+    wait.dataset.phase = t('ask_choosing');
     if (this.o.plan_start === 'after_diagnosis') await Promise.race([c.got_diagnosis, new Promise((r) => setTimeout(r, 4000))]);
     let plan: PlanResult | null = null;
     let route: PictureRoute;
@@ -303,7 +345,7 @@ export class AskPanel {
     }
     c.timing.plan = performance.now() - c.t0;
     if (route.kind === 'visual') {
-      wait.dataset.phase = 'building it';
+      wait.dataset.phase = t('ask_building');
       if (await this.show_visual(c, route, plan!, wait)) return { visual: route.visual.name, params: route.params, plan: plan! };
       route = { kind: 'freeform', reason: 'invalid', detail: `${route.visual.name} could not be built` };
     }
@@ -333,7 +375,7 @@ export class AskPanel {
     stage.append(canvas);
     const caption = document.createElement('div');
     caption.className = 'mn-caption-text';
-    const caption_md = p.caption || 'Watch it play, then drag the glowing handles to explore.';
+    const caption_md = p.caption || t('ask_watch');
     caption.innerHTML = math_html(caption_md);
     c.spoken.caption = p.caption;
     const controls = document.createElement('div');
@@ -342,7 +384,7 @@ export class AskPanel {
     if (p.check) {
       const q = document.createElement('div');
       q.className = 'mn-quick-check';
-      q.innerHTML = `<b>Quick check:</b> ${math_html(p.check.question)}` + (p.check.answer ? `<details><summary>answer</summary>${math_html(p.check.answer)}</details>` : '');
+      q.innerHTML = `<b>${t('ask_quick_check')}</b> ${math_html(p.check.question)}` + (p.check.answer ? `<details><summary>${t('ask_answer')}</summary>${math_html(p.check.answer)}</details>` : '');
       c.picture.append(q);
     }
     c.picture.append(controls);
@@ -357,18 +399,18 @@ export class AskPanel {
 
     const params = Object.entries(route.params).map(([k, x]) => `${k} = ${esc(JSON.stringify(x))}`).join(', ');
     const d = this.details(c, [
-      `${c.provider.name}: ${this.text_timing(c)}picture in ${secs(c.timing.picture)}`,
-      `Ready-made visual <b>${esc(v.name)}</b>: chosen in ${plan.calls.map((x) => secs(x.ms)).join(' + ')}${plan.repaired ? ' (one repair)' : ''}, built in ${secs(c.timing.build)}`,
-      params ? `Parameters: ${params}` : '',
-      plan.notes.length ? `Adjusted: ${esc(plan.notes.join('; '))}` : '',
-      plan.errors.length ? `Not used: ${esc(plan.errors.join('; '))}` : '',
+      `${c.provider.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`,
+      t('ask_ready_made', { v: esc(v.name), c: plan.calls.map((x) => secs(x.ms)).join(' + '), r: plan.repaired ? t('ask_one_repair') : '', b: secs(c.timing.build) }),
+      params ? t('ask_parameters', { p: params }) : '',
+      plan.notes.length ? t('ask_adjusted', { p: esc(plan.notes.join('; ')) }) : '',
+      plan.errors.length ? t('ask_not_used', { p: esc(plan.errors.join('; ')) }) : '',
     ]);
     this.followups(c, p.followups);
     void c.fast!.then((x) => {
       if (x) {
         // the text finished after the picture: complete the timings
-        d.querySelector('div')!.innerHTML = `${c.provider.name}: ${this.text_timing(c)}picture in ${secs(c.timing.picture)}`;
-        if (c.diagnosis) d.insertAdjacentHTML('beforeend', `<div>Read as: ${math_html(c.diagnosis)}</div>`);
+        d.querySelector('div')!.innerHTML = `${c.provider.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`;
+        if (c.diagnosis) d.insertAdjacentHTML('beforeend', `<div>${t('ask_read_as', { d: math_html(c.diagnosis) })}</div>`);
       } else {
         // no text answer: the caption has to do
         c.text.innerHTML = math_html(caption_md);
@@ -383,11 +425,11 @@ export class AskPanel {
   }
 
   private text_timing(c: Card): string {
-    return c.timing.text_done !== undefined ? `text in ${secs(c.timing.text_first)} (done ${secs(c.timing.text_done)}), ` : '';
+    return c.timing.text_done !== undefined ? t('ask_text_in', { a: secs(c.timing.text_first), b: secs(c.timing.text_done) }) : '';
   }
   private details(c: Card, lines: string[]): HTMLDetailsElement {
     const d = document.createElement('details');
-    d.innerHTML = `<summary>How this answer was made</summary>${lines.filter(Boolean).map((l) => `<div>${l}</div>`).join('')}`;
+    d.innerHTML = `<summary>${t('ask_how')}</summary>${lines.filter(Boolean).map((l) => `<div>${l}</div>`).join('')}`;
     c.body.append(d);
     return d;
   }
@@ -410,12 +452,12 @@ export class AskPanel {
       player.start_live();
       aff = new AffordanceLayer(ui, { color });
       setTimeout(() => aff?.coach(), 400);
-      hint.innerHTML = '<b style="color:var(--mn-accent)">Your turn:</b> drag the glowing handle to explore.';
+      hint.innerHTML = t('visual_explore');
     };
     player.opts.on_end = explorable;
     const replay = document.createElement('button');
     replay.className = 'mn-btn';
-    replay.textContent = 'Replay';
+    replay.textContent = t('replay');
     replay.onclick = () => {
       ui?.dispose();
       ui = null;
@@ -439,19 +481,21 @@ export class AskPanel {
     let wait: HTMLElement | null = null;
     if (fast) {
       wait = this.placeholder(c);
-      if (after) wait.dataset.phase = FREEFORM_PHASE;
+      if (after) wait.dataset.phase = FREEFORM_PHASE();
     }
     const say = (st: AskStatus) => {
-      if (wait) wait.dataset.phase = { thinking: after ? FREEFORM_PHASE : '', validating: `checking it (attempt ${st.attempt})`, repairing: `fixing a problem (attempt ${st.attempt})`, done: '' }[st.phase];
-      else status.textContent = { thinking: 'Thinking…', validating: `Checking the scene (attempt ${st.attempt})…`, repairing: `Fixing a problem (attempt ${st.attempt})…`, done: '' }[st.phase];
+      if (wait) wait.dataset.phase = { thinking: after ? FREEFORM_PHASE() : '', validating: t('ask_checking_it', { n: st.attempt }), repairing: t('ask_fixing_it', { n: st.attempt }), done: '' }[st.phase];
+      else status.textContent = { thinking: t('ask_thinking'), validating: t('ask_checking_scene', { n: st.attempt }), repairing: t('ask_fixing_scene', { n: st.attempt }), done: '' }[st.phase];
     };
     let r: AskResult;
     try {
       r = await ask(c.question, { provider: c.provider, validate: this.o.validate, context: c.context, extra: fast ? { diagnosis: c.diagnosis, text_shown: true } : {}, on_status: say });
     } catch (e) {
       wait?.remove();
-      const msg = (e as Error).message;
-      if (fast && (await fast)) picture.innerHTML = `<div class="mn-status">No picture this time (${esc(msg.slice(0, 120))}).</div>`;
+      const raw = (e as Error).message;
+      // the offline provider's message, in the learner's language
+      const msg = /^No recorded answer/.test(raw) ? t('ask_no_recording') : raw;
+      if (fast && (await fast)) picture.innerHTML = `<div class="mn-status">${t('ask_no_picture', { m: esc(msg.slice(0, 120)) })}</div>`;
       else status.textContent = msg;
       return null;
     }
@@ -467,7 +511,7 @@ export class AskPanel {
       this.history.push({ q: c.question, a: r.explanation.slice(0, 240) });
     }
     const h = document.createElement('h3');
-    const badge = r.verified ? '<span class="mn-badge ok">checked</span>' : '<span class="mn-badge warn">unverified</span>';
+    const badge = r.verified ? `<span class="mn-badge ok">${t('ask_checked')}</span>` : `<span class="mn-badge warn">${t('ask_unverified')}</span>`;
     h.innerHTML = `${math_html(r.title)} ${badge}`;
     const canvas = document.createElement('canvas');
     canvas.className = 'mn-answer';
@@ -486,12 +530,12 @@ export class AskPanel {
     }
     picture.append(h, stage, caption, controls);
     const fallback = after?.route.kind === 'freeform' ? after.route : null;
-    const why = fallback && { no_visual: 'no ready-made visual fits this question', invalid: 'the picture plan could not be used', failed: 'the picture plan failed' }[fallback.reason];
+    const why = fallback && { no_visual: t('ask_no_visual'), invalid: t('ask_plan_invalid'), failed: t('ask_plan_failed') }[fallback.reason];
     this.details(c, [
-      `${r.provider}: ${spoken ? this.text_timing(c) : ''}picture in ${secs(c.timing.picture)}, ${r.attempts} attempt${r.attempts === 1 ? '' : 's'}`,
-      why ? `Drawn from scratch: ${why}${fallback?.detail ? ` (${esc(fallback.detail.slice(0, 160))})` : ''}${after?.plan ? `; plan in ${after.plan.calls.map((x) => secs(x.ms)).join(' + ')}` : ''}` : '',
-      c.diagnosis ? `Read as: ${math_html(c.diagnosis)}` : '',
-      ...(r.check_results.length ? [`${r.check_results.filter((x) => x.ok).length}/${r.check_results.length} numbers re-computed`, ...r.check_results.map((x) => `${x.ok ? '✓' : '✗'} ${x.label}: ${x.value}${x.ok ? '' : ` (computed ${x.got})`}`)] : []),
+      `${r.provider}: ${spoken ? this.text_timing(c) : ''}${t('ask_picture_in', { t: secs(c.timing.picture) })}, ${t('ask_attempts', { n: r.attempts, s: r.attempts === 1 ? '' : 's' })}`,
+      why ? `${t('ask_from_scratch', { why })}${fallback?.detail ? ` (${esc(fallback.detail.slice(0, 160))})` : ''}${after?.plan ? t('ask_plan_in', { p: after.plan.calls.map((x) => secs(x.ms)).join(' + ') }) : ''}` : '',
+      c.diagnosis ? t('ask_read_as', { d: math_html(c.diagnosis) }) : '',
+      ...(r.check_results.length ? [t('ask_recomputed', { a: r.check_results.filter((x) => x.ok).length, b: r.check_results.length }), ...r.check_results.map((x) => `${x.ok ? '✓' : '✗'} ${x.label}: ${x.value}${x.ok ? '' : t('ask_computed', { g: x.got })}`)] : []),
     ]);
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: r.provider, verified: r.verified, attempts: r.attempts, ...c.timing, diagnosis: c.diagnosis, ...(after ? { picture: 'freeform', fallback: fallback?.reason } : {}) } });
     this.followups(c, r.followups);
@@ -502,7 +546,7 @@ export class AskPanel {
       this.attach_controls(player, controls, mod.setup, '#2563EB');
       player.play();
     } catch (e) {
-      caption.insertAdjacentHTML('afterend', `<div class="mn-feedback bad" style="display:block">The scene could not be shown: ${esc((e as Error).message)}</div>`);
+      caption.insertAdjacentHTML('afterend', `<div class="mn-feedback bad" style="display:block">${t('ask_scene_failed', { m: esc((e as Error).message) })}</div>`);
     }
     return r;
   }

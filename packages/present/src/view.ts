@@ -14,7 +14,7 @@ import { export_video } from 'manim-web/ext/export';
 import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import {
-  EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, lesson_langs, local_store, tr,
+  EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, tr,
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
 import { plural_s, t, ui_lang } from './i18n';
@@ -334,7 +334,9 @@ export class LessonView {
         this.reached = Math.max(this.reached, e.index);
         this.el.levelup?.classList.remove('show');
         this.el.sub.textContent = chapter;
-        if (s.narration) void this.narrator.say(this.runtime.text(s.narration));
+        // narration is for "videos": scenes and worlds are spoken, and in a game the character speaks the questions too;
+        // text pages are read silently, and so are questions in the essay view
+        if (s.narration && is_voiced(s, this.game ? 'game' : 'essay')) void this.narrator.say(this.runtime.text(s.narration));
         else {
           this.narrator.stop();
           this.el.caption.textContent = '';

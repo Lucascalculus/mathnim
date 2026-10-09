@@ -1,5 +1,5 @@
 // Home: continue, reviews due, ask anything, and the course map.
-import { AskPanel, RECORDED, worker_validator } from '@mathnim/ai';
+import { AskPanel, RECORDED, recorded_question, worker_validator } from '@mathnim/ai';
 import { MASTERY, lesson_langs, tr, type Lesson } from '@mathnim/core';
 import { esc, math_html, t, ui_lang } from '@mathnim/present';
 import { ScenePlayer } from 'manim-web/ext/player';
@@ -65,7 +65,7 @@ export function home(root: HTMLElement): void {
   void draw_thumbnails(root);
   new AskPanel(root.querySelector<HTMLElement>('#ask')!, {
     provider, validate: worker_validator(), log,
-    suggestions: [RECORDED[5], RECORDED[4], RECORDED[1], RECORDED[3]].map((r) => r.question),
+    suggestions: [RECORDED[5], RECORDED[4], RECORDED[1], RECORDED[3]].map((r) => recorded_question(r, ui_lang())),
     context: home_context,
   });
 }

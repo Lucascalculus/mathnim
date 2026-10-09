@@ -83,6 +83,10 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
       card_mobs: any[] = [];
       /** Rewards still to show, one per frame (a running fit). */
       queue: number[][] = [];
+      /** Make the comparison cards draggable into the data (a world calls this; see attach_bt_cards). */
+      attach_cards(ui: any): void {
+        attach_bt_cards(this, ui);
+      }
       /** Set by a lesson to hear what happens ('fit', 'data'). */
       emit: (type: string, data?: Record<string, unknown>) => void = () => {};
       rewards(): number[] {

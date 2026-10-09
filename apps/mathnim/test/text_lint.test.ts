@@ -76,6 +76,13 @@ describe('text lint', () => {
     expect(m).toContain('questions of the case are not consecutive (s in between)');
     expect(m).toContain("case 'Case' has no brief");
   });
+  it('warns when a text page or a question carries narration (only scenes and worlds are voiced)', () => {
+    const l = base([{ id: 'r', kind: 'read', narration: 'Read this aloud.', blocks: [{ type: 'p', text: 'x' }] }], { title: 'Old lesson' });
+    expect(msgs(l)).toEqual(['warning: steps.r.narration: a read step is not voiced (narration is for scenes): its narration is never spoken']);
+    const q = { id: 'q', kind: 'checkpoint', skill: 's', narration: 'Which one?', prompt: 'Q', question: { type: 'choice', options: [{ id: 'a', label: 'A', correct: true }] } } as any;
+    expect(msgs(base([q], { title: 'Old lesson' }))[0]).toContain('questions are only voiced in game lessons');
+    expect(msgs(base([q], { title: 'Old lesson', mode: 'game' }))).toEqual([]); // the game character speaks it
+  });
   it('leaves English-only lessons alone', () => {
     expect(msgs(base([{ id: 'r', kind: 'read', blocks: [{ type: 'p', text: 'Plain English is fine here.' }] }], { title: 'Old lesson' }))).toEqual([]);
   });

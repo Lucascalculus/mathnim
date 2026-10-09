@@ -1,5 +1,5 @@
 // One lesson: the player, questions about it, or generating it from the syllabus.
-import { AskPanel, RECORDED, generate_lesson, lesson_from_generated, worker_validator } from '@mathnim/ai';
+import { AskPanel, RECORDED, generate_lesson, lesson_from_generated, recorded_question, worker_validator, type RecordedAnswer } from '@mathnim/ai';
 import { tr } from '@mathnim/core';
 import { LessonView, esc, math_html, t, ui_lang } from '@mathnim/present';
 import { apply_palette, set_theme } from '@mathnim/visuals';
@@ -37,12 +37,17 @@ export async function lesson_page(root: HTMLElement, [id]: string[]): Promise<()
     learner, log, dev: params.has('dev'), dark: load_settings().dark || dark_lesson, on_player: dark_lesson ? apply_palette : apply_theme, mode,
     lang: ui_lang(), visuals: visual_resolver, grade_text: text_grader(),
   });
-  const recorded: Record<string, string[]> = {
-    'best-angle': RECORDED.slice(0, 4).map((r) => r.question),
-    pizza: RECORDED.slice(4, 6).map((r) => r.question),
-    'inscribed-angles': [RECORDED[1].question],
+  const recorded: Record<string, RecordedAnswer[]> = {
+    'best-angle': RECORDED.slice(0, 4),
+    pizza: RECORDED.slice(4, 6),
+    'inscribed-angles': [RECORDED[1]],
   };
-  const suggestions = recorded[cl.id] ?? (cl.entry?.objectives ?? []).map((o) => t('why_true', { o: `${o.charAt(0).toLowerCase()}${o.slice(1).replace(/\.$/, '')}` }));
+  const lang = ui_lang();
+  // suggested questions in the learner's language: recorded ones, else the syllabus objectives, else the lesson's own misconceptions
+  const lower = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+  const suggestions = recorded[cl.id]?.map((r) => recorded_question(r, lang))
+    ?? (cl.entry ? cl.entry.objectives.map((o) => t('why_true', { o: lower(o).replace(/\.$/, '') }))
+      : (lesson.misconceptions ?? []).slice(0, 3).map((m) => t('is_it_true', { d: lower(tr(m.description, lang)).replace(/[.。]$/, '') })));
   new AskPanel(askRoot, {
     provider, validate: worker_validator(), log, lesson: lesson.id, suggestions,
     context: () => lesson_context(cl, view),

@@ -1,12 +1,14 @@
-// POST /api/tts {text} -> TtsReply (packages/core/src/narration.ts): the
+// POST /api/tts {text, lang?} -> TtsReply (packages/core/src/narration.ts): the
 // line's audio (MP3, base64) with word boundaries, in the shape of the
-// pre-generated narration files. Results are cached per text (SHA-256).
+// pre-generated narration files, read by the voice of its language (Andrew
+// for English, Yunxi for Chinese; MATHNIM_VOICE_EN / _ZH override). Results
+// are cached per voice and text (SHA-256).
 import { narration_key, to_spoken, type TtsReply } from '../../../../packages/core/src/narration';
 import { client_ip, error, origin_ok, read_text, sha256_hex, to_base64, too_many, type Note, type RateLimiter, type TextCache } from '../http';
 import { choose_provider, type TtsDeps, type TtsEnv } from './providers';
-import { DEFAULT_VOICE, MAX_SSML_TEXT_BYTES, MP3_BYTES_PER_SECOND, parse_tts_request, r3, ssml_text } from './text';
+import { DEFAULT_VOICE, MAX_SSML_TEXT_BYTES, MP3_BYTES_PER_SECOND, parse_tts_request, r3, ssml_text, voice_for, type Voice, type VoiceEnv } from './text';
 
-export interface TtsHandlerEnv extends TtsEnv {
+export interface TtsHandlerEnv extends TtsEnv, VoiceEnv {
   ALLOWED_ORIGINS?: string;
 }
 export interface TtsHandlerDeps extends TtsDeps {
@@ -16,7 +18,7 @@ export interface TtsHandlerDeps extends TtsDeps {
 export const TTS_CACHE_TTL = 30 * 86_400;
 
 /** SHA-256, not the narration key: FNV collisions could be crafted to poison the shared cache. */
-export const tts_cache_key = async (text: string) => `tts/${DEFAULT_VOICE.voice}/${DEFAULT_VOICE.rate}/${(await sha256_hex(text)).slice(0, 40)}`;
+export const tts_cache_key = async (text: string, v: Voice = DEFAULT_VOICE) => `tts/${v.voice}/${v.rate}/${(await sha256_hex(text)).slice(0, 40)}`;
 
 export async function tts(request: Request, env: TtsHandlerEnv, deps: TtsHandlerDeps, note: Note): Promise<Response> {
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
@@ -28,10 +30,11 @@ export async function tts(request: Request, env: TtsHandlerEnv, deps: TtsHandler
   if (body === null) return error(413, 'Request too large.');
   const parsed = parse_tts_request(body);
   if (!parsed.ok) return error(parsed.status, parsed.error);
-  const text = parsed.value.text;
+  const { text, lang } = parsed.value;
+  const voice = voice_for(lang, env);
   note.chars = text.length;
 
-  const ck = await tts_cache_key(text);
+  const ck = await tts_cache_key(text, voice);
   const hit = await deps.cache?.get(ck).catch(() => null);
   if (hit) {
     note.cached = true;
@@ -40,11 +43,11 @@ export async function tts(request: Request, env: TtsHandlerEnv, deps: TtsHandler
   const v = deps.limiter?.hit(client_ip(request));
   if (v && !v.ok) return too_many(v, 'spoken lines');
 
-  const escaped = ssml_text(text);
+  const escaped = ssml_text(text, lang);
   if (new TextEncoder().encode(escaped).length > MAX_SSML_TEXT_BYTES) return error(413, 'Text too long.');
   let r;
   try {
-    r = await provider.synthesize(escaped, to_spoken(text), DEFAULT_VOICE);
+    r = await provider.synthesize(escaped, to_spoken(text, lang), voice);
   } catch (e) {
     note.error = String((e as Error)?.message ?? e).slice(0, 200);
     return error(502, 'The speech service did not answer.');
@@ -54,7 +57,7 @@ export async function tts(request: Request, env: TtsHandlerEnv, deps: TtsHandler
   const reply: TtsReply = {
     key: narration_key(text),
     text,
-    voice: DEFAULT_VOICE.voice,
+    voice: voice.voice,
     provider: provider.name,
     duration: last ? r3(last[1] + 0.25) : audio_duration, // as tools/gen_narration.py
     words: r.words,

@@ -5,6 +5,10 @@
 //
 //   node tools/check_visuals.mjs [--only a,b] [--theme light|dark] [--out dir] [--full] [--quiet]
 //
+// Chinese labels (examples with lang: 'zh') are drawn with a local Chinese font:
+// $MATHNIM_CJK_FONT, else the app's public/fonts Noto Sans SC, else macOS's Arial
+// Unicode (see cjk_font.ts); the line printed at the first zh example says which.
+//
 // Exit code 1 when anything has a lint error, crashes, has invalid example
 // parameters or misses a declared id.
 import { createCanvas, type Canvas } from '@napi-rs/canvas';
@@ -16,6 +20,9 @@ import { lint_frame, lint_timeline, type LintIssue } from 'manim-web/ext/lint';
 import { ScenePlayer, preload } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { apply_palette, check_params, list_visuals, palette, set_theme, type ThemeName, type Visual } from '../src';
+// the fine-tuning visuals (src/ft/<part>/index.ts) register themselves; the launcher collects the parts that exist
+import 'mathnim:ft-visuals';
+import { with_cjk } from './cjk_font';
 
 const argv = process.argv.slice(2);
 const opt = (name: string) => {
@@ -213,7 +220,8 @@ for (const v of visuals) {
   for (const [ei, ex] of examples.entries()) {
     const parts: { theme: ThemeName; frames: [string, Canvas][]; row: Row }[] = [];
     for (const theme of themes) {
-      const r = await check_one(v, ex, ei, theme);
+      // zh labels: a local Chinese font is loaded the first time one is drawn (cjk_font.ts)
+      const r = await with_cjk(() => check_one(v, ex, ei, theme));
       rows.push(r.row);
       parts.push({ theme, frames: r.frames, row: r.row });
       if (full) r.frames.forEach(([label, f], i) => fs.writeFileSync(path.join(out, `${v.name}-${ei}-${theme}-${i}.png`), f.toBuffer('image/png')));

@@ -9,11 +9,14 @@ import { define_visual } from '../visual';
 import {
   LiveMatrix, PANEL, STAGE, backed, clamp, clipped, dodge, fit_plane, lattice_segments, live_arrow, path, plane_axes, readout, segment_points, snap, tex,
   type P3, type Plane,
+  LANG_SPEC, mix, resolve_lang, zh_words,
 } from './kit';
 import { apply2, from_angle, mat2, sym_eig2, sym_from_axes, symmetrize, type Mat2, type Vec2 } from './math';
 
 export interface SymmetricEllipseParams extends Record<string, unknown> {
   S: number[][];
+  /** 'en', 'zh' or 'auto' (the learner's language). */
+  lang: string;
 }
 
 export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
@@ -22,11 +25,13 @@ export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
   topics: ['linear algebra', 'symmetric matrices', 'eigenvectors', 'spectral theorem', 'ellipse', 'pca'],
   params: {
     S: { type: 'matrix', rows: 2, cols: 2, min: -3, max: 3, default: [[2, 1], [1, 2]], doc: 'a symmetric matrix [[a, b], [b, d]] (if the two off-diagonal entries differ, their average is used). E.g. [[2,1],[1,2]] (λ = 3, 1), [[1.5,0],[0,1.5]] (circle), [[1,2],[2,1]] (λ = 3, -1), [[1,1],[1,1]] (λ = 2, 0: a segment)' },
+    lang: LANG_SPEC,
   },
-  examples: [{}, { S: [[2, 1], [1, 1.5]] }, { S: [[1.5, 0], [0, 1.5]] }, { S: [[1, 2], [2, 1]] }, { S: [[1, 1], [1, 1]] }],
+  examples: [{}, { S: [[2, 1], [1, 1.5]] }, { S: [[1.5, 0], [0, 1.5]] }, { S: [[1, 2], [2, 1]] }, { S: [[1, 1], [1, 1]] }, { lang: 'zh' }, { S: [[1.5, 0], [0, 1.5]], lang: 'zh' }],
   ids: ['unit_circle', 'spokes', 'ellipse', 'axis_1', 'axis_2', 'right_angle', 'matrix', 'lambda_readouts', 'spectral', 'message'],
   scene: (p) => {
     const S0 = symmetrize(mat2(p.S));
+    const zh = resolve_lang(p.lang) === 'zh';
     const { values: [L1, L2], vectors: [q1] } = sym_eig2(S0);
     const phi0 = Math.atan2(q1[1], q1[0]);
     class SymmetricEllipse extends Scene {
@@ -133,8 +138,12 @@ export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
         lams.name = 'lambda_readouts';
         const spectral = at(tex('S = Q \\Lambda Q^{\\top}', 40), -0.95);
         spectral.name = 'spectral';
-        const msg_main = VGroup(tex('\\text{circle} \\to \\text{ellipse: axes along}', 32), tex('\\vec q_1, \\vec q_2\\text{, half-lengths } |\\lambda_1|, |\\lambda_2|', 32)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT });
-        const msg_equal = VGroup(tex('\\lambda_1 = \\lambda_2\\text{: every direction is}', 32, c.gold), tex('\\text{an eigenvector (a circle)}', 32, c.gold)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT });
+        const msg_main = zh
+          ? VGroup(mix(['圆', ['\\to'], '椭圆：两条轴沿着'], 32), mix([['\\vec q_1, \\vec q_2'], '，半轴长', ['|\\lambda_1|, |\\lambda_2|']], 32)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT })
+          : VGroup(tex('\\text{circle} \\to \\text{ellipse: axes along}', 32), tex('\\vec q_1, \\vec q_2\\text{, half-lengths } |\\lambda_1|, |\\lambda_2|', 32)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT });
+        const msg_equal = zh
+          ? VGroup(mix([['\\lambda_1 = \\lambda_2'], '：每个方向都是'], 32, c.gold), zh_words('特征向量（变成一个圆）', 32, c.gold)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT })
+          : VGroup(tex('\\lambda_1 = \\lambda_2\\text{: every direction is}', 32, c.gold), tex('\\text{an eigenvector (a circle)}', 32, c.gold)).arrange(DOWN, { buff: 0.1, aligned_edge: LEFT });
         at(msg_main, -2.1);
         at(msg_equal, -2.1);
         const message = VGroup(msg_main, msg_equal);
@@ -171,8 +180,9 @@ export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
     }
     return new SymmetricEllipse();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
     const plane: Plane = scene.plane, { phi, l1, l2 } = scene;
+    const zh = resolve_lang(p.lang) === 'zh';
     const lim = (x: number) => clamp(snap(x, 0.05), -3, 3);
     // end of axis 1: turns the axes and sets λ1
     ui.add_handle({
@@ -189,7 +199,7 @@ export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
       },
       step: plane.unit * 0.1,
       radius: 0.4,
-      label: 'the end of the first axis (λ1 q1)',
+      label: zh ? '第一条轴的端点（λ1 q1）' : 'the end of the first axis (λ1 q1)',
     });
     // end of axis 2: slides along the perpendicular line, sets λ2
     ui.add_handle({
@@ -200,7 +210,7 @@ export const symmetric_ellipse = define_visual<SymmetricEllipseParams>({
       },
       step: plane.unit * 0.1,
       radius: 0.4,
-      label: 'the end of the second axis (λ2 q2)',
+      label: zh ? '第二条轴的端点（λ2 q2）' : 'the end of the second axis (λ2 q2)',
     });
   },
 });

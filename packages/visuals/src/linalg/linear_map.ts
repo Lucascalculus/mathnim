@@ -5,13 +5,15 @@
 import { Create, FadeIn, FadeOut, Flash, GrowArrow, Indicate, Scene, VGroup, Write, always_redraw, DOWN, LEFT, RIGHT } from 'manim-web';
 import { palette } from '../theme';
 import { define_visual } from '../visual';
-import { MatrixTrackers, LiveMatrix, PANEL, STAGE, backed, basis_arrows, basis_handles, basis_labels, clip_segment, clipped, dashed, fit_plane, follow_tip, live_arrow, tex, texs, transformed_grid, visible_when, type Plane } from './kit';
+import { LANG_SPEC, MatrixTrackers, LiveMatrix, PANEL, STAGE, backed, basis_arrows, basis_handles, basis_labels, clip_segment, clipped, dashed, fit_plane, follow_tip, live_arrow, mix, resolve_lang, tex, texs, transformed_grid, visible_when, zh_words, type Plane } from './kit';
 import { apply2, det2, fmt, mat2, norm2, type Mat2, type Vec2 } from './math';
 
 export interface LinearMapParams extends Record<string, unknown> {
   A: number[][];
   v: number[];
   show_vector: boolean;
+  /** 'en', 'zh' or 'auto' (the learner's language). */
+  lang: string;
 }
 
 const I: Mat2 = [[1, 0], [0, 1]];
@@ -24,11 +26,13 @@ export const linear_map = define_visual<LinearMapParams>({
     A: { type: 'matrix', rows: 2, cols: 2, min: -3, max: 3, default: [[2, -1], [1, 1]], doc: 'the matrix, rows first: [[a, b], [c, d]]; î lands on (a, c), ĵ on (b, d)' },
     v: { type: 'vector', length: 2, min: -3, max: 3, default: [-1, 2], doc: 'the example vector v = x î + y ĵ that is followed through the map' },
     show_vector: { type: 'boolean', default: true, doc: 'show v and the step Av = x(Aî) + y(Aĵ); false keeps only grid, î, ĵ and the matrix' },
+    lang: LANG_SPEC,
   },
-  examples: [{}, { A: [[0, -1], [1, 0]], v: [2, 1] }, { A: [[1, 2], [0.5, 1]], show_vector: false }, { A: [[1, 2], [1, -1]], v: [1, 1] }],
+  examples: [{}, { A: [[0, -1], [1, 0]], v: [2, 1] }, { A: [[1, 2], [0.5, 1]], show_vector: false }, { A: [[1, 2], [1, -1]], v: [1, 1] }, { lang: 'zh' }, { A: [[1, 2], [0.5, 1]], show_vector: false, lang: 'zh' }],
   ids: ['grid', 'i_hat', 'j_hat', 'matrix', 'columns_text', 'vector_v', 'combination'],
   scene: (p) => {
     const A = mat2(p.A), v: Vec2 = [p.v[0], p.v[1]];
+    const zh = resolve_lang(p.lang) === 'zh';
     class LinearMap extends Scene {
       M = new MatrixTrackers(I);
       plane!: Plane;
@@ -91,8 +95,8 @@ export const linear_map = define_visual<LinearMapParams>({
         this.play(M.morph(I, A, { run_time: 3 }));
         const [lAi, lAj] = basis_labels(plane, M, ['A\\hat{\\imath}', 'A\\hat{\\jmath}'], 38);
         this.play(FadeOut(li), FadeOut(lj), FadeIn(lAi), FadeIn(lAj), { run_time: 0.8 });
-        const w1 = at(texs([['\\text{column 1} = A\\hat{\\imath}', c.good]], 38), 1.4);
-        const w2 = at(texs([['\\text{column 2} = A\\hat{\\jmath}', c.coral]], 38), 0.78);
+        const w1 = at(zh ? mix(['第 1 列', ['= A\\hat{\\imath}']], 38, c.good) : texs([['\\text{column 1} = A\\hat{\\imath}', c.good]], 38), 1.4);
+        const w2 = at(zh ? mix(['第 2 列', ['= A\\hat{\\jmath}']], 38, c.coral) : texs([['\\text{column 2} = A\\hat{\\jmath}', c.coral]], 38), 0.78);
         const where = VGroup(w1, w2);
         where.name = 'columns_text';
         const up = [0, 0.15, 0];
@@ -101,7 +105,9 @@ export const linear_map = define_visual<LinearMapParams>({
         this.add(where);
         if (!p.show_vector) {
           // when the columns are parallel the whole plane lands on one line (shown live while dragging)
-          const flat = VGroup(tex('\\text{columns parallel: the whole}', 34, c.coral), tex('\\text{plane lands on one line}', 34, c.coral)).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
+          const flat = zh
+            ? VGroup(zh_words('两列平行：整个平面', 34, c.coral), zh_words('落到同一条直线上', 34, c.coral)).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT })
+            : VGroup(tex('\\text{columns parallel: the whole}', 34, c.coral), tex('\\text{plane lands on one line}', 34, c.coral)).arrange(DOWN, { buff: 0.12, aligned_edge: LEFT });
           flat.move_to([X0 + flat.width / 2, -0.4, 0]);
           flat.name = 'collapse_note';
           visible_when(flat, () => Math.abs(det2(M.get())) < 0.05);
@@ -128,7 +134,7 @@ export const linear_map = define_visual<LinearMapParams>({
     }
     return new LinearMap();
   },
-  explore: (scene: any, ui) => {
-    basis_handles(ui, scene.plane, scene.M);
+  explore: (scene: any, ui, p) => {
+    basis_handles(ui, scene.plane, scene.M, 3, STAGE, resolve_lang(p.lang));
   },
 });

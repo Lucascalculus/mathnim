@@ -14,6 +14,7 @@ export interface AdvOptions {
   std?: boolean;
   /** 'population' divides by G (the course's convention), 'sample' by G - 1 (torch.std, as in TRL). */
   std_kind?: 'population' | 'sample';
+  /** Added to σ (TRL uses 1e-4; the course's tiny default keeps √7 = 2.65 exact on screen). */
   eps?: number;
 }
 
@@ -32,7 +33,7 @@ export const zero_variance = (r: readonly number[]): boolean => r.every((x) => x
 
 /** Group-relative advantages Â_i = (r_i - mean) / (std + eps) (E1-a, step 8). */
 export function advantages(r: readonly number[], o: AdvOptions = {}): number[] {
-  const baseline = o.baseline ?? true, std = o.std ?? true, eps = o.eps ?? 1e-4;
+  const baseline = o.baseline ?? true, std = o.std ?? true, eps = o.eps ?? 1e-8;
   if (!baseline) return r.map((x) => x);
   const m = mean(r);
   const s = group_std(r, o.std_kind ?? 'population');

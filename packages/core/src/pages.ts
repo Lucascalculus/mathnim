@@ -115,11 +115,28 @@ export function lesson_langs(lesson: Lesson): Lang[] {
 /** Does the text contain Chinese (Han) characters? */
 export const has_cjk = (s: string): boolean => /[㐀-鿿豈-﫿]/.test(s);
 
-/** Spoken lines of a lesson in one language: step narration and world lines, resolved (still templated with {vars}). */
+/**
+ * Steps whose `narration` is spoken: scenes ("videos") and worlds; in a game the
+ * character also speaks the questions. Text pages are always read silently, and
+ * questions are silent in the essay view.
+ */
+export const is_voiced = (s: Step, mode: 'essay' | 'game' = 'essay'): boolean => s.kind === 'scene' || s.kind === 'explore' || (s.kind === 'checkpoint' && mode === 'game');
+
+/** The spoken texts of a lesson, as L10n: the narration of voiced steps (in the lesson's own mode) and the triggered lines of worlds. */
+export function spoken_strings(lesson: Lesson): L10n[] {
+  const out: L10n[] = [];
+  for (const s of lesson.steps) {
+    if (s.narration !== undefined && is_voiced(s, lesson.mode)) out.push(s.narration);
+    if (s.kind === 'explore') for (const l of s.lines ?? []) out.push(l.text);
+  }
+  return out;
+}
+
+/** Spoken lines of a lesson in one language, resolved (still templated with {vars}). */
 export function narration_lines(lesson: Lesson, lang: Lang): string[] {
   const out = new Set<string>();
-  for (const x of lesson_strings(lesson)) if (x.role === 'narration' || x.role === 'line') {
-    const t = tr(x.value, lang);
+  for (const v of spoken_strings(lesson)) {
+    const t = tr(v, lang);
     if (t) out.add(t);
   }
   return [...out];

@@ -163,9 +163,9 @@
   - 维护一份中英对照，统一译名，例如：fine-tuning 微调、reward hacking 奖励投机、likelihood displacement 似然位移、rejection sampling 拒绝采样。
   - 第一次出现的术语写成"中文（English）"。
 - **旁白：**
-  - 英文用 Andrew（en-US-AndrewMultilingualNeural）；
-  - 中文先试听 Andrew 读中文的效果，不理想再选 edge-tts 的中文神经音色，并请你确认；
-  - 两种语言都预先录好。
+  - 只给"视频"（scene 步骤）配旁白，另外只在确有必要处配（例如学生正盯着画布操作时，世界里简短的发现/目标台词）。
+  - 文字页（read / derive / code）和题目不配旁白：学生自己读，读得比听快（用户 2026-10-10 要求）。
+  - 英文用 Andrew（en-US-AndrewMultilingualNeural），中文用 Yunxi（zh-CN-YunxiNeural）；两种语言都预先录好。
 - **界面：**
   - 设置页和课程页都可以切换语言；
   - AI 导师按学生提问所用的语言回答，这一点已经支持。

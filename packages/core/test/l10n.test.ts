@@ -84,10 +84,13 @@ describe('derivation blanks', () => {
     expect(grade_blank(derive, 'dr + rk').correct).toBe(true);
     expect(grade_blank(derive, 'r*d*k').correct).toBe(false);
   });
-  it('explains unreadable input in the learner language', () => {
+  it('explains unreadable input in the learner language, parse errors included', () => {
     const g = grade_blank(derive, 'r*(d+', 'zh');
     expect(g.correct).toBe(false);
-    expect(g.feedback[0]).toMatch(/^这个输入我看不懂/);
+    expect(g.feedback).toEqual(['这个输入我看不懂：式子还没写完。']);
+    expect(grade_blank(derive, 'r*(d+k', 'zh').feedback).toEqual(['这个输入我看不懂：这里缺少 )。']);
+    expect(grade_blank(derive, 'r # d', 'zh').feedback).toEqual(['这个输入我看不懂：无法识别的字符"#"。']);
+    expect(grade_blank(derive, 'r*(d+k', 'en').feedback).toEqual(['I could not read that: expected ).']); // English unchanged
   });
   it('is logged and credits the skill on the first attempt', async () => {
     const { rt, events } = run('en');
@@ -132,7 +135,11 @@ describe('walking a lesson', () => {
     expect(where).toEqual(expect.arrayContaining(['title', 'skills[0].name', 'misconceptions[0].description', 'steps.read.blocks[0].text', 'steps.count.lines[2].why', 'steps.q1.options[0].label', 'steps.q1.group.brief[0].text', 'steps.q2.rubric.key_points[1]']));
     expect(lesson_langs(lesson)).toEqual(['en', 'zh']);
     expect(lesson_langs({ ...lesson, title: 'x', skills: [], misconceptions: [], steps: [] })).toEqual(['en']);
-    expect(narration_lines(lesson, 'zh')).toEqual(['读一读。']);
+    expect(narration_lines(lesson, 'zh')).toEqual([]); // a read page is not voiced, even with narration
+    // in a game the character speaks the questions; in the essay view they are silent
+    const asked: Lesson = { ...lesson, steps: [{ ...(lesson.steps[2] as any), narration: { en: 'Pick one!', zh: '选一个！' } }] };
+    expect(narration_lines(asked, 'zh')).toEqual([]);
+    expect(narration_lines({ ...asked, mode: 'game' }, 'zh')).toEqual(['选一个！']);
   });
   it('describes a text page for the tutor', () => {
     expect(describe_step(lesson.steps[0], 'zh')).toContain('你好 $x$');

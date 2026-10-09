@@ -56,7 +56,10 @@ interface StepBase {
   /** Chapter title shown in the timeline; steps inherit the previous chapter. */
   chapter?: L10n;
   title?: L10n;
-  /** Spoken/caption text for the step (templated with {vars}). Each language is recorded separately. */
+  /**
+   * Spoken/caption text for the step (templated with {vars}). Each language is recorded separately.
+   * Only scenes ("videos") and worlds are voiced; text pages and questions are read, never spoken.
+   */
   narration?: L10n;
   /** Step to go to afterwards (default: the next one in the list). */
   next?: string;

@@ -207,3 +207,123 @@ export const verdict_mark = (right: boolean, size = 40): Mobject => tex(right ? 
 
 /** "word" in both languages, for labels that are always the same pair. */
 export const both = (lang: Lang, en: string, zh: string): string => pick(lang, en, zh);
+
+/** A horizontal slider over [lo, hi] drawn from plain mobjects; `attach` adds the drag handle. */
+export class HSlider {
+  group: VGroup;
+  constructor(readonly t: ValueTracker, readonly lo: number, readonly hi: number, readonly x0: number, readonly x1: number, readonly y: number, o: { color?: string } = {}) {
+    const c = palette();
+    const track = rect(x0, y - 0.035, x1, y + 0.035, c.faint, 1);
+    const fill = always_redraw(() => rect(x0, y - 0.035, Math.max(x0 + 0.004, this.x_of(t.get_value())), y + 0.035, o.color ?? c.accent, 1));
+    const knob = always_redraw(() => Dot([this.x_of(t.get_value()), y, 0], { radius: 0.14, color: o.color ?? c.accent }));
+    this.group = VGroup(track, fill, knob);
+  }
+  x_of(v: number): number {
+    return this.x0 + ((clamp(v, this.lo, this.hi) - this.lo) / (this.hi - this.lo)) * (this.x1 - this.x0);
+  }
+  value_of(x: number): number {
+    return this.lo + clamp((x - this.x0) / (this.x1 - this.x0), 0, 1) * (this.hi - this.lo);
+  }
+  attach(ui: UiLike, name: string, o: { snap?: number; on_end?: () => void; on_change?: () => void } = {}): void {
+    ui.add_handle({
+      tracker: this.t,
+      from_value: (v: number) => [this.x_of(v), this.y, 0],
+      to_value: (p: P3) => {
+        let v = this.value_of(p[0]);
+        if (o.snap) v = Math.round(v / o.snap) * o.snap;
+        return clamp(v, this.lo, this.hi);
+      },
+      constraint: (p: P3) => [clamp(p[0], this.x0, this.x1), this.y, 0],
+      step: o.snap ?? (this.hi - this.lo) / 50,
+      radius: 0.35,
+      label: name,
+      on_change: o.on_change,
+      on_end: o.on_end,
+    });
+  }
+}
+/** A polyline through points (stroke only); fewer than two points draw nothing. */
+export function polyline(pts: readonly (readonly number[])[], color: string, width = 4, opacity = 1): VMobject {
+  const vm = VMobject({ stroke_color: color, stroke_width: width, stroke_opacity: opacity, fill_opacity: 0 } as any) as unknown as VMobject;
+  if (pts.length >= 2) vm.set_points_as_corners(pts.map((p) => [p[0], p[1], 0]) as any);
+  else {
+    vm.set_points_as_corners([[0, 0, 0], [0.001, 0, 0]] as any);
+    vm.set_opacity(0);
+  }
+  return vm;
+}
+/** A closed filled polygon (no stroke). */
+export function area(pts: readonly (readonly number[])[], fill: string, opacity: number): VMobject {
+  const vm = VMobject({ fill_color: fill, fill_opacity: opacity, stroke_width: 0 } as any) as unknown as VMobject;
+  if (pts.length >= 3) vm.set_points_as_corners([...pts, pts[0]].map((p) => [p[0], p[1], 0]) as any);
+  else {
+    vm.set_points_as_corners([[0, 0, 0], [0.001, 0, 0]] as any);
+    vm.set_opacity(0);
+  }
+  return vm;
+}
+/** A dashed polyline made of short segments. */
+export function dashed_poly(pts: readonly (readonly number[])[], color: string, width = 3, dash = 0.12): VMobject {
+  const segs: number[][] = [];
+  let carry = 0, on = true;
+  for (let k = 0; k + 1 < pts.length; k++) {
+    const a = pts[k], b = pts[k + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    let t = 0;
+    while (t < L) {
+      const step = Math.min(dash - carry, L - t);
+      if (on) segs.push([a[0] + ((b[0] - a[0]) * t) / L, a[1] + ((b[1] - a[1]) * t) / L, a[0] + ((b[0] - a[0]) * (t + step)) / L, a[1] + ((b[1] - a[1]) * (t + step)) / L]);
+      t += step;
+      carry += step;
+      if (carry >= dash - 1e-9) {
+        carry = 0;
+        on = !on;
+      }
+    }
+  }
+  const vm = VMobject({ stroke_color: color, stroke_width: width, fill_opacity: 0 } as any) as any;
+  const P: number[] = [];
+  for (const [x0, y0, x1, y1] of segs) for (let j = 0; j < 4; j++) P.push(x0 + ((x1 - x0) * j) / 3, y0 + ((y1 - y0) * j) / 3, 0);
+  if (P.length) vm.points = Float64Array.from(P);
+  else {
+    vm.set_points_as_corners([[0, 0, 0], [0.001, 0, 0]]);
+    vm.set_opacity(0);
+  }
+  return vm as VMobject;
+}
+
+/** One line of a text box: words (or a row of words and TeX parts), size, colour, weight. */
+export type BoxLine = { t: string; size?: number; color?: string; bold?: boolean; parts?: { t?: string; m?: string }[] };
+/** A row of words and TeX pieces, e.g. [{ t: '策略 ' }, { m: '\\pi_\\theta' }]. */
+export function mixed(parts: { t?: string; m?: string }[], size = 22, color?: string, bold = false): VGroup {
+  const c = palette();
+  const ms = parts.map((q) => (q.m !== undefined ? tex(q.m, size * 1.25, color ?? c.ink) : label(q.t ?? '', size, color ?? c.ink, { weight: bold ? 'BOLD' : 'NORMAL' })));
+  const g = VGroup(...ms);
+  let x = 0;
+  for (const m of ms) {
+    m.move_to([x + m.width / 2, 0, 0]);
+    x += m.width + 0.08;
+  }
+  return g;
+}
+/**
+ * A rounded box centred at (x, y) with lines of words stacked inside it,
+ * each shrunk to fit the box width. Returns the group and the box.
+ */
+export function textbox(x: number, y: number, w: number, h: number, lines: BoxLine[], o: { stroke?: string; fill?: string; fill_opacity?: number; width?: number; gap?: number; align?: 'center' | 'left' } = {}): VGroup {
+  const c = palette();
+  const b = rrect(x, y, w, h, { stroke: o.stroke ?? c.muted, width: o.width ?? 2, fill: o.fill ?? c.bg, fill_opacity: o.fill_opacity ?? 1, radius: 0.12 });
+  const ms = lines.map((l) => {
+    const m: Mobject = l.parts ? mixed(l.parts, l.size ?? 22, l.color, l.bold) : label(l.t, l.size ?? 22, l.color ?? c.ink, { weight: l.bold ? 'BOLD' : 'NORMAL' });
+    if (m.width > w - 0.3) m.scale((w - 0.3) / m.width);
+    return m;
+  });
+  const gap = o.gap ?? 0.12;
+  const total = ms.reduce((a, m) => a + m.height, 0) + gap * (ms.length - 1);
+  let top = y + total / 2;
+  for (const m of ms) {
+    const cy = top - m.height / 2;
+    m.move_to([o.align === 'left' ? x - w / 2 + 0.18 + m.width / 2 : x, cy, 0]);
+    top -= m.height + gap;
+  }
+  return VGroup(b, ...ms);
+}
