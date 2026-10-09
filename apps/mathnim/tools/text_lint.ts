@@ -93,13 +93,18 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           });
           break;
         }
-        case 'figure':
-          if (!b.src.trim()) err(where, 'figure without src');
-          else if (/^https?:/i.test(b.src)) err(where, `figures come from the app's public folder, not the web: ${b.src}`);
-          else if (deps.figure_exists && !deps.figure_exists(b.src.replace(/^\//, ''))) err(where, `figure not found: public/${b.src.replace(/^\//, '')}`);
+        case 'figure': {
+          // one file for both languages, or one per language ({ en, zh }): every file must exist
+          const srcs = is_bilingual(b.src) ? [...new Set([b.src.en, b.src.zh])] : [b.src];
+          for (const src of srcs) {
+            if (typeof src !== 'string' || !src.trim()) err(where, 'figure without src');
+            else if (/^https?:/i.test(src)) err(where, `figures come from the app's public folder, not the web: ${src}`);
+            else if (deps.figure_exists && !deps.figure_exists(src.replace(/^\//, ''))) err(where, `figure not found: public/${src.replace(/^\//, '')}`);
+          }
           if (!tr(b.alt, 'en').trim()) err(where, 'figure without alt text');
           if (!b.credit) warn(where, 'figure without credit (say what it was redrawn from, or "original")');
           break;
+        }
         case 'visual': {
           const r = deps.check_visual?.(b.name, b.params);
           if (r === null) err(where, `no visual named '${b.name}' is registered`);

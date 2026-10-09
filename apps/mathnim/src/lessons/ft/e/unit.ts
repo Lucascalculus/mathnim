@@ -17,7 +17,7 @@ export const unit: { id: string; title: L10n; lessons: CourseLesson[] } = {
       id: e1.id, lesson: e1, minutes: 30, thumb: 'w-flip',
       title: e1.title,
       summary: t('When a program can check the answer: sample a group, compare each try with the group\'s average, fix what breaks (zero-variance groups, length bias), and write a grader that cannot be gamed.', '答案能用程序检查时：采样一组，每次尝试和组平均比，修好会出的毛病（零方差组、长度偏差），再写一个不容易被钻空子的评分器。'),
-      level: t('knows neural networks; D2 (policy gradient, PPO)', '懂神经网络；学过 D2（策略梯度、PPO）'),
+      level: t('knows neural networks; D2a (policy gradient, PPO), D2b (the KL leash)', '懂神经网络；学过 D2a（策略梯度、PPO）和 D2b（KL 约束）'),
     },
     {
       id: e2.id, lesson: e2, minutes: 31, thumb: 'w-passk',

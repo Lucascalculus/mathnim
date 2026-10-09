@@ -235,9 +235,9 @@ export class EvalNoiseScene extends Scene {
       f_pair.set_opacity(p ? 1 : 0.3);
     });
     formula.name = 'formula';
-    const n_ctl = slider(this.n, { x: 3.25, y: -1.95, width: 2.55, min: 10, max: 5000, log: true, title: 'n', decimals: 0, snap: (v) => Math.round(v) });
-    const pair_ctl = choice(this.paired, [pick(lang, 'independent', '独立比较'), pick(lang, 'paired (same questions)', '配对（同一批题）')], { x: 2.45, y: -2.75, width: 3.6, size: 20, gap: 0.42 });
-    const d_ctl = slider(this.discord, { x: 3.25, y: -3.65, width: 2.55, min: 0.02, max: 0.5, title: 'δ', decimals: 2 });
+    const n_ctl = slider(this.n, { x: 3.25, y: -1.95, width: 2.55, min: 10, max: 5000, log: true, title: 'n', label: pick(lang, 'questions in the eval set n', '评测集题数 n'), decimals: 0, snap: (v) => Math.round(v) });
+    const pair_ctl = choice(this.paired, [pick(lang, 'independent', '独立比较'), pick(lang, 'paired (same questions)', '配对（同一批题）')], { label: pick(lang, 'analysis: independent or paired', '分析方式：独立或配对'), x: 2.45, y: -2.75, width: 3.6, size: 20, gap: 0.42 });
+    const d_ctl = slider(this.discord, { x: 3.25, y: -3.65, width: 2.55, min: 0.02, max: 0.5, title: 'δ', label: pick(lang, 'disagreement δ (paired)', '答案不一致的比例 δ（配对）'), decimals: 2 });
     this.ctls = [n_ctl, pair_ctl, d_ctl];
     d_ctl.group.add_updater((m: any) => m.set_opacity(this.is_paired() ? 1 : 0.35));
     const controls = VGroup(n_ctl.group, pair_ctl.group, d_ctl.group);

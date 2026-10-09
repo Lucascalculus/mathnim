@@ -37,5 +37,6 @@ register(linear_map, determinant_area, eigen_hunt, lambda_sweep, rotation_no_eig
 
 // The LLM fine-tuning course: each part registers its own visuals.
 export * as ft_a from './ft/a';
+export * as ft_c from './ft/c';
 export * as ft_d from './ft/d';
 export * as ft_f from './ft/f';

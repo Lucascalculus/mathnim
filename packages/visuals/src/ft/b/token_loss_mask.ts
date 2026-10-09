@@ -340,7 +340,7 @@ export class TokenLossMaskScene extends Scene {
     formula.name = 'formula';
     const legend = fit(label(pick(lang, 'A = the assistant\'s tokens · ℓ = −log p', 'A = 助手的 token · ℓ = −log p'), 22, c.muted), 6.3, 0.38);
     legend.move_to([-6.85 + legend.width / 2, -3.62, 0]);
-    this.slider_ctl = slider(this.lam, { x: 2.3, y: -3.0, width: 3.0, min: 0.001, max: 1, log: true, zero: true, title: pick(lang, 'λ', 'λ'), decimals: 3, color: c.gold });
+    this.slider_ctl = slider(this.lam, { x: 2.3, y: -3.0, width: 3.0, min: 0.001, max: 1, log: true, zero: true, title: pick(lang, 'λ', 'λ'), label: pick(lang, 'the prompt-loss weight λ', '提示损失权重 λ'), decimals: 3, color: c.gold });
     this.slider_ctl.group.name = 'lambda_slider';
     const note = fit(label(pick(lang, 'real data: Qwen2.5-0.5B, Qwen2.5 chat template', '真实数据：Qwen2.5-0.5B，Qwen2.5 聊天模板'), 20, c.muted), 6.2, 0.36);
     note.move_to([6.85 - note.width / 2, -3.62, 0]);

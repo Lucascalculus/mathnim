@@ -213,7 +213,7 @@ export class RejectionScene extends Scene {
     formula.name = 'formula';
 
     // ---- controls
-    const n_ctl = slider(this.n, { x: 1.55, y: -0.85, width: 3.6, min: 1, max: 64, log: true, title: 'n', decimals: 0, snap: (v) => Math.round(v), color: c.accent });
+    const n_ctl = slider(this.n, { x: 1.55, y: -0.85, width: 3.6, min: 1, max: 64, log: true, title: 'n', label: pick(lang, 'samples per problem n', '每题采样数 n'), decimals: 0, snap: (v) => Math.round(v), color: c.accent });
     const cap_ctl = choice(this.cap, ['c = 1', 'c = 2', 'c = 4', pick(lang, 'no cap', '不设上限')], { x: 0.55, y: -1.65, width: 2.6, size: 20, gap: 0.42, title: pick(lang, 'cap per problem', '每题上限') });
     const boost_ctl = choice(this.boost, ['×1', '×2', '×4', '×8'], { x: 3.75, y: -1.65, width: 3.0, size: 20, gap: 0.42, title: pick(lang, 'hard problems: n ×', '难题加采：n ×') });
     this.ctls = [n_ctl, cap_ctl, boost_ctl];

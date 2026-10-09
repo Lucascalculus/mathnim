@@ -14,7 +14,8 @@
 //   the language, e.g. "Python"); choosing a tab switches every block on the
 //   page that has a tab with the same label, and the choice is remembered.
 // - figure blocks: `src` is relative to the app's public folder
-//   ('ft/b/chat-template.svg' or '/ft/b/chat-template.svg').
+//   ('ft/b/chat-template.svg' or '/ft/b/chat-template.svg'); it may be L10n
+//   ({ en: 'ft/d/x.en.svg', zh: 'ft/d/x.zh.svg' }) for a figure with words in it.
 // - visual blocks: `params` are checked with @mathnim/visuals' check_params;
 //   the visual plays when scrolled into view; with `explore` its handles are
 //   attached when it ends.
@@ -26,6 +27,8 @@
 // - CodeContent.notes[].lines are 1-based and inclusive ([3, 3] is line 3).
 // - DeriveStep may name a `skill` (schema.ts): the blank then counts as a graded
 //   first attempt for the learner model.
+// - In expression answers (blanks, expression questions) `log` and `ln` are the
+//   natural log; `log10` (or `lg`) is base 10.
 
 /** Text in both course languages. A plain string is the same in both (formulas, code, names). */
 export type L10n = string | { en: string; zh: string };
@@ -52,7 +55,7 @@ export type Block =
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
-  | { type: 'figure'; src: string; alt: L10n; caption?: L10n; credit?: string }
+  | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: string }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }

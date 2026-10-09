@@ -53,6 +53,10 @@ describe('text lint', () => {
     expect(m).toContain('row has 1 cells, the header 2');
     expect(m).toContain('footnote [^ghost] has no cite block');
   });
+  it('checks both files of a per-language figure', () => {
+    const l = base([{ id: 'r', kind: 'read', blocks: [{ type: 'figure', src: { en: 'ft/ok.svg', zh: 'ft/missing.zh.svg' }, alt: { en: 'A', zh: '图' }, credit: 'original' }] }]);
+    expect(msgs(l)).toEqual(['error: steps.r.blocks[0]: figure not found: public/ft/missing.zh.svg']);
+  });
   it('checks derivation blanks and code notes', () => {
     const l = base([
       { id: 'd1', kind: 'derive', lines: [{ tex: 'a' }, { tex: 'b' }], blank: { line: 2, answer: 'x+1' } },

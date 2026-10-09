@@ -74,6 +74,11 @@ describe('blocks as HTML', () => {
     expect(html).toMatch(/<li id="[^"]*-fn-other" value="2">Unreferenced/);
     expect(html).toContain('参考资料');
   });
+  it('picks the figure of the learner language', () => {
+    const fig = [{ type: 'figure', src: { en: 'ft/d/x.en.svg', zh: 'ft/d/x.zh.svg' }, alt: { en: 'A map', zh: '一张图' }, credit: 'original' }] as any;
+    expect(blocks_html(fig, 'zh')).toContain('src="ft/d/x.zh.svg"');
+    expect(blocks_html(fig, 'en')).toContain('src="ft/d/x.en.svg"');
+  });
   it('marks a footnote without a source', () => {
     expect(blocks_html([{ type: 'p', text: 'x[^nope]' }], 'en')).toContain('mn-fnref-missing');
   });

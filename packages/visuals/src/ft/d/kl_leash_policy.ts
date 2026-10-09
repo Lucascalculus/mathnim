@@ -254,8 +254,9 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
     }
     return new KlLeash();
   },
-  explore: (scene: any, ui) => {
-    scene.slider.attach(ui, 'β, the leash: left loose, right tight', { snap: 0.01 });
-    scene.switch_.attach(ui, 'can the reference model say the exploit?', () => scene.emit('wall', { can: scene.can.get_value() > 0.5 }));
+  explore: (scene: any, ui, p) => {
+    const lang = resolve_lang(p.lang);
+    scene.slider.attach(ui, pick(lang, 'β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）'), { snap: 0.01 });
+    scene.switch_.attach(ui, pick(lang, 'the exploit switch', '漏洞回答开关'), () => scene.emit('wall', { can: scene.can.get_value() > 0.5 }));
   },
 });

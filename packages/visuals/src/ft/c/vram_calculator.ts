@@ -365,10 +365,11 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
     }
     return new VramCalculator();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const L = (en: string, zh: string) => pick(resolve_lang(p.lang), en, zh);
     const u = ui as unknown as UiLike;
     const said = (name: string) => (value: number) => emit(scene, 'control', { name, value });
-    const labels = ['the model preset', 'the fine-tuning method (full, LoRA, QLoRA)', 'the sequence length', 'the micro-batch size', 'the LoRA rank', 'activation recomputation on or off', 'chunked (fused) cross-entropy on or off', 'the GPU memory of the card'];
+    const labels = [L('the model preset', '模型'), L('the fine-tuning method (full, LoRA, QLoRA)', '微调方法（全量、LoRA、QLoRA）'), L('the sequence length', '序列长度'), L('the micro-batch size', 'micro-batch 大小'), L('the LoRA rank', 'LoRA 的秩'), L('activation recomputation on or off', '激活重算：开或关'), L('chunked (fused) cross-entropy on or off', '分块（融合）交叉熵：开或关'), L('the GPU memory of the card', '显卡的显存')];
     const keys = ['model', 'method', 'seq', 'batch', 'rank', 'ckpt', 'fused_ce', 'gpu'];
     (scene.controls as Choice[]).forEach((ch, i) => ch.attach(u, labels[i], said(keys[i])));
   },

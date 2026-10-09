@@ -81,6 +81,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
       /** Card k is in the data (1) or not (0). */
       cards = [ValueTracker(0), ValueTracker(0), ValueTracker(0)];
       card_mobs: any[] = [];
+      lang: Lang = lang;
       /** Rewards still to show, one per frame (a running fit). */
       queue: number[][] = [];
       /** Make the comparison cards draggable into the data (a world calls this; see attach_bt_cards). */
@@ -266,7 +267,8 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
     }
     return new BradleyTerryFit();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const lang = resolve_lang(p.lang);
     for (const k of [1, 2, 3]) {
       ui.add_handle({
         get: () => [BX[k], Yr(scene.r[k].get_value()), 0],
@@ -277,7 +279,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
         constraint: (pt: P3) => [BX[k], clamp(pt[1], BY0, BY1), 0],
         step: (BY1 - BY0) / (R_HI - R_LO) * 0.05,
         radius: 0.42,
-        label: `the reward of ${ITEMS[k]}`,
+        label: pick(lang, `the reward of ${ITEMS[k]}`, `${ITEMS[k]} 的奖励`),
         on_end: () => scene.emit('dragged', { item: ITEMS[k], r: scene.r[k].get_value(), err: scene.abc_error() }),
       });
     }
@@ -290,10 +292,13 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
  * only provides handles).
  */
 export function attach_bt_cards(scene: any, ui: any): void {
-  const table = { id: 'data', region: { box: [-0.7, 6.9, -1.4, 3.1] as [number, number, number, number] }, label: 'the data table', snap_to: (d: any) => [CARD_X[BT_CARDS.findIndex((_, k) => scene.card_mobs[k] === d.mobject)], ADDED_Y, 0] as P3 };
+  const lang: Lang = scene.lang ?? 'en';
+  const table = { id: 'data', region: { box: [-0.7, 6.9, -1.4, 3.1] as [number, number, number, number] }, label: pick(lang, 'the data table', '数据表'), hint: pick(lang, 'Drop into the data', '放进数据'), snap_to: (d: any) => [CARD_X[BT_CARDS.findIndex((_, k) => scene.card_mobs[k] === d.mobject)], ADDED_Y, 0] as P3 };
     scene.card_mobs.forEach((m: any, k: number) => {
       ui.add_draggable(m, {
-        zones: [table], return_if_missed: 'home', label: `the comparison card ${ITEMS[BT_CARDS[k][0]]} beats ${ITEMS[BT_CARDS[k][1]]}`,
+        zones: [table], return_if_missed: 'home',
+        label: pick(lang, `the card ${ITEMS[BT_CARDS[k][0]]} beats ${ITEMS[BT_CARDS[k][1]]}`, `“${ITEMS[BT_CARDS[k][0]]} 胜 ${ITEMS[BT_CARDS[k][1]]}”这张卡片`),
+        hint: pick(lang, 'Drag {label} into the table', '把{label}拖进上面的表'),
         on_drop: (zone: string | null) => {
           const v = zone ? 1 : 0;
           if ((scene.cards[k].get_value() > 0.5 ? 1 : 0) === v) return;

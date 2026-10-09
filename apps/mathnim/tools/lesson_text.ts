@@ -23,7 +23,7 @@ function blocks(bs: Block[], depth = 0): void {
       case 'list': b.items.forEach((it, i) => out.push(`${pad}${b.ordered ? `${i + 1}.` : '-'} ${L(it)}`)); break;
       case 'math': out.push(`${pad}$$ ${b.tex} $$`); break;
       case 'code': out.push(`${pad}[code ${b.lang}${b.tabs ? ` +tabs ${b.tabs.map((t) => t.label).join('/')}` : ''}: ${b.code.split('\n').length} lines]${b.caption ? ' ' + L(b.caption) : ''}`); break;
-      case 'figure': out.push(`${pad}[figure ${String(b.src)}] ${L(b.caption ?? b.alt)}`); break;
+      case 'figure': out.push(`${pad}[figure ${L(b.src)}] ${L(b.caption ?? b.alt)}`); break;
       case 'visual': out.push(`${pad}[visual ${b.name}${b.explore ? ' (explore)' : ''}] ${L(b.caption)}`); break;
       case 'callout': out.push(`${pad}> **${b.kind}${b.title ? ': ' + L(b.title) : ''}** ${L(b.body)}`); break;
       case 'details': out.push(`${pad}<details> ${L(b.summary)}`); blocks(b.blocks, depth + 1); break;

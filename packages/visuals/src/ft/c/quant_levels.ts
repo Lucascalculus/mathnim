@@ -371,7 +371,8 @@ export const quant_levels = define_visual<QuantLevelsParams>({
     }
     return new QuantLevels();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const L = (en: string, zh: string) => pick(resolve_lang(p.lang), en, zh);
     const XA = scene.XA as (v: number) => number;
     ui.add_handle({
       tracker: scene.outlier,
@@ -380,14 +381,14 @@ export const quant_levels = define_visual<QuantLevelsParams>({
       constraint: (pt: P3): P3 => [clamp(pt[0], XA(0), XA(25)), AX.y, 0],
       step: 0.5,
       radius: 0.4,
-      label: 'the outlier weight (its value in σ)',
+      label: L('the outlier weight (its value in σ)', '异常值权重（以 σ 为单位）'),
       on_end: () => emit(scene, 'outlier', { value: scene.outlier.get_value() }),
     });
     const u = ui as unknown as UiLike;
     const [f, b, d, q] = scene.controls as Choice[];
-    f.attach(u, 'the number format: int4, NF4 or int8', (v) => emit(scene, 'format', { value: v }));
-    b.attach(u, 'the block size B', (v) => emit(scene, 'block', { value: v }));
-    d.attach(u, 'the data: simulated gaussian or a real row', (v) => emit(scene, 'data', { value: v }));
-    q.attach(u, 'double quantisation of the scales on or off', (v) => emit(scene, 'dq', { value: v }));
+    f.attach(u, L('the number format: int4, NF4 or int8', '数值格式：int4、NF4 或 int8'), (v) => emit(scene, 'format', { value: v }));
+    b.attach(u, L('the block size B', '块大小 B'), (v) => emit(scene, 'block', { value: v }));
+    d.attach(u, L('the data: simulated gaussian or a real row', '数据：模拟的高斯数据或真实的一行权重'), (v) => emit(scene, 'data', { value: v }));
+    q.attach(u, L('double quantisation of the scales on or off', '缩放系数的双重量化：开或关'), (v) => emit(scene, 'dq', { value: v }));
   },
 });

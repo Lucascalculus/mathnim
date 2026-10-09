@@ -266,7 +266,7 @@ export const lesson: Lesson = {
     },
     {
       id: 'derive-onpolicy', kind: 'derive', skill: 'on-policy-distill', title: t('It is RL with a reward on every token', '它就是每个 token 都有奖励的强化学习'),
-      intro: t('Minimising the reverse KL on the student\'s own samples turns out to be policy gradient (D2, E1) with a reward on every token. That is why the same RL machinery runs it.', '在学生自己的样本上最小化反向 KL，结果正好是策略梯度（D2、E1），只不过每个 token 都有奖励。所以同一套强化学习的框架就能跑它。'),
+      intro: t('Minimising the reverse KL on the student\'s own samples turns out to be policy gradient (D2a, E1) with a reward on every token. That is why the same RL machinery runs it.', '在学生自己的样本上最小化反向 KL，结果正好是策略梯度（D2a、E1），只不过每个 token 都有奖励。所以同一套强化学习的框架就能跑它。'),
       lines: [
         { tex: '\\mathrm{KL}(\\pi_s\\Vert\\pi_t) = \\mathbb E_{y\\sim\\pi_s}\\big[\\textstyle\\sum_t d_t\\big],\\quad d_t = \\log\\pi_s(y_t\\mid\\cdot) - \\log\\pi_t(y_t\\mid\\cdot)', why: t('A sequence\'s probability is the product of its token probabilities, so its log-ratio is a sum over tokens. The average is over the student\'s samples.', '一条序列的概率是各 token 概率的乘积，所以对数比值是逐 token 的和。期望是在学生的样本上取的。') },
         { tex: '\\nabla\\,\\mathbb E_{y\\sim\\pi_s}[f_\\theta(y)] = \\mathbb E\\big[f_\\theta\\,\\nabla\\log\\pi_s(y)\\big] + \\mathbb E\\big[\\nabla f_\\theta\\big]', why: t('The log-derivative trick, plus a term because $f$ itself depends on θ. That second term is $\\mathbb E[\\nabla\\log\\pi_s] = 0$, as in E1.', '对数导数技巧，再加上一项，因为 $f$ 本身也依赖 θ。这第二项等于 $\\mathbb E[\\nabla\\log\\pi_s] = 0$，和 E1 一样。') },

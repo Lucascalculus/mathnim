@@ -273,7 +273,7 @@ export const dpo_gap_plane = define_visual<DpoGapParams>({
       constraint: (pt: P3) => [clamp(pt[0], G.x0, G.x1), clamp(pt[1], G.y0, G.y1), 0],
       step: 0.1,
       radius: 0.4,
-      label: 'the point (Δ_w, Δ_l): how far each log-probability moved',
+      label: pick(resolve_lang(p.lang), 'the point (Δ_w, Δ_l)', '点 (Δ_w, Δ_l)'),
       on_end: () => scene.emit('gap', { dw: scene.dw.get_value(), dl: scene.dl.get_value(), loss: scene.state().loss }),
     });
     ui.add_handle({
@@ -286,10 +286,10 @@ export const dpo_gap_plane = define_visual<DpoGapParams>({
       constraint: (pt: P3) => [clamp(pt[0], F.x0, F.x1 - 0.3), clamp(pt[1], F.y0 + 0.2, F.y1 - 0.1), 0],
       step: 0.1,
       radius: 0.4,
-      label: 'the rejected response y_l in the feature plane',
+      label: pick(resolve_lang(p.lang), 'the rejected answer y_l', '被拒回答 y_l'),
       on_end: () => scene.emit('moved_rejected', { x: scene.lx.get_value(), y: scene.ly.get_value(), ches: scene.ches() }),
     });
-    if (p.nll_switch) scene.nll_switch.attach(ui, 'add an NLL term on the chosen response', () => {
+    if (p.nll_switch) scene.nll_switch.attach(ui, pick(resolve_lang(p.lang), 'the +NLL switch', '+NLL 开关'), () => {
       if (scene.mode.get_value() > 0.5) scene.steps.set_value(0);
       scene.emit('nll', { on: scene.nll.get_value() > 0.5 });
     });

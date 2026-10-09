@@ -1,6 +1,10 @@
 // Helpers shared by the part D lessons (preference optimization).
 import type { Block, ExploreStep, L10n, Question } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
+import { ft_lang } from '@mathnim/visuals/ft/f';
+
+/** Canvas words in the learner's current language (for handle labels and hints set up when a world starts). */
+export const now = (en: string, zh: string): string => (ft_lang() === 'zh' ? zh : en);
 
 /** Two-language text. */
 export const t = (en: string, zh: string): L10n => ({ en, zh });

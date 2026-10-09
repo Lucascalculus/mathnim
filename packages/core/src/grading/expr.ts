@@ -43,7 +43,8 @@ const FUNCS: Record<string, (...x: number[]) => number> = {
   sin: Math.sin, cos: Math.cos, tan: Math.tan, cot: (x) => 1 / Math.tan(x), sec: (x) => 1 / Math.cos(x), csc: (x) => 1 / Math.sin(x),
   asin: Math.asin, acos: Math.acos, atan: Math.atan, arcsin: Math.asin, arccos: Math.acos, arctan: Math.atan,
   sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
-  sqrt: Math.sqrt, cbrt: Math.cbrt, ln: Math.log, log: Math.log10, lg: Math.log10, log2: Math.log2, log10: Math.log10, exp: Math.exp,
+  // log is the natural log (the ML convention, as in the derivations); log10 and lg are base 10
+  sqrt: Math.sqrt, cbrt: Math.cbrt, ln: Math.log, log: Math.log, lg: Math.log10, log2: Math.log2, log10: Math.log10, exp: Math.exp,
   abs: Math.abs, floor: Math.floor, ceil: Math.ceil, round: Math.round, sign: Math.sign,
   root: (x, n) => (n % 2 === 1 && x < 0 ? -Math.pow(-x, 1 / n) : Math.pow(x, 1 / n)),
   logb: (x, b) => Math.log(x) / Math.log(b),

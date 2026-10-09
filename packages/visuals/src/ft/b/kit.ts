@@ -53,7 +53,7 @@ export function hatch(x: number, y: number, w: number, h: number, color: string,
  * keys step one option). Options never overlap, whatever their length.
  */
 export interface Choice { group: VGroup; attach(ui: UiLike): void; at(v: number): P3 }
-export function choice(t: ValueTracker, options: string[], o: { x: number; y: number; width: number; gap?: number; title?: string; size?: number; name?: string; color?: string; mono?: boolean }): Choice {
+export function choice(t: ValueTracker, options: string[], o: { x: number; y: number; width: number; gap?: number; title?: string; label?: string; size?: number; name?: string; color?: string; mono?: boolean }): Choice {
   const c = palette();
   const n = options.length, size = o.size ?? 22, gap = o.gap ?? 0.44;
   const y_of = (v: number) => o.y - clamp(v, 0, n - 1) * gap;
@@ -91,7 +91,7 @@ export function choice(t: ValueTracker, options: string[], o: { x: number; y: nu
         to_value: (p: number[]) => clamp(Math.round((o.y - p[1]) / gap), 0, n - 1),
         step: 1,
         radius: 0.4,
-        label: o.title ? `${o.title}: ${options.join(' / ')}` : options.join(' / '),
+        label: o.label ?? (o.title ? `${o.title}: ${options.join(' / ')}` : options.join(' / ')),
       });
     },
   };
@@ -99,7 +99,7 @@ export function choice(t: ValueTracker, options: string[], o: { x: number; y: nu
 
 /** A slider for a continuous value; `log` spaces it logarithmically, `zero` reserves the left end for exactly 0. */
 export interface SliderCtl { group: VGroup; attach(ui: UiLike): void; pos(v: number): number; val(t: number): number }
-export function slider(t: ValueTracker, o: { x: number; y: number; width: number; min: number; max: number; log?: boolean; zero?: boolean; title?: string; size?: number; decimals?: number; shown?: (v: number) => number; unit?: string; name?: string; color?: string; snap?: (v: number) => number }): SliderCtl {
+export function slider(t: ValueTracker, o: { x: number; y: number; width: number; min: number; max: number; log?: boolean; zero?: boolean; title?: string; label?: string; size?: number; decimals?: number; shown?: (v: number) => number; unit?: string; name?: string; color?: string; snap?: (v: number) => number }): SliderCtl {
   const c = palette();
   const size = o.size ?? 22, Z = o.zero ? 0.06 : 0;
   // position in [0, 1] <-> value
@@ -158,7 +158,7 @@ export function slider(t: ValueTracker, o: { x: number; y: number; width: number
         to_value: (p: number[]) => val((p[0] - x0) / (x1 - x0)),
         step: o.log ? undefined : (o.max - o.min) / 50,
         radius: 0.35,
-        label: o.title ?? 'slider',
+        label: o.label ?? o.title ?? 'slider',
       });
     },
   };

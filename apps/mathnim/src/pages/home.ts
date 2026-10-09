@@ -105,7 +105,7 @@ async function draw_thumbnails(root: HTMLElement): Promise<void> {
     }
     try {
       const spec: any = (step as any).scene;
-      const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: Math.random });
+      const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: Math.random, lang: ui_lang() });
       const player = new ScenePlayer(scene, c, { audio: false });
       apply_theme(player);
       await player.load();

@@ -245,7 +245,7 @@ export class PackingScene extends Scene {
     attention_matrix.name = 'attention_matrix';
 
     // ---- the batching switch and the two numbers
-    this.mode_ctl = choice(this.mode, [pick(lang, 'padding', '填充（padding）'), pick(lang, 'naive packing', '直接打包'), pick(lang, 'packing + boundaries', '按边界打包')], { x: 1.75, y: -0.35, width: 4.2, size: 22, gap: 0.44 });
+    this.mode_ctl = choice(this.mode, [pick(lang, 'padding', '填充（padding）'), pick(lang, 'naive packing', '直接打包'), pick(lang, 'packing + boundaries', '按边界打包')], { x: 1.75, y: -0.35, width: 4.2, size: 22, gap: 0.44, label: pick(lang, 'how the batch is built', 'batch 的构造方式') });
     this.mode_ctl.group.name = 'mode_switch';
     const waste_ro = readout(pick(lang, 'padding waste', '填充浪费'), () => this.waste_now() * 100, { x: 1.55, y: -1.95, decimals: 0, unit: '\\%', size: 22, value_color: c.muted });
     waste_ro.name = 'waste_readout';

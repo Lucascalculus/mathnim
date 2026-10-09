@@ -5,7 +5,7 @@
 // answers with an exploit, then the real evidence (Gao et al.), how the KL is
 // implemented, and what full RLHF costs.
 import type { Lesson } from '@mathnim/core';
-import { choose_card, cite, fig, list, math, note, open_q, p, t, text_q, vis, watch } from './common';
+import { choose_card, cite, fig, list, math, note, now, open_q, p, t, text_q, vis, watch } from './common';
 
 /** Reveal the gold column once the exploit holds most of the probability. */
 function check_reveal(scene: any, world: any): void {
@@ -106,7 +106,7 @@ export const lesson: Lesson = {
         '拖动 **β**（金色滑块，往左是松）。柱子是精确算出的 π* = π_ref·e^{r/β}/Z。(1) 放松缰绳，直到奉承漏洞拿走大部分概率。(2) 这时真实质量那一列会出现：找到**真实质量最好**的 β，把滑块停在那里。(3) 关掉"参考模型会说漏洞回答"，再把缰绳彻底放松。概率现在去哪了？'),
       setup: (scene: any, ui, _ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
-        scene.slider.attach(ui, 'β, the leash: left loose, right tight', {
+        scene.slider.attach(ui, now('β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）'), {
           snap: 0.01,
           on_end: () => {
             check_reveal(scene, world);
@@ -114,7 +114,7 @@ export const lesson: Lesson = {
             world.emit('released', { beta: scene.beta(), eg: s.eg, er: s.er, can: scene.can.get_value() > 0.5, revealed: !!world.state.revealed });
           },
         });
-        scene.switch_.attach(ui, 'can the reference model say the exploit?', () => world.emit('wall', { can: scene.can.get_value() > 0.5 }));
+        scene.switch_.attach(ui, now('the exploit switch', '漏洞回答开关'), () => world.emit('wall', { can: scene.can.get_value() > 0.5 }));
         watch(scene, () => check_reveal(scene, world));
       },
       goals: [

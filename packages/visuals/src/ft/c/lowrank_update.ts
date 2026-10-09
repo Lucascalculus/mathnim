@@ -354,7 +354,8 @@ export const lowrank_update = define_visual<LowrankUpdateParams>({
     }
     return new LowrankUpdate();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const L = (en: string, zh: string) => pick(resolve_lang(p.lang), en, zh);
     const u = ui as unknown as UiLike;
     ui.add_handle({
       tracker: scene.r,
@@ -374,11 +375,11 @@ export const lowrank_update = define_visual<LowrankUpdateParams>({
       constraint: (pt: P3): P3 => [clamp(pt[0], scene.cut_x(1), scene.cut_x(R_MAX)), scene.cut_y, 0],
       step: 1,
       radius: 0.4,
-      label: 'the cut at rank r: singular values left of it are kept',
+      label: L('the cut at rank r: singular values left of it are kept', '秩 r 的截断线：左边的奇异值保留'),
       on_end: () => emit(scene, 'r', { value: scene.rank() }),
     });
     const [src, layer] = scene.controls as Choice[];
-    src.attach(u, 'which ΔW: official post-training, its rank-16 cut, or random', (v) => emit(scene, 'source', { value: v }));
-    layer.attach(u, 'the layer: q_proj or down_proj', (v) => emit(scene, 'layer', { value: v }));
+    src.attach(u, L('which ΔW: official post-training, its rank-16 cut, or random', '哪个 ΔW：官方后训练、它的秩 16 截断，或随机矩阵'), (v) => emit(scene, 'source', { value: v }));
+    layer.attach(u, L('the layer: q_proj or down_proj', '哪一层：q_proj 或 down_proj'), (v) => emit(scene, 'layer', { value: v }));
   },
 });

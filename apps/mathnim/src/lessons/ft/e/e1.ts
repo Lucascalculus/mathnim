@@ -111,8 +111,8 @@ export const lesson: Lesson = {
           t('Structured output: validate the JSON against a schema. Format: are the <think> and <answer> tags there?', '结构化输出：用 schema 校验 JSON。格式：<think> 和 <answer> 标签齐不齐？'),
         ] },
         { type: 'p', text: t(
-          '**Why not train a reward model to score answers, as in D1 and D2?** A learned reward model is only reliable near its training data, and RL is very good at finding where it is wrong. A program that compares numbers is much harder to fool. DeepSeek-R1-Zero used only rule-based rewards for exactly this reason[^r1].',
-          '**为什么不像 D1、D2 那样，训练一个奖励模型来打分？** 学出来的奖励模型只在它的训练数据附近可信，而强化学习特别擅长找到它判错的地方。一段比对数字的程序就难骗得多。DeepSeek-R1-Zero 只用规则奖励，正是这个原因[^r1]。',
+          '**Why not train a reward model to score answers, as in D1 and D2b?** A learned reward model is only reliable near its training data, and RL is very good at finding where it is wrong. A program that compares numbers is much harder to fool. DeepSeek-R1-Zero used only rule-based rewards for exactly this reason[^r1].',
+          '**为什么不像 D1、D2b 那样，训练一个奖励模型来打分？** 学出来的奖励模型只在它的训练数据附近可信，而强化学习特别擅长找到它判错的地方。一段比对数字的程序就难骗得多。DeepSeek-R1-Zero 只用规则奖励，正是这个原因[^r1]。',
         ) },
         { type: 'callout', kind: 'note', title: t('The whole method in one sentence', '整个方法一句话'), body: t(
           'Let the model answer the same question several times; push up the attempts that did **better than the group\'s average**, push down the ones that did worse. The rest of this lesson turns that sentence into a formula and then fixes what goes wrong with it.',
@@ -133,8 +133,8 @@ export const lesson: Lesson = {
     {
       id: 'p-nobase', kind: 'checkpoint', chapter: t('A baseline from the group', '组内基线'), skill: 'group-advantage', purpose: 'predict', title: t('Before the formula', '先猜一猜'),
       prompt: t(
-        'One question, 8 sampled answers: 2 right (reward 1), 6 wrong (reward 0). Take one step of D2\'s plain REINFORCE, $\\nabla J \\approx \\sum_i r_i\\,\\nabla \\log \\pi(o_i)$, with no baseline. What happens to the probabilities of the 6 wrong answers?',
-        '一道题采样了 8 个回答：2 个对（奖励 1），6 个错（奖励 0）。用 D2 的朴素 REINFORCE 更新一步：$\\nabla J \\approx \\sum_i r_i\\,\\nabla \\log \\pi(o_i)$，不减基线。这 6 个错误回答的概率会怎样？',
+        'One question, 8 sampled answers: 2 right (reward 1), 6 wrong (reward 0). Take one step of D2a\'s plain REINFORCE, $\\nabla J \\approx \\sum_i r_i\\,\\nabla \\log \\pi(o_i)$, with no baseline. What happens to the probabilities of the 6 wrong answers?',
+        '一道题采样了 8 个回答：2 个对（奖励 1），6 个错（奖励 0）。用 D2a 的朴素 REINFORCE 更新一步：$\\nabla J \\approx \\sum_i r_i\\,\\nabla \\log \\pi(o_i)$，不减基线。这 6 个错误回答的概率会怎样？',
       ),
       question: { type: 'choice', options: [
         { id: 'down', label: t('They are pushed down directly', '被直接压低'), misconception: 'wrong-not-penalized', feedback: t('Their term is $0 \\cdot \\nabla\\log\\pi$: nothing pushes them down. They only shrink because the two right answers grow and probabilities sum to 1.', '它们那一项是 $0 \\cdot \\nabla\\log\\pi$：没有任何力量压低它们。它们变小，只是因为两个对的回答变大了，而概率总和是 1。') },
@@ -151,8 +151,8 @@ export const lesson: Lesson = {
         '先讲直觉：拿到 1 分算不算好消息，要看这道题模型平时能做对几成。所以每次尝试都拿**同组的平均分**作参照：高于平均就推高，低于平均就压低。下面推导为什么可以这样做，以及它和 RLOO 的关系。',
       ),
       lines: [
-        { tex: '\\nabla J = \\mathbb E_q\\,\\mathbb E_{o\\sim\\pi_\\theta}\\big[r(q,o)\\,\\nabla\\log\\pi_\\theta(o\\mid q)\\big]', why: t('The policy gradient from D2 (log-derivative trick). The reward comes from a program, so it needs no gradient.', 'D2 推过的策略梯度（对数导数技巧）。奖励由程序给出，不需要对它求导。') },
-        { tex: '\\mathbb E_o\\big[b(q)\\,\\nabla\\log\\pi(o\\mid q)\\big] = b(q)\\,\\nabla\\!\\sum_o \\pi(o\\mid q) = b(q)\\,\\nabla 1 = 0', why: t('Any baseline $b(q)$ that does not depend on the answer adds zero on average. So we may subtract it: the average gradient is unchanged, only its noise changes.', '任何不依赖于回答的基线 $b(q)$，平均下来都是 0。所以可以把它减掉：梯度的期望不变，变的只是噪声。') },
+        { tex: '\\nabla J = \\mathbb E_q\\,\\mathbb E_{o\\sim\\pi_\\theta}\\big[r(q,o)\\,\\nabla\\log\\pi_\\theta(o\\mid q)\\big]', why: t('The policy gradient from D2a. The reward comes from a program, so it needs no gradient.', 'D2a 推过的策略梯度。奖励由程序给出，不需要对它求导。') },
+        { tex: '\\mathbb E_o\\big[b(q)\\,\\nabla\\log\\pi(o\\mid q)\\big] = b(q)\\,\\nabla\\!\\sum_o \\pi(o\\mid q) = b(q)\\,\\nabla 1 = 0', why: t('Recap of D2a: a baseline $b(q)$ that ignores the answer adds zero on average, so subtracting it keeps the average gradient and changes only the noise.', '回顾 D2a：不看回答的基线 $b(q)$ 平均下来是 0，所以减掉它，梯度的期望不变，变的只是噪声。') },
         { tex: '\\nabla J = \\mathbb E\\big[(r - b(q))\\,\\nabla\\log\\pi(o\\mid q)\\big],\\qquad b(q)\\approx p(q) = \\Pr[\\text{right}]', why: t('The best simple baseline is about the question\'s success rate. Then a right answer gets $1-p$ and a wrong one $-p$: wrong answers are now pushed down.', '最好的简单基线约等于这道题的成功率。于是对的回答系数是 $1-p$，错的是 $-p$：错误回答终于被直接压低了。') },
         { tex: '\\bar r = \\tfrac1G\\textstyle\\sum_{j=1}^G r_j \\;\\approx\\; p(q)', why: t('PPO trains a value model, as big as the policy, to estimate this. GRPO simply samples G answers to the same question and averages their rewards. No value model.', 'PPO 要训练一个和策略一样大的价值模型来估计它。GRPO 直接对同一道题采样 G 个回答，取平均分。不需要价值模型。') },
         { tex: 'r_i - \\bar r = \\tfrac{G-1}{G}\\Big(r_i - \\tfrac{1}{G-1}\\textstyle\\sum_{j\\ne i} r_j\\Big)', why: t('The mean includes $r_i$ itself, but the bracket is exactly the leave-one-out (RLOO) baseline, which is unbiased. So the group mean is RLOO times a constant: the direction is right.', '平均分里包含了 $r_i$ 自己，但括号里正好是留一法（RLOO）基线，它是无偏的。所以组均值基线就是 RLOO 乘一个常数：方向没有偏。') },
@@ -261,11 +261,11 @@ export const lesson: Lesson = {
       id: 'why-clip', kind: 'read', chapter: t('The full objective', '完整的目标'), title: t('Two more pieces, each for a reason', '还差两样东西，各有原因'),
       blocks: [
         { type: 'p', text: t(
-          'The baseline is the new idea. The rest of GRPO\'s objective is borrowed from PPO (D2), and each piece answers a practical question:',
-          '基线是 GRPO 的新东西。目标函数剩下的部分是从 PPO（D2）借来的，每一样都对应一个实际问题：',
+          'The baseline is the new idea. The rest of GRPO\'s objective is borrowed from PPO (D2a), and each piece answers a practical question:',
+          '基线是 GRPO 的新东西。目标函数剩下的部分是从 PPO（D2a）借来的，每一样都对应一个实际问题：',
         ) },
         { type: 'list', items: [
-          t('**Samples are expensive**, so we reuse a batch for several steps, or generate while we train. Then the samples come from a slightly older policy, which the **importance ratio** ρ corrects, and **clipping** keeps each step from moving too far.', '**样本很贵**，所以一批样本要用好几步，或者边生成边训练。这时样本来自稍旧的策略，要用**重要性比率** ρ 来校正，再用**截断**让每一步别走太远。'),
+          t('**Samples are expensive**, so we reuse a batch for several steps, or generate while we train. Then the samples come from a slightly older policy, which the **importance ratio** ρ corrects, and **clipping** stops pushing a token once it has moved far enough in the direction its advantage wants (D2a).', '**样本很贵**，所以一批样本要用好几步，或者边生成边训练。这时样本来自稍旧的策略，要用**重要性比率** ρ 来校正；再用**截断**：一个 token 顺着优势的方向走得够远了，就不再推它（D2a）。'),
           t('**We may not want to drift far from the starting model.** A **KL term** pulls back toward a reference model. Many RLVR recipes now drop it, for reasons we come back to.', '**也许不想离起点模型太远。** **KL 项**把策略往参考模型拉。如今很多 RLVR 配方把它去掉了，原因后面再说。'),
         ] },
       ],
@@ -274,10 +274,10 @@ export const lesson: Lesson = {
       id: 'derive-objective', kind: 'derive', skill: 'grpo-objective', title: t('The GRPO objective, piece by piece', 'GRPO 目标，逐项拼起来'),
       intro: t('Build the objective one term at a time. Each line says why the term is there.', '一项一项地把目标拼起来，每一行都说明这一项为什么在这里。'),
       lines: [
-        { tex: '\\rho_{i,t}(\\theta) = \\frac{\\pi_\\theta(o_{i,t}\\mid q, o_{i,<t})}{\\pi_{old}(o_{i,t}\\mid q, o_{i,<t})}', why: t('The samples came from $\\pi_{old}$. At $\\theta = \\theta_{old}$ the ratio is 1 and its gradient equals $\\nabla\\log\\pi$, so it is the policy gradient, corrected for reused samples.', '样本来自 $\\pi_{old}$。在 $\\theta = \\theta_{old}$ 处比率是 1，它的梯度就是 $\\nabla\\log\\pi$，所以这就是策略梯度，只是对重复使用的样本做了校正。') },
+        { tex: '\\rho_{i,t}(\\theta) = \\frac{\\pi_\\theta(o_{i,t}\\mid q, o_{i,<t})}{\\pi_{old}(o_{i,t}\\mid q, o_{i,<t})}', why: t('Recap of D2a: the samples came from $\\pi_{old}$; at $\\theta = \\theta_{old}$ the ratio is 1 and its gradient is the policy gradient. New here: it is taken per token.', '回顾 D2a：样本来自 $\\pi_{old}$；在 $\\theta = \\theta_{old}$ 处比率是 1，梯度就是策略梯度。这里的新东西：它按 token 计算。') },
         { tex: '\\hat A_{i,t} = \\hat A_i \\quad\\text{for every token } t \\text{ of answer } i', why: t('The reward arrives once, at the end, so every token of an answer shares its advantage. (PPO instead gives each token its own value estimate.)', '奖励只在最后给一次，所以一条回答的每个 token 共用这条回答的优势。（PPO 则给每个 token 一个自己的价值估计。）') },
-        { tex: '\\min\\big(\\rho\\,\\hat A,\\ \\mathrm{clip}(\\rho, 1-\\varepsilon_{low}, 1+\\varepsilon_{high})\\,\\hat A\\big)', why: t('PPO\'s clipped surrogate from D2: once a token has moved past the band in the direction its advantage wants, its gradient stops.', 'D2 讲过的 PPO 截断：一个 token 沿着优势想要的方向走出这条带子之后，它的梯度就停了。') },
-        { tex: 'k_3 = x - \\log x - 1,\\qquad x = \\frac{\\pi_{ref}(o_t)}{\\pi_\\theta(o_t)}', why: t('A one-sample estimate of the KL per token (D2 gave the formula). It is never negative, because $\\log x \\le x - 1$.', '每个 token 上 KL 的单样本估计（D2 给过公式）。它永远不为负，因为 $\\log x \\le x - 1$。') },
+        { tex: '\\min\\big(\\rho\\,\\hat A,\\ \\mathrm{clip}(\\rho, 1-\\varepsilon_{low}, 1+\\varepsilon_{high})\\,\\hat A\\big)', why: t('PPO\'s clipped surrogate from D2a: once a token has moved past the band in the direction its advantage wants, its gradient stops. New here: the two edges may differ (below).', 'D2a 讲过的 PPO 截断：一个 token 沿着优势想要的方向走出这条带子之后，它的梯度就停了。这里的新东西：上下两条边可以不一样宽（见下文）。') },
+        { tex: 'k_3 = x - \\log x - 1,\\qquad x = \\frac{\\pi_{ref}(o_t)}{\\pi_\\theta(o_t)}', why: t('A one-sample estimate of the KL per token (D2b gave the formula). It is never negative, because $\\log x \\le x - 1$.', '每个 token 上 KL 的单样本估计（D2b 给过公式）。它永远不为负，因为 $\\log x \\le x - 1$。') },
         { tex: '\\mathbb E_{o_t\\sim\\pi_\\theta}[k_3] = \\mathbb E[x] - \\mathbb E[\\log x] - 1 = 1 - \\mathbb E[\\log x] - 1 = \\mathrm{KL}(\\pi_\\theta\\Vert\\pi_{ref})', why: t('$\\mathbb E[x] = \\sum \\pi_\\theta \\cdot \\pi_{ref}/\\pi_\\theta = 1$, so k3 is unbiased. The simpler $-\\log x$ is unbiased too but can be negative for a single sample, which is where "negative KL" readings come from.', '$\\mathbb E[x] = \\sum \\pi_\\theta \\cdot \\pi_{ref}/\\pi_\\theta = 1$，所以 k3 是无偏的。更简单的 $-\\log x$ 也无偏，但单个样本可能为负，"KL 读数为负"就是这么来的。') },
         { tex: 'J = \\mathbb E\\Big[\\tfrac1G\\textstyle\\sum_i \\tfrac{1}{|o_i|}\\sum_t \\big(\\min(\\rho\\hat A, \\mathrm{clip}(\\rho)\\hat A) - \\beta\\,k_3\\big)\\Big]', why: t('Put together. DeepSeekMath used G = 64, β = 0.04, lr 1e-6; R1 used β = 0.001. Keep an eye on the $1/|o_i|$: it causes trouble later in this lesson.', '拼起来就是这样。DeepSeekMath 用 G = 64、β = 0.04、学习率 1e-6；R1 用 β = 0.001。留意 $1/|o_i|$ 这一项：本课后面它会惹麻烦。') },
         { tex: '\\mu = 1:\\quad \\rho \\equiv 1 \\;\\Rightarrow\\; \\text{clipping never acts}', why: t('If each batch is used for one step only, the ratio is exactly 1 where the gradient is taken, and the clip does nothing. It only matters when samples are reused or generated asynchronously.', '如果每批样本只更新一步，求梯度时比率恰好是 1，截断什么也不做。只有样本被重复使用、或者异步生成时，它才起作用。') },
@@ -289,8 +289,8 @@ export const lesson: Lesson = {
       id: 'clip-higher', kind: 'scene', title: t('Clip-higher: room for unlikely tokens', '非对称截断：给低概率 token 留余地'),
       scene: vis('ppo_clip', { eps: 0.2, eps_high: 0.28 }),
       narration: t(
-        'This is the clipping picture from D2, with the upper edge moved from 1.2 to 1.28. Why bother? Take a token that the old policy gave one percent. With a symmetric clip it can only rise to 1.2 percent in one step, while a token at ninety percent is not held back at all. Rare tokens are where new ideas start, and DAPO found that the symmetric clip makes the policy collapse onto its most common phrasings. Raising only the upper edge gives the rare tokens a little more room.',
-        '这是 D2 里的截断图，只是把上界从 1.2 挪到了 1.28。为什么要挪？看一个旧策略只给了百分之一概率的 token：对称截断时，它一步最多涨到百分之一点二；而一个百分之九十的 token 根本不受限制。新想法往往就藏在这些低概率的 token 里。DAPO 发现，对称截断会让策略塌缩到最常见的写法上。只放宽上界，就给这些稀有的 token 多留了一点空间。',
+        'This is the clipping picture from D2a, with the upper edge moved from 1.2 to 1.28. Why bother? Take a token that the old policy gave one percent. With a symmetric clip it can only rise to 1.2 percent in one step, while a token at ninety percent is not held back at all. Rare tokens are where new ideas start, and DAPO found that the symmetric clip makes the policy collapse onto its most common phrasings. Raising only the upper edge gives the rare tokens a little more room.',
+        '这是 D2a 里的截断图，只是把上界从 1.2 挪到了 1.28。为什么要挪？看一个旧策略只给了百分之一概率的 token：对称截断时，它一步最多涨到百分之一点二；而一个百分之九十的 token 根本不受限制。新想法往往就藏在这些低概率的 token 里。DAPO 发现，对称截断会让策略塌缩到最常见的写法上。只放宽上界，就给这些稀有的 token 多留了一点空间。',
       ),
     },
     // ------------------------------------------------------------------ length bias
@@ -431,8 +431,8 @@ export const lesson: Lesson = {
           t('Keep a gold evaluation the training never sees, and read high-reward samples during training.', '留一个训练完全看不到的金标准评测，训练中定期读一读高分样本。'),
         ] },
         { type: 'callout', kind: 'warning', title: t('What hacking looks like', '被钻空子长什么样'), body: t(
-          'The training reward keeps rising while the gold evaluation stalls or falls, the same shape as D2\'s proxy-reward curve. Seen in practice: listing several numbers, maxing out the format reward, judges rewarding length; on coding tasks, models that learned to edit the unit tests[^denison].',
-          '训练奖励一路上涨，金标准评测却停滞甚至下降，和 D2 里代理奖励曲线是同一个形状。实际见过的有：列出多个数字、单靠格式刷分、评委奖励长度；代码任务里，还有模型学会了去改单元测试[^denison]。',
+          'The training reward keeps rising while the gold evaluation stalls or falls, the same shape as D2b\'s proxy-reward curve. Seen in practice: listing several numbers, maxing out the format reward, judges rewarding length; on coding tasks, models that learned to edit the unit tests[^denison].',
+          '训练奖励一路上涨，金标准评测却停滞甚至下降，和 D2b 里代理奖励曲线是同一个形状。实际见过的有：列出多个数字、单靠格式刷分、评委奖励长度；代码任务里，还有模型学会了去改单元测试[^denison]。',
         ) },
         { type: 'p', text: t(
           '**Managed RFT.** Azure, Amazon Bedrock and Fireworks sell "reinforcement fine-tuning": you upload prompts (with reference answers) and a grader, and they run GRPO-style training. Azure offers string-check, text-similarity, model, Python and multi-graders, and its docs say to "check that superficial responses can\'t earn a high score". Bedrock takes a Lambda function or an LLM judge and advises SFT first if rewards are always 0%[^rft]. The trade-off: no GPUs or RL engineering, but only the models they host.',

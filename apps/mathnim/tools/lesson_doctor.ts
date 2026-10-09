@@ -91,7 +91,7 @@ async function world_row(what: string, step: ExploreStep, make: () => any): Prom
   return { what: `${what} (world)`, ok: !errors.length, errors, warnings: [] };
 }
 
-const ctx = { vars: { a: 4, b: 9 }, rng: () => 0.5 };
+const ctx = { vars: { a: 4, b: 9 }, rng: () => 0.5, lang: 'en' as const };
 await init_tex();
 const PUBLIC = process.env.MATHNIM_PUBLIC!;
 /** Visual blocks of a page (also inside details). */

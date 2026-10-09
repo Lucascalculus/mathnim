@@ -103,6 +103,23 @@ describe('derivation blanks', () => {
   });
 });
 
+describe('the expression grader', () => {
+  it('reads log and ln as the natural log, log10 and lg as base 10', () => {
+    const q = { type: 'expression' as const, answer: 'log(x)', variables: ['x'] };
+    expect(grade(q, { type: 'expression', text: 'ln(x)' }).correct).toBe(true);
+    expect(grade(q, { type: 'expression', text: '\\log x' }).correct).toBe(true);
+    expect(grade(q, { type: 'expression', text: 'log10(x)' }).correct).toBe(false);
+    expect(grade({ type: 'number', answer: 2 }, { type: 'number', value: 'log10(100)' }).correct).toBe(true);
+    expect(grade({ type: 'number', answer: 2 }, { type: 'number', value: 'lg(100)' }).correct).toBe(true);
+  });
+  it('gives scene factories the learner language', async () => {
+    let seen: unknown;
+    const l: Lesson = { ...lesson, steps: [{ id: 's', kind: 'checkpoint', skill: 'count', prompt: 'Q', scene: (ctx) => { seen = ctx.lang; throw new Error('no scene in this test'); }, question: { type: 'choice', options: [{ id: 'a', label: 'A', correct: true }] } }] };
+    await new LessonRuntime(l, { canvas, lang: 'zh', seed: 1 }).start().catch(() => {});
+    expect(seen).toBe('zh');
+  });
+});
+
 describe('free-text answers', () => {
   const q = lesson.steps[3].kind === 'checkpoint' ? lesson.steps[3].question : null!;
   it('are correct with enough key points and expect the model answer', () => {

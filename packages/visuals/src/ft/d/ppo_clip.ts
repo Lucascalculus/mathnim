@@ -209,7 +209,8 @@ export const ppo_clip = define_visual<PpoClipParams>({
     }
     return new PpoClip();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const lang = resolve_lang(p.lang);
     ui.add_handle({
       tracker: scene.rho,
       from_value: (v: number) => [X(v), Y(clip_objective(v, scene.A(), scene.lo(), scene.hi())), 0],
@@ -217,9 +218,9 @@ export const ppo_clip = define_visual<PpoClipParams>({
       constraint: (pt: P3) => [clamp(pt[0], PLOT.x0, PLOT.x1), pt[1], 0],
       step: 0.02,
       radius: 0.45,
-      label: 'the ratio ρ of this token',
+      label: pick(lang, 'the ratio ρ of this token', '这个 token 的概率比 ρ'),
       on_end: () => scene.emit('released', { rho: scene.rho.get_value(), A: scene.A(), slope: scene.slope(), lo: scene.lo(), hi: scene.hi() }),
     });
-    scene.switch_.attach(ui, 'good token or bad token', () => scene.emit('sign', { A: scene.A() }));
+    scene.switch_.attach(ui, pick(lang, 'the good / bad token switch', '好 token / 坏 token 开关'), () => scene.emit('sign', { A: scene.A() }));
   },
 });

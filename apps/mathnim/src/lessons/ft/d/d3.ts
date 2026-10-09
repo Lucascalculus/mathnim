@@ -5,7 +5,7 @@
 // finds that the loss only sees the gap and watches likelihood displacement
 // happen in a toy model, then the real evidence, code and practice.
 import type { Lesson } from '@mathnim/core';
-import { choose_card, cite, fig, list, myth, note, open_q, p, t, table, text_q, vis } from './common';
+import { choose_card, cite, fig, list, myth, note, now, open_q, p, t, table, text_q, vis } from './common';
 
 /** One press of "Train 20 steps" in the D3 worlds. */
 function train_press(scene: any, world: any, n = 20): void {
@@ -27,7 +27,7 @@ function gap_handles(scene: any, ui: any, o: { point: boolean }): void {
         v.dw.set_value(dw);
         v.dl.set_value(dl);
       },
-      step: 0.1, radius: 0.4, label: 'the point (Δ_w, Δ_l): how far each log-probability moved',
+      step: 0.1, radius: 0.4, label: now('the point (Δ_w, Δ_l)', '点 (Δ_w, Δ_l)'),
       on_end: () => v.emit('gap', { dw: v.dw.get_value(), dl: v.dl.get_value(), loss: v.state().loss, free: v.mode.get_value() < 0.5 }),
     });
   }
@@ -39,7 +39,7 @@ function gap_handles(scene: any, ui: any, o: { point: boolean }): void {
       v.ly.set_value(b);
       v.steps.set_value(0); // a new pair: training starts again from the reference
     },
-    step: 0.1, radius: 0.4, label: 'the rejected response y_l in the feature plane',
+    step: 0.1, radius: 0.4, label: now('the rejected answer y_l', '被拒回答 y_l'),
     on_end: () => v.emit('moved_rejected', { ches: v.ches() }),
   });
 }
@@ -295,7 +295,7 @@ export const lesson: Lesson = {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
         scene.mode.set_value(1);
         gap_handles(scene, ui, { point: false });
-        scene.nll_switch.attach(ui, 'add an NLL term on the chosen response', () => {
+        scene.nll_switch.attach(ui, now('the +NLL switch', '+NLL 开关'), () => {
           scene.steps.set_value(0);
           world.emit('nll', { on: scene.nll.get_value() > 0.5 });
         });

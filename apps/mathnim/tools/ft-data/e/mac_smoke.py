@@ -47,5 +47,8 @@ if U._ChunkedLogProbFunction is None:
 script = os.path.abspath(sys.argv[1])
 sys.argv = sys.argv[1:]
 sys.path.insert(0, os.path.dirname(script))
-os.chdir(os.path.dirname(script))
+# outputs (runs/, adapters) go to an ignored folder, never next to the tutorial in docs/
+work = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".cache", "smoke")
+os.makedirs(work, exist_ok=True)
+os.chdir(work)
 runpy.run_path(script, run_name="__main__")

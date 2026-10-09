@@ -130,6 +130,11 @@ languages; all older lessons) or `{ en, zh }`.
 
 * **Prose** supports `$TeX$`, `**bold**`, `*italic*`, `` `code` ``, `[text](url)`
   and footnotes `[^key]` pointing at the page's `cite` blocks.
+* **Figures** with words in them can have one file per language:
+  `src: { en: 'ft/d/x.en.svg', zh: 'ft/d/x.zh.svg' }` (the doctor checks both exist).
+* **Expression answers**: `log` and `ln` are the natural log, `log10` / `lg` base 10.
+* **Scene factories** `(ctx) => Scene` get `ctx.lang`, the learner's language, to
+  pass on to a visual's `lang` parameter.
 * **Questions**: `{ type: 'text', rubric: { key_points, model_answer, min_points } }`
   is a written answer. With a model the AI tutor marks the key points
   (`grade_text` in `@mathnim/ai`); offline the learner ticks them against the

@@ -125,7 +125,7 @@ export class LessonRuntime {
     return this.lesson.steps[this.index];
   }
   get ctx(): LessonContext {
-    return { vars: this.vars, rng: this.rng };
+    return { vars: this.vars, rng: this.rng, lang: this.lang };
   }
   /** Chapters for the timeline: first step index of each chapter. */
   chapters(): { title: L10n; index: number }[] {

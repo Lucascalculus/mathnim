@@ -168,7 +168,8 @@ export const pg_baseline = define_visual<PgBaselineParams>({
     }
     return new PgBaseline();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const lang = resolve_lang(p.lang);
     ui.add_handle({
       tracker: scene.b,
       from_value: (v: number) => [-1.1, Yr(v), 0],
@@ -176,7 +177,7 @@ export const pg_baseline = define_visual<PgBaselineParams>({
       constraint: (pt: P3) => [-1.1, clamp(pt[1], Yr(0), Yr(B_MAX)), 0],
       step: 0.1,
       radius: 0.45,
-      label: 'the zero line b',
+      label: pick(lang, 'the zero line b', '零线 b'),
       on_end: () => scene.emit('released', { b: scene.b.get_value(), variance: scene.variance() }),
     });
   },

@@ -256,9 +256,9 @@ export class TwoValleysScene extends Scene {
     const formula = (MathTex as any)('\\min_\\theta\\ (1-\\rho)\\,L_{new} + \\rho\\,L_{old}', { font_size: 28, color: c.ink });
     formula.move_to([0.75 + formula.width / 2, -3.1, 0]);
     formula.name = 'formula';
-    const lr_ctl = slider(this.lr, { x: 4.6, y: -2.9, width: 1.15, min: 0.005, max: 0.3, log: true, title: 'η', decimals: 3, color: c.coral });
-    const rho_ctl = slider(this.rho, { x: 4.6, y: -3.5, width: 1.15, min: 0, max: 0.9, title: 'ρ', decimals: 2, color: c.purple });
-    const preset_ctl = choice(this.preset, [pick(lang, 'A: the old task cares about θ1 and θ2', 'A：旧任务两个方向都在乎'), pick(lang, 'B: the old task barely cares about θ2', 'B：旧任务几乎不在乎 θ2')], { x: -6.55, y: -3.25, width: 5.8, size: 20, gap: 0.38 });
+    const lr_ctl = slider(this.lr, { x: 4.6, y: -2.9, width: 1.15, min: 0.005, max: 0.3, log: true, title: 'η', label: pick(lang, 'learning rate η', '学习率 η'), decimals: 3, color: c.coral });
+    const rho_ctl = slider(this.rho, { x: 4.6, y: -3.5, width: 1.15, min: 0, max: 0.9, title: 'ρ', label: pick(lang, 'replay share ρ', '回放比例 ρ'), decimals: 2, color: c.purple });
+    const preset_ctl = choice(this.preset, [pick(lang, 'A: the old task cares about θ1 and θ2', 'A：旧任务两个方向都在乎'), pick(lang, 'B: the old task barely cares about θ2', 'B：旧任务几乎不在乎 θ2')], { x: -6.55, y: -3.25, width: 5.8, size: 20, gap: 0.38, label: pick(lang, 'preset A or B', '预设 A 或 B') });
     this.ctls = [lr_ctl, rho_ctl, preset_ctl];
     const controls = VGroup(lr_ctl.group, rho_ctl.group, preset_ctl.group);
     controls.name = 'controls';

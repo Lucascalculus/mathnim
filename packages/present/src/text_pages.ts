@@ -124,7 +124,7 @@ export class BlockRenderer {
         return this.code_block(b);
       case 'figure': {
         this.figures++;
-        const src = b.src.replace(/^\//, '');
+        const src = tr(b.src, this.lang).replace(/^\//, '');
         const cap = [b.caption ? this.prose(b.caption) : '', b.credit ? `<span class="mn-credit">${esc(t('source_credit', { c: b.credit }, this.lang))}</span>` : ''].filter(Boolean).join(' ');
         return `<figure class="mn-fig"><img src="${esc(src)}" alt="${esc(tr(b.alt, this.lang))}" loading="lazy" decoding="async">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
       }

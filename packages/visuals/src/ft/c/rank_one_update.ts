@@ -251,7 +251,8 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
     }
     return new RankOneUpdate();
   },
-  explore: (scene: any, ui) => {
+  explore: (scene: any, ui, p) => {
+    const L = (en: string, zh: string) => pick(resolve_lang(p.lang), en, zh);
     const plane: Plane = scene.plane;
     const box = { x0: STAGE.x0 + 0.25, x1: STAGE.x1 - 0.25, y0: STAGE.y0 + 0.25, y1: STAGE.y1 - 0.25 };
     const handle = (key: 'u' | 'v' | 'x', label: string) => {
@@ -274,8 +275,8 @@ export const rank_one_update = define_visual<RankOneUpdateParams>({
       });
     };
     // the probe first, so it wins when it sits on top of u or v
-    handle('x', 'the probe input x');
-    handle('u', 'the tip of u, the column of B: the direction every change points in');
-    handle('v', 'the tip of v, the row of A: the input direction that is measured');
+    handle('x', L('the probe input x', '探针输入 x'));
+    handle('u', L('the tip of u, the column of B: the direction every change points in', 'u 的箭头尖（B 的一列）：所有改动指向的方向'));
+    handle('v', L('the tip of v, the row of A: the input direction that is measured', 'v 的箭头尖（A 的一行）：被读取的输入方向'));
   },
 });

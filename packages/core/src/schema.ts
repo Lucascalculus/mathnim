@@ -22,7 +22,7 @@ import type { Scene } from 'manim-web';
 import type { Interaction } from 'manim-web/ext/interact';
 import type { BKTParams } from './learner/bkt';
 import type { XY } from './grading/sketch';
-import type { Block, CodeContent, DeriveContent, L10n, ReadContent } from './content';
+import type { Block, CodeContent, DeriveContent, L10n, Lang, ReadContent } from './content';
 import type { Detector, Goal, Line, StarRule, WorldApi } from './world';
 
 /** Values of a lesson/question variant (e.g. { near: 9, far: 16 }). */
@@ -32,6 +32,8 @@ export interface LessonContext {
   vars: Vars;
   /** Seeded random numbers for this variant. */
   rng: () => number;
+  /** The learner's language (absent: English), so scene factories can draw their words in it. */
+  lang?: Lang;
 }
 
 /** A scene for a step: a manim-web Scene class, or a factory using the variant values. */
