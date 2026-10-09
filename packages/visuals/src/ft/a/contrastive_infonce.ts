@@ -171,7 +171,7 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
         bars.name = 'bars';
         // ---- the formula of the push; τ is a live number next to it
         const formula = VGroup(
-          MathTex('\\text{push on } n_j \\;=\\; -\\nabla_{n_j}\\mathcal L \\;=\\; -\\frac{w_j}{\\tau}\\,q', { font_size: 30, color: c.ink }),
+          VGroup(label(L('push on', '推力'), 24, c.ink), MathTex('n_j:\\;\\; -\\nabla_{n_j}\\mathcal L = -\\frac{w_j}{\\tau}\\,q', { font_size: 30, color: c.ink })).arrange([1, 0, 0], { buff: 0.12 }),
           VGroup(MathTex('\\tau =', { font_size: 30, color: c.ink }), live_decimal(() => this.tau(), { decimals: 3, color: c.accent })).arrange([1, 0, 0], { buff: 0.12 }),
         ).arrange([1, 0, 0], { buff: 0.45 }).move_to([0, 0.05, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
         formula.name = 'formula';
@@ -196,7 +196,7 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
         readouts.name = 'readouts';
         const look = { length: 3.6, color: c.accent, track_color: c.faint, stroke_width: 8, knob_radius: 0.15, label: null, show_value: false };
         this.st = new Slider(this.lt, { ...look, x_range: LT }).move_to([3.95, -2.75, 0]);
-        const st_cap = label(L('temperature τ (drag; log scale)', '温度 τ（拖动，对数刻度）'), 24, c.muted).move_to([0, -2.32, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
+        const st_cap = label(L('temperature τ (log scale)', '温度 τ（对数刻度）'), 24, c.muted).move_to([0, -3.15, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
         const tau_slider = VGroup(this.st, st_cap);
         tau_slider.name = 'tau_slider';
         const honest = fit(label(L('toy model: 2D unit vectors; gradients exact; each step capped at 8°, push arrows drawn 5x', '示意：二维单位向量；梯度精确计算；每步最多转 8°，推力箭头放大 5 倍'), 22, c.muted), 13.4).move_to([0, -3.68, 0]);
@@ -220,7 +220,8 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
     return new Contrastive();
   },
   explore: (scene: any, ui, p) => {
-    scene.st.attach(ui, { step: 0.05, label: 'temperature tau (log scale)' });
+    const L = (en: string, zh: string) => pick(resolve_lang(p.lang), en, zh);
+    scene.st.attach(ui, { step: 0.05, label: L('the temperature τ', '温度 τ') });
     if (!p.drag_query) return;
     ui.add_handle({
       tracker: scene.aq,
@@ -232,7 +233,7 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
       constraint: constrain.on_circle([C[0], C[1], 0], R * 0.92),
       step: Math.PI / 90,
       radius: 0.4,
-      label: 'the query vector q',
+      label: L('the question vector q', '问题向量 q'),
     });
   },
 });

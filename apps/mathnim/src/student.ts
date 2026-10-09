@@ -4,9 +4,9 @@ import type { AskContext } from '@mathnim/ai';
 import { describe_step, is_text_step, load_events, tr } from '@mathnim/core';
 import { ui_lang, type LessonView } from '@mathnim/present';
 import { describe_text } from 'manim-web/ext/describe';
-import { COURSE, all_skills, find_lesson, playable, type CourseLesson } from './course';
+import { all_skills, find_lesson, playable, type CourseLesson } from './course';
 import { language_name } from './settings';
-import { learner } from './store';
+import { current_course, learner } from './store';
 
 const MAX_SCREEN = 2500; // characters of scene description (keeps the prompt small and fast)
 /** Visual-catalog topics per lesson: the AI looks there first when the catalog is large. */
@@ -58,8 +58,8 @@ export function lesson_context(cl: CourseLesson, view: LessonView): AskContext {
 /** Context for a question asked from the home page. */
 export function home_context(): AskContext {
   return {
-    level: 'secondary school',
-    lesson: `Course: ${tr(COURSE.title, ui_lang())}`,
+    level: current_course().audience ?? 'secondary school',
+    lesson: `Course: ${tr(current_course().title, ui_lang())}`,
     learner: mastery() || undefined,
     misconceptions: mistakes(),
     learner_language: language_name(ui_lang()),

@@ -225,7 +225,7 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
             if (b - a < 1e-4) return;
             const [col, op] = colour[k];
             if (a < yc) kids.push(rect(BAR.x0, a, BAR.x1, Math.min(b, yc), col, op));
-            if (b > yc) kids.push(rect(BAR.x0, Math.max(a, yc), BAR.x1, b, col, op * 0.3));
+            if (b > yc) kids.push(rect(BAR.x0, Math.max(a, yc), BAR.x1, b, col, op * 0.4));
           });
           const top = Y(v, ym);
           if (top > yc + 0.02) {
@@ -301,13 +301,13 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
         status.name = 'status';
         const conf = live_label(() => {
           const k = this.config();
-          const opt = { adamw: L('AdamW, mixed precision', '混合精度 AdamW'), adamw8bit: L('8-bit AdamW', '8-bit AdamW'), bf16: L('pure bf16 Adam', '纯 bf16 Adam') }[k.optim];
-          const tg = k.method === 'full' ? '' : k.targets === 'attn' ? L(' · LoRA on attention only', ' · LoRA 只挂注意力层') : L(' · LoRA on all linear layers', ' · LoRA 挂所有线性层');
+          const opt = { adamw: L('AdamW, mixed precision', '混合精度 AdamW'), adamw8bit: L('8-bit AdamW', '8-bit AdamW'), bf16: L('pure-bf16 Adam', '纯 bf16 Adam') }[k.optim];
+          const tg = k.method === 'full' ? '' : k.targets === 'attn' ? L(' · LoRA: attention only', ' · LoRA：只挂注意力层') : L(' · LoRA: all linear', ' · LoRA：所有线性层');
           const g = k.zero3 && k.gpus > 1 ? L(` · ${k.gpus} GPUs, ZeRO-3`, ` · ${k.gpus} 张卡 ZeRO-3`) : k.gpus > 1 ? L(` · ${k.gpus} GPUs (no sharding)`, ` · ${k.gpus} 张卡（不分片）`) : '';
           return `${opt}${tg}${g}`;
         }, 24, c.muted, (t) => at_left(t, LEDGER.name, ty - 1.12), { max_width: 5.45 });
         const note = VGroup(
-          at_left(txt(L('estimate from formulas (D1–D6), not a measurement', '按公式（D1–D6）估算，不是实测'), 24, c.muted), LEDGER.name, ty - 1.62),
+          at_left(txt(L('estimate from formulas, not measured', '按公式估算，不是实测'), 24, c.muted), LEDGER.name, ty - 1.62),
         );
         if (note.width > 5.45) note.scale(5.45 / note.width).align_to([LEDGER.name, 0, 0], [-1, 0, 0]);
         note.name = 'honesty_note';
@@ -327,8 +327,8 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
         const seq_c = mk(this.seq, SEQS.map(ks), 1.22, { values: SEQS, log: true });
         const batch_c = mk(this.batch, BATCHES.map(String), 0.27, { values: BATCHES, log: true });
         const rank_c = mk(this.rank, RANKS.map(String), -0.68, { values: RANKS, log: true, enabled: () => cfg_now().method !== 'full' });
-        const ckpt_c = mk(this.ckpt, [L('off', '关'), L('on', '开')], -1.5, { x0: -3.2 });
-        const fused_c = mk(this.fused, [L('off', '关'), L('on', '开')], -2.2, { x0: -3.2 });
+        const ckpt_c = mk(this.ckpt, [L('off', '关'), L('on', '开')], -1.5, { x0: -3.1 });
+        const fused_c = mk(this.fused, [L('off', '关'), L('on', '开')], -2.2, { x0: -3.1 });
         const card_c = mk(this.gpu, CARDS.map((v) => `${v} GB`), -3.3, { values: CARDS, log: true });
         const fit_w = (m: Mobject, w: number) => {
           if (m.width > w) m.scale(w / m.width).align_to([CTRL.x0, 0, 0], [-1, 0, 0]);
@@ -340,8 +340,8 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
           cap_live(() => L(`sequence length s = ${cfg_now().seq}`, `序列长度 s = ${cfg_now().seq}`), CTRL.x0, 1.66),
           cap_live(() => L(`micro-batch b = ${cfg_now().batch}`, `微批 b = ${cfg_now().batch}`), CTRL.x0, 0.71),
           cap_live(() => (cfg_now().method === 'full' ? L('LoRA rank r (not used by full)', 'LoRA 秩 r（全量不用）') : L(`LoRA rank r = ${cfg_now().rank} · ${(this.estimate().n_lora / 1e6).toFixed(1)}M params`, `LoRA 秩 r = ${cfg_now().rank} · ${(this.estimate().n_lora / 1e6).toFixed(1)}M 参数`)), CTRL.x0, -0.24),
-          fit_w(caption(L('activation recomputation', '激活重算'), CTRL.x0, -1.5), 3.45),
-          fit_w(caption(L('chunked/fused CE (TRL default)', '分块/融合交叉熵（TRL 默认）'), CTRL.x0, -2.2), 3.45),
+          fit_w(caption(L('activation recomputation', '激活重算'), CTRL.x0, -1.5), 3.65),
+          fit_w(caption(L('chunked CE (TRL default)', '分块交叉熵（TRL 默认）'), CTRL.x0, -2.2), 3.65),
           caption(L('GPU memory (card)', '显卡显存'), CTRL.x0, -2.86),
         );
         const names_c = ['model_control', 'method_control', 'seq_control', 'batch_control', 'rank_control', 'ckpt_control', 'fused_control', 'card_control'];

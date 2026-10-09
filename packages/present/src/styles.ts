@@ -138,6 +138,9 @@ export const CSS = `
 .mn-page{display:none}
 .mn-textstep .mn-page,.mn-casestep .mn-page{display:block}
 .mn-nostage .mn-stage,.mn-nostage .mn-bar,.mn-textstep:not(.mn-game) .mn-caption{display:none!important}
+/* a question (or world) without a figure: no empty left column, the panel becomes a centred card */
+.mn-app.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game){grid-template-columns:minmax(0,1fr)}
+.mn-app.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game) .mn-side{grid-column:1;grid-row:auto;width:100%;max-width:46rem;margin:0 auto}
 .mn-textstep .mn-side>:empty{display:none}
 .mn-textstep .mn-side,.mn-casestep .mn-side{position:sticky;top:calc(var(--mn-sticky-top,0px) + 12px);max-height:calc(100vh - var(--mn-sticky-top,0px) - 24px);align-self:start}
 .mn-page{background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:var(--mn-radius);box-shadow:var(--mn-shadow);padding:clamp(18px,4vw,44px) clamp(16px,4.5vw,52px);font-size:17px;line-height:1.7;color:var(--mn-fg);min-width:0}

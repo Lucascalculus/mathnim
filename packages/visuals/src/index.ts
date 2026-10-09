@@ -34,3 +34,8 @@ export { pca_3d } from './linalg/pca_3d';
 
 register(circle_slices);
 register(linear_map, determinant_area, eigen_hunt, lambda_sweep, rotation_no_eigen, matrix_power, symmetric_ellipse, covariance_ellipse, pca_projection, pca_3d);
+
+// The LLM fine-tuning course: each part registers its own visuals.
+export * as ft_a from './ft/a';
+export * as ft_d from './ft/d';
+export * as ft_f from './ft/f';

@@ -119,7 +119,7 @@ export const lesson: Lesson = {
       explain: t('About 7% on this sample. Next you can see why: the prompt has eight times as many tokens, and many of them are hard to predict.', '这条样本上大约是 7%。下一步你会看到原因：提示的 token 是回答的八倍，而且很多都难以预测。'),
     },
     {
-      id: 'mask-world', kind: 'explore', title: t('Who pays the loss', '谁在"交"loss'), skill: 'loss-mask',
+      id: 'mask-world', kind: 'explore', title: t('Who pays the loss', 'loss 花在了谁身上'), skill: 'loss-mask',
       scene: vis('token_loss_mask', { sample: 'single', start: 'all' }),
       prompt: t(
         'Each bar is one real token, as tall as its loss. Move each part of the conversation to **trained** or **masked** (drag a card up or down). Goal: grade exactly what the assistant should learn to say. Then try a small prompt weight λ.',

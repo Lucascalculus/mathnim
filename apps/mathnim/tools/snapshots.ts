@@ -5,13 +5,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ScenePlayer } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
-import { COURSE } from '../src/course';
+import { all_lessons } from '../src/course';
 import { apply_theme } from '../src/lessons/best-angle/theme';
 
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });
 const [id, out] = process.argv.slice(2);
 fs.mkdirSync(out, { recursive: true });
-const lesson = COURSE.units.flatMap((u) => u.lessons).find((l) => l.id === id)!.lesson!;
+const lesson = all_lessons().find((l) => l.id === id)!.lesson!;
 const ctx = { vars: { d: 12, a: 4, b: 9 }, rng: () => 0.5 };
 for (const s of lesson.steps) {
   const spec = (s as any).scene;

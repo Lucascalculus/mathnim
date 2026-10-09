@@ -26,11 +26,14 @@ export function hold(name: string, raw: Record<string, unknown> = {}, start?: (s
   };
 }
 /** A figure from public/ft/<part>/<base>.<lang>.svg: the file in the learner's language is chosen when the page is drawn. */
-export function figure(base: string, alt: L10n, caption?: L10n, credit?: string): Block {
-  const b: any = { type: 'figure', alt, ...(caption ? { caption } : {}), ...(credit ? { credit } : {}) };
+export function figure(base: string, alt: L10n, caption?: L10n, credit?: string | { en: string; zh: string }): Block {
+  const b: any = { type: 'figure', alt, ...(caption ? { caption } : {}) };
   Object.defineProperty(b, 'src', { get: () => `${base}.${ft_lang()}.svg`, enumerable: true });
+  if (credit) Object.defineProperty(b, 'credit', { get: () => (typeof credit === 'string' ? credit : credit[ft_lang()]), enumerable: true });
   return b as Block;
 }
+/** For figures drawn for this course (no source to credit). */
+export const OWN = { en: 'drawn for this course', zh: '本课绘制' };
 /** A visual embedded in a page; its labels follow the learner's language. */
 export const visual = (name: string, params: Record<string, unknown> = {}, caption?: L10n, explore = false): Block => ({ type: 'visual', name, params, ...(caption ? { caption } : {}), explore });
 
@@ -42,12 +45,12 @@ export function map_scene(id: string, lesson: LessonId, narration: L10n): SceneS
     narration,
   };
 }
-/** The lesson's "how to choose" card: the rule, the tempting mistake it prevents, and where it sits on the map. */
-export function card_page(id: string, rule: L10n, counter: L10n, nodes: string, extra: Block[] = []): ReadStep {
+/** The lesson's "how to choose" card: the rule, the tempting mistake it prevents, and (in words) where it sits on the map. */
+export function card_page(id: string, rule: L10n, counter: L10n, where: { en: string; zh: string }, extra: Block[] = []): ReadStep {
   return {
     id, kind: 'read', title: T('The card for this lesson', '本课的"怎么选"卡片'),
     blocks: [
-      { type: 'callout', kind: 'note', title: T(`Rule (map nodes ${nodes})`, `规则（决策图节点 ${nodes}）`), body: rule },
+      { type: 'callout', kind: 'note', title: T(`Rule · ${where.en}`, `规则 · ${where.zh}`), body: rule },
       { type: 'callout', kind: 'misconception', title: T('The tempting mistake', '诱人的错误'), body: counter },
       ...extra,
     ],

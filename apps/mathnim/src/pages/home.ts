@@ -3,11 +3,11 @@ import { AskPanel, RECORDED, recorded_question, worker_validator } from '@mathni
 import { MASTERY, lesson_langs, tr, type Lesson } from '@mathnim/core';
 import { esc, math_html, t, ui_lang } from '@mathnim/present';
 import { ScenePlayer } from 'manim-web/ext/player';
-import { COURSE, cached_generation, playable, type CourseLesson } from '../course';
+import { COURSES, all_lessons, cached_generation, playable, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
 import { provider } from '../settings';
 import { home_context } from '../student';
-import { last_lesson, learner, log } from '../store';
+import { choose_course, current_course, last_lesson, learner, log } from '../store';
 
 function skills_of(cl: CourseLesson) {
   return cl.lesson?.skills ?? cached_generation(cl.id)?.plan.skills ?? [];
@@ -31,18 +31,24 @@ function tag(l: CourseLesson): string {
 
 export function home(root: HTMLElement): void {
   const lang = ui_lang();
-  const all = COURSE.units.flatMap((u) => u.lessons);
-  const last = all.find((l) => l.id === last_lesson()) ?? all[0];
+  const course = current_course();
+  const all = course.units.flatMap((u) => u.lessons);
+  // "Continue" only for a lesson of this course; a course not started yet says "Start" on its first lesson
+  const resumed = all.find((l) => l.id === last_lesson());
+  const last = resumed ?? all[0];
   const skills = Object.keys(learner.state.skills);
   const mastered = skills.filter((s) => learner.mastered(s)).length;
   const due = learner.due().length;
   root.innerHTML = `
+    ${COURSES.length > 1 ? `<div class="courses" role="tablist" aria-label="${esc(t('courses'))}">${COURSES.map((c) => `
+      <button class="course-pill${c === course ? ' on' : ''}" role="tab" aria-selected="${c === course}" data-course="${c.id}">${esc(tr(c.title, lang))}</button>`).join('')}
+    </div>` : ''}
     <div class="hero">
       <div class="card">
-        <div class="muted" style="font-size:13px">${math_html(tr(COURSE.title, lang))}</div>
-        <h2 style="font-size:26px;letter-spacing:-.02em;margin:6px 0 10px">${esc(t('hero'))}</h2>
+        <div class="muted" style="font-size:13px">${math_html(tr(course.title, lang))}</div>
+        <h2 style="font-size:26px;letter-spacing:-.02em;margin:6px 0 10px">${esc(course.summary ? tr(course.summary, lang) : t('hero'))}</h2>
         <div class="row" style="margin:14px 0">
-          <a class="mn-btn primary" href="#/lesson/${last.id}" style="text-decoration:none">${math_html(t(last_lesson() ? 'continue_lesson' : 'start_lesson', { title: tr(last.title, lang) }))}</a>
+          <a class="mn-btn primary" href="#/lesson/${last.id}" style="text-decoration:none">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(last.title, lang) }))}</a>
           <a class="mn-btn" href="#/review" style="text-decoration:none">${esc(due ? t('review_due', { n: due }) : t('practice'))}</a>
         </div>
         <div class="row muted" style="gap:22px;font-size:13px">
@@ -52,7 +58,7 @@ export function home(root: HTMLElement): void {
       </div>
       <div class="card"><h2>${esc(t('ask_anything'))}</h2><div class="muted" style="font-size:13px;margin-bottom:10px">${esc(t('ask_sub'))}</div><div id="ask"></div></div>
     </div>
-    <div class="units">${COURSE.units.map((u) => `
+    <div class="units">${course.units.map((u) => `
       <section class="unit"><h3>${math_html(tr(u.title, lang))}</h3><div class="lessons">${u.lessons.map((l) => `
         <a class="card lesson-card" href="#/lesson/${l.id}">
           <canvas class="thumb" width="640" height="360" data-lesson="${l.id}" aria-hidden="true"></canvas>
@@ -62,10 +68,18 @@ export function home(root: HTMLElement): void {
           ${ring(l)}
         </a>`).join('')}</div></section>`).join('')}
     </div>`;
+  for (const b of root.querySelectorAll<HTMLButtonElement>('.course-pill')) {
+    b.addEventListener('click', () => {
+      choose_course(b.dataset.course!);
+      home(root);
+    });
+  }
   void draw_thumbnails(root);
   new AskPanel(root.querySelector<HTMLElement>('#ask')!, {
     provider, validate: worker_validator(), log,
-    suggestions: [RECORDED[5], RECORDED[4], RECORDED[1], RECORDED[3]].map((r) => recorded_question(r, ui_lang())),
+    suggestions: course.suggestions
+      ? course.suggestions.map((q) => tr(q, lang))
+      : [RECORDED[5], RECORDED[4], RECORDED[1], RECORDED[3]].map((r) => recorded_question(r, ui_lang())),
     context: home_context,
   });
 }
@@ -73,7 +87,7 @@ export function home(root: HTMLElement): void {
 /** Each card shows the final frame of its lesson's first scene, rendered live by manim-web. */
 async function draw_thumbnails(root: HTMLElement): Promise<void> {
   for (const c of root.querySelectorAll<HTMLCanvasElement>('canvas.thumb')) {
-    const cl = COURSE.units.flatMap((u) => u.lessons).find((l) => l.id === c.dataset.lesson);
+    const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
     const lesson = cl && playable(cl);
     const step = (cl?.thumb && lesson?.steps.find((s: any) => s.id === cl.thumb && s.scene)) || lesson?.steps.find((s: any) => s.scene);
     if (!step) {

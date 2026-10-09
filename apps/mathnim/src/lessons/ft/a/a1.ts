@@ -4,9 +4,9 @@
 // can and cannot teach, the signal you have decides the method, and the cost
 // math (one world: the break-even of a fine-tuned small model).
 import type { Lesson } from '@mathnim/core';
-import { card_page, case_group, figure, hold, map_scene, T, vis, watch } from '../f/kit';
+import { card_page, case_group, figure, hold, map_scene, OWN, T, vis, watch } from '../f/kit';
 
-const COST = { requests_per_day: 30 };
+const COST = { requests_per_day: 30, hide_nstar: true, controls: 'volume' };
 const SIG = case_group('a1-sig', T('Which signal do you have?', '你手里有哪种信号？'), [{ type: 'p', text: T('For each situation, pick the method the signal points to.', '每个情境，选出信号指向的方法。') }]);
 
 export const lesson: Lesson = {
@@ -77,7 +77,7 @@ export const lesson: Lesson = {
     {
       id: 'levers', kind: 'read', title: T('Two levers: context and weights', '两根杠杆：上下文和权重'),
       blocks: [
-        figure('ft/a/two-levers', T('Left: context, rebuilt for every request. Right: weights, changed by training, affecting every later request.', '左：上下文，每次请求重新拼装。右：权重，靠训练改动，影响之后所有请求。'), undefined, 'original'),
+        figure('ft/a/two-levers', T('Left: context, rebuilt for every request. Right: weights, changed by training, affecting every later request.', '左：上下文，每次请求重新拼装。右：权重，靠训练改动，影响之后所有请求。'), undefined, OWN),
         { type: 'p', text: T(
           'Changing the **context** is like handing someone notes before each task: it acts on this request only, takes effect at once, and is undone by removing the notes. Changing the **weights** is like changing the person: it acts on every later request, including ones you never tested.',
           '改**上下文**，像是每次做事前递给对方一张便条：只影响这一次，立刻生效，拿走便条就撤销了。改**权重**，像是改变这个人本身：影响之后的每一次，包括你没测过的那些。',
@@ -93,7 +93,7 @@ export const lesson: Lesson = {
           'The side effects are real: fine-tuning on ordinary, benign data can weaken a model\'s safety behaviour[^qi]. Part B shows how to measure and limit this.',
           '副作用是真实存在的：即使用正常、无害的数据微调，也可能削弱模型的安全行为[^qi]。B 部分会讲怎么测、怎么减轻。',
         ) },
-        { type: 'cite', key: 'qi', text: T('Qi et al., Fine-tuning aligned language models compromises safety, ICLR 2024', 'Qi et al., Fine-tuning aligned language models compromises safety, ICLR 2024'), url: 'https://arxiv.org/abs/2310.03693' },
+        { type: 'cite', key: 'qi', text: T('Qi et al., Fine-tuning aligned language models compromises safety, ICLR 2024', '出处：Qi et al., Fine-tuning aligned language models compromises safety, ICLR 2024'), url: 'https://arxiv.org/abs/2310.03693' },
       ],
     },
     // ---------------------------------------------------------------- 2. can fine-tuning add knowledge?
@@ -132,9 +132,9 @@ export const lesson: Lesson = {
           'This is not settled. Gains in maths, code and multi-step reasoning keep growing with more fine-tuning data, so "alignment is only style" is too simple[^raghavendra]; and practitioners do teach domain knowledge with enough varied, repeated data. A fair summary: fine-tuning *can* add knowledge, but it needs many paraphrased repetitions and risks more hallucination - for facts that change, use the context.',
           '这一点还有争论。数学、代码、多步推理这类能力，会随微调数据增多而持续提升，所以"对齐只改风格"的说法过于简单[^raghavendra]；实践中也有人用足够多、反复改写的数据教会模型领域知识。比较公允的说法是：微调*可以*加知识，但需要大量改写过的重复数据，而且有幻觉风险；会变化的事实，放进上下文。',
         ) },
-        { type: 'cite', key: 'gekhman', text: T('Gekhman et al., Does fine-tuning LLMs on new knowledge encourage hallucinations? EMNLP 2024', 'Gekhman et al., Does fine-tuning LLMs on new knowledge encourage hallucinations? EMNLP 2024'), url: 'https://arxiv.org/abs/2405.05904' },
-        { type: 'cite', key: 'ovadia', text: T('Ovadia et al., Fine-tuning or retrieval? Comparing knowledge injection in LLMs', 'Ovadia et al., Fine-tuning or retrieval? Comparing knowledge injection in LLMs'), url: 'https://arxiv.org/abs/2312.05934' },
-        { type: 'cite', key: 'raghavendra', text: T('Raghavendra et al. 2024, Revisiting the superficial alignment hypothesis', 'Raghavendra et al. 2024, Revisiting the superficial alignment hypothesis'), url: 'https://arxiv.org/abs/2410.03717' },
+        { type: 'cite', key: 'gekhman', text: T('Gekhman et al., Does fine-tuning LLMs on new knowledge encourage hallucinations? EMNLP 2024', '出处：Gekhman et al., Does fine-tuning LLMs on new knowledge encourage hallucinations? EMNLP 2024'), url: 'https://arxiv.org/abs/2405.05904' },
+        { type: 'cite', key: 'ovadia', text: T('Ovadia et al., Fine-tuning or retrieval? Comparing knowledge injection in LLMs', '出处：Ovadia et al., Fine-tuning or retrieval? Comparing knowledge injection in LLMs'), url: 'https://arxiv.org/abs/2312.05934' },
+        { type: 'cite', key: 'raghavendra', text: T('Raghavendra et al. 2024, Revisiting the superficial alignment hypothesis', '出处：Raghavendra et al. 2024, Revisiting the superficial alignment hypothesis'), url: 'https://arxiv.org/abs/2410.03717' },
       ],
     },
     // ---------------------------------------------------------------- 3. the signal decides the method
@@ -145,7 +145,7 @@ export const lesson: Lesson = {
           'Every way of changing the weights learns from some **signal**. Which one you can produce is usually what decides the method - not which method sounds most advanced.',
           '每一种改权重的方法，都要从某种**信号**里学。你能拿出哪种信号，往往就决定了用哪种方法，而不是看哪种方法听起来最先进。',
         ) },
-        figure('ft/a/signal-method', T('Table: documents → context; labels → encoder classifier; demonstrations → SFT; comparisons → preference optimization; verifier → RLVR; teacher → distillation.', '表：文档 → 上下文；标签 → 编码器分类模型；示范 → SFT；比较 → 偏好优化；验证器 → RLVR；老师 → 蒸馏。'), undefined, 'original; after Lambert, RLHF book (format, signal, optimization)'),
+        figure('ft/a/signal-method', T('Table: documents → context; labels → encoder classifier; demonstrations → SFT; comparisons → preference optimization; verifier → RLVR; teacher → distillation.', '表：文档 → 上下文；标签 → 编码器分类模型；示范 → SFT；比较 → 偏好优化；验证器 → RLVR；老师 → 蒸馏。'), undefined, { en: 'drawn for this course, after Lambert, RLHF book', zh: '本课绘制，参考 Lambert《RLHF》一书' }),
         { type: 'list', items: [
           T('**SFT** (supervised fine-tuning): you show good answers and the model learns to imitate them - the workhorse of fine-tuning, usually with LoRA (part B).', '**SFT**（监督微调）：给出好的回答，让模型模仿。它是微调的主力，通常配合 LoRA 使用（B 部分）。'),
           T('**Preference optimization** (DPO): when people can say which of two answers is better but cannot write the ideal one (part D).', '**偏好优化**（DPO）：人能判断两个回答哪个更好，却写不出理想答案时使用（D 部分）。'),
@@ -157,13 +157,14 @@ export const lesson: Lesson = {
           'Why not always use the strongest-sounding method? Because a weaker signal cannot be made up for by a fancier algorithm. One example: to make a 32B model good at competition maths, distilling a stronger model\'s reasoning beat running RL on the 32B model itself.',
           '为什么不直接用听起来最强的方法？因为信号弱，换个更花哨的算法也补不回来。举个例子：想让一个 32B 模型擅长竞赛数学，蒸馏更强模型的推理过程，效果胜过直接在这个 32B 模型上做强化学习。',
         ) },
-        figure('ft/a/distill-vs-rl', T('Bars: Qwen-32B with RL 47.0 vs distilled 72.6 on AIME 2024; RL 67.6 vs on-policy distillation 74.4 at about a tenth of the GPU hours.', '条形图：Qwen-32B 直接强化学习 47.0，蒸馏 72.6（AIME 2024）；强化学习 67.6，在线蒸馏 74.4，后者约用 1/10 的 GPU 时。'), undefined, 'DeepSeek-R1 (arXiv:2501.12948); Thinking Machines, On-policy distillation (2025)'),
+        figure('ft/a/distill-vs-rl', T('Bars: Qwen-32B with RL 47.0 vs distilled 72.6 on AIME 2024; RL 67.6 vs on-policy distillation 74.4 at about a tenth of the GPU hours.', '条形图：Qwen-32B 直接强化学习 47.0，蒸馏 72.6（AIME 2024）；强化学习 67.6，在线蒸馏 74.4，后者约用 1/10 的 GPU 时。'), T('On-policy distillation: the student writes its own answers and the teacher scores every token - lesson E3 explains it.', '在线蒸馏：学生自己写回答，老师给每个 token 打分（E3 课详讲）。'), 'DeepSeek-R1 (arXiv:2501.12948); Thinking Machines, On-policy distillation (2025)'),
         { type: 'details', summary: T('All eight ways side by side (data, cost, typical failure, real use)', '八种方法对照（数据、成本、典型失败、实际使用程度）'), blocks: [
+          { type: 'p', text: T('In the last column, "models" counts the models on the Hugging Face Hub that carry the method\'s training tag; "teams" comes from the 2026 survey.', '最后一列里，"个模型"指 Hugging Face Hub 上带这种训练标签的模型数；"团队"来自 2026 年的调查。') },
           { type: 'table', head: [T('method', '方法'), T('changes', '改哪里'), T('signal', '信号'), T('typical failure', '典型失败'), T('how common (2025-26)', '实际使用程度')], rows: [
             [T('prompting, context engineering', '提示词、上下文工程'), T('context', '上下文'), T('none (an eval set)', '无（只要评测集）'), T('long prompts ignored, brittle', '长提示里的指令被忽略、不稳定'), T('~80% of teams', '约 80% 的团队')],
             [T('RAG', 'RAG'), T('context', '上下文'), T('documents', '文档'), T('wrong chunk retrieved (A2)', '取回了错误的块（A2）'), T('~49% of teams', '约 49% 的团队')],
-            [T('encoder classifier', '编码器分类模型'), T('a small model', '一个小模型'), T('labels', '标签'), T('labels drift', '类别会变'), T('43k models on the Hub', 'Hub 上 4.3 万个')],
-            [T('SFT, usually LoRA', 'SFT，通常用 LoRA'), T('weights', '权重'), T('demonstrations', '示范'), T('template bugs, forgetting', '模板错误、遗忘'), T('the main method: 78k models', '主力：7.8 万个模型')],
+            [T('encoder classifier', '编码器分类模型'), T('a small model', '一个小模型'), T('labels', '标签'), T('labels drift', '类别会变'), T('43k classifier models', '4.3 万个分类模型')],
+            [T('SFT, usually LoRA', 'SFT，通常用 LoRA'), T('weights', '权重'), T('demonstrations', '示范'), T('template bugs, forgetting', '模板错误、遗忘'), T('the main method: 78k SFT models', '主力：7.8 万个 SFT 模型')],
             [T('preference (DPO)', '偏好优化（DPO）'), T('weights', '权重'), T('comparisons', '比较'), T('length bias', '偏向更长的回答'), T('common, fading at the frontier', '常见，前沿配方里在淡出')],
             [T('RLVR / managed RFT', 'RLVR / 托管强化微调'), T('weights', '权重'), T('a verifier or grader', '验证器或评分器'), T('reward hacking', '奖励投机'), T('growing fast', '增长很快')],
             [T('distillation', '蒸馏'), T('a smaller model', '小模型的权重'), T('a teacher', '老师'), T('inherits the teacher\'s errors', '继承老师的错误'), T('universal in labs', '实验室普遍使用')],
@@ -220,7 +221,7 @@ export const lesson: Lesson = {
           T('$F$ on top: the bigger the fixed cost, the more volume you need. With per-token LoRA hosting $F \\approx 0$, and B wins from the first request.', '分子是 $F$：固定成本越高，需要的请求量越大。按 token 计费的托管 LoRA，$F \\approx 0$，B 从第一个请求起就更便宜。'),
           T('$c_A - c_B$ below: what each request saves. Prompt caching cuts the cost of a repeated long prompt (by up to 90%[^cache]), so it shrinks $c_A$ - and moves $N^*$ up.', '分母是 $c_A - c_B$：每次请求省下的钱。提示缓存能把重复长提示的费用降低最多 90%[^cache]，于是 $c_A$ 变小，$N^*$ 变大。'),
         ] },
-        { type: 'cite', key: 'cache', text: T('Anthropic, Introducing Contextual Retrieval (prompt caching), 2024', 'Anthropic, Introducing Contextual Retrieval (prompt caching), 2024'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
+        { type: 'cite', key: 'cache', text: T('Anthropic, Introducing Contextual Retrieval (prompt caching), 2024', '出处：Anthropic, Introducing Contextual Retrieval (prompt caching), 2024'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
       ],
     },
     {
@@ -240,13 +241,18 @@ export const lesson: Lesson = {
       id: 'cost-world', kind: 'explore', title: T('Find the break-even', '找到持平点'), skill: 'a1-costs',
       scene: vis('cost_crossover', COST),
       prompt: T(
-        'Drag the daily requests $N$ until the two lines cross, then press **This is break-even**. Then raise the cache share to 0.8 or more and find the break-even again.',
-        '拖动每天请求数 $N$，直到两条线交叉，按**这是持平点**。然后把缓存比例拉到 0.8 以上，再找一次。',
+        'Where do the two lines cross? Drag the daily requests $N$ to your guess and press **This is break-even** - the true break-even appears only then. After that, the cache share and the fixed cost unlock: raise the cache share to 0.8 or more, guess the new break-even and lock it again.',
+        '两条线在哪里交叉？把每天请求数 $N$ 拖到你认为的位置，按**这是持平点**；真正的持平点这时才会显示。之后缓存比例和固定成本会解锁：把缓存比例拉到 0.8 以上，预测新的持平点，再锁定一次。',
       ),
       setup: (scene: any, ui, _ctx, world) => {
         hold('cost_crossover', COST)(scene, ui, _ctx, world);
-        let cache = false, fzero = false;
+        let cache = false, fzero = false, more = false;
         watch(scene, () => {
+          if (!more && world.state.base) {
+            more = true;
+            scene.attach_controls(ui, ['h', 'F']);
+            world.emit('more_controls');
+          }
           if (!cache && scene.h.get_value() >= 0.75) {
             cache = true;
             world.emit('cache_on');
@@ -283,6 +289,7 @@ export const lesson: Lesson = {
       lines: [
         { text: T('Red is the large model with the long prompt; blue, the fine-tuned small model. Watch where they cross.', '红线是大模型加长提示，蓝线是微调后的小模型。看它们在哪里交叉。'), when: 'enter' },
         { text: T('Left of the crossing, which line is lower?', '交叉点左边，哪条线更低？'), when: 'idle' },
+        { text: T('The cache share and the fixed cost are free now. Before you move N again: which way will the crossing move when the cache gets cheaper?', '缓存比例和固定成本现在可以拖了。再动 N 之前先想一想：缓存让 A 更便宜，交叉点会往哪边移？'), when: { event: 'more_controls' } },
         { text: T('Here the red line is still below the blue one. At low volume, B\'s fixed daily cost is not spread out yet, so fine-tuning costs more.', '这里红线还在蓝线下面。请求量小时，B 每天的固定成本还没摊薄，微调反而更贵。'), when: { finding: 'ft-always-cheaper' } },
         { text: T('With the cache, every request of A got cheaper: the red line dropped, and the crossing moved right.', '开了缓存，A 的每次请求都便宜了：红线往下移，交叉点往右跑。'), when: { event: 'cache_on' } },
         { text: T('That is where the lines crossed before the cache. Caching made c A smaller, so c A minus c B shrank and N star grew.', '那是开缓存之前的交叉点。缓存让 c A 变小，分母 c A 减 c B 跟着变小，N 星就变大了。'), when: { finding: 'cache-ignored' } },
@@ -313,7 +320,7 @@ export const lesson: Lesson = {
       T('Do not fine-tune by default. Write the evaluation first and get a baseline with the strongest model and good context engineering. Sort what still fails into knowledge, behaviour, capability or cost. Knowledge goes into the context. For the rest, the signal you have - demonstrations, comparisons, a verifier, a teacher, labels - picks the method; fixed labels go to an encoder classifier.',
         '默认不微调。先写评测，用最强的模型加上好的上下文工程跑出基线。把剩下的失败分成知识、行为、能力、成本四类。知识放进上下文；其余的，看手里的信号（示范、比较、验证器、老师、标签）来选方法；输出是固定标签的，交给编码器分类模型。'),
       T('Fine-tuning on 500 FAQ answers so the model "remembers" a new product. It learns the FAQ\'s tone, not reliable facts - and makes up the missing ones.', '用 500 条 FAQ 做微调，想让模型"记住"新产品。它学到的是 FAQ 的口吻，不是可靠的事实，缺的部分还会编造。'),
-      'DM-0, DM-1, DM-T, DM-2'),
+      { en: 'the first questions on the map', zh: '决策图最上面的几个问题' }),
     // ---------------------------------------------------------------- checks
     {
       id: 'why-context', kind: 'checkpoint', skill: 'a1-levers', purpose: 'check', chapter: T('Check', '检验'), title: T('Explain it', '用自己的话说'),
@@ -336,11 +343,11 @@ export const lesson: Lesson = {
       ),
       question: { type: 'choice', options: [
         { id: 'a', label: T('SFT on the problems and their final answers', '用题目和答案做 SFT'), feedback: T('A final answer is not a demonstration of how to solve the problem; it can serve as a verifier instead.', '最终答案不是解题过程的示范；它可以当验证器用。') },
-        { id: 'b', label: T('Check that the model solves some of them when sampled many times (pass@k > 0), then use the answers as a verifier for RLVR', '先测模型多次采样时能不能偶尔做对（pass@k > 0），再把答案当验证器做 RLVR'), correct: true },
+        { id: 'b', label: T('Let the model try each problem many times (say 64) and check that it gets some right at least once; then use the final answers as a checker for RLVR', '让模型对每道题试很多次（比如 64 次），看能不能至少做对一次；再把标准答案当成判分器，做 RLVR'), correct: true },
         { id: 'c', label: T('Have people compare pairs of solutions, then DPO', '请人两两比较解答，再做 DPO'), misconception: 'rl-strictly-better', feedback: T('With a verifier available, comparisons are a weaker and costlier signal.', '已经有验证器了，比较是更弱也更贵的信号。') },
         { id: 'd', label: T('Put the problems into a RAG index', '把题目放进 RAG 索引'), misconception: 'ft-injects-knowledge', feedback: T('What is missing is a skill, not a fact.', '缺的是能力，不是事实。') },
       ] },
-      explain: T('If the model never solves a problem even in 64 tries, RL gets no signal at all: start with easier problems, or find a teacher. Part E works this out.', '如果模型尝试 64 次都做不对一道题，强化学习就完全拿不到信号：要先换更容易的题，或者找一个老师模型。E 部分会展开。'),
+      explain: T('If the model never solves a problem even in 64 tries, RL gets no signal at all: start with easier problems, or find a teacher. Part E calls this check pass@k and works it out.', '如果模型尝试 64 次都做不对一道题，强化学习就完全拿不到信号：要先换更容易的题，或者找一个老师模型。E 部分把这个检查叫作 pass@k，并会展开讲。'),
     },
   ],
 };

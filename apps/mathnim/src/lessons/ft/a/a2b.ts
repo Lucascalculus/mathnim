@@ -55,7 +55,7 @@ export const lesson: Lesson = {
           '训练数据有三个来源：用户点击或采纳了什么的日志；让模型针对每段文字写出的问题（给它几个例子就够[^promptagator]），再人工抽查；还有*负例*，也就是不是答案的段落。本课剩下的部分，讲损失函数怎么用这些数据。',
         ) },
         { type: 'cite', key: 'adopt', text: T('research-adoption.md, item 5: 7,994 sentence-transformers models trained with the Trainer; Databricks (2025); Unsloth (2026)', 'research-adoption.md 第 5 条：7,994 个用 Trainer 训练的 sentence-transformers 模型；Databricks（2025）；Unsloth（2026）'), url: 'https://www.databricks.com/en/blog/improving-retrieval-and-rag-embedding-model-finetuning' },
-        { type: 'cite', key: 'promptagator', text: T('Dai et al., Promptagator: Few-shot Dense Retrieval From 8 Examples (2022)', 'Dai et al., Promptagator: Few-shot Dense Retrieval From 8 Examples (2022)'), url: 'https://arxiv.org/abs/2209.11755' },
+        { type: 'cite', key: 'promptagator', text: T('Dai et al., Promptagator: Few-shot Dense Retrieval From 8 Examples (2022)', '出处：Dai et al., Promptagator: Few-shot Dense Retrieval From 8 Examples (2022)'), url: 'https://arxiv.org/abs/2209.11755' },
       ],
     },
     // ---------------------------------------------------------------- 2. the contrastive loss
@@ -67,7 +67,7 @@ export const lesson: Lesson = {
           '怎样教会编码器"这个问题配这段文字"？把它变成你熟悉的分类问题。取一批（问题，段落）对。对每个问题，它自己的段落是正确类别，同一批里的其他段落是错误类别，也就是免费得到的*负例*。用每个候选和问题的相似度打分，再算 softmax 交叉熵。这就是 **InfoNCE** 损失[^cpc]（sentence-transformers 里叫 MultipleNegativesRankingLoss）。',
         ) },
         { type: 'p', text: T('Two things to watch in the derivation that follows: which negatives get pushed hardest, and what the temperature $\\tau$ does.', '接下来推导时，留意两件事：哪些负例被推得最狠，以及温度 $\\tau$ 起什么作用。') },
-        { type: 'cite', key: 'cpc', text: T('van den Oord, Li & Vinyals, Representation Learning with Contrastive Predictive Coding (2018), section 2.3', 'van den Oord, Li & Vinyals, Representation Learning with Contrastive Predictive Coding (2018), section 2.3'), url: 'https://arxiv.org/abs/1807.03748' },
+        { type: 'cite', key: 'cpc', text: T('van den Oord, Li & Vinyals, Representation Learning with Contrastive Predictive Coding (2018), section 2.3', '出处：van den Oord, Li & Vinyals, Representation Learning with Contrastive Predictive Coding (2018), section 2.3'), url: 'https://arxiv.org/abs/1807.03748' },
       ],
     },
     {
@@ -129,6 +129,7 @@ export const lesson: Lesson = {
               } else if (!filtered && scene.rev.get_value() > 0.5 && after > before + 1) world.emit('pushed_again');
               if (filtered) world.state.filtered_steps = ((world.state.filtered_steps as number) ?? 0) + 10;
               world.emit('trained', { share, tau, filtered, warmer: tau > 0.5 && share < 0.85, angle: after });
+              if (!filtered && share < 0.85 && tau <= 0.5) world.emit('spread');
             });
           },
         },
@@ -154,6 +155,7 @@ export const lesson: Lesson = {
         { text: T('Each arrow is an embedding of length one. The small arrows at the tips are one training step: green pulls, gold pushes.', '每支箭头是一个长度为一的向量。箭头尖上的小箭头是一步训练：绿色是拉，金色是推。'), when: 'enter' },
         { text: T('Watch the bars as you lower tau: which negative takes over?', '把 tau 往下调时盯着柱子：哪个负例占了上风？'), when: 'idle' },
         { text: T('Warmer is flatter: a high tau makes the softmax even, so the push is spread thin over all negatives.', '温度越高越平：tau 大时 softmax 很平，推力被薄薄地分给所有负例。'), when: { finding: 'tau-direction' } },
+        { text: T('The push was still spread over several negatives, so nothing moved much. Lower tau first.', '推力还分散在好几个负例上，所以谁都没怎么动。先把 tau 调低。'), when: { event: 'spread' } },
         { text: T('n one is not a wrong passage at all - it answers the question too. It looked like the hardest negative because it is relevant, and the loss pushed it hardest.', 'n 一其实不是错误的段落，它也能回答这个问题。它看起来像最难的负例，正是因为它相关；而损失把它推得最狠。'), when: { event: 'revealed' } },
         { text: T('Still unfiltered: every step pushes the relevant passage further. Switch the filter on.', '还没过滤：每多训练一步，这段相关的文字就被推得更远。打开过滤吧。'), when: { finding: 'false-negatives-harmless' } },
         { text: T('This is why hard-negative mining drops candidates that score almost as high as the positive: they are often not negatives at all.', '所以挖难负例时，要丢掉分数几乎和正例一样高的候选：它们往往根本不是负例。'), when: 'goal' },
@@ -177,8 +179,8 @@ export const lesson: Lesson = {
           T('**Split by document**, not by question, or test questions will match passages seen in training.', '**按文档划分**训练集和测试集，而不是按问题划分；否则测试题会碰到训练时见过的段落。'),
           T('**Re-index after tuning the embedding model.** Stored vectors come from the old model; the new model\'s vectors live in a different space. A reranker scores pairs at question time, so swapping it needs no re-indexing.', '**微调完向量模型要重建索引。**索引里存的是旧模型算出的向量，新模型的向量在另一个空间里。重排模型是在提问时给（问题，段落）打分，换它不用重建索引。'),
         ] },
-        { type: 'cite', key: 'stneg', text: T('sentence-transformers: hard negatives mining', 'sentence-transformers: hard negatives mining'), url: 'https://sbert.net/docs/package_reference/util/hard_negatives.html' },
-        { type: 'cite', key: 'cpc2', text: T('van den Oord et al. (2018), section 2.3', 'van den Oord et al. (2018), section 2.3'), url: 'https://arxiv.org/abs/1807.03748' },
+        { type: 'cite', key: 'stneg', text: T('sentence-transformers: hard negatives mining', '出处：sentence-transformers: hard negatives mining'), url: 'https://sbert.net/docs/package_reference/util/hard_negatives.html' },
+        { type: 'cite', key: 'cpc2', text: T('van den Oord et al. (2018), section 2.3', '出处：van den Oord et al. (2018), section 2.3'), url: 'https://arxiv.org/abs/1807.03748' },
       ],
     },
     {
@@ -222,7 +224,7 @@ corpus_vectors = model.encode(chunks, normalize_embeddings=True)   # re-index: o
     card_page('card',
       T('Find where the right chunk is lost. In the top 100 but not the top 20: a reranker, then tune it. Never near: query rewriting and hybrid search, then tune the embedding model with in-batch negatives and filtered hard negatives - and re-index. In the prompt but misused: fix the assembly, then RAFT.', '先找出正确的块在哪里丢的。在前 100 但不在前 20：加重排模型，再微调它。根本靠不近：先做查询改写和混合检索，再用批内负例加过滤后的难负例微调向量模型，然后重建索引。进了提示却被用错：先改拼法，再考虑 RAFT。'),
       T('Mining the top-ranked passages as negatives without filtering: some of them answer the question too, and the loss pushes exactly those away the hardest.', '把排名最靠前的段落不加过滤地当负例：其中有些其实也能回答问题，而损失恰恰把它们推得最狠。'),
-      'DM-K3'),
+      { en: 'fixing retrieval, in the knowledge branch', zh: "'知识'一支里的'修检索'" }),
     {
       id: 'case-med', kind: 'checkpoint', skill: 'a2b-which', purpose: 'check', chapter: T('Check', '检验'), title: T('A new case', '一个新情境'),
       prompt: T('Doctors ask with abbreviations ("DAPT after PCI"); the papers spell the terms out. The right paper is often not even in the top 300, and BM25 does not find it either. What first, and what next?', '医生提问用缩写（"PCI 术后 DAPT"），文献里写的是全称。正确的文献常常连前 300 都进不了，BM25 也找不到。先做什么？再做什么？'),

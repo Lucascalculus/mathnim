@@ -51,10 +51,10 @@ export const lesson: Lesson = {
           'Sometimes you should. If the whole knowledge base is under about 200,000 tokens, put all of it in the prompt and use prompt caching[^anthropic]. With more text, long context costs much more per question than retrieval, and models use information in the middle of a long context less well[^li][^liu]. RAG is how you pick the few pages that matter.',
           '有时候确实应该这么做。整个知识库不到约 20 万 token 时，直接全部放进提示，再配合提示缓存[^anthropic]。文字一多，长上下文每个问题的成本比检索高得多，而且模型对长上下文中间部分的利用也更差[^li][^liu]。RAG 的作用，就是挑出真正相关的那几页。',
         ) },
-        { type: 'cite', key: 'lewis', text: T('Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, NeurIPS 2020', 'Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, NeurIPS 2020'), url: 'https://arxiv.org/abs/2005.11401' },
-        { type: 'cite', key: 'anthropic', text: T('Anthropic, Introducing Contextual Retrieval (2024)', 'Anthropic, Introducing Contextual Retrieval (2024)'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
-        { type: 'cite', key: 'li', text: T('Li et al., Retrieval Augmented Generation or Long-Context LLMs? EMNLP 2024', 'Li et al., Retrieval Augmented Generation or Long-Context LLMs? EMNLP 2024'), url: 'https://arxiv.org/abs/2407.16833' },
-        { type: 'cite', key: 'liu', text: T('Liu et al., Lost in the Middle, TACL', 'Liu et al., Lost in the Middle, TACL'), url: 'https://arxiv.org/abs/2307.03172' },
+        { type: 'cite', key: 'lewis', text: T('Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, NeurIPS 2020', '出处：Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, NeurIPS 2020'), url: 'https://arxiv.org/abs/2005.11401' },
+        { type: 'cite', key: 'anthropic', text: T('Anthropic, Introducing Contextual Retrieval (2024)', '出处：Anthropic, Introducing Contextual Retrieval (2024)'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
+        { type: 'cite', key: 'li', text: T('Li et al., Retrieval Augmented Generation or Long-Context LLMs? EMNLP 2024', '出处：Li et al., Retrieval Augmented Generation or Long-Context LLMs? EMNLP 2024'), url: 'https://arxiv.org/abs/2407.16833' },
+        { type: 'cite', key: 'liu', text: T('Liu et al., Lost in the Middle, TACL', '出处：Liu et al., Lost in the Middle, TACL'), url: 'https://arxiv.org/abs/2307.03172' },
       ],
     },
     {
@@ -77,6 +77,17 @@ export const lesson: Lesson = {
           'Divide by the lengths and only the direction counts. In practice every vector is normalised to length 1 once, at indexing, and the cosine becomes a plain dot product - which vector indexes compute very fast[^hnsw]. The chunk vectors are computed once; each question costs one encoder pass and a search. That is why this kind of model (a *bi-encoder*) can search millions of chunks[^sbert].',
           '除以长度后，只剩方向起作用。实践中，在建索引时就把每个向量归一化成长度 1，余弦就变成普通的点积，向量索引算点积非常快[^hnsw]。块的向量只算一次；每个问题只需编码一次再检索一次。所以这类模型（*双编码器*）能在上百万个块里检索[^sbert]。',
         ) },
+        { type: 'details', summary: T('Details: query and passage prefixes, approximate search', '细节：查询与段落前缀、近似检索'), blocks: [
+          { type: 'p', text: T('Some embedding models are trained with different prefixes for questions and passages - multilingual-e5 expects `query: ` and `passage: `, and loses accuracy without them[^e5]. Read the model card. Vector indexes such as HNSW search approximately: a little recall is traded for a lot of speed, tuned by a setting such as `ef_search`[^hnsw].', '有些向量模型训练时，问题和段落用的前缀不同：multilingual-e5 要求加 `query: ` 和 `passage: `，不加会掉精度[^e5]。用之前先看模型卡。HNSW 这类向量索引做的是近似检索：牺牲一点召回，换来很大的速度提升，可以用 `ef_search` 这类参数调节[^hnsw]。') },
+        ] },
+        { type: 'cite', key: 'sbert', text: T('Reimers & Gurevych, Sentence-BERT, EMNLP 2019', '出处：Reimers & Gurevych, Sentence-BERT, EMNLP 2019'), url: 'https://arxiv.org/abs/1908.10084' },
+        { type: 'cite', key: 'hnsw', text: T('Malkov & Yashunin, HNSW (2016)', '出处：Malkov & Yashunin, HNSW (2016)'), url: 'https://arxiv.org/abs/1603.09320' },
+        { type: 'cite', key: 'e5', text: T('multilingual-e5-small model card', '出处：multilingual-e5-small model card'), url: 'https://huggingface.co/intfloat/multilingual-e5-small' },
+      ],
+    },
+    {
+      id: 'hybrid', kind: 'read', title: T('Words still matter: hybrid search', '字面也重要：混合检索'),
+      blocks: [
         { type: 'p', text: T(
           '**Why not just search for the words?** Because people ask with other words than the documents use. In our test corpus (16 Wikipedia articles), "How wide is Venus?" found the right chunk first by meaning, but only 10th by keywords (BM25): the article says "diameter", not "wide".',
           '**为什么不直接按关键词搜？** 因为提问的人和写文档的人用词不同。在本课的测试语料（16 篇维基百科条目）里，"How wide is Venus?"（金星有多宽）按意思检索，正确的块排第 1；按关键词检索（BM25）只排第 10，因为文章里写的是"diameter"（直径），不是"wide"。',
@@ -85,19 +96,13 @@ export const lesson: Lesson = {
           '**Then why not vectors alone?** Because exact strings matter too: an error code, a product number or a rare name carries little "meaning" for an embedding, while keyword search finds it exactly. Keyword search is also a robust baseline across domains[^beir]. So production systems usually run both and merge the two ranked lists. The simplest merge, **reciprocal rank fusion**, only looks at ranks:',
           '**那为什么不只用向量？** 因为精确的字符串也重要：一个错误码、一个产品编号、一个生僻的名字，对向量模型来说没什么"意思"，关键词检索却能精确命中。在各种领域里，关键词检索也是一个稳健的基线[^beir]。所以线上系统通常两种都跑，再把两份排名合并。最简单的合并方法叫**倒数排名融合**（RRF），只看名次：',
         ) },
-        { type: 'math', tex: '\\text{RRF}(d) = \\sum_{\\text{retrievers}} \\frac{1}{60 + \\text{rank}(d)}' },
+        { type: 'math', tex: '\\mathrm{RRF}(d) = \\sum_{r} \\frac{1}{60 + \\mathrm{rank}_r(d)}' },
         { type: 'p', text: T(
-          'A chunk near the top of either list gets a large share; the 60 keeps one first place from dominating. It needs no score calibration - BM25 scores are unbounded, cosines lie in [−1, 1], and RRF never compares them[^rrf].',
-          '在任一份名单里排得靠前的块，都能拿到较大的分数；常数 60 让单个第一名不至于压倒一切。它不需要校准分数：BM25 的分数没有上限，余弦在 [−1, 1] 之间，而 RRF 根本不比较它们[^rrf]。',
+          'Here $r$ runs over the retrievers (keyword, vector) and $\\mathrm{rank}_r(d)$ is the chunk\'s place in retriever $r$\'s list. A chunk near the top of either list gets a large share; the 60 keeps one first place from dominating. It needs no score calibration - BM25 scores are unbounded, cosines lie in [−1, 1], and RRF never compares them[^rrf].',
+          '其中 $r$ 取遍各个检索器（关键词、向量），$\\mathrm{rank}_r(d)$ 是这个块在检索器 $r$ 名单里的名次。在任一份名单里排得靠前的块，都能拿到较大的分数；常数 60 让单个第一名不至于压倒一切。它不需要校准分数：BM25 的分数没有上限，余弦在 [−1, 1] 之间，而 RRF 根本不比较它们[^rrf]。',
         ) },
-        { type: 'details', summary: T('Details: query and passage prefixes, approximate search', '细节：查询与段落前缀、近似检索'), blocks: [
-          { type: 'p', text: T('Some embedding models are trained with different prefixes for questions and passages - multilingual-e5 expects `query: ` and `passage: `, and loses accuracy without them[^e5]. Read the model card. Vector indexes such as HNSW search approximately: a little recall is traded for a lot of speed, tuned by a setting such as `ef_search`[^hnsw].', '有些向量模型训练时，问题和段落用的前缀不同：multilingual-e5 要求加 `query: ` 和 `passage: `，不加会掉精度[^e5]。用之前先看模型卡。HNSW 这类向量索引做的是近似检索：牺牲一点召回，换来很大的速度提升，可以用 `ef_search` 这类参数调节[^hnsw]。') },
-        ] },
-        { type: 'cite', key: 'sbert', text: T('Reimers & Gurevych, Sentence-BERT, EMNLP 2019', 'Reimers & Gurevych, Sentence-BERT, EMNLP 2019'), url: 'https://arxiv.org/abs/1908.10084' },
-        { type: 'cite', key: 'hnsw', text: T('Malkov & Yashunin, HNSW (2016)', 'Malkov & Yashunin, HNSW (2016)'), url: 'https://arxiv.org/abs/1603.09320' },
-        { type: 'cite', key: 'beir', text: T('Thakur et al., BEIR, NeurIPS 2021 Datasets & Benchmarks', 'Thakur et al., BEIR, NeurIPS 2021 Datasets & Benchmarks'), url: 'https://arxiv.org/abs/2104.08663' },
-        { type: 'cite', key: 'rrf', text: T('Cormack, Clarke & Büttcher, Reciprocal rank fusion, SIGIR 2009', 'Cormack, Clarke & Büttcher, Reciprocal rank fusion, SIGIR 2009'), url: 'https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf' },
-        { type: 'cite', key: 'e5', text: T('multilingual-e5-small model card', 'multilingual-e5-small model card'), url: 'https://huggingface.co/intfloat/multilingual-e5-small' },
+        { type: 'cite', key: 'beir', text: T('Thakur et al., BEIR, NeurIPS 2021 Datasets & Benchmarks', '出处：Thakur et al., BEIR, NeurIPS 2021 Datasets & Benchmarks'), url: 'https://arxiv.org/abs/2104.08663' },
+        { type: 'cite', key: 'rrf', text: T('Cormack, Clarke & Büttcher, Reciprocal rank fusion, SIGIR 2009', '出处：Cormack, Clarke & Büttcher, Reciprocal rank fusion, SIGIR 2009'), url: 'https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf' },
       ],
     },
     {
@@ -168,7 +173,10 @@ export const lesson: Lesson = {
           const best = best_sizes(scene.lang, BUDGET, 0);
           const ok = ov === 0 && best.includes(size);
           if (ok) world.state.best = true;
-          world.emit('locked', { size, ok, ov, largest: size === SIZES[SIZES.length - 1] || size === 512, smallest: size === 64 });
+          const largest = size === SIZES[SIZES.length - 1] || size === 512, smallest = size === 64;
+          world.emit('locked', { size, ok, ov, largest, smallest });
+          if (!ok && ov > 0) world.emit('locked_with_overlap');
+          else if (!ok && !largest && !smallest) world.emit('locked_close');
         },
       }],
       goals: [
@@ -191,6 +199,8 @@ export const lesson: Lesson = {
         { text: T('Drag the chunk size and watch which cells turn green.', '拖动块大小，看哪些格子变绿。'), when: 'idle' },
         { text: T('A chunk of 512 tokens or more leaves room for only one chunk, or none, and a long chunk ranks worse: its vector mixes many topics.', '512 token 以上的块，只放得下一块，甚至一块都放不下；块越长，向量里混进的话题越多，排名也越差。'), when: { finding: 'chunk-bigger-better' } },
         { text: T('Eight small chunks fit, but look at the crosses: the boundaries cut the answer sentences apart.', '能放下八个小块，但看那些叉号：块的边界把答案句切断了。'), when: { finding: 'chunk-smaller-better' } },
+        { text: T('For the first task, set the overlap back to zero: we compare chunk sizes alone.', '第一个任务先把块重叠调回零：我们只比较块大小本身。'), when: { event: 'locked_with_overlap' } },
+        { text: T('Close. Visit the neighbouring sizes too and compare their bars.', '很接近了。把相邻的块大小也试一试，比比它们的柱子。'), when: { event: 'locked_close' } },
         { text: T('With overlap, neighbouring chunks share some text, so a sentence cut by one boundary can lie whole in the next chunk.', '有了重叠，相邻的块共享一段文字；被一个边界切断的句子，就可能完整地落在下一块里。'), when: { event: 'overlap_on' } },
         { text: T('Neither extreme wins: the best chunk is just big enough to hold its sentences, and no bigger.', '两个极端都不赢：最好的块，刚好大到能装下整句，不再更大。'), when: 'goal' },
       ],
@@ -211,6 +221,8 @@ export const lesson: Lesson = {
     {
       id: 'chunk-practice', kind: 'read', title: T('Chunking in practice', '实践中的切块'),
       blocks: [
+        { type: 'callout', kind: 'note', title: T('The best size depends on your data', '最好的块大小取决于你的数据'), body: T('On these runs the best size was 256 tokens for the English articles and 128 for the Chinese ones: same planets, different text. That is the real lesson - there is no universal chunk size, so measure it on your own questions.', '在这组结果里，英文条目的最佳块大小是 256 token，中文条目是 128：同样是讲行星，文字不同，结果就不同。这正是要记住的：没有通用的最佳块大小，要用你自己的问题去测。') },
+        { type: 'p', text: T('The test corpus: excerpts (the first ~4,000 characters in Chinese, ~12,000 in English) of 16 Wikipedia articles, used under CC BY-SA 4.0[^wiki].', '测试语料：16 篇维基百科条目的节选（中文取前约 4,000 字，英文取前约 12,000 个字符），按 CC BY-SA 4.0 使用[^wiki]。') },
         { type: 'list', items: [
           T('**Overlap** (10-20%) mends cut sentences, at the cost of some repeated text.', '**块重叠**（10%–20%）能修补被切断的句子，代价是一些重复的文字。'),
           T('**Cut along the structure**: headings, paragraphs, whole tables - not at a fixed count if the document has a shape.', '**按结构切**：标题、段落、整张表格。文档有结构时，别死按固定长度切。'),
@@ -218,7 +230,8 @@ export const lesson: Lesson = {
           T('**Give each chunk its context.** A chunk saying "its revenue grew 3%" has lost who "its" is. Prepending 50-100 tokens that place the chunk in its document cut failed retrievals by a third; with keyword search and reranking added, by two thirds[^ctx].', '**给每块补上它的上下文。**一块写着"它的收入增长了 3%"，已经丢掉了"它"是谁。在每块前面加 50–100 token 的说明，交代它在原文中的位置，检索失败率下降约三分之一；再加上关键词检索和重排，下降约三分之二[^ctx]。'),
         ] },
         figure('ft/a/contextual-retrieval', T('Failure rate in the top 20 chunks: 5.7%, 3.7% with contextual embeddings, 2.9% adding contextual BM25, 1.9% adding reranking.', '前 20 块的检索失败率：5.7%；加上下文化向量 3.7%；再加上下文化 BM25 2.9%；再加重排 1.9%。'), undefined, 'Anthropic, Introducing Contextual Retrieval (2024)'),
-        { type: 'cite', key: 'ctx', text: T('Anthropic, Introducing Contextual Retrieval (2024-09-19)', 'Anthropic, Introducing Contextual Retrieval (2024-09-19)'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
+        { type: 'cite', key: 'wiki', text: T('Wikipedia articles on the planets and similar bodies (zh, en), excerpted; licence CC BY-SA 4.0. Sources and revisions: tools/ft-data/af/corpus/SOURCES.json', '出处：维基百科行星及类似天体条目（中、英）节选；许可 CC BY-SA 4.0。来源与版本号见 tools/ft-data/af/corpus/SOURCES.json'), url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+        { type: 'cite', key: 'ctx', text: T('Anthropic, Introducing Contextual Retrieval (2024-09-19)', '出处：Anthropic, Introducing Contextual Retrieval (2024-09-19)'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
       ],
     },
     // ---------------------------------------------------------------- 4. rerank and assemble
@@ -229,7 +242,7 @@ export const lesson: Lesson = {
           'The vector search is fast because it never reads question and chunk together. A **reranker** (a *cross-encoder*) does read them together, so it judges relevance much better - but it needs one full pass per pair, far too slow for the whole corpus. Hence two stages: fetch about 150 candidates quickly, let the reranker keep the best 20[^ctx2][^mono].',
           '向量检索之所以快，是因为它从不把问题和块放在一起读。**重排模型**（交叉编码器）会把两者一起读，所以判断相关性要准得多；但每一对都要完整算一遍，对整份语料来说太慢。于是分两段：先快速取回约 150 个候选，再让重排模型留下最好的 20 个[^ctx2][^mono]。',
         ) },
-        figure('ft/a/bi-cross-encoder', T('Left: bi-encoder, question and chunk encoded separately, compared by cosine. Right: cross-encoder, both read together, one relevance score.', '左：双编码器，问题和块分别编码，用余弦比较。右：交叉编码器，两者一起读，输出一个相关度分数。'), undefined, 'original; Sentence-BERT, monoBERT'),
+        figure('ft/a/bi-cross-encoder', T('Left: bi-encoder, question and chunk encoded separately, compared by cosine. Right: cross-encoder, both read together, one relevance score.', '左：双编码器，问题和块分别编码，用余弦比较。右：交叉编码器，两者一起读，输出一个相关度分数。'), undefined, { en: 'drawn for this course; Sentence-BERT, monoBERT', zh: '本课绘制；参考 Sentence-BERT、monoBERT' }),
         { type: 'p', text: T('Then the chosen chunks go into the prompt. What helps the model use them:', '然后把选中的块放进提示。能帮模型用好它们的做法：') },
         { type: 'list', items: [
           T('**Most relevant first or last.** Models use the middle of a long context least well[^liu2].', '**最相关的放在开头或结尾。**模型对长上下文中间部分利用得最差[^liu2]。'),
@@ -237,11 +250,11 @@ export const lesson: Lesson = {
           T('**Say what to do when the answer is not there**: "say you cannot find it".', '**说清找不到答案时怎么办**："回答找不到"。'),
           T('**Mark retrieved text as data, not instructions.** Text in documents can contain instructions written by an attacker (*indirect prompt injection*)[^greshake]. Delimiters reduce the risk; they do not remove it.', '**把检索到的文字标成资料，而不是指令。**文档里可能夹带攻击者写的指令（*间接提示注入*）[^greshake]。用分隔符能降低风险，但不能根除。'),
         ] },
-        figure('ft/a/lost-in-the-middle', T('Illustration: accuracy against the position of the relevant passage, highest at both ends.', '示意：答对率随相关段落位置的变化，两端最高。'), undefined, 'shape after Liu et al., Lost in the Middle (TACL); illustration'),
-        { type: 'cite', key: 'ctx2', text: T('Anthropic, Introducing Contextual Retrieval (2024): rerank the top 150, keep 20', 'Anthropic, Introducing Contextual Retrieval (2024): rerank the top 150, keep 20'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
-        { type: 'cite', key: 'mono', text: T('Nogueira & Cho, Passage Re-ranking with BERT (2019)', 'Nogueira & Cho, Passage Re-ranking with BERT (2019)'), url: 'https://arxiv.org/abs/1901.04085' },
-        { type: 'cite', key: 'liu2', text: T('Liu et al., Lost in the Middle, TACL', 'Liu et al., Lost in the Middle, TACL'), url: 'https://arxiv.org/abs/2307.03172' },
-        { type: 'cite', key: 'greshake', text: T('Greshake et al., Indirect Prompt Injection (2023)', 'Greshake et al., Indirect Prompt Injection (2023)'), url: 'https://arxiv.org/abs/2302.12173' },
+        figure('ft/a/lost-in-the-middle', T('Illustration: accuracy against the position of the relevant passage, highest at both ends.', '示意：答对率随相关段落位置的变化，两端最高。'), undefined, { en: 'shape after Liu et al., Lost in the Middle (TACL); an illustration', zh: '形状依据 Liu et al.《Lost in the Middle》（TACL），仅为示意' }),
+        { type: 'cite', key: 'ctx2', text: T('Anthropic, Introducing Contextual Retrieval (2024): rerank the top 150, keep 20', '出处：Anthropic, Introducing Contextual Retrieval (2024): rerank the top 150, keep 20'), url: 'https://www.anthropic.com/news/contextual-retrieval' },
+        { type: 'cite', key: 'mono', text: T('Nogueira & Cho, Passage Re-ranking with BERT (2019)', '出处：Nogueira & Cho, Passage Re-ranking with BERT (2019)'), url: 'https://arxiv.org/abs/1901.04085' },
+        { type: 'cite', key: 'liu2', text: T('Liu et al., Lost in the Middle, TACL', '出处：Liu et al., Lost in the Middle, TACL'), url: 'https://arxiv.org/abs/2307.03172' },
+        { type: 'cite', key: 'greshake', text: T('Greshake et al., Indirect Prompt Injection (2023)', '出处：Greshake et al., Indirect Prompt Injection (2023)'), url: 'https://arxiv.org/abs/2302.12173' },
       ],
     },
     // ---------------------------------------------------------------- 5. measuring retrieval
@@ -252,9 +265,9 @@ export const lesson: Lesson = {
         'RAG 答错时，先问一句：正确的块到底有没有进提示？模型只能用它拿到的东西。所以准备一小组真实问题，每个问题标上能回答它的块的编号，把检索和最终回答分开评测。下面每个问题只有一个相关块：',
       ),
       lines: [
-        { tex: '\\text{Recall@}k = \\frac{\\#\\{\\text{questions whose chunk is in the top }k\\}}{\\#\\{\\text{questions}\\}}', why: T('Did the answer get into the prompt at all? With k chunks in the prompt, this is the fraction the model can possibly answer.', '答案到底进没进提示？提示里放 k 块时，这就是模型有可能答对的比例。') },
-        { tex: '\\text{MRR} = \\frac{1}{|Q|}\\sum_{q} \\frac{1}{\\text{rank}_q} \\qquad (\\tfrac{1}{\\text{rank}} = 0 \\text{ if not found})', why: T('How high is it? A first place counts 1, a second place 1/2 - ranking matters because prompts get cut and the middle is used less.', '排得有多靠前？第一名记 1，第二名记 1/2。排名重要，是因为提示会被截断，中间的内容也用得更差。') },
-        { tex: '\\text{ranks } 1,\\ 3,\\ \\text{not found},\\ 2:\\quad \\text{MRR} = \\frac{1 + \\frac13 + 0 + \\frac12}{4}', why: T('Four questions; the third question\'s chunk is not in the top 10, so it adds 0 - but it still counts in the 4.', '四个问题；第三个问题的块没进前 10，所以记 0，但分母仍然是 4。') },
+        { tex: '\\mathrm{Recall@}k = \\frac{|\\{q \\in Q:\\ \\mathrm{rank}_q \\le k\\}|}{|Q|}', why: T('$Q$ is the set of test questions and $\\mathrm{rank}_q$ the place of question $q$\'s answer chunk. Recall@k is the share of questions whose chunk is in the top $k$ - did the answer get into the prompt at all? The model can only answer those.', '$Q$ 是测试问题的集合，$\\mathrm{rank}_q$ 是问题 $q$ 的答案块排在第几。Recall@k 就是答案块进了前 $k$ 的问题所占的比例：答案到底进没进提示？模型只可能答对这些。') },
+        { tex: '\\mathrm{MRR} = \\frac{1}{|Q|}\\sum_{q \\in Q} \\frac{1}{\\mathrm{rank}_q}', why: T('How high is it? A first place counts 1, a second place 1/2; a chunk not found at all counts 0. Ranking matters because prompts get cut and the middle is used less.', '排得有多靠前？第一名记 1，第二名记 1/2，完全没找到记 0。排名重要，是因为提示会被截断，中间的内容也用得更差。') },
+        { tex: '\\mathrm{rank} = 1,\\ 3,\\ \\infty,\\ 2:\\quad \\mathrm{MRR} = \\frac{1 + \\frac13 + 0 + \\frac12}{4}', why: T('Four questions; the third question\'s chunk is not in the top 10 (written ∞), so it adds 0 - but it still counts in the 4.', '四个问题；第三个问题的块没进前 10（记作 ∞），所以贡献 0，但分母仍然是 4。') },
       ],
       blank: { line: 2, answer: '(1 + 1/3 + 0 + 1/2)/4', prompt: T('Write the MRR of these four questions.', '写出这四个问题的 MRR。') },
       outro: T(
@@ -288,8 +301,8 @@ export const lesson: Lesson = {
           T('**Permissions** must be applied at retrieval, not after generation: what is in the prompt can leak.', '**权限**要在检索时就过滤，不能等生成后再过滤：进了提示的内容就可能泄露。'),
           T('**Old and new versions** of a document compete; without dates the model may cite the old one.', '**同一文档的新旧版本**会互相竞争；没有日期信息，模型可能引用旧的。'),
         ] },
-        { type: 'cite', key: 'barnett', text: T('Barnett et al., Seven Failure Points When Engineering a RAG System (2024)', 'Barnett et al., Seven Failure Points When Engineering a RAG System (2024)'), url: 'https://arxiv.org/abs/2401.05856' },
-        { type: 'cite', key: 'graphrag', text: T('Edge et al., From Local to Global: A Graph RAG Approach (2024)', 'Edge et al., From Local to Global: A Graph RAG Approach (2024)'), url: 'https://arxiv.org/abs/2404.16130' },
+        { type: 'cite', key: 'barnett', text: T('Barnett et al., Seven Failure Points When Engineering a RAG System (2024)', '出处：Barnett et al., Seven Failure Points When Engineering a RAG System (2024)'), url: 'https://arxiv.org/abs/2401.05856' },
+        { type: 'cite', key: 'graphrag', text: T('Edge et al., From Local to Global: A Graph RAG Approach (2024)', '出处：Edge et al., From Local to Global: A Graph RAG Approach (2024)'), url: 'https://arxiv.org/abs/2404.16130' },
       ],
     },
     {
@@ -329,7 +342,7 @@ export const lesson: Lesson = {
       T('When RAG is wrong, measure retrieval first (Recall@k). If the right chunk does not reach the prompt, fix in this order: chunking and metadata, hybrid search, reranking, then fine-tuning the reranker or the embedding model (A2b). If it does reach the prompt, change the assembly; fine-tune the generator last.',
         'RAG 答错时，先单独测检索（Recall@k）。正确的块进不了提示，按这个顺序修：切块和元数据 → 混合检索 → 重排 → 微调重排模型或向量模型（A2b）。块进了提示，就改拼提示的方式；微调生成模型放在最后。'),
       T('The answers are wrong, so the team fine-tunes the generator on question-answer pairs. The real problem was that the right chunk never made the top k (FP2): the fine-tuned model now answers confidently without evidence.', '答案错了，团队就拿问答对去微调生成模型。真正的问题是正确的块根本没进前 k（FP2）：微调后的模型只是学会了在没有证据时自信作答。'),
-      'DM-K1, DM-K2, DM-K3, DM-K4'),
+      { en: 'the knowledge branch of the map', zh: "决策图上的'知识'一支" }),
     {
       id: 'transfer', kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check', chapter: T('Check', '检验'), title: T('A new case', '一个新情境'),
       prompt: T('Legal search: Recall@20 is 55%, but for 90% of questions the right clause is somewhere in the top 100. What is the cheapest fix that should work?', '法律条文检索：Recall@20 只有 55%，但 90% 的问题，正确条文都在前 100 名之内。最省事、又最可能有效的修法是？'),

@@ -31,3 +31,6 @@ apps/mathnim/tools/ft-data/.cache/
 
 # local-only backups (e.g. the old standalone manim-web git history)
 .local/
+
+# caches of the fine-tuning data jobs in any subfolder (models, datasets)
+apps/mathnim/tools/ft-data/**/.cache/

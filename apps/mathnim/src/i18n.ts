@@ -13,6 +13,7 @@ define_ui({
   language: { en: 'Language', zh: '语言' },
   offline_answers: { en: 'offline demo answers', zh: '离线演示答案' },
   // ---- home
+  courses: { en: 'Courses', zh: '课程' },
   hero: { en: 'Learn math by watching it move - and moving it yourself.', zh: '看着数学动起来，再亲手让它动起来。' },
   continue_lesson: { en: 'Continue: {title}', zh: '继续：{title}' },
   start_lesson: { en: 'Start: {title}', zh: '开始：{title}' },

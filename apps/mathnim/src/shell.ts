@@ -22,6 +22,10 @@ body{margin:0;background:#fbfbfa}
 .langs button[aria-pressed=true]{background:var(--mn-fg);color:var(--mn-bg)}
 .langs button:focus-visible{outline:2px solid var(--mn-accent);outline-offset:1px}
 .page{max-width:1500px;margin:0 auto;padding:24px}
+.courses{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.course-pill{font:inherit;font-size:14px;font-weight:600;padding:7px 16px;border-radius:999px;border:1px solid var(--mn-border);background:var(--mn-panel);color:var(--mn-muted);cursor:pointer}
+.course-pill:hover{color:var(--mn-fg)}
+.course-pill.on{background:var(--mn-fg);border-color:var(--mn-fg);color:var(--mn-panel)}
 .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start}
 .card{background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:var(--mn-radius);padding:18px;box-shadow:var(--mn-shadow)}
 .card h2{margin:0 0 6px;font-size:18px}

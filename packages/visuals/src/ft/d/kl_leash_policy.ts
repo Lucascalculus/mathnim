@@ -64,7 +64,8 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
       gold = ValueTracker(0);
       /** 1 = the reference model can say the exploit (π_ref = 0.001), 0 = it cannot. */
       can = ValueTracker(1);
-      visited = new Map<number, { k: number; er: number; eg: number }>();
+      /** The range of log10 β visited so far, per state of the switch (index 1: the reference can say the exploit). */
+      seen: [number, number][] = [[Infinity, -Infinity], [Infinity, -Infinity]];
       slider!: HSlider;
       switch_!: Switch;
       emit: (type: string, data?: Record<string, unknown>) => void = () => {};
@@ -86,8 +87,9 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
         can.name = 'exploit_possible';
         this.track(lb, gold, can);
         this.add_updater(() => {
-          const s = this.state();
-          this.visited.set(Math.round(lb.get_value() * 25) / 25 + (can.get_value() > 0.5 ? 0 : 100), { k: Math.sqrt(Math.max(0, s.kl)), er: s.er, eg: s.eg });
+          const r = this.seen[can.get_value() > 0.5 ? 1 : 0], v = lb.get_value();
+          if (v < r[0]) r[0] = v;
+          if (v > r[1]) r[1] = v;
         });
 
         // ---- left: the eight responses
@@ -191,10 +193,18 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
         const ty = y_ticks([-1, 1, 2, 3], Ty, TX0 - 0.12);
         const trace = always_redraw(() => {
           const g = VGroup();
-          const pts = [...this.visited.entries()].filter(([key]) => (key >= 50) === (can.get_value() <= 0.5)).map(([, v]) => v).sort((a, b) => a.k - b.k);
-          for (const v of pts) {
-            g.add(Dot([Tx(v.k), Ty(v.er), 0], { radius: 0.045, color: c.accent }));
-            if (gold.get_value() > 0.5) g.add(Dot([Tx(v.k), Ty(v.eg), 0], { radius: 0.045, color: c.good }));
+          // the curves over the range of β visited so far (a slider moves continuously, so the range is the trace)
+          const cn = can.get_value() > 0.5;
+          const [a, b] = this.seen[cn ? 1 : 0];
+          if (b >= a) {
+            const pr: number[][] = [], pg: number[][] = [];
+            for (let i = 0; i <= 90; i++) {
+              const s = leash_state(10 ** (a + ((b - a) * i) / 90), cn ? LEASH[N - 1].ref : 0), k = Math.sqrt(Math.max(0, s.kl));
+              pr.push([Tx(k), Ty(s.er)]);
+              pg.push([Tx(k), Ty(s.eg)]);
+            }
+            g.add(polyline(pr, c.accent, 4, 0.75));
+            if (gold.get_value() > 0.5) g.add(polyline(pg, c.good, 4, 0.75));
           }
           const s = this.state(), k = Math.sqrt(Math.max(0, s.kl));
           g.add(Dot([Tx(k), Ty(s.er), 0], { radius: 0.1, color: c.accent }));

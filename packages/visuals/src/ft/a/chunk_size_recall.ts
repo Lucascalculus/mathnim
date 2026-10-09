@@ -173,14 +173,14 @@ export const chunk_size_recall = define_visual<ChunkSizeParams>({
         const ticks = (s: any, values: string[]) => VGroup(...values.map((v, i) => label(v, 22, c.muted).move_to([s.point_of(i)[0], s.point_of(i)[1] - 0.32, 0])));
         const cap = (y: number, en: string, zh: string) => label(L(en, zh), 24, c.ink).move_to([0, y + 0.4, 0]).align_to([SX - 2.1, 0, 0], [-1, 0, 0]);
         const controls = VGroup(
-          this.ss, ticks(this.ss, SIZES.map(String)), cap(-0.55, 'chunk size (tokens)', '块大小（token）'),
+          this.ss, ticks(this.ss, SIZES.map(String)), cap(-0.55, 'chunk size s (tokens)', '块大小 s（token）'),
           ...(p.show_budget ? [this.sb, ticks(this.sb, BUDGETS.map(String)), cap(-1.75, 'context budget B (tokens)', '上下文预算 B（token）')] : [label(L(`context budget B = ${p.budget} tokens (fixed)`, `上下文预算 B = ${p.budget} token（固定）`), 24, c.ink).move_to([0, -1.5, 0]).align_to([SX - 2.1, 0, 0], [-1, 0, 0])]),
-          this.so, ticks(this.so, OVERLAPS.map((o) => `${o}%`)), cap(-2.95, 'overlap', '块重叠'),
+          this.so, ticks(this.so, OVERLAPS.map((o) => `${o}%`)), label(L('overlap', '块重叠'), 24, c.ink).move_to([0, -2.55, 0]).align_to([SX + 2.1, 0, 0], [1, 0, 0]),
         );
         controls.name = 'controls';
 
         // ---- k and the score, then answered questions per chunk size (only the sizes tried so far)
-        const formula = live(key, () => MathTex(`k = \\left\\lfloor \\frac{B}{\\text{size}} \\right\\rfloor = \\left\\lfloor \\frac{${this.budget()}}{${this.size()}} \\right\\rfloor = ${this.k()}`, { font_size: 30, color: c.ink }).move_to([0, -0.05, 0]).align_to([CHART.x0 - 0.3, 0, 0], [-1, 0, 0]));
+        const formula = live(key, () => MathTex(`k = \\left\\lfloor \\frac{B}{s} \\right\\rfloor = \\left\\lfloor \\frac{${this.budget()}}{${this.size()}} \\right\\rfloor = ${this.k()}`, { font_size: 30, color: c.ink }).move_to([0, -0.05, 0]).align_to([CHART.x0 - 0.3, 0, 0], [-1, 0, 0]));
         formula.name = 'formula';
         const score = live(key, () => VGroup(label(L('answered', '答到'), 26, c.ink), MathTex(`${this.hits()}\\,/\\,12`, { font_size: 38, color: c.good })).arrange([1, 0, 0], { buff: 0.15 }).move_to([0, -0.7, 0]).align_to([CHART.x0 - 0.3, 0, 0], [-1, 0, 0]));
         const chart = live(() => `${key()}|${this.seen.flat().map((t) => t.get_value()).join(',')}|${this.locked.get_value()}`, () => {
@@ -221,9 +221,10 @@ export const chunk_size_recall = define_visual<ChunkSizeParams>({
     return new ChunkSize();
   },
   explore: (scene: any, ui) => {
-    scene.ss.attach(ui, { snap: 1, step: 1, label: 'chunk size' });
-    if (scene.show_budget) scene.sb.attach(ui, { snap: 1, step: 1, label: 'context budget' });
-    scene.so.attach(ui, { snap: 1, step: 1, label: 'overlap' });
+    const L = (en: string, zh: string) => pick(scene.lang, en, zh);
+    scene.ss.attach(ui, { snap: 1, step: 1, label: L('the chunk size', '块大小') });
+    if (scene.show_budget) scene.sb.attach(ui, { snap: 1, step: 1, label: L('the context budget', '上下文预算') });
+    scene.so.attach(ui, { snap: 1, step: 1, label: L('the overlap', '块重叠') });
     // the question to inspect: a knob under the cells (click a cell, or drag, or use the arrow keys)
     ui.add_handle({
       tracker: scene.qi,
@@ -232,7 +233,7 @@ export const chunk_size_recall = define_visual<ChunkSizeParams>({
       constraint: constrain.on_segment([cell_x(0), CELL.y - 0.42, 0], [cell_x(11), CELL.y - 0.42, 0]),
       step: 1,
       radius: 0.35,
-      label: 'question to inspect',
+      label: L('the question to inspect', '要查看的问题'),
     });
     ui.on_click?.((pt: number[]) => {
       if (Math.abs(pt[1] - CELL.y) > 0.45) return;

@@ -77,6 +77,20 @@ kept there). This file is the short "where are we right now".
   now plain files in this monorepo. Its old .git is kept locally in .local/manim-web.git
   (ignored).
 
+## Stopped at the usage limit (2026-10-10 ~06:00)
+
+- Wired: FT_COURSE in apps/mathnim/src/course.ts (A, F0, D, F1), course switcher,
+  visuals ft_a/ft_d/ft_f in packages/visuals/src/index.ts. Doctor 120/122:
+  ft-d2a/baseline-scene and ft-d2a/baseline-world FAIL (lint) - give to part D agent.
+- Platform done (empty stage hidden, start/continue, ask button). Open platform asks
+  from part D: `log` = natural log in the expression grader; figure `src` as L10n;
+  `lang` in LessonContext.
+- A+F: was applying my review fixes (node ids, pass@k, cost world reveal, zh handle
+  labels, figure text size, TeX English) - resume a07cae1a8f7ed55d5.
+- B+C (a5cabd17705fa4f7a), E (a6d9f9c81897c6637, was writing E1): still building.
+- D (ae50614570d3973a9): built; not yet reviewed with lesson_text.mjs / browser.
+- Then: wire B, C, E; record narration (scenes only); browser review; push.
+
 ## Next
 
 1. The fine-tuning course outline (user's priority); later WP7 (AI lesson

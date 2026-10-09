@@ -4,7 +4,7 @@ import { tr, type CheckpointStep, type Lesson } from '@mathnim/core';
 import { LessonView, esc, math_html, plural_s, t, ui_lang } from '@mathnim/present';
 import { text_grader, visual_resolver } from '../lesson_services';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { COURSE, playable } from '../course';
+import { all_lessons, playable } from '../course';
 import { load_settings } from '../settings';
 import { learner, log } from '../store';
 
@@ -14,7 +14,7 @@ interface Item {
 }
 function practice_items(): Item[] {
   const out: Item[] = [];
-  for (const cl of COURSE.units.flatMap((u) => u.lessons)) {
+  for (const cl of all_lessons()) {
     const lesson = playable(cl);
     if (!lesson) continue;
     for (const s of lesson.steps) if (s.kind === 'checkpoint' && s.purpose !== 'predict') out.push({ lesson, step: s });

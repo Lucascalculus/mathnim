@@ -2,6 +2,13 @@
 
 2026-10-10。按 [README.md](README.md) 第 4 节（交互准则）和第 8 节（每课模板）写。依据：[research-technical.md](research-technical.md)、[research-pedagogy.md](research-pedagogy.md)、[research-adoption.md](research-adoption.md)。v1 对应第 7–9 课（[outline-v1.md](outline-v1.md)）。
 
+> **制作说明（2026-10-10，已按此实现，以代码为准）**
+> - D2 拆成两课：D2a（策略梯度、基线、重要性比率、截断）和 D2b（KL 最优解、缰绳世界、过度优化、实现与代价）。
+> - `pg_baseline` 改为 3 个回答（奖励 2、5、9，均匀策略），这样每个单样本更新都是平面上的一个点：方差 21.70 → 2.74（b = 5.33）→ 32.37（b = 12）；课里是"草图预测 → 场景 → 只有一个手柄的世界"。
+> - D1 世界加入"把比较卡片拖进数据"和"拟合 1000 步"按钮；D3 世界用"训练 20 步"按钮代替步数滑块；NLL 救回是单独的选做世界。
+> - 用选择题代替 TokenBuilder 组装 DPO 损失；D4 不做交互；标签平滑（cDPO）从 D4 删去（TRL v1.15 没有对应开关）。
+> - 引文核对与 TRL v1.15 参数名见 [research-preference.md](research-preference.md)；本文件中的〔待核实〕条目以那里为准（例如 TRL 里没有 `rpo_alpha`，DPO + NLL 写作 `loss_type=["sigmoid","sft"]`）。
+
 ## 0. 本部分总览
 
 ### 0.1 四课的主线

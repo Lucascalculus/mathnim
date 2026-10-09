@@ -8,7 +8,7 @@
 // reads (core's to_spoken: TeX and symbols as words, in that language).
 import { INSCRIBED_PLAN } from '@mathnim/ai';
 import { is_bilingual, narration_key, spoken_lang, spoken_strings, to_spoken, type Lang } from '@mathnim/core';
-import { COURSE } from '../src/course';
+import { all_lessons } from '../src/course';
 
 const items = new Map<string, { key: string; text: string; lang: Lang; spoken: string }>();
 const add = (text: string, lang: Lang = spoken_lang(text)) => {
@@ -16,7 +16,7 @@ const add = (text: string, lang: Lang = spoken_lang(text)) => {
   const key = narration_key(text);
   if (!items.has(key)) items.set(key, { key, text, lang, spoken: to_spoken(text, lang) });
 };
-for (const l of COURSE.units.flatMap((u) => u.lessons)) {
+for (const l of all_lessons()) {
   if (!l.lesson) continue;
   // the narration of scenes and worlds, and the triggered lines of worlds (enter, idle, events, findings, goal)
   for (const v of spoken_strings(l.lesson)) {

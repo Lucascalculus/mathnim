@@ -18,7 +18,7 @@ import { lint_lesson_text } from './text_lint';
 // zh labels: a local Chinese font is loaded the first time one is drawn (no download)
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
 import { DragHandle } from 'manim-web/ext/interact';
-import { COURSE } from '../src/course';
+import { all_lessons } from '../src/course';
 
 // the bundle cannot locate the font files relative to itself; point at the source folder
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });
@@ -96,7 +96,7 @@ await init_tex();
 const PUBLIC = process.env.MATHNIM_PUBLIC!;
 /** Visual blocks of a page (also inside details). */
 const visual_blocks = (bs: Block[]): Extract<Block, { type: 'visual' }>[] => bs.flatMap((b) => (b.type === 'visual' ? [b] : b.type === 'details' ? visual_blocks(b.blocks) : []));
-for (const l of COURSE.units.flatMap((u) => u.lessons)) {
+for (const l of all_lessons()) {
   const lesson: Lesson | undefined = l.lesson;
   if (!lesson) continue;
   // text pages and both languages

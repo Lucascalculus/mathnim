@@ -211,7 +211,7 @@ function build(p: GrpoGroupParams): Scene {
       const bars_g = VGroup(zero_line, ...bars);
       bars_g.name = 'bars';
       const chart_cap = label_at(
-        phaseB ? pick(lang, 'purple: answer length in tokens · bars: push per token (largest = 1)', '紫条：回答长度（token 数）· 柱：每个 token 的推力（最大者 = 1）') : pick(lang, 'bars: advantage Âᵢ of each answer', '柱：每个回答的优势 Âᵢ'),
+        phaseB ? pick(lang, 'purple: answer length in tokens · bars: push per token (largest = 1)', '紫条：回答长度（token 数）· 柱：每个 token 的推力（最大者 = 1）') : pick(lang, 'bars: the advantage Â of each answer', '柱：每个回答的优势 Â'),
         XC(0) - 0.6, -3.62, 20, c.muted);
 
       // ---- zero-variance banner

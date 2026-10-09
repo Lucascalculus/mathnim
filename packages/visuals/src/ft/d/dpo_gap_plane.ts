@@ -38,7 +38,7 @@ const FxInv = (x: number) => F1[0] + ((x - F.x0) / (F.x1 - F.x0)) * (F1[1] - F1[
 const FyInv = (y: number) => F2[0] + ((y - F.y0) / (F.y1 - F.y0)) * (F2[1] - F2[0]);
 // right bottom: probability bars
 const ROWS = [-0.2, -0.8, -1.4, -2.0, -2.6];
-const PB0 = 3.3, PB1 = 6.4;
+const PB0 = 3.55, PB1 = 6.5;
 const Pb = (p: number) => PB0 + p * (PB1 - PB0);
 const SHORT = [
   { en: 'polite refusal', zh: '礼貌拒答' },
@@ -89,6 +89,20 @@ export const dpo_gap_plane = define_visual<DpoGapParams>({
           return { p: DPO_TOY.map((x) => x.ref), dw, dl, loss: -log_sigmoid(dw - dl) };
         }
         return this.run()[clamp(Math.round(this.steps.get_value()), 0, DPO_STEPS_MAX)];
+      }
+      /** Scene point of a gap (Δ_w, Δ_l), and back (for a world's own handles). */
+      gap_xy(dw: number, dl: number): P3 {
+        return [Gx(dw), Gy(dl), 0];
+      }
+      gap_inv(pt: readonly number[]): [number, number] {
+        return [Math.round(GxInv(clamp(pt[0], G.x0, G.x1)) * 20) / 20, Math.round(GyInv(clamp(pt[1], G.y0, G.y1)) * 20) / 20];
+      }
+      /** Scene point of a feature vector, and back (the rejected response's handle). */
+      feature_xy(a: number, b: number): P3 {
+        return [Fx(a), Fy(b), 0];
+      }
+      feature_inv(pt: readonly number[]): [number, number] {
+        return [Math.round(FxInv(clamp(pt[0], F.x0, F.x1 - 0.3)) * 20) / 20, Math.round(FyInv(clamp(pt[1], F.y0 + 0.2, F.y1 - 0.1)) * 20) / 20];
       }
       ches(): number {
         return toy_ches(DPO_TOY[0].phi, [this.lx.get_value(), this.ly.get_value()]);

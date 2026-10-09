@@ -24,6 +24,8 @@ export interface CostCrossoverParams extends Record<string, unknown> {
   cache_hit: number;
   cache_price_ratio: number;
   fixed_per_day: number;
+  hide_nstar: boolean;
+  controls: string;
   lang: string;
 }
 
@@ -79,6 +81,8 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
     cache_hit: { type: 'number', min: 0, max: 1, default: 0, doc: "share of A's input tokens served from the prompt cache" },
     cache_price_ratio: { type: 'number', min: 0, max: 1, default: 0.1, doc: 'cached input price / normal input price' },
     fixed_per_day: { type: 'number', min: 0, max: 5000, default: 20, doc: "B's fixed cost per day in USD (hosting plus amortised training); 0 = per-token LoRA hosting" },
+    hide_nstar: { type: 'boolean', default: false, doc: 'hide the break-even point and value until the learner locks a guess (scene.lock()); they hide again when the cache share or F changes' },
+    controls: { type: 'enum', values: ['all', 'volume'], default: 'all', doc: "'volume': explore() attaches only the N slider (the others wait for scene.attach_controls)" },
     lang: LANG_SPEC,
   },
   examples: [
@@ -87,11 +91,13 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
     { tokens_in_a: 2500, tokens_in_b: 2300, tokens_out: 200, price_in_b: 0, price_out_b: 0, fixed_per_day: 100, requests_per_day: 300000, lang: 'zh' },
     { fixed_per_day: 0, requests_per_day: 50 },
     { price_in_a: 0.2, price_out_a: 0.8, requests_per_day: 1e6 },
+    { hide_nstar: true, controls: 'volume', requests_per_day: 30, lang: 'zh' },
   ],
   ids: ['plot', 'line_a', 'line_b', 'marker', 'readouts', 'formula', 'sliders'],
   scene: (p) => {
     const lang: Lang = resolve_lang(p.lang);
     class CostCrossover extends Scene {
+      lang = lang;
       lgN = ValueTracker(1);
       h = ValueTracker(p.cache_hit);
       F = ValueTracker(p.fixed_per_day);
@@ -99,6 +105,10 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
       locked = ValueTracker(-1);
       /** Which input was moved last: 0 none, 1 F, 2 the cache share (it changes c_A), 3 N. */
       last = ValueTracker(0);
+      /** Whether the break-even point is shown (always, unless hide_nstar). */
+      revealed = ValueTracker(p.hide_nstar ? 0 : 1);
+      hide_nstar = p.hide_nstar;
+      shown = () => !p.hide_nstar || this.revealed.get_value() > 0.5;
       sN!: any;
       sh!: any;
       sF!: any;
@@ -111,11 +121,14 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
       /** Lock in the current volume (the lesson's 'This is break-even' action). Returns it. */
       lock = () => {
         this.locked.set_value(this.lgN.get_value());
+        this.revealed.set_value(1);
         return this.N();
       };
+      /** Attach some of the sliders (explore() does all, or only N with controls = 'volume'). */
+      attach_controls = (ui: any, which: ('N' | 'h' | 'F')[]) => attach(this, ui, which, lang);
       override construct() {
         const c = palette();
-        this.track(this.lgN, this.h, this.F, this.locked, this.last);
+        this.track(this.lgN, this.h, this.F, this.locked, this.last, this.revealed);
         const L = (en: string, zh: string) => pick(lang, en, zh);
         // ---- axes
         const frame = group(
@@ -163,7 +176,7 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
           }
           const p0 = at ?? [PLOT.x0 + 0.5, PLOT.y0 + 0.5, 0];
           const g = VGroup(Dot(p0, { radius: 0.09, color: c.ink }), label('N*', 24, c.ink).move_to([p0[0] - 0.32, p0[1] + 0.3, 0]));
-          if (!at) g.set_opacity(0);
+          if (!at || !this.shown()) g.set_opacity(0);
           return g;
         });
         // ---- current volume
@@ -194,14 +207,14 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
         // the break-even formula with today's numbers; the term the learner moved last is underlined
         const f_sym = MathTex('N^* = \\frac{F}{c_A - c_B}', { font_size: 34, color: c.ink }).move_to([0, 1.55, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
         const sig = (v: number) => (v >= 0.01 ? v.toFixed(4) : v.toPrecision(2));
-        const f_num = live(() => `${this.F.get_value().toFixed(0)}|${sig(this.cA())}|${sig(this.cB())}|${this.last.get_value()}`, () => {
+        const f_num = live(() => `${this.F.get_value().toFixed(0)}|${sig(this.cA())}|${sig(this.cB())}|${this.last.get_value()}|${this.shown()}`, () => {
           const n = this.nstar();
           const parts = [
             MathTex(`= ${this.F.get_value().toFixed(0)}`, { font_size: 30, color: c.ink }),
             MathTex('/\\,(', { font_size: 30, color: c.ink }),
             MathTex(sig(this.cA()), { font_size: 30, color: c.coral }),
             MathTex(`-\\,${sig(this.cB())}`, { font_size: 30, color: c.accent }),
-            MathTex(Number.isFinite(n) ? `)\\approx ${num(Math.round(n)).replace(/,/g, '{,}')}` : ')\\;\\to\\;\\infty', { font_size: 30, color: c.ink }),
+            MathTex(!this.shown() ? ')\\approx\\;?' : Number.isFinite(n) ? `)\\approx ${num(Math.round(n)).replace(/,/g, '{,}')}` : ')\\;\\to\\;\\infty', { font_size: 30, color: c.ink }),
           ];
           const row = VGroup(...parts).arrange([1, 0, 0], { buff: 0.1 });
           fit(row as any, 5.9);
@@ -218,14 +231,14 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
         // ---- sliders (captions in Text so both languages work)
         const look = { length: 3.3, color: c.accent, track_color: c.faint, stroke_width: 8, knob_radius: 0.15, font_size: 26, label: null };
         const SX = 4.35;
-        this.sN = new Slider(this.lgN, { ...look, x_range: LX, show_value: false }).move_to([SX, -0.05, 0]);
-        this.sh = new Slider(this.h, { ...look, x_range: [0, 1], show_value: false }).move_to([SX, -1.15, 0]);
+        this.sN = new Slider(this.lgN, { ...look, x_range: LX, show_value: false }).move_to([SX, 0.05, 0]);
+        this.sh = new Slider(this.h, { ...look, x_range: [0, 1], show_value: false }).move_to([SX, -1.1, 0]);
         this.sF = new Slider(this.F, { ...look, x_range: [0, Math.max(200, p.fixed_per_day * 2)], show_value: false }).move_to([SX, -2.25, 0]);
-        const cap = (y: number, en: string, zh: string) => label(L(en, zh), 24, c.muted).move_to([0, y + 0.42, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
+        const cap = (y: number, en: string, zh: string) => label(L(en, zh), 24, c.muted).move_to([0, y - 0.4, 0]).align_to([PANEL_X, 0, 0], [-1, 0, 0]);
         const caps = VGroup(
-          cap(-0.05, 'requests per day N (log scale)', '每天请求数 N（对数刻度）'),
-          value_row({ before: L("share of A's prompt from cache", 'A 的提示命中缓存的比例'), get: () => this.h.get_value(), decimals: 2, size: 24, color: c.muted, value_color: c.coral, at: [PANEL_X, -0.73] }),
-          value_row({ before: L("B's fixed cost per day F, $", 'B 每天的固定成本 F（美元）'), get: () => this.F.get_value(), decimals: 0, size: 24, color: c.muted, value_color: c.ink, at: [PANEL_X, -1.83] }),
+          cap(0.05, 'requests per day N (log scale)', '每天请求数 N（对数刻度）'),
+          value_row({ before: L("share of A's prompt from cache", 'A 的提示命中缓存的比例'), get: () => this.h.get_value(), decimals: 2, size: 24, color: c.muted, value_color: c.coral, at: [PANEL_X, -1.5] }),
+          value_row({ before: L("B's fixed cost per day F, $", 'B 每天的固定成本 F（美元）'), get: () => this.F.get_value(), decimals: 0, size: 24, color: c.muted, value_color: c.ink, at: [PANEL_X, -2.65] }),
         );
         const sliders = VGroup(this.sN, this.sh, this.sF, caps);
         sliders.update(0);
@@ -253,16 +266,33 @@ export const cost_crossover = define_visual<CostCrossoverParams>({
     }
     return new CostCrossover();
   },
-  explore: (scene: any, ui) => {
-    const mark = (h: any, code: number) => {
-      const prev = h.spec.on_change;
-      h.spec.on_change = (pt: any) => {
-        scene.last.set_value(code);
-        prev?.(pt);
-      };
-    };
-    mark(scene.sN.attach(ui, { step: 0.02, label: 'requests per day' }), 3);
-    mark(scene.sh.attach(ui, { step: 0.05, label: 'cache hit share' }), 2);
-    mark(scene.sF.attach(ui, { step: 5, label: 'fixed cost per day' }), 1);
+  explore: (scene: any, ui, p) => {
+    if (p.controls === 'volume') {
+      attach(scene, ui, ['N'], scene.lang);
+      scene.sh.set_opacity(0.35);
+      scene.sF.set_opacity(0.35);
+    } else attach(scene, ui, ['N', 'h', 'F'], scene.lang);
   },
 });
+
+/** Attach sliders with labels in the learner's language; moving the cache share or F hides the break-even again (hide_nstar). */
+function attach(scene: any, ui: any, which: ('N' | 'h' | 'F')[], lang: Lang): void {
+  const L = (en: string, zh: string) => pick(lang, en, zh);
+  const hook = (h: any, code: number, hides: boolean) => {
+    const prev = h.spec.on_change;
+    h.spec.on_change = (pt: any) => {
+      scene.last.set_value(code);
+      if (hides && scene.hide_nstar) scene.revealed.set_value(0);
+      prev?.(pt);
+    };
+  };
+  if (which.includes('N')) hook(scene.sN.attach(ui, { step: 0.02, label: L('requests per day N', '每天请求数 N') }), 3, false);
+  if (which.includes('h')) {
+    scene.sh.set_opacity(1);
+    hook(scene.sh.attach(ui, { step: 0.05, label: L('the cache share', '缓存比例') }), 2, true);
+  }
+  if (which.includes('F')) {
+    scene.sF.set_opacity(1);
+    hook(scene.sF.attach(ui, { step: 5, label: L('the fixed cost F', '固定成本 F') }), 1, true);
+  }
+}

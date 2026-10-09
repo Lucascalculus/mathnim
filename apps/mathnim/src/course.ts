@@ -8,6 +8,9 @@ import { lesson as pizza } from './lessons/pizza/lesson';
 import { lesson as pizzaGame } from './lessons/pizza-game/lesson';
 import { lesson as eigenPca } from './lessons/eigen-pca/lesson';
 import { lesson as textDemo } from './lessons/text-pages-demo/lesson';
+import * as ftA from './lessons/ft/a/unit';
+import * as ftD from './lessons/ft/d/unit';
+import * as ftF from './lessons/ft/f/unit';
 
 export interface CourseLesson {
   id: string;
@@ -28,7 +31,20 @@ export interface Unit {
   lessons: CourseLesson[];
 }
 
-export const COURSE: { title: L10n; units: Unit[] } = {
+export interface Course {
+  id: string;
+  title: L10n;
+  /** The home page's headline for this course (default: the app's own). */
+  summary?: L10n;
+  /** Who it is for, told to the AI tutor (default 'secondary school'). */
+  audience?: string;
+  /** Questions offered on the home page's "ask anything" panel. */
+  suggestions?: L10n[];
+  units: Unit[];
+}
+
+export const MATH_COURSE: Course = {
+  id: 'math',
   title: { en: 'Geometry through motion', zh: '在运动中学几何' },
   units: [
     {
@@ -80,6 +96,38 @@ export const COURSE: { title: L10n; units: Unit[] } = {
   ],
 };
 
+/** Fine-tuning large language models: parts A-F (units are added as each part is finished). */
+export const FT_COURSE: Course = {
+  id: 'llm-finetuning',
+  title: { en: 'Fine-tuning large language models', zh: '大模型微调' },
+  audience: 'university or practitioner; knows neural networks and basic deep learning',
+  summary: { en: 'Prompting, RAG, SFT, LoRA, preference and RL training - what each one does and how to choose.', zh: '提示词、RAG、SFT、LoRA、偏好与强化学习：各自做什么，怎么选。' },
+  suggestions: [
+    { en: 'When should I fine-tune instead of using RAG?', zh: '什么时候该微调，而不是用 RAG？' },
+    { en: 'Why does LoRA save so much memory?', zh: 'LoRA 为什么能省这么多显存？' },
+    { en: 'How is DPO different from RLHF?', zh: 'DPO 和 RLHF 有什么区别？' },
+    { en: 'What does GRPO compare each answer against?', zh: 'GRPO 拿每个回答跟什么比？' },
+  ],
+  units: [
+    ftA.unit,
+    { id: 'ft-f0', title: { en: 'Fine-tuning · Choosing, halfway', zh: '微调 · 中场选择练习' }, lessons: [ftF.midway] },
+    ftD.unit,
+    { id: 'ft-f1', title: { en: 'Fine-tuning F · How to choose', zh: '微调 F · 怎么选' }, lessons: [ftF.capstone] },
+  ],
+};
+
+export const COURSES: Course[] = [MATH_COURSE, FT_COURSE];
+/** The first course (kept for older callers). */
+export const COURSE = MATH_COURSE;
+/** Every lesson of every course. */
+export function all_lessons(): CourseLesson[] {
+  return COURSES.flatMap((c) => c.units.flatMap((u) => u.lessons));
+}
+/** The course a lesson belongs to. */
+export function course_of(lesson_id: string): Course | undefined {
+  return COURSES.find((c) => c.units.some((u) => u.lessons.some((l) => l.id === lesson_id)));
+}
+
 const GEN = (id: string) => `mathnim.generated.${id}`;
 export function cached_generation(id: string): GeneratedLesson | null {
   try {
@@ -92,7 +140,7 @@ export function cache_generation(g: GeneratedLesson): void {
   localStorage.setItem(GEN(g.entry.id), JSON.stringify(g));
 }
 export function find_lesson(id: string): CourseLesson | undefined {
-  return COURSE.units.flatMap((u) => u.lessons).find((l) => l.id === id);
+  return all_lessons().find((l) => l.id === id);
 }
 /** The playable lesson for a course entry (authored, or generated and cached). */
 export function playable(cl: CourseLesson): Lesson | null {
@@ -102,7 +150,7 @@ export function playable(cl: CourseLesson): Lesson | null {
 }
 export function all_skills(): Skill[] {
   const out: Skill[] = [];
-  for (const u of COURSE.units) for (const l of u.lessons) {
+  for (const l of all_lessons()) {
     const skills = l.lesson?.skills ?? cached_generation(l.id)?.plan.skills;
     if (skills) out.push(...skills);
   }

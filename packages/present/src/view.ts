@@ -330,7 +330,8 @@ export class LessonView {
         this.scene_step = s.kind === 'scene';
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
-        this.app.classList.toggle('mn-nostage', text);
+        // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
+        this.app.classList.toggle('mn-nostage', text || !(s as { scene?: unknown }).scene);
         this.reached = Math.max(this.reached, e.index);
         this.el.levelup?.classList.remove('show');
         this.el.sub.textContent = chapter;
@@ -576,7 +577,6 @@ export class LessonView {
       article.innerHTML = `<header class="mn-page-head"><div class="mn-page-kicker">${esc(t('case_label'))}${num ? ` · ${esc(num)}` : ''}</div><h1 class="mn-page-title">${math_html(this.tr(group.title))}</h1></header><div class="mn-prose">${body}</div>`;
       this.el.page.append(article);
       this.app.classList.add('mn-casestep');
-      this.app.classList.toggle('mn-nostage', !step.scene);
       if (k === 1) this.scroll_to_page();
     }
     // the reading column names the case; the panel only says where in it the question is

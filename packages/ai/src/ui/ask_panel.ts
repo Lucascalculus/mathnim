@@ -28,6 +28,8 @@ import { decide, load_visual, plan_visual, visual_accent, type PictureRoute, typ
 const CSS = `
 .mn-ask{display:flex;flex-direction:column;gap:12px}
 .mn-ask form{display:flex;gap:8px}
+.mn-ask form .mn-input{flex:1;min-width:0}
+.mn-ask form .mn-btn{flex:none;white-space:nowrap}
 .mn-ask .mn-chips{display:flex;flex-wrap:wrap;gap:6px}
 .mn-chip{font:inherit;font-size:13px;padding:6px 10px;border-radius:999px;border:1px solid var(--mn-border);background:transparent;color:inherit;cursor:pointer;text-align:left}
 .mn-chip:hover{border-color:var(--mn-accent);color:var(--mn-accent)}

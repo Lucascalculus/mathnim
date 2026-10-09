@@ -184,9 +184,9 @@ export class RejectionScene extends Scene {
     cap_note.move_to([BLK.x0 + cap_note.width / 2, -2.95, 0]);
 
     // ---- the dataset (exact expectations)
-    const DS = { x0: 0.3, x1: 6.85, y: 3.25, h: 0.42 };
+    const DS = { x0: 0.3, x1: 6.85, y: 3.02, h: 0.42 };
     const ds_title = fit(label(pick(lang, 'the SFT dataset: kept answers by kind (expected)', 'SFT 数据集：各类题保留的答案占比（期望值）'), 22, c.ink), 6.5, 0.4);
-    ds_title.move_to([DS.x0 + ds_title.width / 2, DS.y + 0.5, 0]);
+    ds_title.move_to([DS.x0 + ds_title.width / 2, DS.y + 0.48, 0]);
     const ds_bar = always_redraw(() => {
       const sh = this.stats().shares;
       const g = VGroup();

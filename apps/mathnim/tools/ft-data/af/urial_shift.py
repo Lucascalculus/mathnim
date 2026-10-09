@@ -7,7 +7,7 @@ the rank the base model gives it: rank 1 = "unshifted", rank 2-3 = "marginal",
 rank > 3 = "shifted" (the categories of Lin et al., URIAL, arXiv:2312.01552).
 
 Output: apps/mathnim/public/ft/a/data/urial_shift.json and the figure
-apps/mathnim/public/ft/a/urial-shift.{en,zh}.svg
+apps/mathnim/public/ft/a/urial-shift.{en,zh}.svg (--svg-only redraws the figure from the JSON).
 """
 import html, json, pathlib
 
@@ -23,9 +23,14 @@ PROMPTS = {
 }
 MAX_NEW = 90
 
-tok = AutoTokenizer.from_pretrained(CHAT)
-chat = AutoModelForCausalLM.from_pretrained(CHAT, torch_dtype=torch.float32).eval()
-base = AutoModelForCausalLM.from_pretrained(BASE, torch_dtype=torch.float32).eval()
+tok = chat = base = None
+
+
+def load():
+    global tok, chat, base
+    tok = AutoTokenizer.from_pretrained(CHAT)
+    chat = AutoModelForCausalLM.from_pretrained(CHAT, dtype=torch.float32).eval()
+    base = AutoModelForCausalLM.from_pretrained(BASE, dtype=torch.float32).eval()
 
 
 @torch.no_grad()
@@ -64,50 +69,67 @@ TXT = {
 
 
 def svg(lang, res):
-    W, x0, y, lh, fs = 960, 24, 70, 34, 18
+    W, x0, lh, fs = 720, 20, 36, 18
     t = TXT[lang]
-    parts = [f'<text x="{x0}" y="34" font-size="22" font-weight="600" fill="#111113">{html.escape(t["title"])}</text>']
-    parts.append(f'<text x="{x0}" y="{y}" font-size="15" fill="#86868B">{html.escape(("Prompt: " if lang == "en" else "提问：") + res["prompt"])}</text>')
-    y += 40
+    out = []
+    def text(x, y, s, size, color='#111113', weight=400):
+        out.append(f'<text x="{x:.1f}" y="{y:.1f}" font-size="{size}" fill="{color}" font-weight="{weight}" xml:space="preserve">{html.escape(s)}</text>')
+    def para(y, s, size, color, width=W - 2 * x0):
+        line = ''
+        for ch in s:
+            if sum(size if ord(c) > 0x2e80 else 0.55 * size for c in line + ch) > width:
+                text(x0, y, line, size, color)
+                y += round(size * 1.35)
+                line = ''
+            line += ch
+        if line:
+            text(x0, y, line, size, color)
+            y += round(size * 1.35)
+        return y
+    y = para(32, t['title'], 20, '#111113')
+    y = para(y + 4, ('Prompt: ' if lang == 'en' else '提问：') + res['prompt'], 16, '#86868B')
+    y += 30
     x = x0
-    cw = (lambda s: sum(18 if ord(ch) > 0x2e80 else 9.6 for ch in s) + 8)
+    cw = lambda s: sum(fs if ord(ch) > 0x2e80 else 0.56 * fs for ch in s) + 10
     for r in res['tokens']:
-        s = r['tok'].replace('\n', '↵')
+        s = r['tok'].replace('\n', '\u21b5')
         cat = 'unshifted' if r['rank'] == 1 else 'marginal' if r['rank'] <= 3 else 'shifted'
         w = cw(s)
         if x + w > W - x0:
             x, y = x0, y + lh
-        parts.append(f'<rect x="{x:.1f}" y="{y - 22}" width="{w - 3:.1f}" height="28" rx="5" fill="{COL[cat]}"/>')
-        parts.append(f'<text x="{x + 4:.1f}" y="{y - 3}" font-size="{fs}" fill="#111113" xml:space="preserve">{html.escape(s)}</text>')
+        out.append(f'<rect x="{x:.1f}" y="{y - 23}" width="{w - 3:.1f}" height="30" rx="5" fill="{COL[cat]}"/>')
+        text(x + 4, y - 2, s, fs)
         x += w
-    y += 52
-    s = summary(res['tokens'])
-    lx = x0
-    for (cat, label) in zip(['unshifted', 'marginal', 'shifted'], t['legend']):
-        pct = round(100 * s[cat] / s['n'])
-        parts.append(f'<rect x="{lx}" y="{y - 16}" width="22" height="20" rx="4" fill="{COL[cat]}"/>')
-        txt = f'{label}: {pct}%'
-        parts.append(f'<text x="{lx + 30}" y="{y}" font-size="16" fill="#111113">{html.escape(txt)}</text>')
-        lx += 330
-    y += 36
-    parts.append(f'<text x="{x0}" y="{y}" font-size="13" fill="#86868B">{html.escape(t["foot"])}</text>')
-    H = y + 22
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" font-family="-apple-system, \'PingFang SC\', \'Noto Sans SC\', \'Helvetica Neue\', Arial, sans-serif"><rect width="{W}" height="{H}" fill="#FFFFFF"/>' + ''.join(parts) + '</svg>\n'
+    y += 50
+    sm = summary(res['tokens'])
+    for cat, label in zip(['unshifted', 'marginal', 'shifted'], t['legend']):
+        pct = round(100 * sm[cat] / sm['n'])
+        out.append(f'<rect x="{x0}" y="{y - 16}" width="22" height="20" rx="4" fill="{COL[cat]}"/>')
+        text(x0 + 32, y, f'{label}: {pct}%', 16)
+        y += 28
+    y = para(y + 8, t['foot'], 15, '#86868B')
+    H = y + 6
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" font-family="-apple-system, \'PingFang SC\', \'Noto Sans SC\', \'Helvetica Neue\', Arial, sans-serif"><rect width="{W}" height="{H}" fill="#FFFFFF"/>' + ''.join(out) + '</svg>\n'
 
 
-def main():
-    out = {}
+def main(svg_only=False):
+    data_path = ROOT / 'apps' / 'mathnim' / 'public' / 'ft' / 'a' / 'data' / 'urial_shift.json'
+    if svg_only:
+        out = json.loads(data_path.read_text(encoding='utf-8'))['results']
+    else:
+        load()
+        out = {}
+        for lang in ['en', 'zh']:
+            res = run(lang)
+            res['summary'] = summary(res['tokens'])
+            out[lang] = res
+            print(lang, res['summary'], res['answer'][:120].replace('\n', ' '))
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        data_path.write_text(json.dumps({'base': BASE, 'chat': CHAT, 'decoding': 'greedy', 'results': out}, ensure_ascii=False, indent=1), encoding='utf-8')
     for lang in ['en', 'zh']:
-        res = run(lang)
-        res['summary'] = summary(res['tokens'])
-        out[lang] = res
-        print(lang, res['summary'], res['answer'][:120].replace('\n', ' '))
-        (ROOT / 'apps' / 'mathnim' / 'public' / 'ft' / 'a').mkdir(parents=True, exist_ok=True)
-        (ROOT / 'apps' / 'mathnim' / 'public' / 'ft' / 'a' / f'urial-shift.{lang}.svg').write_text(svg(lang, res), encoding='utf-8')
-    p = ROOT / 'apps' / 'mathnim' / 'public' / 'ft' / 'a' / 'data' / 'urial_shift.json'
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({'base': BASE, 'chat': CHAT, 'decoding': 'greedy', 'results': out}, ensure_ascii=False, indent=1), encoding='utf-8')
+        (ROOT / 'apps' / 'mathnim' / 'public' / 'ft' / 'a' / f'urial-shift.{lang}.svg').write_text(svg(lang, out[lang]), encoding='utf-8')
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    main(svg_only='--svg-only' in sys.argv)

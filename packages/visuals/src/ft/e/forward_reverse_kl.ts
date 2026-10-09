@@ -124,7 +124,7 @@ function build(p: ForwardReverseKlParams): Scene {
 
       // panel
       const X = 2.55;
-      this.dir_c = new Choice(dir, X, 2.85, [pick(lang, 'forward KL(p‖q)', '正向 KL(p‖q)'), pick(lang, 'reverse KL(q‖p)', '反向 KL(q‖p)')], { size: 20 });
+      this.dir_c = new Choice(dir, X, 2.85, [pick(lang, 'forward KL', '正向 KL'), pick(lang, 'reverse KL', '反向 KL')], { size: 20 });
       const formula = pick_shown([
         tex('\\mathrm{KL}(p\\Vert q)=\\mathbb{E}_{x\\sim p}\\!\\left[\\log\\tfrac{p(x)}{q(x)}\\right]', 32),
         tex('\\mathrm{KL}(q\\Vert p)=\\mathbb{E}_{x\\sim q}\\!\\left[\\log\\tfrac{q(x)}{p(x)}\\right]', 32),

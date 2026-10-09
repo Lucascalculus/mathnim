@@ -299,7 +299,7 @@ export const quant_levels = define_visual<QuantLevelsParams>({
         const caps = VGroup(
           live_label(() => L(`format (${levels_of(this.fmt()).length} levels)`, `格式（${levels_of(this.fmt()).length} 个格点）`), 24, c.muted, (t) => at_left(t, PX, 3.6)),
           caption(L('block size B', '块大小 B'), PX, 2.68),
-          live_label(() => (Math.round(this.data.get_value()) === 1 ? L('data: Qwen2.5-0.5B, layer 12 down_proj', '数据：Qwen2.5-0.5B 第 12 层 down_proj') : L('data: simulated, fixed seed', '数据：模拟（固定种子）')), 24, c.muted, (t) => at_left(t, PX, 1.76), { max_width: PX1 - PX }),
+          live_label(() => (Math.round(this.data.get_value()) === 1 ? L('data: real Qwen2.5-0.5B weights', '数据：Qwen2.5-0.5B 的真实权重') : L('data: simulated, fixed seed', '数据：模拟（固定种子）')), 24, c.muted, (t) => at_left(t, PX, 1.76), { max_width: PX1 - PX }),
           caption(L('double quant.', '双重量化'), PX, 0.55),
         );
         const ro = (f: () => string, y: number, col: string, size = 24, name?: string) => {

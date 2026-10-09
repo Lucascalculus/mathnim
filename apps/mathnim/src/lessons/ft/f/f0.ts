@@ -87,7 +87,7 @@ export const lesson: Lesson = {
     card_page('card',
       T('First the evaluation and a context baseline. Then: missing knowledge goes into the context (RAG if large); a fixed label goes to an encoder classifier; behaviour you can demonstrate goes to SFT in the exact production format; a new language needs continued pretraining with mixed-in chat data before SFT.', '先有评测和上下文基线。然后：缺知识放进上下文（内容多就用 RAG）；固定标签交给编码器分类模型；能示范的行为用 SFT，格式和线上一致；新语言要先做继续预训练（混入对话数据），再做 SFT。'),
       T('Reaching for fine-tuning because the data is at hand - FAQ pairs, past tickets, contract samples - when a context fix or a classifier would solve it sooner and cheaper.', '因为手头正好有数据（FAQ、历史工单、合同样本）就去微调，而上下文改进或一个分类模型能更快、更便宜地解决。'),
-      'DM-T, DM-K2, DM-B1, DM-B2, DM-K5'),
+      { en: 'the label check, the knowledge branch and demonstrations', zh: "'固定标签'、'知识'一支和'示范'" }),
     {
       id: 'own', kind: 'checkpoint', skill: 'f0-route', purpose: 'check', chapter: T('Your project', '你的项目'), title: T('Your own case', '你自己的案例'),
       prompt: T('Describe a task you would like a model to do well. Then say: how you would evaluate it, which kind of gap you expect, and the route you would try first.', '描述一件你希望模型做好的事。然后说明：你打算怎么评测它，你预计差距属于哪一类，以及你会先试哪条路。'),
