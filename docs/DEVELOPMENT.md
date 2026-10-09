@@ -180,6 +180,21 @@ languages; all older lessons) or `{ en, zh }`.
   grade their own answer, case questions consecutive) and builds embedded
   visuals like scenes.
 
+## The fine-tuning course loads on demand
+
+The home page and the math course download none of the fine-tuning course's
+code, visuals or data. `src/lessons/ft/manifest.generated.ts` holds the course
+as data (units, cards, and per lesson its skills, languages, mode and step
+kinds) and one loader per lesson, which imports the lesson module and the
+visuals of the parts it uses (each `packages/visuals/src/ft/<part>/index.ts`
+registers its visuals; the visuals index no longer re-exports them). The lesson
+page awaits `ensure_lesson(cl)`; the review page loads only the lessons whose
+questions are due; the tools call `load_all_lessons()`.
+
+**After adding or changing a fine-tuning lesson or unit, run `npm run
+ft-manifest -w mathnim`** (it reads the parts' `unit.ts` files and the lessons
+themselves) and commit the regenerated file.
+
 ## Adding a syllabus entry (AI-generated lesson)
 
 Add a `SyllabusEntry` (title, level, objectives in teaching order) to

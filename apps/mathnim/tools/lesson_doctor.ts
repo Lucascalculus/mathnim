@@ -18,7 +18,10 @@ import { lint_lesson_text } from './text_lint';
 // zh labels: a local Chinese font is loaded the first time one is drawn (no download)
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
 import { DragHandle } from 'manim-web/ext/interact';
-import { all_lessons } from '../src/course';
+import { all_lessons, load_all_lessons } from '../src/course';
+
+// the fine-tuning lessons are loaded on demand in the app; the tools check them all
+await load_all_lessons();
 
 // the bundle cannot locate the font files relative to itself; point at the source folder
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });

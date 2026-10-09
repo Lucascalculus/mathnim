@@ -4,7 +4,7 @@ import { tr } from '@mathnim/core';
 import { LessonView, esc, math_html, t, ui_lang } from '@mathnim/present';
 import { apply_palette, set_theme } from '@mathnim/visuals';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { cache_generation, find_lesson, playable, type CourseLesson } from '../course';
+import { cache_generation, ensure_lesson, find_lesson, playable, type CourseLesson } from '../course';
 import { has_model, load_settings, provider } from '../settings';
 import { learner, log, remember_last } from '../store';
 import { lesson_context } from '../student';
@@ -16,6 +16,19 @@ export async function lesson_page(root: HTMLElement, [id]: string[]): Promise<()
   if (!cl) {
     root.innerHTML = `<div class="card">${esc(t('not_found'))} <a href="#/">${esc(t('back'))}</a></div>`;
     return () => {};
+  }
+  // a lesson loaded on demand (the fine-tuning course): its code, visuals and data arrive now
+  if (cl.load && !cl.lesson) {
+    root.innerHTML = `<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lesson'))}</div>`;
+    try {
+      await ensure_lesson(cl);
+    } catch (e) {
+      console.warn('lesson chunk failed to load', e);
+      root.innerHTML = `<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="#/lesson/${encodeURIComponent(cl.id)}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;
+      return () => {};
+    }
+    if (!location.hash.startsWith(`#/lesson/${cl.id}`)) return () => {}; // the learner went elsewhere meanwhile
+    root.innerHTML = '';
   }
   const lesson = playable(cl);
   if (!lesson) return generate_view(root, cl);

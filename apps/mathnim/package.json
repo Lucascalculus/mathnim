@@ -13,7 +13,8 @@
     "doctor": "node tools/lesson_doctor.mjs",
     "snapshots": "node tools/snapshots.mjs",
     "narration": "mkdir -p node_modules/.cache && node tools/narration_texts.mjs > node_modules/.cache/narration.json && ../../reference/.venv/bin/python tools/gen_narration.py node_modules/.cache/narration.json public/narration",
-    "thumbs": "node tools/thumbnails.mjs"
+    "thumbs": "node tools/thumbnails.mjs",
+    "ft-manifest": "node tools/ft_manifest.mjs"
   },
   "dependencies": {
     "@mathnim/ai": "*",

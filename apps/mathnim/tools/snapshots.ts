@@ -5,7 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ScenePlayer } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
-import { all_lessons } from '../src/course';
+import { all_lessons, load_all_lessons } from '../src/course';
+
+// the fine-tuning lessons are loaded on demand in the app; the tools check them all
+await load_all_lessons();
 import { apply_theme } from '../src/lessons/best-angle/theme';
 
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });

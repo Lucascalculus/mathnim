@@ -2,7 +2,10 @@
 // step, to review the writing as a student would read it.
 //   node tools/lesson_text.mjs <lesson-id> [en|zh]
 import { tr, type Block, type Lang, type Lesson, type Step } from '@mathnim/core';
-import { all_lessons } from '../src/course';
+import { all_lessons, load_all_lessons } from '../src/course';
+
+// the fine-tuning lessons are loaded on demand in the app; the tools check them all
+await load_all_lessons();
 
 const [id, lang_arg] = process.argv.slice(2);
 const lang: Lang = lang_arg === 'en' ? 'en' : 'zh';

@@ -35,10 +35,8 @@ export { pca_3d } from './linalg/pca_3d';
 register(circle_slices);
 register(linear_map, determinant_area, eigen_hunt, lambda_sweep, rotation_no_eigen, matrix_power, symmetric_ellipse, covariance_ellipse, pca_projection, pca_3d);
 
-// The LLM fine-tuning course: each part registers its own visuals.
-export * as ft_a from './ft/a';
-export * as ft_b from './ft/b';
-export * as ft_c from './ft/c';
-export * as ft_d from './ft/d';
-export * as ft_e from './ft/e';
-export * as ft_f from './ft/f';
+// The LLM fine-tuning course's visuals are not here: each part's index
+// (src/ft/<part>/index.ts) registers its visuals when imported, which the app
+// does when a lesson of that part is opened (apps/mathnim/src/lessons/ft/
+// manifest.generated.ts), so the home page and the math course never download
+// them or their data. The tools import the part indexes themselves.

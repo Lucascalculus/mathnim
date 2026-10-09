@@ -2,18 +2,15 @@
 // syllabus entries that the AI turns into lessons on demand (cached locally).
 // Titles and summaries are L10n (plain strings are the same in every language).
 import { INSCRIBED_ENTRY, lesson_from_generated, type GeneratedLesson, type SyllabusEntry } from '@mathnim/ai';
-import type { L10n, Lesson, Skill } from '@mathnim/core';
+import { lesson_langs } from '@mathnim/core';
+import type { L10n, Lang, Lesson, Skill } from '@mathnim/core';
 import { lesson as bestAngle } from './lessons/best-angle/lesson';
 import { lesson as pizza } from './lessons/pizza/lesson';
 import { lesson as pizzaGame } from './lessons/pizza-game/lesson';
 import { lesson as eigenPca } from './lessons/eigen-pca/lesson';
 import { lesson as textDemo } from './lessons/text-pages-demo/lesson';
-import * as ftA from './lessons/ft/a/unit';
-import * as ftB from './lessons/ft/b/unit';
-import * as ftC from './lessons/ft/c/unit';
-import * as ftD from './lessons/ft/d/unit';
-import * as ftE from './lessons/ft/e/unit';
-import * as ftF from './lessons/ft/f/unit';
+// the fine-tuning course is data until a lesson is opened (npm run ft-manifest regenerates it)
+import { FT_LOADERS, FT_MANIFEST } from './lessons/ft/manifest.generated';
 
 export interface CourseLesson {
   id: string;
@@ -27,6 +24,25 @@ export interface CourseLesson {
   level?: L10n;
   /** Step whose figure (final frame) is the card thumbnail; default: the first step with a figure. */
   thumb?: string;
+  /** A lesson loaded on demand (its code is a separate chunk): ensure_lesson() loads it and sets `lesson`. */
+  load?: () => Promise<Lesson>;
+  /** What the course map, the learner model and the review page need before the lesson is loaded. */
+  meta?: LessonMeta;
+}
+/** A lesson as data (made from the real lesson by tools/ft_manifest.ts). */
+export interface LessonMeta {
+  title: L10n;
+  mode: 'essay' | 'game';
+  langs: Lang[];
+  has_scene: boolean;
+  kinds: string[];
+  skills: Skill[];
+  checkpoints: number;
+}
+/** The fine-tuning course as data (src/lessons/ft/manifest.generated.ts). */
+export interface FtManifest {
+  units: { id: string; title: L10n; lessons: Pick<CourseLesson, 'id' | 'title' | 'summary' | 'minutes' | 'level' | 'thumb'>[] }[];
+  lessons: Record<string, LessonMeta>;
 }
 export interface Unit {
   id: string;
@@ -111,15 +127,11 @@ export const FT_COURSE: Course = {
     { en: 'How is DPO different from RLHF?', zh: 'DPO 和 RLHF 有什么区别？' },
     { en: 'What does GRPO compare each answer against?', zh: 'GRPO 拿每个回答跟什么比？' },
   ],
-  units: [
-    ftA.unit,
-    ftB.unit,
-    { id: 'ft-f0', title: { en: 'Fine-tuning · Choosing, halfway', zh: '微调 · 中场选择练习' }, lessons: [ftF.midway] },
-    ftC.unit,
-    ftD.unit,
-    ftE.unit,
-    { id: 'ft-f1', title: { en: 'Fine-tuning F · How to choose', zh: '微调 F · 怎么选' }, lessons: [ftF.capstone] },
-  ],
+  // order and cards from the parts' unit.ts files (tools/ft_manifest.ts); lessons load when opened
+  units: FT_MANIFEST.units.map((u) => ({
+    id: u.id, title: u.title,
+    lessons: u.lessons.map((cl) => ({ ...cl, meta: FT_MANIFEST.lessons[cl.id], load: FT_LOADERS[cl.id] })),
+  })),
 };
 
 export const COURSES: Course[] = [MATH_COURSE, FT_COURSE];
@@ -148,16 +160,39 @@ export function cache_generation(g: GeneratedLesson): void {
 export function find_lesson(id: string): CourseLesson | undefined {
   return all_lessons().find((l) => l.id === id);
 }
-/** The playable lesson for a course entry (authored, or generated and cached). */
+/** The playable lesson for a course entry (authored and loaded, or generated and cached); null for one not loaded yet. */
 export function playable(cl: CourseLesson): Lesson | null {
   if (cl.lesson) return cl.lesson;
+  if (cl.load) return null;
   const g = cached_generation(cl.id);
   return g ? lesson_from_generated(g) : null;
+}
+const loading = new Map<string, Promise<Lesson>>();
+/** The lesson, loading its chunk first when it is loaded on demand (once; later calls share it). */
+export async function ensure_lesson(cl: CourseLesson): Promise<Lesson | null> {
+  if (cl.lesson || !cl.load) return playable(cl);
+  let p = loading.get(cl.id);
+  if (!p) {
+    p = cl.load().then((l) => (cl.lesson = l));
+    p.catch(() => loading.delete(cl.id)); // a failed download can be tried again
+    loading.set(cl.id, p);
+  }
+  return p;
+}
+/** Load every lesson (the tools, which check them all). */
+export async function load_all_lessons(): Promise<void> {
+  await Promise.all(all_lessons().map(ensure_lesson));
+}
+/** What the course map needs about a lesson, loaded or not. */
+export function lesson_info(cl: CourseLesson): { mode: 'essay' | 'game'; langs: Lang[]; has_scene: boolean; kinds: string[]; skills: Skill[] } | null {
+  const l = cl.lesson;
+  if (l) return { mode: l.mode ?? 'essay', langs: lesson_langs(l), has_scene: l.steps.some((s) => 'scene' in s && !!s.scene), kinds: [...new Set(l.steps.map((s) => s.kind))], skills: l.skills };
+  return cl.meta ?? null;
 }
 export function all_skills(): Skill[] {
   const out: Skill[] = [];
   for (const l of all_lessons()) {
-    const skills = l.lesson?.skills ?? cached_generation(l.id)?.plan.skills;
+    const skills = l.lesson?.skills ?? l.meta?.skills ?? cached_generation(l.id)?.plan.skills;
     if (skills) out.push(...skills);
   }
   return out;

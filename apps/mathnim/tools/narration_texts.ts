@@ -8,7 +8,10 @@
 // reads (core's to_spoken: TeX and symbols as words, in that language).
 import { INSCRIBED_PLAN } from '@mathnim/ai';
 import { is_bilingual, narration_key, spoken_lang, spoken_strings, to_spoken, type Lang } from '@mathnim/core';
-import { all_lessons } from '../src/course';
+import { all_lessons, load_all_lessons } from '../src/course';
+
+// the fine-tuning lessons are loaded on demand in the app; the tools check them all
+await load_all_lessons();
 
 const items = new Map<string, { key: string; text: string; lang: Lang; spoken: string }>();
 const add = (text: string, lang: Lang = spoken_lang(text)) => {

@@ -38,7 +38,7 @@ describe('guards', () => {
   it('checks Origin', () => {
     expect(origin_ok(post('/api/x', {}))).toBe(true);
     expect(origin_ok(post('/api/x', {}, { origin: 'https://other.example' }))).toBe(false);
-    expect(origin_ok(post('/api/x', {}, { origin: 'https://mathnim.penghaolun.com' }), 'https://mathnim.penghaolun.com')).toBe(true);
+    expect(origin_ok(post('/api/x', {}, { origin: 'https://lab.penghaolun.com' }), 'https://lab.penghaolun.com')).toBe(true);
     expect(origin_ok(new Request(`${SITE}/api/x`))).toBe(true); // GET without Origin (curl, same-origin GET)
     expect(origin_ok(new Request(`${SITE}/api/x`, { method: 'POST', body: '{}' }))).toBe(false);
   });

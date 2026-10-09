@@ -2,7 +2,7 @@
 
 Mathnim is a static web app plus a few server routes. In production it runs on
 **Cloudflare Pages** (project `mathnim`, https://mathnim.pages.dev, custom
-domain mathnim.penghaolun.com); the server routes are **Pages Functions**. In
+domain lab.penghaolun.com); the server routes are **Pages Functions**. In
 development the **Vite dev server** serves the same routes with the same code.
 
 ```
@@ -66,7 +66,7 @@ A new secret takes effect with the next deployment (`npm run deploy`).
 ## Custom domain
 
 1. Cloudflare dashboard → Workers & Pages → `mathnim` → Custom domains → Set
-   up a custom domain → `mathnim.penghaolun.com`.
+   up a custom domain → `lab.penghaolun.com`.
 2. If `penghaolun.com` uses Cloudflare DNS, the CNAME record is created for
    you; otherwise add `CNAME mathnim → mathnim.pages.dev` at the DNS provider.
    The certificate is issued automatically (minutes).

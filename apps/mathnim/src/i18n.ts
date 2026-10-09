@@ -34,6 +34,9 @@ define_ui({
   bilingual: { en: 'English · 中文', zh: '中文 · English' },
   // ---- lesson page
   not_found: { en: 'Lesson not found.', zh: '找不到这节课。' },
+  loading_lesson: { en: 'Loading the lesson…', zh: '正在加载课程……' },
+  load_failed: { en: 'The lesson could not be loaded. Check the connection and', zh: '课程没能加载。请检查网络后' },
+  try_again: { en: 'try again', zh: '重试' },
   back: { en: 'Back', zh: '返回' },
   lesson_questions: { en: 'Questions about this lesson', zh: '关于这节课的问题' },
   lesson_questions_sub: { en: 'Ask about what is on screen - the answer knows what you are looking at.', zh: '屏幕上的任何内容都可以问——回答知道你正在看什么。' },

@@ -52,7 +52,7 @@ kept there). This file is the short "where are we right now".
   Each part builds in its own folders (apps/mathnim/src/lessons/ft/<part>/,
   packages/visuals/src/ft/<part>/); I wire course.ts and the visuals index.
 - The user: set Pages secrets `DEEPSEEK_API_KEY` (and `ADMIN_TOKEN`), add the
-  custom domain `mathnim.penghaolun.com`, check local DeepSeek connectivity
+  custom domain `lab.penghaolun.com`, check local DeepSeek connectivity
   (`curl -sI https://api.deepseek.com/models` - from this machine it was resetting),
   `kill 54979` (a leftover test server of a sub-agent on :5199).
 

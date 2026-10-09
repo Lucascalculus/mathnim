@@ -4,7 +4,7 @@ import { tr, type CheckpointStep, type Lesson } from '@mathnim/core';
 import { LessonView, esc, math_html, plural_s, t, ui_lang } from '@mathnim/present';
 import { text_grader, visual_resolver } from '../lesson_services';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { all_lessons, playable } from '../course';
+import { all_lessons, ensure_lesson, playable } from '../course';
 import { load_settings } from '../settings';
 import { learner, log } from '../store';
 
@@ -22,7 +22,16 @@ function practice_items(): Item[] {
   return out;
 }
 
-export function review(root: HTMLElement): () => void {
+export async function review(root: HTMLElement): Promise<() => void> {
+  // due questions name their lesson ('<lesson>/<step>'): load those lessons, and only those
+  const wanted = new Set(learner.due().map((r) => r.id.split('/')[0]));
+  const to_load = all_lessons().filter((cl) => cl.load && !cl.lesson && wanted.has(cl.id));
+  if (to_load.length) {
+    root.innerHTML = `<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lesson'))}</div>`;
+    await Promise.allSettled(to_load.map(ensure_lesson));
+    if (!location.hash.startsWith('#/review')) return () => {};
+    root.innerHTML = '';
+  }
   const items = practice_items();
   const byId = new Map(items.map((i) => [`${i.lesson.id}/${i.step.id}`, i]));
   let queue = learner.due().map((r) => byId.get(r.id)).filter((x): x is Item => !!x);

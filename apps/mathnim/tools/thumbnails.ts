@@ -12,7 +12,10 @@ import { LANGS, lesson_langs, type Lang } from '@mathnim/core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
-import { all_lessons } from '../src/course';
+import { all_lessons, load_all_lessons } from '../src/course';
+
+// the fine-tuning lessons are loaded on demand in the app; the tools check them all
+await load_all_lessons();
 import { apply_theme } from '../src/lessons/best-angle/theme';
 
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });

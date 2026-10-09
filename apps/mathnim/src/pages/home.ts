@@ -1,16 +1,16 @@
 // Home: continue, reviews due, ask anything, and the course map.
 import { AskPanel, RECORDED, recorded_question, worker_validator } from '@mathnim/ai';
-import { MASTERY, lesson_langs, tr, type Lesson } from '@mathnim/core';
+import { MASTERY, tr, type L10n } from '@mathnim/core';
 import { esc, math_html, t, ui_lang } from '@mathnim/present';
 import { ScenePlayer } from 'manim-web/ext/player';
-import { COURSES, all_lessons, cached_generation, playable, type CourseLesson } from '../course';
+import { COURSES, all_lessons, cached_generation, lesson_info, playable, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
 import { provider } from '../settings';
 import { home_context } from '../student';
 import { choose_course, current_course, last_lesson, learner, log } from '../store';
 
 function skills_of(cl: CourseLesson) {
-  return cl.lesson?.skills ?? cached_generation(cl.id)?.plan.skills ?? [];
+  return lesson_info(cl)?.skills ?? cached_generation(cl.id)?.plan.skills ?? [];
 }
 function ring(cl: CourseLesson): string {
   const sk = skills_of(cl);
@@ -23,9 +23,11 @@ function ring(cl: CourseLesson): string {
 
 /** The card's tag: what kind of lesson this is. */
 function tag(l: CourseLesson): string {
-  if (!l.lesson) return t(cached_generation(l.id) ? 'tag_ai' : 'tag_generate');
-  if (l.lesson.mode === 'game') return t('tag_game');
-  if (!l.lesson.steps.some((s) => 'scene' in s && s.scene)) return t('tag_reading');
+  // from the lesson, or for one not loaded yet from its data (the course map never loads lessons)
+  const info = lesson_info(l);
+  if (!info) return t(cached_generation(l.id) ? 'tag_ai' : 'tag_generate');
+  if (info.mode === 'game') return t('tag_game');
+  if (!info.has_scene) return t('tag_reading');
   return t(tr(l.level, 'en').includes('university') ? 'tag_essay' : 'tag_guided');
 }
 
@@ -62,7 +64,7 @@ export function home(root: HTMLElement): void {
       <section class="unit"><h3>${math_html(tr(u.title, lang))}</h3><div class="lessons">${u.lessons.map((l) => `
         <a class="card lesson-card" href="#/lesson/${l.id}">
           <canvas class="thumb" width="640" height="360" data-lesson="${l.id}" aria-hidden="true"></canvas>
-          <div class="meta"><span class="row" style="gap:6px"><span class="tag ${l.lesson ? '' : 'ai'}">${esc(tag(l))}</span>${l.lesson && lesson_langs(l.lesson).length > 1 ? `<span class="tag" title="English · 中文">EN · 中</span>` : ''}</span><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
+          <div class="meta"><span class="row" style="gap:6px"><span class="tag ${lesson_info(l) ? '' : 'ai'}">${esc(tag(l))}</span>${(lesson_info(l)?.langs.length ?? 0) > 1 ? `<span class="tag" title="English · 中文">EN · 中</span>` : ''}</span><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
           <div style="font-weight:600;font-size:16px">${math_html(tr(l.title, lang))}</div>
           <div class="muted" style="font-size:13px">${math_html(tr(l.summary, lang))}</div>
           ${ring(l)}
@@ -111,8 +113,9 @@ function draw_thumbnails(root: HTMLElement): void {
 /** Draw public/thumbs/<lesson>.<lang>.webp (English for one-language lessons) if it exists. */
 function prerendered(c: HTMLCanvasElement): Promise<boolean> {
   const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
-  if (!cl?.lesson) return Promise.resolve(false);
-  const lang = lesson_langs(cl.lesson).length > 1 ? ui_lang() : 'en';
+  const info = cl && lesson_info(cl);
+  if (!cl || !info) return Promise.resolve(false);
+  const lang = info.langs.length > 1 ? ui_lang() : 'en';
   return new Promise((done) => {
     const img = new Image();
     img.onload = () => {
@@ -172,7 +175,9 @@ async function draw_one(c: HTMLCanvasElement): Promise<void> {
   const step = (cl?.thumb && lesson?.steps.find((s: any) => s.id === cl.thumb && s.scene)) || lesson?.steps.find((s: any) => s.scene);
   if (!step) {
     c.classList.add('empty');
-    if (lesson) text_thumbnail(c, lesson);
+    // a lesson not loaded yet (no pre-rendered image either) gets a page-like card from its data, without loading it
+    const info = cl && lesson_info(cl);
+    if (cl && info) text_thumbnail(c, { title: lesson?.title ?? cl.title, kinds: info.kinds });
     else {
       const g = c.getContext('2d')!;
       g.fillStyle = '#2f5bd3';
@@ -196,7 +201,7 @@ async function draw_one(c: HTMLCanvasElement): Promise<void> {
 }
 
 /** A lesson made of text pages has no scene to show: draw a page with its kinds of steps instead. */
-function text_thumbnail(c: HTMLCanvasElement, lesson: Lesson): void {
+function text_thumbnail(c: HTMLCanvasElement, lesson: { title: L10n; kinds: string[] }): void {
   const g = c.getContext('2d')!;
   const W = c.width, H = c.height;
   // a sheet of paper with lines of text, a formula bar and a code block
@@ -241,7 +246,7 @@ function text_thumbnail(c: HTMLCanvasElement, lesson: Lesson): void {
   y += 46;
   g.fillStyle = '#f6f7f9';
   g.fillRect(x0, y, w, H * 0.86 - y);
-  const kinds = new Set(lesson.steps.map((s) => s.kind));
+  const kinds = new Set(lesson.kinds);
   g.fillStyle = '#7c3aed';
   g.font = '600 15px ui-monospace, Menlo, monospace';
   g.textAlign = 'left';
