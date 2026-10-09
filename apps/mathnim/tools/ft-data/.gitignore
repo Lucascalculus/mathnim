@@ -1,0 +1,4 @@
+# local environment and downloaded models (see common.py); never commit
+.venv/
+.cache/
+__pycache__/

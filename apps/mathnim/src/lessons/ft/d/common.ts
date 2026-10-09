@@ -1,26 +1,29 @@
 // Helpers shared by the part D lessons (preference optimization).
-import type { Block, ExploreStep, L10n, Question } from '@mathnim/core';
+import type { Block, ExploreStep, L10n, LessonContext, Question } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
-import { ft_lang } from '@mathnim/visuals/ft/f';
 
-/** Canvas words in the learner's current language (for handle labels and hints set up when a world starts). */
-export const now = (en: string, zh: string): string => (ft_lang() === 'zh' ? zh : en);
+/** Canvas words in the learner's language (for handle labels set up when a world starts). */
+export const say = (ctx: LessonContext | undefined, en: string, zh: string): string => (ctx?.lang === 'zh' ? zh : en);
+
+/** The visual's parameters, with the learner's language unless the lesson fixed one. */
+const params_for = (v: NonNullable<ReturnType<typeof get_visual>>, raw: Record<string, unknown>, ctx?: LessonContext) =>
+  check_params(v, 'lang' in v.params && ctx?.lang && raw.lang === undefined ? { ...raw, lang: ctx.lang } : raw).params;
 
 /** Two-language text. */
 export const t = (en: string, zh: string): L10n => ({ en, zh });
 
 /** A visual's scene with checked parameters (registered by packages/visuals/src/ft/d/index.ts). */
-export const vis = (name: string, raw: Record<string, unknown> = {}) => () => {
+export const vis = (name: string, raw: Record<string, unknown> = {}) => (ctx?: LessonContext) => {
   const v = get_visual(name);
   if (!v) throw new Error(`visual '${name}' is not registered`);
-  return v.scene(check_params(v, raw).params);
+  return v.scene(params_for(v, raw, ctx));
 };
 
 /** A world's setup: route the scene's events to the world, add the visual's handles, then `extra`. */
 export const world_setup = (name: string, raw: Record<string, unknown> = {}, extra?: ExploreStep['setup']): ExploreStep['setup'] => (scene: any, ui, ctx, world) => {
   scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
   const v = get_visual(name)!;
-  v.explore?.(scene, ui, check_params(v, raw).params);
+  v.explore?.(scene, ui, params_for(v, raw, ctx));
   extra?.(scene, ui, ctx, world);
 };
 
@@ -39,7 +42,10 @@ export const warn = (en: string, zh: string, title?: [string, string]): Block =>
 export const myth = (en: string, zh: string, title?: [string, string]): Block => ({ type: 'callout', kind: 'misconception', body: t(en, zh), title: title ? t(...title) : undefined });
 export const open_q = (en: string, zh: string, title?: [string, string]): Block => ({ type: 'callout', kind: 'open', body: t(en, zh), title: title ? t(...title) : undefined });
 export const details = (summary: [string, string], blocks: Block[]): Block => ({ type: 'details', summary: t(...summary), blocks });
-export const fig = (src: string, alt: [string, string], caption: [string, string], credit?: string): Block => ({ type: 'figure', src: `ft/d/${src}`, alt: t(...alt), caption: t(...caption), credit });
+/** A figure drawn once per language: public/ft/d/<base>.en.svg and <base>.zh.svg. */
+export const fig = (base: string, alt: [string, string], caption: [string, string], credit?: string): Block => ({
+  type: 'figure', src: { en: `ft/d/${base}.en.svg`, zh: `ft/d/${base}.zh.svg` }, alt: t(...alt), caption: t(...caption), credit,
+});
 /** A source for a footnote [^key]: `who` like 'Ouyang et al. 2022', the title as published. */
 export const cite = (key: string, who: string, title: string, url: string): Block => ({
   type: 'cite', key, url, text: t(`${who}, ${title}`, `${who.replace(' et al.', ' 等')}：${title}`),

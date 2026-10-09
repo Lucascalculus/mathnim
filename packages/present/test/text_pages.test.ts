@@ -2,7 +2,7 @@
 // and the UI dictionary (no DOM needed).
 import { describe, expect, it } from 'vitest';
 import { highlight_lines, tokenize } from '../src/highlight';
-import { define_ui, set_ui_lang, t, ui_entries } from '../src/i18n';
+import { define_ui, drag_hint, set_ui_lang, t, ui_entries } from '../src/i18n';
 import { math_html } from '../src/math';
 import { blocks_html } from '../src/text_pages';
 
@@ -90,6 +90,12 @@ describe('UI dictionary', () => {
       expect(e.en.trim(), k).not.toBe('');
       expect(e.zh.trim(), k).not.toBe('');
     }
+  });
+  it('words the drag hint naturally in Chinese', () => {
+    expect(drag_hint([{ spec: { label: 'the tip of î' } }], 'en')).toBe('Drag {label}');
+    expect(drag_hint([{ spec: { label: '点 P' } }], 'zh')).toBe('拖动{label}');
+    expect(drag_hint([{ spec: { label: 'the tip of î' } }], 'zh')).toBe('拖动这里'); // never "拖动the tip of…"
+    expect(drag_hint([{ spec: {} }], 'zh')).toBe('拖动这里'); // never "拖动me"
   });
   it('fills values and follows the interface language', () => {
     define_ui({ test_key: { en: '{n} item{s}', zh: '{n} 项' } });

@@ -110,8 +110,10 @@ export const pg_baseline = define_visual<PgBaselineParams>({
         spread.name = 'spread';
         const mean_arrow = VGroup(arrow(Pt([0, 0]), Pt(mean), c.gold, 7, 0.16));
         mean_arrow.name = 'mean_arrow';
-        const mean_note = label(pick(lang, 'gold arrow = the mean E[ĝ], the same for every b', '金色箭头 = 均值 E[ĝ]，对每个 b 都一样'), 22, c.gold);
-        mean_note.move_to([PC[0], 3.05, 0]);
+        const mean_note = label(pick(lang, 'gold arrow = mean E[ĝ], same for every b', '金色箭头 = 均值 E[ĝ]，对每个 b 都一样'), 22, c.gold);
+        if (mean_note.width > 6.2) mean_note.scale(6.2 / mean_note.width);
+        // centred over the plane, but never past the right edge of the frame
+        mean_note.move_to([Math.min(PC[0], 6.85 - mean_note.width / 2), 3.05, 0]);
 
         // ---- right bottom: variance against b, traced where b has been
         const vcap = tex('\\mathrm{Var}[\\hat g] = \\mathbb{E}\\,\\lVert \\hat g - \\mathbb{E}[\\hat g] \\rVert^2 =', 28, c.ink);

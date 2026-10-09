@@ -97,7 +97,7 @@ export const lesson: Lesson = {
         { type: 'figure', src: 'ft/b/b1-chat-templates.svg',
           alt: t('The same three-message chat rendered in the Qwen2.5 ChatML format and in the Llama 3 format, with special tokens highlighted and the end-of-turn token marked.', '同一段三条消息的对话，分别按 Qwen2.5 的 ChatML 格式和 Llama 3 格式渲染，特殊 token 高亮，并标出轮次结束 token。'),
           caption: t('Two families, two templates. Both end every turn with a special token, <|im_end|> or <|eot_id|>, and that token must stay in the labels so the model learns to emit it.', '两个模型家族，两种模板。两者都用一个特殊 token 结束每一轮：<|im_end|> 或 <|eot_id|>。这个 token 必须留在 labels 里，模型才学得会输出它。'),
-          credit: 'Own drawing; Qwen2.5 checked against its tokenizer’s chat_template, Llama 3 from Meta’s prompt-format doc' },
+          credit: 'Own drawing; Qwen2.5 checked against its tokenizer’s chat_template, Llama 3 from Meta’s prompt-format doc · 自绘；Qwen2.5 用其 tokenizer 的 chat_template 核对，Llama 3 据 Meta 提示格式文档' },
         { type: 'callout', kind: 'warning', title: t('Train and serve with the same template', '训练和推理用同一个模板'), body: t(
           'The model learns "after these tokens comes <|im_end|>". Serve it with another template, or stop generation on another token, and it will not stop where you expect. A real trap: the Qwen2.5 *base* tokenizer’s `eos_token` is <|endoftext|>, while chat turns end with <|im_end|>. That is why TRL asks you to set `eos_token="<|im_end|>"` when you fine-tune the base model on chats[^trl].',
           '模型学到的是"这串 token 之后接 <|im_end|>"。推理时换了模板，或者生成器在另一个 token 上停，它就不会在你预期的地方停下。一个真实的坑：Qwen2.5 *基座*的 tokenizer，`eos_token` 是 <|endoftext|>，而对话的每一轮以 <|im_end|> 结束。所以在对话数据上微调基座时，TRL 要你设 `eos_token="<|im_end|>"`[^trl]。') },
@@ -167,7 +167,7 @@ export const lesson: Lesson = {
         ] },
         { type: 'figure', src: 'ft/b/b1-prompt-weight.svg', alt: t('Relative score against prompt-loss weight for two models on short-completion data: an inverted U peaking between about 0.01 and 0.25.', '两个模型在短回答数据上的相对得分随提示损失权重变化：呈倒 U 形，峰值在大约 0.01 到 0.25 之间。'),
           caption: t('Short-completion data (AlpacaDataShort). On long-generation benchmarks a weight near 1 did better.', '短回答数据（AlpacaDataShort）。在长文本生成基准上，接近 1 的权重更好。'),
-          credit: '示意，据 Huerta-Enochian & Ko (2024) 图 1(d) 重绘，数值近似' },
+          credit: 'Schematic, redrawn after Huerta-Enochian & Ko (2024) Fig. 1(d); values approximate · 示意，据 Huerta-Enochian & Ko（2024）图 1(d) 重绘，数值近似' },
         { type: 'callout', kind: 'open', body: t(
           'These are single studies on specific data. Treat λ as a knob you try against a held-out set, not as a rule.',
           '这些都是针对特定数据的单项研究。把 λ 当成一个要在留出集上试的旋钮，而不是规则。') },
@@ -315,7 +315,7 @@ export const lesson: Lesson = {
         { type: 'cite', key: 'tulu', text: t('Lambert et al. (2024). Tülu 3: Pushing Frontiers in Open Language Model Post-Training.', 'Lambert 等（2024）。Tülu 3: Pushing Frontiers in Open Language Model Post-Training。'), url: 'https://arxiv.org/abs/2411.15124' },
         { type: 'cite', key: 'pack', text: t('Hugging Face blog (2024). Improving hugging face training efficiency through packing with Flash Attention 2.', 'Hugging Face 博客（2024）。Packing with Flash Attention 2。'), url: 'https://huggingface.co/blog/packing-with-FA2' },
         { type: 'p', text: t('Boundary-aware packing kept validation loss unchanged and raised throughput about 2× on FLAN and 1.4× on OrcaMath[^pack].', '按边界打包时，验证 loss 不变，吞吐在 FLAN 上提高约 2 倍，在 OrcaMath 上约 1.4 倍[^pack]。') },
-        { type: 'figure', src: 'ft/b/b1-packing.svg', alt: t('Padding, naive packing and boundary-aware packing of four sequences, with throughput bars.', '四条序列的填充、直接打包、按边界打包三种布局，以及吞吐对比柱。'), caption: t('Layouts are exact; throughput from the Hugging Face blog.', '布局为精确计算；吞吐数据来自 Hugging Face 博客。'), credit: '布局与比例为精确计算；吞吐据 Hugging Face 博客《Packing with FlashAttention 2》（2024），数值近似' },
+        { type: 'figure', src: 'ft/b/b1-packing.svg', alt: t('Padding, naive packing and boundary-aware packing of four sequences, with throughput bars.', '四条序列的填充、直接打包、按边界打包三种布局，以及吞吐对比柱。'), caption: t('Layouts are exact; throughput from the Hugging Face blog.', '布局为精确计算；吞吐数据来自 Hugging Face 博客。'), credit: 'Layouts exact; throughput after the Hugging Face blog “Packing with FlashAttention 2” (2024), approximate · 布局为精确计算；吞吐据 Hugging Face 博客（2024），数值近似' },
       ],
     },
     // ------------------------------------------------------------------ code

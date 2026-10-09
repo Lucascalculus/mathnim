@@ -23,7 +23,8 @@ def device_setup() -> dict:
     On a Mac or CPU: neither (the smoke tests run here).
     """
     if torch.cuda.is_available():
-        bf16 = torch.cuda.is_bf16_supported()
+        # not torch.cuda.is_bf16_supported(): it also says True on a T4, where bf16 is only emulated
+        bf16 = torch.cuda.get_device_capability()[0] >= 8
         return {"bf16": bf16, "fp16": not bf16}
     return {"bf16": False, "fp16": False, "use_cpu": True}
 
@@ -69,6 +70,76 @@ def parse_hashes(text: str) -> float | None:
 
 def same_number(a: float | None, gold: str) -> bool:
     return a is not None and abs(a - float(gold)) < 1e-6
+
+# ---------------------------------------------------------------- GSM8K as chat prompts (L4, L5)
+
+SYSTEM = ("Solve the math problem. Reason step by step, then give only the final number "
+          "inside <answer></answer>, for example <answer>42</answer>.")
+
+
+def gsm8k_chat(split: str, n: int | None = None, start: int = 0):
+    """GSM8K with a chat prompt and the gold number in column `answer` (TRL passes it to reward functions)."""
+    from datasets import load_dataset
+    ds = load_dataset("openai/gsm8k", "main", split=split)
+    ds = ds.select(range(start, min(len(ds), start + n))) if n else ds
+    return ds.map(lambda ex: {"prompt": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": ex["question"]}],
+                              "answer": gold_of(ex["answer"])}, remove_columns=["question"])
+
+
+def sample_n(model, tok, prompts, n: int, max_new_tokens: int, temperature: float = 1.0, use_vllm: bool = False):
+    """n sampled answers per chat prompt. Returns, per prompt, a list of (text, truncated).
+
+    `model` is a loaded transformers model, or (with use_vllm) a model path / Hub id.
+    "truncated" means the answer hit max_new_tokens without an end token.
+    """
+    if use_vllm:
+        from vllm import LLM, SamplingParams
+        llm = LLM(model=model, gpu_memory_utilization=0.85, max_model_len=max_new_tokens + 512)
+        outs = llm.chat(prompts, SamplingParams(n=n, temperature=temperature, max_tokens=max_new_tokens))
+        return [[(c.text, c.finish_reason == "length") for c in o.outputs] for o in outs]
+    stops = [i for i in {tok.eos_token_id, tok.convert_tokens_to_ids("<|im_end|>")} if isinstance(i, int) and i >= 0]
+    res = []
+    for p in prompts:
+        ids = tok.apply_chat_template(p, add_generation_prompt=True, return_tensors="pt", return_dict=True).to(model.device)
+        with torch.no_grad():
+            g = model.generate(**ids, do_sample=temperature > 0, temperature=temperature if temperature > 0 else None,
+                               top_p=1.0, top_k=0, repetition_penalty=1.0, max_new_tokens=max_new_tokens, num_return_sequences=n,
+                               eos_token_id=stops, pad_token_id=tok.pad_token_id if tok.pad_token_id is not None else stops[0])
+        new = g[:, ids["input_ids"].shape[1]:]
+        res.append([(tok.decode(row, skip_special_tokens=True), not any(int(t) in stops for t in row)) for row in new])
+    return res
+
+
+def eval_gsm8k(model, tok, split: str = "test", n_q: int = 200, n: int = 16, max_new_tokens: int = 512,
+               use_vllm: bool = False, start: int = 0, grade=None) -> dict:
+    """n samples per question at temperature 1 -> pass@k, coverage, length, truncation; `c` = right answers per question."""
+    import time
+    import numpy as np
+    grade = grade or (lambda text, gold: (a := parse_answer(text)) is not None and abs(a - float(gold)) < 1e-6)
+    ds = gsm8k_chat(split, n_q, start)
+    t0 = time.time()
+    outs = sample_n(model, tok, ds["prompt"], n, max_new_tokens, 1.0, use_vllm=use_vllm)
+    secs = time.time() - t0
+    c = [sum(bool(grade(t, g)) for t, _ in o) for o, g in zip(outs, ds["answer"])]
+    lens = [len(tok(t, add_special_tokens=False)["input_ids"]) for o in outs for t, _ in o]
+    return {
+        "questions": len(c), "samples": n, "max_new_tokens": max_new_tokens, "seconds": round(secs, 1),
+        "pass@k": {k: float(np.mean([pass_at_k(n, ci, k) for ci in c])) for k in (1, 2, 4, 8, 16, 32) if k <= n},
+        "coverage (solved at least once)": float(np.mean([ci > 0 for ci in c])),
+        "mean_len_tokens": float(np.mean(lens)), "truncated": float(np.mean([tr for o in outs for _, tr in o])),
+        "c": c,
+    }
+
+
+def zero_var_est(n: int, c: int, G: int) -> float:
+    """Unbiased estimate, from n samples with c right, of P(a group of G is all right or all wrong).
+
+    The same counting trick as pass@k: choose G of the n samples without replacement.
+    Its expectation is p^G + (1 - p)^G, the formula of E1.
+    """
+    if n < G:
+        raise ValueError("need n >= G samples")
+    return (math.comb(c, G) + math.comb(n - c, G)) / math.comb(n, G)
 
 # ---------------------------------------------------------------- pass@k
 

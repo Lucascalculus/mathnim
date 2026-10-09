@@ -17,7 +17,7 @@ import {
   EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, tr,
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
-import { plural_s, t, ui_lang } from './i18n';
+import { drag_hint, plural_s, t, ui_lang } from './i18n';
 import { esc, math_html, set_math, set_tex_renderer, type TexRenderer } from './math';
 import { Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
@@ -389,7 +389,7 @@ export class LessonView {
         }
         // the game view gives every snap, drop and win a sound and a little motion
         this.juice = this.game ? new Juice(e.ui) : null;
-        this.affordance = new AffordanceLayer(e.ui, { color: this.accent() });
+        this.affordance = new AffordanceLayer(e.ui, { color: this.accent(), hint: drag_hint(e.ui.handles, this.lang) });
         // show the gesture once the learner has had a moment to look
         setTimeout(() => this.affordance?.coach(), 900);
         break;

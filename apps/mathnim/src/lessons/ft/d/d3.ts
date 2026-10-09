@@ -4,8 +4,8 @@
 // derivation, the gradient and its weight, then one world where the learner
 // finds that the loss only sees the gap and watches likelihood displacement
 // happen in a toy model, then the real evidence, code and practice.
-import type { Lesson } from '@mathnim/core';
-import { choose_card, cite, fig, list, myth, note, now, open_q, p, t, table, text_q, vis } from './common';
+import type { Lesson, LessonContext } from '@mathnim/core';
+import { choose_card, cite, fig, list, myth, note, open_q, p, say, t, table, text_q, vis } from './common';
 
 /** One press of "Train 20 steps" in the D3 worlds. */
 function train_press(scene: any, world: any, n = 20): void {
@@ -13,7 +13,7 @@ function train_press(scene: any, world: any, n = 20): void {
   world.emit('trained', { steps: Math.round(scene.steps.get_value()), pw: st.p[0], p3: st.p[2], loss: st.loss, ches: scene.ches(), nll: scene.nll.get_value() > 0.5 });
 }
 /** The D3 world's handles: the gap point (only before training starts) and the rejected response. */
-function gap_handles(scene: any, ui: any, o: { point: boolean }): void {
+function gap_handles(scene: any, ui: any, ctx: LessonContext, o: { point: boolean }): void {
   const v = (scene as any);
   if (o.point) {
     ui.add_handle({
@@ -27,7 +27,7 @@ function gap_handles(scene: any, ui: any, o: { point: boolean }): void {
         v.dw.set_value(dw);
         v.dl.set_value(dl);
       },
-      step: 0.1, radius: 0.4, label: now('the point (Δ_w, Δ_l)', '点 (Δ_w, Δ_l)'),
+      step: 0.1, radius: 0.4, label: say(ctx, 'the point (Δ_w, Δ_l)', '点 (Δ_w, Δ_l)'),
       on_end: () => v.emit('gap', { dw: v.dw.get_value(), dl: v.dl.get_value(), loss: v.state().loss, free: v.mode.get_value() < 0.5 }),
     });
   }
@@ -39,7 +39,7 @@ function gap_handles(scene: any, ui: any, o: { point: boolean }): void {
       v.ly.set_value(b);
       v.steps.set_value(0); // a new pair: training starts again from the reference
     },
-    step: 0.1, radius: 0.4, label: now('the rejected answer y_l', '被拒回答 y_l'),
+    step: 0.1, radius: 0.4, label: say(ctx, 'the rejected answer y_l', '被拒回答 y_l'),
     on_end: () => v.emit('moved_rejected', { ches: v.ches() }),
   });
 }
@@ -112,7 +112,7 @@ export const lesson: Lesson = {
     {
       id: 'routes', kind: 'read', title: t('Two routes, one optimum - in theory', '两条路，一个最优解——在理论上'),
       blocks: [
-        fig('two-routes.svg', ['Preference pairs feed either a reward model followed by RL, or the DPO loss directly; both arrows end at the same optimal policy.', '偏好对要么先训练奖励模型再做 RL，要么直接进入 DPO 损失；两条路都指向同一个最优策略。'],
+        fig('two-routes', ['Preference pairs feed either a reward model followed by RL, or the DPO loss directly; both arrows end at the same optimal policy.', '偏好对要么先训练奖励模型再做 RL，要么直接进入 DPO 损失；两条路都指向同一个最优策略。'],
           ['RLHF and DPO optimize the same objective; DPO skips the explicit reward model and the sampling loop.', 'RLHF 和 DPO 优化同一个目标；DPO 跳过了显式的奖励模型和采样循环。'], 'Redrawn after Rafailov et al. (2023), Figure 1'),
         p('"The same optimum" holds under ideal assumptions: Bradley–Terry describes the preferences, the data cover the answers that matter, and the policy can represent the optimum. In practice the data are a fixed, finite set of pairs, and **the loss says nothing about answers that are not in it** - the world below shows what that means.',
           '"同一个最优解"成立需要理想的假设：Bradley–Terry 能描述这些偏好、数据覆盖了要紧的回答、策略能表示那个最优解。实践中，数据是一份固定的、有限的偏好对，而**损失对数据里没有的回答什么也没说**——下面的世界会让你看到这意味着什么。'),
@@ -150,9 +150,9 @@ export const lesson: Lesson = {
     {
       id: 'weight', kind: 'read', title: t('Two pictures of the gradient', '梯度的两张图'),
       blocks: [
-        fig('dpo-weight.svg', ['The weight σ(−u) falls from 1 to 0 as the margin u grows: wrongly ranked pairs get full weight, well-ranked pairs almost none.', '权重 σ(−u) 随差距 u 增大从 1 降到 0：排错的对权重满额，排得很好的对几乎为零。'],
+        fig('dpo-weight', ['The weight σ(−u) falls from 1 to 0 as the margin u grows: wrongly ranked pairs get full weight, well-ranked pairs almost none.', '权重 σ(−u) 随差距 u 增大从 1 降到 0：排错的对权重满额，排得很好的对几乎为零。'],
           ['The weight on each pair: DPO spends its effort on the pairs its implicit reward still gets wrong.', '每一对的权重：DPO 把力气花在隐式奖励还排错的那些对上。'], 'Original; exact'),
-        fig('token-cancel.svg', ['Two refusals that share their first eight tokens: the shared prefix is grey (gradients cancel), the diverging tokens are coloured.', '两个拒答回答，前八个 token 相同：共享前缀标为灰色（梯度抵消），分叉后的 token 着色。'],
+        fig('token-cancel', ['Two refusals that share their first eight tokens: the shared prefix is grey (gradients cancel), the diverging tokens are coloured.', '两个拒答回答，前八个 token 相同：共享前缀标为灰色（梯度抵消），分叉后的 token 着色。'],
           ['Only the tokens after the answers diverge carry gradient. Near-identical pairs therefore give a small, narrow signal.', '只有分叉之后的 token 带梯度。所以几乎一样的两个回答，给的信号又小又窄。'], 'Original'),
       ],
     },
@@ -194,9 +194,9 @@ export const lesson: Lesson = {
       prompt: t(
         '(1) **You are the optimizer.** Drag the gold point on the left - how far the chosen (Δ_w) and rejected (Δ_l) log-probabilities move - to get the loss below 0.3 **while the chosen answer becomes less likely**. (2) Now press **Train 20 steps** a few times: a real toy model trains on this pair. Watch the bars. (3) Drag **y_l** (the rejected answer, right) so that training makes the chosen answer **more** likely, and train again.',
         '(1) **你来当优化器**：拖动左边的金色点——它表示被选（Δ_w）和被拒（Δ_l）回答的对数概率各变了多少——让损失低于 0.3，**同时被选回答变得更不可能**。(2) 然后按几次 **训练 20 步**：一个真正的玩具模型在这一对上训练。盯住下面的柱子。(3) 拖动右边的 **y_l**（被拒回答），让训练使被选回答变得**更**可能，再训练一次。'),
-      setup: (scene: any, ui, _ctx, world) => {
+      setup: (scene: any, ui, ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
-        gap_handles(scene, ui, { point: true });
+        gap_handles(scene, ui, ctx, { point: true });
       },
       actions: [{ id: 'train', label: t('Train 20 steps', '训练 20 步'), primary: true, run: (scene: any, _ctx, world) => train_press(scene, world) }],
       goals: [
@@ -261,7 +261,7 @@ export const lesson: Lesson = {
       id: 'real', kind: 'read', chapter: t('In real models', '真实模型里'), title: t('Likelihood displacement, measured', '量出来的似然位移'),
       blocks: [
         p('This is not a toy artefact. Razin et al. trained models with DPO on pairs of refusals to harmful requests - a chosen refusal and a slightly different rejected refusal - and the models refused **less** afterwards[^razin]:', '这不是玩具才有的现象。Razin 等人在"对有害请求的拒答"这类偏好对上训练 DPO——被选的是一个拒答，被拒的是另一个稍有不同的拒答——结果模型拒答得**更少**了[^razin]：'),
-        fig('refusal.svg', ['Refusal rates before and after DPO: Llama-3-8B-Instruct 74.4% to 33.4%, Gemma-2B-IT 80.5% to 54.8%.', 'DPO 前后的拒答率：Llama-3-8B-Instruct 从 74.4% 降到 33.4%，Gemma-2B-IT 从 80.5% 降到 54.8%。'],
+        fig('refusal', ['Refusal rates before and after DPO: Llama-3-8B-Instruct 74.4% to 33.4%, Gemma-2B-IT 80.5% to 54.8%.', 'DPO 前后的拒答率：Llama-3-8B-Instruct 从 74.4% 降到 33.4%，Gemma-2B-IT 从 80.5% 降到 54.8%。'],
           ['Training on refusal pairs reduced refusals: probability moved from refusing to complying.', '在拒答对上训练，反而减少了拒答：概率从"拒绝"挪到了"照做"。'], 'Data: Razin et al. (2025), §6.2'),
         p('They measure how alike a pair looks to the model with CHES, a similarity of the two answers’ summed hidden states; the more similar the pair, the more displacement. Three remedies:', '他们用 CHES 衡量一对回答在模型看来有多像——两个回答隐藏状态之和的一种相似度；越相像，位移越严重。对策有三种：'),
         list([
@@ -291,11 +291,11 @@ export const lesson: Lesson = {
       id: 'nll', kind: 'explore', title: t('Optional: rescue the chosen answer', '选做：救回被选回答'), skill: 'likelihood-displacement', required: false,
       scene: vis('dpo_gap_plane', { story: 'setup', nll_switch: true }),
       prompt: t('Turn on **+NLL** and press **Train 20 steps** until the chosen answer holds more than half the probability. Compare with the switch off.', '打开 **+NLL**，按 **训练 20 步**，直到被选回答拿到一半以上的概率。再和开关关着时比一比。'),
-      setup: (scene: any, ui, _ctx, world) => {
+      setup: (scene: any, ui, ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
         scene.mode.set_value(1);
-        gap_handles(scene, ui, { point: false });
-        scene.nll_switch.attach(ui, now('the +NLL switch', '+NLL 开关'), () => {
+        gap_handles(scene, ui, ctx, { point: false });
+        scene.nll_switch.attach(ui, say(ctx, 'the +NLL switch', '+NLL 开关'), () => {
           scene.steps.set_value(0);
           world.emit('nll', { on: scene.nll.get_value() > 0.5 });
         });
@@ -371,7 +371,7 @@ trainer.train()` },
           ['**Zephyr**: β = 0.1, learning rate 5e-7[^zephyr].', '**Zephyr**：β = 0.1，学习率 5e-7[^zephyr]。'],
           ['**Tülu 3**: length-normalized DPO with β = 5, learning rate 5e-7 (8B), 1 epoch[^tulu]. β = 5 is not "50 times tighter" than 0.1: dividing the log-ratio by an answer length of a few hundred tokens puts it on a different scale.', '**Tülu 3**：长度归一化的 DPO，β = 5，学习率 5e-7（8B），1 轮[^tulu]。β = 5 并不比 0.1 "紧 50 倍"：对数比被除以几百个 token 的长度，尺度就完全不同了。'],
         ]),
-        fig('recipes.svg', ['Recipe timelines: Llama 3 SFT and DPO over six rounds; Tülu 3 SFT, DPO, RLVR; Llama 4 light SFT, online RL, light DPO; Olmo 3 SFT, delta-learning DPO, RLVR.', '配方时间线：Llama 3 是 SFT 加 DPO，共六轮；Tülu 3 是 SFT、DPO、RLVR；Llama 4 是轻量 SFT、在线 RL、轻量 DPO；Olmo 3 是 SFT、delta learning DPO、RLVR。'],
+        fig('recipes', ['Recipe timelines: Llama 3 SFT and DPO over six rounds; Tülu 3 SFT, DPO, RLVR; Llama 4 light SFT, online RL, light DPO; Olmo 3 SFT, delta-learning DPO, RLVR.', '配方时间线：Llama 3 是 SFT 加 DPO，共六轮；Tülu 3 是 SFT、DPO、RLVR；Llama 4 是轻量 SFT、在线 RL、轻量 DPO；Olmo 3 是 SFT、delta learning DPO、RLVR。'],
           ['Where DPO sits now: offered by OpenAI, Vertex, Azure and Together, but in frontier recipes it has become a light finishing step or relies on specially built pairs (D4).', 'DPO 现在的位置：OpenAI、Vertex、Azure、Together 都提供它；但在前沿配方里，它要么成了轻量的收尾，要么依赖特别构造的偏好对（D4）。'], 'Original; stages from each model’s report (Llama 3, Tülu 3, Llama 4 blog, Olmo 3)'),
         cite('llama3', 'Llama Team 2024', 'The Llama 3 Herd of Models (§4.1.4)', 'https://arxiv.org/abs/2407.21783'),
         cite('zephyr', 'Tunstall et al. 2023', 'Zephyr: Direct Distillation of LM Alignment', 'https://arxiv.org/abs/2310.16944'),

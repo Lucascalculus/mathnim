@@ -1,0 +1,15 @@
+# Versions the lab scripts were written against (2026-10-10). Colab already has torch;
+# install the rest with:  pip install -r requirements.txt
+trl==1.15.0
+transformers==5.19.0
+peft==0.21.2
+datasets==5.1.0
+accelerate==1.15.0
+sentence-transformers==6.1.0   # L1, L3
+faiss-cpu==1.15.1              # L1
+rank-bm25==0.2.2               # L1
+jieba==0.42.1                  # L1, Chinese corpus
+numpy
+# optional, Linux + CUDA only (not tested in this build):
+# vllm                         # L4 --vllm, L5 --vllm: much faster sampling
+# bitsandbytes                 # L4 --load-4bit (QLoRA)

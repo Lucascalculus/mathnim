@@ -83,7 +83,7 @@ export const lesson: Lesson = {
       blocks: [
         p('The obvious alternative is to ask people for a score from 1 to 10. In practice absolute scores are noisy and every rater uses the scale differently: one person’s 7 is another’s 5. "Which of these two is better?" is faster to answer and far more consistent[^instructgpt].',
           '最直接的替代办法，是请人打 1 到 10 分。可实际上绝对分数噪声很大，而且每个人的尺子不一样：你的 7 分可能是别人的 5 分。"这两个哪个更好？"答得更快，也一致得多[^instructgpt]。'),
-        fig('pipeline.svg', ['A prompt, K sampled answers, a human ranking, all pairs from it, a reward model, then RL or DPO.', '一个提示、采样出的 K 个回答、人工排序、由排序拆出的所有比较对、奖励模型，最后是 RL 或 DPO。'],
+        fig('pipeline', ['A prompt, K sampled answers, a human ranking, all pairs from it, a reward model, then RL or DPO.', '一个提示、采样出的 K 个回答、人工排序、由排序拆出的所有比较对、奖励模型，最后是 RL 或 DPO。'],
           ['Where comparisons come from and where they go. One ranking of K answers gives K(K−1)/2 pairs; InstructGPT used K = 4 to 9.', '比较数据从哪来、到哪去。对 K 个回答排一次序，就得到 K(K−1)/2 对比较；InstructGPT 用的 K 是 4 到 9。'], 'Redrawn after Ouyang et al. (2022), Figure 2'),
         details(['Two details from real pipelines', '真实流程里的两个细节'], [
           list([
@@ -105,7 +105,7 @@ export const lesson: Lesson = {
         p('The Bradley–Terry model turns the *difference* of two rewards into a win probability with the logistic function σ: a difference of 1 means a 73% win rate, a difference of 2 means 88%.',
           'Bradley–Terry 模型用 logistic 函数 σ，把两个奖励的**差**变成胜率：差 1 对应 73% 的胜率，差 2 对应 88%。'),
         math('P(y_1 \\succ y_2) = \\sigma\\big(r(y_1) - r(y_2)\\big) = \\frac{1}{1 + e^{-(r_1 - r_2)}}'),
-        fig('shift.svg', ['Two pairs of bars, rewards (1, 3) and (11, 13); both give the same 88% win probability on the σ curve.', '两组柱子，奖励分别是 (1, 3) 和 (11, 13)；在 σ 曲线上给出同一个胜率 88%。'],
+        fig('shift', ['Two pairs of bars, rewards (1, 3) and (11, 13); both give the same 88% win probability on the σ curve.', '两组柱子，奖励分别是 (1, 3) 和 (11, 13)；在 σ 曲线上给出同一个胜率 88%。'],
           ['Only the difference matters: adding 10 to every reward changes nothing.', '只有差值有意义：所有奖励都加 10，什么都不变。'], 'Original; exact'),
         p('Why this shape and not another? The next page derives it from one simple assumption, and shows how a reward model is trained on it.', '为什么是这个形状，而不是别的？下一页从一个简单的假设推出它，并说明怎样用它训练奖励模型。'),
       ],
@@ -281,7 +281,7 @@ trainer.train()` },
         h('The most common shortcut: length', '最常见的捷径：长度'),
         p('Longer answers are often preferred, so reward models learn "longer is better". How far does that go? Singhal et al. trained with a reward that looked **only at length** and recovered most of the gains of full RLHF[^singhal]:',
           '人们常常偏爱更长的回答，于是奖励模型学会了"越长越好"。这能走多远？Singhal 等人用一个**只看长度**的奖励去训练，拿到了完整 RLHF 的大部分收益[^singhal]：'),
-        fig('length-only.svg', ['Bar chart: win rate against the SFT model, length-only reward vs the full reward model: 56% vs 58% on WebGPT, 64% vs 63% on RLCD.', '柱状图：对 SFT 模型的胜率，只看长度的奖励 vs 完整奖励模型：WebGPT 上 56% 对 58%，RLCD 上 64% 对 63%。'],
+        fig('length-only', ['Bar chart: win rate against the SFT model, length-only reward vs the full reward model: 56% vs 58% on WebGPT, 64% vs 63% on RLCD.', '柱状图：对 SFT 模型的胜率，只看长度的奖励 vs 完整奖励模型：WebGPT 上 56% 对 58%，RLCD 上 64% 对 63%。'],
           ['A reward that only counts length (LPPO) against the real reward model (PPO): almost the same win rate.', '只数长度的奖励（LPPO）对比真正的奖励模型（PPO）：胜率几乎一样。'], 'Data: Singhal et al. (2023), Table 2'),
         cite('singhal', 'Singhal et al. 2023', 'A Long Way to Go: Investigating Length Correlations in RLHF', 'https://arxiv.org/abs/2310.03716'),
         cite('rewardbench', 'Lambert et al. 2024', 'RewardBench: Evaluating Reward Models for Language Modeling', 'https://arxiv.org/abs/2403.13787'),

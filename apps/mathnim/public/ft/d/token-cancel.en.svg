@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="230" viewBox="0 0 900 230" role="img">
+<title>Token-level cancellation: the chosen and rejected answers share a prefix whose gradients cancel; only the tokens after they diverge get gradient</title>
+<defs><marker id="arrow-111113" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#111113"/></marker><marker id="arrow-86868B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#86868B"/></marker><marker id="arrow-E6E6EA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E6E6EA"/></marker><marker id="arrow-2563EB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563EB"/></marker><marker id="arrow-B8860B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B8860B"/></marker><marker id="arrow-E4572E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E4572E"/></marker><marker id="arrow-1F8A5B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1F8A5B"/></marker><marker id="arrow-7C3AED" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7C3AED"/></marker><marker id="arrow-0D9488" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker><marker id="arrow-FFFFFF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#FFFFFF"/></marker><marker id="arrow-F5F5F7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#F5F5F7"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<rect x="140.0" y="50.0" width="58.0" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="169.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">Sorry</text>
+<rect x="202.0" y="50.0" width="24.4" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="214.2" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">,</text>
+<rect x="230.4" y="50.0" width="24.4" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="242.6" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">I</text>
+<rect x="258.8" y="50.0" width="58.0" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="287.8" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">can’t</text>
+<rect x="320.8" y="50.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="345.6" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">help</text>
+<rect x="374.4" y="50.0" width="41.2" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="395.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">you</text>
+<rect x="419.6" y="50.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="444.4" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">with</text>
+<rect x="473.2" y="50.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="498.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">that</text>
+<rect x="526.8" y="50.0" width="24.4" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="539.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">,</text>
+<rect x="555.2" y="50.0" width="41.2" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="575.8" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">but</text>
+<rect x="600.4" y="50.0" width="41.2" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="621.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">you</text>
+<rect x="645.6" y="50.0" width="58.0" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="674.6" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">could</text>
+<rect x="707.6" y="50.0" width="41.2" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="728.2" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">try</text>
+<rect x="752.8" y="50.0" width="24.4" height="34.0" rx="4" fill="#1F8A5B" fill-opacity="0.25" stroke="#1F8A5B" stroke-width="0"/>
+<text x="765.0" y="73.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">…</text>
+<rect x="140.0" y="120.0" width="58.0" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="169.0" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">Sorry</text>
+<rect x="202.0" y="120.0" width="24.4" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="214.2" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">,</text>
+<rect x="230.4" y="120.0" width="24.4" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="242.6" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">I</text>
+<rect x="258.8" y="120.0" width="58.0" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="287.8" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">can’t</text>
+<rect x="320.8" y="120.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="345.6" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">help</text>
+<rect x="374.4" y="120.0" width="41.2" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="395.0" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">you</text>
+<rect x="419.6" y="120.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="444.4" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">with</text>
+<rect x="473.2" y="120.0" width="49.6" height="34.0" rx="4" fill="#E6E6EA" fill-opacity="1" stroke="#E6E6EA" stroke-width="0"/>
+<text x="498.0" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #86868B; font-weight: normal">that</text>
+<rect x="526.8" y="120.0" width="24.4" height="34.0" rx="4" fill="#E4572E" fill-opacity="0.25" stroke="#E4572E" stroke-width="0"/>
+<text x="539.0" y="143.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; fill: #111113; font-weight: normal">.</text>
+<text x="70.0" y="72.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #1F8A5B; font-weight: normal">chosen y_w</text>
+<text x="70.0" y="142.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #E4572E; font-weight: normal">rejected y_l</text>
+<text x="140.0" y="190.0" text-anchor="start" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; fill: #86868B; font-weight: normal">grey: shared prefix, gradients cancel</text>
+<text x="140.0" y="212.0" text-anchor="start" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; fill: #86868B; font-weight: normal">coloured: after the answers diverge, gradient flows</text>
+</svg>

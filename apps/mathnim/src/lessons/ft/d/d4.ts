@@ -52,7 +52,7 @@ export const lesson: Lesson = {
       blocks: [
         p('After D3 you can run DPO. When you do it on your own data, two questions come up: should I use one of the many variants (IPO, KTO, ORPO, SimPO...)? And where do my pairs come from? Practice gives a clear answer to the first: the variants are rarely used, and comparisons of DPO and PPO keep finding that **the quality of the preference data matters more than the algorithm**[^ivison]. So this lesson covers the variants in one table and spends the rest on data, and on when DPO is the right tool at all.',
           '学完 D3，你已经能跑 DPO 了。真正在自己的数据上跑的时候，会冒出两个问题：要不要用某个变体（IPO、KTO、ORPO、SimPO……）？偏好对从哪来？实践对第一个问题的回答很明确：变体很少有人用，而且 DPO 和 PPO 的比较一再发现，**偏好数据的质量比算法更重要**[^ivison]。所以这一课用一张表讲完变体，其余时间都花在数据上，以及什么时候 DPO 才是对的工具。'),
-        fig('usage.svg', ['Hub model counts by tag: dpo 13,519, orpo 1,279, kto 428.', 'Hub 上按标签统计的模型数：dpo 13,519，orpo 1,279，kto 428。'],
+        fig('usage', ['Hub model counts by tag: dpo 13,519, orpo 1,279, kto 428.', 'Hub 上按标签统计的模型数：dpo 13,519，orpo 1,279，kto 428。'],
           ['DPO itself dominates; ORPO and KTO have about 1-10% of its footprint.', 'DPO 本身占绝大多数；ORPO 和 KTO 只有它的 1–10% 左右。'], 'Data: Hugging Face Hub tag counts, 2026-10 (research-adoption.md)'),
         cite('ivison', 'Ivison et al. 2024', 'Unpacking DPO and PPO: Disentangling Best Practices for Learning from Preference Feedback', 'https://arxiv.org/abs/2406.09279'),
       ],
@@ -88,9 +88,9 @@ export const lesson: Lesson = {
     {
       id: 'toy-compare', kind: 'read', title: t('Three losses on the same toy', '同一个玩具上的三种损失'),
       blocks: [
-        fig('loss-curves.svg', ['Loss against the gap h: DPO keeps falling; IPO is a parabola with its minimum at h* = 1/(2τ).', '损失随差距 h 的变化：DPO 一直往下；IPO 是一条抛物线，最低点在 h* = 1/(2τ)。'],
+        fig('loss-curves', ['Loss against the gap h: DPO keeps falling; IPO is a parabola with its minimum at h* = 1/(2τ).', '损失随差距 h 的变化：DPO 一直往下；IPO 是一条抛物线，最低点在 h* = 1/(2τ)。'],
           ['DPO has no bottom; IPO has one.', 'DPO 没有底；IPO 有。'], 'Original; exact'),
-        fig('toy-variants.svg', ['After 400 steps on D3’s similar pair: DPO leaves the chosen answer at 0.00 and the comply answer at 1.00; DPO + NLL keeps the chosen at 0.92; IPO stops with the chosen at 0.22 and the comply answer at 0.40.', '在 D3 那对相似样本上训练 400 步之后：DPO 让被选回答只剩 0.00、"照做"拿到 1.00；DPO + NLL 让被选回答保持 0.92；IPO 停下时被选回答 0.22、"照做" 0.40。'],
+        fig('toy-variants', ['After 400 steps on D3’s similar pair: DPO leaves the chosen answer at 0.00 and the comply answer at 1.00; DPO + NLL keeps the chosen at 0.92; IPO stops with the chosen at 0.22 and the comply answer at 0.40.', '在 D3 那对相似样本上训练 400 步之后：DPO 让被选回答只剩 0.00、"照做"拿到 1.00；DPO + NLL 让被选回答保持 0.92；IPO 停下时被选回答 0.22、"照做" 0.40。'],
           ['IPO limits how far the model goes; the NLL term changes where it goes.', 'IPO 限制的是走多远；NLL 项改变的是往哪走。'], 'Original; exact gradient descent on the D3 toy (made-up numbers)'),
       ],
     },
@@ -111,7 +111,7 @@ export const lesson: Lesson = {
     {
       id: 'pipeline', kind: 'read', chapter: t('Building preference data', '构造偏好数据'), title: t('Four stages, four ways to go wrong', '四个环节，四种出错的方式'),
       blocks: [
-        fig('data-pipeline.svg', ['Prompts, candidate answers, labels, filters, then pairs for DPO, with a loop back for iteration.', '提示 → 候选回答 → 标注 → 过滤 → 偏好对 → DPO，另有一条迭代的回路。'],
+        fig('data-pipeline', ['Prompts, candidate answers, labels, filters, then pairs for DPO, with a loop back for iteration.', '提示 → 候选回答 → 标注 → 过滤 → 偏好对 → DPO，另有一条迭代的回路。'],
           ['A preference-data pipeline. Each stage guards against one kind of failure.', '一条偏好数据管线。每个环节防一种失败。'], 'Original'),
         table([['Stage', '环节'], ['What to do', '怎么做'], ['What it prevents', '防的是什么']], [
           [['Prompts', '提示'], ['take them from the real distribution of use; deduplicate; remove anything in your evaluation sets', '取自真实的使用分布；去重；去掉和评测集重合的'], ['learning the wrong tasks; inflated evaluation', '学错任务；评测虚高']],
@@ -150,7 +150,7 @@ export const lesson: Lesson = {
       id: 'delta', kind: 'read', title: t('Delta learning', '差值学习（delta learning）'),
       blocks: [
         p('Olmo 3 did exactly this[^olmo3]. More SFT on the 32B model’s answers hurt; DPO on 32B-versus-0.6B pairs helped:', 'Olmo 3 正是这样做的[^olmo3]。在 32B 模型的回答上继续做 SFT，结果变差；在"32B 对 0.6B"的偏好对上做 DPO，结果变好：'),
-        fig('delta.svg', ['7B development average: SFT start 70.3; more SFT on the chosen answers 64.5; DPO on strong-versus-weak pairs 72.9.', '7B 开发集平均分：SFT 起点 70.3；在被选回答上继续 SFT 64.5；在强对弱的偏好对上做 DPO 72.9。'],
+        fig('delta', ['7B development average: SFT start 70.3; more SFT on the chosen answers 64.5; DPO on strong-versus-weak pairs 72.9.', '7B 开发集平均分：SFT 起点 70.3；在被选回答上继续 SFT 64.5；在强对弱的偏好对上做 DPO 72.9。'],
           ['Same chosen answers, opposite effects.', '同一批被选回答，效果正好相反。'], 'Data: Olmo 3 (Team Olmo, 2025), Table 21'),
         p('D3 explains why. SFT copies the chosen answer, including whatever in it is beyond or unlike your model. DPO only learns the **difference** between chosen and rejected - the direction from weak to strong - and does not need the chosen answer to be perfect. The pairs can be built entirely by models, at scale.', 'D3 解释了原因。SFT 照抄被选回答，连同里面超出你的模型能力、或者和它风格不合的部分。DPO 只学被选和被拒之间的**差**——从弱到强的那个方向——并不要求被选回答本身完美。这种偏好对可以完全由模型大批量造出来。'),
         open_q('How far does this generalize - to other domains, other model sizes, other gaps between the two models? The "delta learning hypothesis" is recent[^delta] and still being tested.', '这个结论能推广到多远——别的领域、别的模型规模、两个模型之间别的差距？"差值学习假说"还很新[^delta]，仍在检验之中。'),
@@ -214,7 +214,7 @@ print(f"chosen is longer in {longer:.0%} of pairs")             # far above 50%:
     {
       id: 'online', kind: 'read', title: t('Offline, iterative, online', '离线、迭代、在线'),
       blocks: [
-        fig('iterate.svg', ['Offline: one fixed dataset, one round of DPO. Iterative: sample from the current model, label, run DPO with the current model as reference, repeat.', '离线：一份固定的数据，做一轮 DPO。迭代：从当前模型采样、标注、以当前模型为参考做 DPO，循环往复。'],
+        fig('iterate', ['Offline: one fixed dataset, one round of DPO. Iterative: sample from the current model, label, run DPO with the current model as reference, repeat.', '离线：一份固定的数据，做一轮 DPO。迭代：从当前模型采样、标注、以当前模型为参考做 DPO，循环往复。'],
           ['Iterating keeps the pairs on-policy as the model changes.', '迭代让偏好对随着模型的变化始终保持在线（同策略）。'], 'Original'),
         list([
           ['**Offline**: one dataset, one pass. Simple, and stale once the model has moved.', '**离线**：一份数据、一遍训练。简单，但模型一变，数据就过时了。'],

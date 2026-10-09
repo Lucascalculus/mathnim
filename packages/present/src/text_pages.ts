@@ -11,7 +11,7 @@ import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { Interaction } from 'manim-web/ext/interact';
 import { ScenePlayer, preload } from 'manim-web/ext/player';
 import { highlight_lines, lang_label } from './highlight';
-import { t } from './i18n';
+import { drag_hint, t } from './i18n';
 import { display_math_html, esc, math_html } from './math';
 
 /** A visual ready to embed: its scene, and the handles to add when it has played. */
@@ -348,7 +348,7 @@ class VisualSlot {
     this.ui = new Interaction(p);
     v.explore(p.scene, this.ui);
     p.start_live();
-    this.aff = new AffordanceLayer(this.ui, { color: this.ctx.accent ?? '#2f5bd3' });
+    this.aff = new AffordanceLayer(this.ui, { color: this.ctx.accent ?? '#2f5bd3', hint: drag_hint(this.ui.handles, this.ctx.lang) });
     setTimeout(() => this.aff?.coach(), 400);
     this.hint.innerHTML = t('visual_explore', undefined, this.ctx.lang);
   }

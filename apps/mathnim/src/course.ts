@@ -9,6 +9,8 @@ import { lesson as pizzaGame } from './lessons/pizza-game/lesson';
 import { lesson as eigenPca } from './lessons/eigen-pca/lesson';
 import { lesson as textDemo } from './lessons/text-pages-demo/lesson';
 import * as ftA from './lessons/ft/a/unit';
+import * as ftB from './lessons/ft/b/unit';
+import * as ftC from './lessons/ft/c/unit';
 import * as ftD from './lessons/ft/d/unit';
 import * as ftF from './lessons/ft/f/unit';
 
@@ -110,7 +112,9 @@ export const FT_COURSE: Course = {
   ],
   units: [
     ftA.unit,
+    ftB.unit,
     { id: 'ft-f0', title: { en: 'Fine-tuning · Choosing, halfway', zh: '微调 · 中场选择练习' }, lessons: [ftF.midway] },
+    ftC.unit,
     ftD.unit,
     { id: 'ft-f1', title: { en: 'Fine-tuning F · How to choose', zh: '微调 F · 怎么选' }, lessons: [ftF.capstone] },
   ],

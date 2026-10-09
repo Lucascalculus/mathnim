@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img">
+<title>Where DPO sits in recipes: Llama 3 (SFT, DPO, six rounds), Tulu 3 (SFT, DPO, RLVR), Llama 4 (light SFT, online RL, light DPO), Olmo 3 (SFT, delta-learning DPO, RLVR)</title>
+<defs><marker id="arrow-111113" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#111113"/></marker><marker id="arrow-86868B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#86868B"/></marker><marker id="arrow-E6E6EA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E6E6EA"/></marker><marker id="arrow-2563EB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563EB"/></marker><marker id="arrow-B8860B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B8860B"/></marker><marker id="arrow-E4572E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E4572E"/></marker><marker id="arrow-1F8A5B" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1F8A5B"/></marker><marker id="arrow-7C3AED" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7C3AED"/></marker><marker id="arrow-0D9488" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker><marker id="arrow-FFFFFF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#FFFFFF"/></marker><marker id="arrow-F5F5F7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#F5F5F7"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="150.0" y="66.0" text-anchor="end" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">Llama 3 (2024)</text>
+<rect x="170.0" y="40.0" width="170.0" height="40.0" rx="6" fill="#86868B" fill-opacity="0.2" stroke="#86868B" stroke-width="0"/>
+<text x="255.0" y="66.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">SFT</text>
+<rect x="370.0" y="40.0" width="170.0" height="40.0" rx="6" fill="#1F8A5B" fill-opacity="0.2" stroke="#1F8A5B" stroke-width="0"/>
+<text x="455.0" y="66.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">DPO</text>
+<line x1="346.0" y1="60.0" x2="366.0" y2="60.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<rect x="570.0" y="40.0" width="170.0" height="40.0" rx="6" fill="#86868B" fill-opacity="0.2" stroke="#86868B" stroke-width="0"/>
+<text x="655.0" y="66.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">× 6 rounds</text>
+<line x1="546.0" y1="60.0" x2="566.0" y2="60.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<text x="150.0" y="128.0" text-anchor="end" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">Tülu 3 (2024)</text>
+<rect x="170.0" y="102.0" width="170.0" height="40.0" rx="6" fill="#86868B" fill-opacity="0.2" stroke="#86868B" stroke-width="0"/>
+<text x="255.0" y="128.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">SFT</text>
+<rect x="370.0" y="102.0" width="170.0" height="40.0" rx="6" fill="#1F8A5B" fill-opacity="0.2" stroke="#1F8A5B" stroke-width="0"/>
+<text x="455.0" y="128.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">DPO</text>
+<line x1="346.0" y1="122.0" x2="366.0" y2="122.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<rect x="570.0" y="102.0" width="170.0" height="40.0" rx="6" fill="#2563EB" fill-opacity="0.2" stroke="#2563EB" stroke-width="0"/>
+<text x="655.0" y="128.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">RLVR</text>
+<line x1="546.0" y1="122.0" x2="566.0" y2="122.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<text x="150.0" y="190.0" text-anchor="end" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">Llama 4 (2025)</text>
+<rect x="170.0" y="164.0" width="170.0" height="40.0" rx="6" fill="#86868B" fill-opacity="0.2" stroke="#86868B" stroke-width="0"/>
+<text x="255.0" y="190.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">light SFT</text>
+<rect x="370.0" y="164.0" width="170.0" height="40.0" rx="6" fill="#2563EB" fill-opacity="0.2" stroke="#2563EB" stroke-width="0"/>
+<text x="455.0" y="190.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">online RL</text>
+<line x1="346.0" y1="184.0" x2="366.0" y2="184.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<rect x="570.0" y="164.0" width="170.0" height="40.0" rx="6" fill="#1F8A5B" fill-opacity="0.2" stroke="#1F8A5B" stroke-width="0"/>
+<text x="655.0" y="190.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">light DPO</text>
+<line x1="546.0" y1="184.0" x2="566.0" y2="184.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<text x="150.0" y="252.0" text-anchor="end" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">Olmo 3 (2025)</text>
+<rect x="170.0" y="226.0" width="170.0" height="40.0" rx="6" fill="#86868B" fill-opacity="0.2" stroke="#86868B" stroke-width="0"/>
+<text x="255.0" y="252.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">SFT</text>
+<rect x="370.0" y="226.0" width="170.0" height="40.0" rx="6" fill="#1F8A5B" fill-opacity="0.2" stroke="#1F8A5B" stroke-width="0"/>
+<text x="455.0" y="252.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">delta DPO</text>
+<line x1="346.0" y1="246.0" x2="366.0" y2="246.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+<rect x="570.0" y="226.0" width="170.0" height="40.0" rx="6" fill="#2563EB" fill-opacity="0.2" stroke="#2563EB" stroke-width="0"/>
+<text x="655.0" y="252.0" text-anchor="middle" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; fill: #111113; font-weight: normal">RLVR</text>
+<line x1="546.0" y1="246.0" x2="566.0" y2="246.0" stroke="#86868B" stroke-width="1.5" stroke-opacity="1.0" marker-end="url(#arrow-86868B)"/>
+</svg>

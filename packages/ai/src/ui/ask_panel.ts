@@ -14,7 +14,7 @@ import { Interaction } from 'manim-web/ext/interact';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import type { Scene } from 'manim-web';
 import { type EventLog } from '@mathnim/core';
-import { Narrator, define_ui, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
+import { Narrator, define_ui, drag_hint, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
 import type { Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
@@ -452,7 +452,7 @@ export class AskPanel {
       ui = new Interaction(player);
       setup(player.scene, ui);
       player.start_live();
-      aff = new AffordanceLayer(ui, { color });
+      aff = new AffordanceLayer(ui, { color, hint: drag_hint(ui.handles) });
       setTimeout(() => aff?.coach(), 400);
       hint.innerHTML = t('visual_explore');
     };

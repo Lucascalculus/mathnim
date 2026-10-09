@@ -5,7 +5,7 @@
 // answers with an exploit, then the real evidence (Gao et al.), how the KL is
 // implemented, and what full RLHF costs.
 import type { Lesson } from '@mathnim/core';
-import { choose_card, cite, fig, list, math, note, now, open_q, p, t, text_q, vis, watch } from './common';
+import { choose_card, cite, fig, list, math, note, open_q, p, say, t, text_q, vis, watch } from './common';
 
 /** Reveal the gold column once the exploit holds most of the probability. */
 function check_reveal(scene: any, world: any): void {
@@ -104,9 +104,9 @@ export const lesson: Lesson = {
       prompt: t(
         'Drag **β** (the gold slider; left is loose). The bars are π* = π_ref·e^{r/β}/Z, computed exactly. (1) Loosen the leash until the flattering exploit holds most of the probability. (2) Then the true quality column appears: find the β with the **best true quality** and leave the slider there. (3) Switch off "the reference can say the exploit" and loosen the leash all the way. Where does the probability go now?',
         '拖动 **β**（金色滑块，往左是松）。柱子是精确算出的 π* = π_ref·e^{r/β}/Z。(1) 放松缰绳，直到奉承漏洞拿走大部分概率。(2) 这时真实质量那一列会出现：找到**真实质量最好**的 β，把滑块停在那里。(3) 关掉"参考模型会说漏洞回答"，再把缰绳彻底放松。概率现在去哪了？'),
-      setup: (scene: any, ui, _ctx, world) => {
+      setup: (scene: any, ui, ctx, world) => {
         scene.emit = (type: string, data?: Record<string, unknown>) => world.emit(type, data);
-        scene.slider.attach(ui, now('β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）'), {
+        scene.slider.attach(ui, say(ctx, 'β, the leash (left loose, right tight)', 'β 缰绳（左松右紧）'), {
           snap: 0.01,
           on_end: () => {
             check_reveal(scene, world);
@@ -114,7 +114,7 @@ export const lesson: Lesson = {
             world.emit('released', { beta: scene.beta(), eg: s.eg, er: s.er, can: scene.can.get_value() > 0.5, revealed: !!world.state.revealed });
           },
         });
-        scene.switch_.attach(ui, now('the exploit switch', '漏洞回答开关'), () => world.emit('wall', { can: scene.can.get_value() > 0.5 }));
+        scene.switch_.attach(ui, say(ctx, 'the exploit switch', '漏洞回答开关'), () => world.emit('wall', { can: scene.can.get_value() > 0.5 }));
         watch(scene, () => check_reveal(scene, world));
       },
       goals: [
@@ -176,7 +176,7 @@ export const lesson: Lesson = {
       blocks: [
         p('Gao, Schulman and Hilton measured this effect at scale[^gao]. To have a "true" reward they could query freely, they used a large 6B reward model as the gold standard and trained smaller proxy reward models on its labels - a synthetic setup, not humans. Optimizing a proxy, the gold score rose, peaked and fell as the policy moved away from where it started:',
           'Gao、Schulman 和 Hilton 在大规模上量过这个现象[^gao]。为了有一个能随便查询的"真实"奖励，他们拿一个 6B 的大奖励模型当金标准，用它的标签训练较小的代理奖励模型——这是合成的设定，不是真人。优化代理奖励时，随着策略离起点越来越远，金标准分数先升、到顶、再降：'),
-        fig('overopt.svg', ['A schematic: the proxy reward rises steadily with √KL while the gold reward rises, peaks and falls.', '示意图：代理奖励随 √KL 一路上升，真实奖励先升、到顶、再降。'],
+        fig('overopt', ['A schematic: the proxy reward rises steadily with √KL while the gold reward rises, peaks and falls.', '示意图：代理奖励随 √KL 一路上升，真实奖励先升、到顶、再降。'],
           ['Shape after Gao et al.: for RL they fit R(d) = d(α − β log d) with d = √KL (this β is a fitted constant, not the KL coefficient). Larger proxy reward models over-optimize less.', '形状依据 Gao 等人：对 RL 他们拟合出 R(d) = d(α − β log d)，d = √KL（这里的 β 是拟合常数，不是 KL 系数）。代理奖励模型越大，过度优化越轻。'], 'Schematic; shape after Gao et al. (2022)'),
         p('What it looks like in practice: answers get longer[^singhal], repetitive, switch languages or drift into nonsense, while the reward keeps climbing. The fixes:', '在实践中，它的样子是：回答越来越长[^singhal]、开始重复、中英混杂，甚至胡言乱语，奖励却还在涨。对策：'),
         list([
@@ -209,11 +209,11 @@ export const lesson: Lesson = {
     {
       id: 'cost', kind: 'read', title: t('Four models in memory', '显存里的四个模型'),
       blocks: [
-        fig('rlhf-ppo.svg', ['Data flow of RLHF with PPO: the policy samples, the frozen reward model scores, the frozen reference gives the KL term, the trained value model gives advantages, and the policy and value model are updated.', 'PPO 做 RLHF 的数据流：策略采样，冻结的奖励模型打分，冻结的参考模型给出 KL 项，训练中的价值模型给出优势，最后更新策略和价值模型。'],
+        fig('rlhf-ppo', ['Data flow of RLHF with PPO: the policy samples, the frozen reward model scores, the frozen reference gives the KL term, the trained value model gives advantages, and the policy and value model are updated.', 'PPO 做 RLHF 的数据流：策略采样，冻结的奖励模型打分，冻结的参考模型给出 KL 项，训练中的价值模型给出优势，最后更新策略和价值模型。'],
           ['One PPO step needs four models: two trained (policy, value), two frozen (reference, reward).', 'PPO 的一步需要四个模型：两个在训练（策略、价值模型），两个冻结（参考模型、奖励模型）。'], 'Original; after InstructGPT (Ouyang et al., 2022)'),
         p('With the memory rule from C1 (full fine-tuning ≈ 16 bytes per parameter, a frozen bf16 model 2 bytes per parameter), four 8B models need about 2 × 128 + 2 × 16 = 288 GB before activations - and generating the samples is the slowest part, which is why systems such as OpenRLHF and verl pair the trainer with a fast inference engine.',
           '按 C1 的显存规则（全量微调每参数约 16 字节，冻结的 bf16 模型每参数 2 字节），四个 8B 模型在不算激活值的情况下约需 2 × 128 + 2 × 16 = 288 GB；而生成样本是最慢的一环，所以 OpenRLHF、verl 这类系统把训练器和高速推理引擎接在一起。'),
-        fig('memory.svg', ['Bars: policy 128 GB, value model 128 GB, reference 16 GB, reward model 16 GB, total 288 GB; Hub model counts with the trl tag: PPO 894, DPO 10,532, GRPO 14,257.', '柱状图：策略 128 GB、价值模型 128 GB、参考模型 16 GB、奖励模型 16 GB，合计 288 GB；Hub 上带 trl 标签的模型数：PPO 894、DPO 10,532、GRPO 14,257。'],
+        fig('memory', ['Bars: policy 128 GB, value model 128 GB, reference 16 GB, reward model 16 GB, total 288 GB; Hub model counts with the trl tag: PPO 894, DPO 10,532, GRPO 14,257.', '柱状图：策略 128 GB、价值模型 128 GB、参考模型 16 GB、奖励模型 16 GB，合计 288 GB；Hub 上带 trl 标签的模型数：PPO 894、DPO 10,532、GRPO 14,257。'],
           ['The cost is why the field moved on: GRPO drops the value model (E1), DPO drops the reward model and the sampling loop (D3).', '代价正是这条路被替代的原因：GRPO 去掉了价值模型（E1），DPO 去掉了奖励模型和采样循环（D3）。'], 'Memory: rule from C1; counts: Hugging Face Hub, 2026-10'),
       ],
     },

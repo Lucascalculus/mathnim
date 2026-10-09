@@ -50,6 +50,9 @@ const DICT: Record<string, Entry> = {
   drag_numbers: { en: 'Drag the underlined numbers, or ', zh: '左右拖动带下划线的数字，或者' },
   drag_handle: { en: 'Drag the glowing handle on the figure - or click the figure, press Tab, then use the arrow keys.', zh: '拖动图上发光的手柄；也可以先点一下图，按 Tab，再用方向键。' },
   hint: { en: 'Hint', zh: '提示' },
+  // the "drag me" pill on a figure's unused handle ({label}: the handle's own name)
+  drag_hint: { en: 'Drag {label}', zh: '拖动{label}' },
+  drag_hint_plain: { en: 'Drag me', zh: '拖动这里' },
   common_idea: { en: 'Common idea: {d}', zh: '常见想法：{d}' },
   level_complete: { en: 'Level complete', zh: '过关！' },
   done: { en: 'Done', zh: '完成' },
@@ -169,4 +172,15 @@ export const plural_s = (n: number): string => (n === 1 ? '' : 's');
 /** Does the dictionary have an entry for every key in both languages? (tests) */
 export function ui_entries(): Record<string, Entry> {
   return { ...DICT };
+}
+
+/**
+ * The template for the "drag me" pill of AffordanceLayer (manim-web): English as
+ * before; in Chinese the handle's name is used when it is Chinese, else a plain
+ * 拖动这里 (an English name, or none, would read as "拖动the tip of…" / "拖动me").
+ */
+export function drag_hint(handles: readonly { spec: { label?: string } }[], l: Lang = lang): string {
+  if (l === 'en') return t('drag_hint', undefined, 'en');
+  const named = handles.length > 0 && handles.every((h) => !!h.spec.label && /[\u3400-\u9fff]/.test(h.spec.label));
+  return t(named ? 'drag_hint' : 'drag_hint_plain', undefined, l);
 }
