@@ -1,0 +1,24 @@
+{
+  "name": "mathnim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Mathnim app: course map, lessons, ask, review, dashboard, settings.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p server",
+    "test": "vitest run --config test/vitest.config.ts",
+    "doctor": "node tools/lesson_doctor.mjs",
+    "snapshots": "node tools/snapshots.mjs",
+    "narration": "mkdir -p node_modules/.cache && node tools/narration_texts.mjs > node_modules/.cache/narration.json && ../../reference/.venv/bin/python tools/gen_narration.py node_modules/.cache/narration.json public/narration"
+  },
+  "dependencies": {
+    "@mathnim/ai": "*",
+    "@mathnim/core": "*",
+    "@mathnim/present": "*",
+    "@mathnim/visuals": "*",
+    "manim-web": "*"
+  }
+}

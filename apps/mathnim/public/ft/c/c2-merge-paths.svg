@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="440" viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>Inference with a merged LoRA (one matrix W' of the same shape, one matmul) versus unmerged (W0 x plus an extra x to A to B path, small extra latency, shared base).</title>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 440 
+L 960 440 
+L 960 0 
+L 0 0 
+L 0 440 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 128 130 
+L 312 130 
+Q 320 130 320 138 
+L 320 242 
+Q 320 250 312 250 
+L 128 250 
+Q 120 250 120 242 
+L 120 138 
+Q 120 130 128 130 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #f2ebfd; stroke: #7c3aed; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 518 130 
+L 702 130 
+Q 710 130 710 138 
+L 710 242 
+Q 710 250 702 250 
+L 518 250 
+Q 510 250 510 242 
+L 510 138 
+Q 510 130 518 130 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #f0f0f1; stroke: #86868b; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 776 200 
+L 884 200 
+Q 890 200 890 206 
+L 890 234 
+Q 890 240 884 240 
+L 776 240 
+Q 770 240 770 234 
+L 770 206 
+Q 770 200 776 200 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #e5ecfd; stroke: #2563eb; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 776 132 
+L 884 132 
+Q 890 132 890 138 
+L 890 166 
+Q 890 172 884 172 
+L 776 172 
+Q 770 172 770 166 
+L 770 138 
+Q 770 132 776 132 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #e5ecfd; stroke: #2563eb; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 450 20 
+L 450 420 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #e6e6ea; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 610 330 
+L 610 290 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 610 290 
+L 830 290 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 610 124 
+L 610 90 
+L 702 90 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8"/>
+   </g>
+   <g id="line2d_5">
+    <path d="M 830 126 
+L 830 90 
+L 738 90 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #2563eb; stroke-width: 1.8"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 220 330 
+Q 220 293 220 257.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 215.6 264.925956 
+L 220 257.725956 
+L 224.4 264.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 220 124 
+Q 220 102 220 81.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 215.6 88.925956 
+L 220 81.725956 
+L 224.4 88.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 610 290 
+Q 610 273 610 257.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 605.6 264.925956 
+L 610 257.725956 
+L 614.4 264.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 830 290 
+Q 830 268 830 247.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 825.6 254.925956 
+L 830 247.725956 
+L 834.4 254.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #2563eb; stroke: #2563eb; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 830 194 
+Q 830 186 830 179.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 825.6 186.925956 
+L 830 179.725956 
+L 834.4 186.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #2563eb; stroke: #2563eb; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 720 75 
+C 723.978047 75 727.793698 76.580495 730.606602 79.393398 
+C 733.419505 82.206302 735 86.021953 735 90 
+C 735 93.978047 733.419505 97.793698 730.606602 100.606602 
+C 727.793698 103.419505 723.978047 105 720 105 
+C 716.021953 105 712.206302 103.419505 709.393398 100.606602 
+C 706.580495 97.793698 705 93.978047 705 90 
+C 705 86.021953 706.580495 82.206302 709.393398 79.393398 
+C 712.206302 76.580495 716.021953 75 720 75 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #ffffff; stroke: #111113; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 720 74 
+Q 720 68 720 63.725956 
+" clip-path="url(#pc1030cf3d9)" style="fill: none; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 715.6 70.925956 
+L 720 63.725956 
+L 724.4 70.925956 
+z
+" clip-path="url(#pc1030cf3d9)" style="fill: #111113; stroke: #111113; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 18px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="720" y="94.966875" transform="rotate(-0 720 94.966875)">+</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="30.3525" transform="rotate(-0 30 30.3525)">Merged</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="30" y="51.31125" transform="rotate(-0 30 51.31125)">W′ = W₀ + (α/r)·B·A, computed once after training</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 19px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #7c3aed" x="220" y="180.242813" transform="rotate(-0 220 180.242813)">W′</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="220" y="208.31125" transform="rotate(-0 220 208.31125)">d × k (same shape as W₀)</text>
+   </g>
+   <g id="text_6">
+    <text style="font-style: italic; font-size: 17px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="220" y="349.690938" transform="rotate(-0 220 349.690938)">x</text>
+   </g>
+   <g id="text_7">
+    <text style="font-style: italic; font-size: 15px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="220" y="72.139063" transform="rotate(-0 220 72.139063)">h = W′x</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="40" y="385.31125" transform="rotate(-0 40 385.31125)">· one matmul: no extra latency</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="40" y="405.31125" transform="rotate(-0 40 405.31125)">· one full-size model per adapter</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="480" y="30.3525" transform="rotate(-0 480 30.3525)">Unmerged</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #86868b" x="480" y="51.31125" transform="rotate(-0 480 51.31125)">frozen W₀ plus the adapter path, kept separate</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 19px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="610" y="180.242813" transform="rotate(-0 610 180.242813)">W₀</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="610" y="208.31125" transform="rotate(-0 610 208.31125)">d × k, frozen, shared</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #2563eb" x="830" y="223.587187" transform="rotate(-0 830 223.587187)">A  (r × k)</text>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #2563eb" x="830" y="155.587188" transform="rotate(-0 830 155.587188)">B  (d × r)</text>
+   </g>
+   <g id="text_16">
+    <text style="font-style: italic; font-size: 17px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="610" y="349.690938" transform="rotate(-0 610 349.690938)">x</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #2563eb" x="900" y="189.31125" transform="rotate(-0 900 189.31125)">r-dim</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #2563eb" x="836" y="111.31125" transform="rotate(-0 836 111.31125)">× α/r</text>
+   </g>
+   <g id="text_19">
+    <text style="font-style: italic; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="770" y="69.587188" transform="rotate(-0 770 69.587188)">h = W₀x + (α/r)·B(Ax)</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="490" y="385.31125" transform="rotate(-0 490 385.31125)">· two extra small matmuls: a little extra latency</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="490" y="405.31125" transform="rotate(-0 490 405.31125)">· one base serves many swappable adapters</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pc1030cf3d9">
+   <rect x="0" y="0" width="960" height="440"/>
+  </clipPath>
+ </defs>
+</svg>

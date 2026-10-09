@@ -1,0 +1,33 @@
+node_modules/
+dist/
+.vite/
+.DS_Store
+__pycache__/
+*.pyc
+
+# real Manim (Python) reference, created by reference/setup.sh
+reference/.venv/
+# render output of Manim / the regression harness
+packages/manim-web/media/
+packages/manim-web/examples/regress_out/
+legacy/engine/media/
+legacy/engine/out/
+
+.env
+.env.local
+
+# Cloudflare Pages local secrets (wrangler pages dev)
+.dev.vars
+
+# Python virtual envs anywhere (e.g. apps/mathnim/tools/ft-data/.venv)
+.venv/
+venv/
+# build / bundle caches
+**/tools/.cache/
+.wrangler/
+legacy/engine/.cache/
+# downloaded models (Hugging Face cache) of the fine-tuning data jobs
+apps/mathnim/tools/ft-data/.cache/
+
+# local-only backups (e.g. the old standalone manim-web git history)
+.local/

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Manim in Pyodide spike</title>
+<style>
+  body { margin: 0; background: #0b0e12; color: #e8ecf1; font: 13px/1.5 ui-monospace, Menlo, monospace; }
+  #log { padding: 12px 16px; white-space: pre-wrap; }
+  canvas { display: block; width: 100%; max-width: 960px; aspect-ratio: 16/9; margin: 0 16px; border: 1px solid #232b36; border-radius: 8px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="log"></div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.28.0/full/pyodide.js"></script>
+<script type="module">
+import { Camera } from '../engine/scene.js';
+import { VMobject } from '../engine/core.js';
+
+const log = (s) => { document.getElementById('log').textContent += s + '\n'; };
+const T0 = performance.now();
+const lap = (label) => log(`${((performance.now() - T0) / 1000).toFixed(2)}s  ${label}`);
+window.spike = { done: false };
+
+try {
+  const py = await loadPyodide();
+  lap('pyodide 就绪');
+  await py.loadPackage(['numpy', 'scipy', 'micropip', 'pillow', 'networkx', 'pygments']);
+  lap('numpy / scipy / pillow / networkx 已加载');
+  const micropip = py.pyimport('micropip');
+  const failed = [];
+  for (const [pkg, mod] of [['svgelements', 'svgelements'], ['rich', 'rich'], ['click', 'click'], ['cloup', 'cloup'], ['tqdm', 'tqdm'],
+    ['decorator', 'decorator'], ['typing-extensions', 'typing_extensions'], ['beautifulsoup4', 'bs4'], ['isosurfaces', 'isosurfaces'], [new URL('wheels/srt-3.5.3-py3-none-any.whl', location.href).href, 'srt']]) {
+    try { await micropip.install(pkg); } catch (e) { failed.push(mod); }
+  }
+  await micropip.install.callKwargs(new URL('wheels/manim-0.21.0-py3-none-any.whl', location.href).href, { deps: false });
+  lap('manim 0.21.0 纯 Python 包已安装；无浏览器版本、改用桩模块的依赖：' + (failed.join(', ') || '无'));
+  py.globals.set('EXTRA_STUBS', py.toPy(failed));
+
+  // Stub the C extensions manim imports but that the browser can't run.
+  await py.runPythonAsync(`
+import sys, types, importlib.abc, importlib.machinery
+
+class _Meta(type):
+    def __getattr__(cls, name):
+        if name.startswith('__'):
+            raise AttributeError(name)
+        return _make(name)
+    def __iter__(cls):
+        return iter(())
+
+class _Base(metaclass=_Meta):
+    def __init__(self, *a, **k): pass
+    def __call__(self, *a, **k): return _Base()
+    def __getattr__(self, name):
+        if name.startswith('__'):
+            raise AttributeError(name)
+        return _Base()
+    def __iter__(self): return iter(())
+    def __bool__(self): return False
+
+def _make(name):
+    return _Meta(name, (_Base,), {})
+
+STUBS = ('cairo', 'manimpango', 'moderngl', 'moderngl_window', 'av', 'mapbox_earcut', 'pathops',
+         'screeninfo', 'watchdog', 'audioop', 'pydub', 'IPython', 'glcontext', 'pyglet') + tuple(EXTRA_STUBS)
+
+class _StubModule(types.ModuleType):
+    def __getattr__(self, name):
+        if name.startswith('__'):
+            raise AttributeError(name)
+        return _make(name)
+
+class _Finder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def find_spec(self, fullname, path, target=None):
+        if fullname.split('.')[0] in STUBS:
+            return importlib.machinery.ModuleSpec(fullname, self, is_package=True)
+    def create_module(self, spec):
+        m = _StubModule(spec.name)
+        m.__path__ = []
+        return m
+    def exec_module(self, module):
+        pass
+
+sys.meta_path.insert(0, _Finder())
+`);
+  lap('C 扩展桩模块已注册');
+
+  await py.runPythonAsync(`
+import manim
+from manim import *
+print(manim.__version__)
+`);
+  lap('import manim 成功 (' + py.runPython('manim.__version__') + ')');
+
+  // Build real manim objects (the same Axes/plot/DashedLine calls S03 uses) and time them.
+  const buildMs = py.runPython(`
+import time, numpy as np
+t = time.perf_counter()
+ax = Axes(x_range=[0, 30, 5], y_range=[0, 20, 5], x_length=5.6, y_length=4.4, tips=False,
+          axis_config={"color": "#8B96A8", "stroke_width": 2, "include_numbers": False, "tick_size": 0.06}).move_to(RIGHT*3.75 + DOWN*0.35)
+theta = lambda d: 0 if d <= 0 else np.degrees(np.arctan(16/d) - np.arctan(9/d))
+curve = ax.plot(theta, x_range=[0.02, 30, 0.05], color="#3FD7C7", stroke_width=4)
+grid = VGroup(*[DashedLine(ax.c2p(0, y), ax.c2p(30, y), dash_length=0.05, color="#4A5566", stroke_width=1) for y in (5, 10, 15, 20)])
+circ = Circle(radius=2.2, color="#79A6FF", stroke_width=4).move_to(LEFT*3.5)
+sq = Square(side_length=3.2, color="#F5C85C", stroke_width=4).move_to(LEFT*3.5)
+star = Star(n=7, outer_radius=2, color="#FF7B6B").move_to(LEFT*3.5)
+build_ms = (time.perf_counter() - t) * 1000
+build_ms
+`);
+  lap(`构建 Axes + plot(600 点) + 虚线网格 + Circle/Square/Star：${buildMs.toFixed(1)} ms`);
+
+  // A real manim Transform, interpolated frame by frame in Python, drawn by the JS camera.
+  py.runPython(`
+anim = Transform(circ, star, run_time=2)
+anim.begin()
+tracker = ValueTracker(2.0)
+wedge_mob = always_redraw(lambda: Sector(radius=tracker.get_value(), angle=PI/3, start_angle=PI/6,
+                         fill_color="#3FD7C7", fill_opacity=0.35, stroke_width=0).move_to(LEFT*3.5 + DOWN*2.2))
+scene_mobs = [grid, ax, curve, circ, wedge_mob]
+
+def frame(alpha):
+    anim.interpolate(alpha)
+    tracker.set_value(0.6 + 0.6 * alpha)
+    wedge_mob.update()
+    out = []
+    for m in extract_mobject_family_members(scene_mobs, only_those_with_points=True):
+        out.append((m.points[:, :2].ravel(), m.fill_rgbas[0], m.stroke_rgbas[0], float(m.stroke_width)))
+    return out
+from manim.utils.family import extract_mobject_family_members
+`);
+  const frame = py.globals.get('frame');
+  const cam = new Camera(document.getElementById('c'), { background: '#0E1217' });
+  const toVM = (d) => {
+    const v = new VMobject();
+    v.points = Array.from(d[0]);
+    v.fill = Array.from(d[1]);
+    v.stroke = Array.from(d[2]);
+    v.strokeWidth = d[3];
+    return v;
+  };
+  let pyMs = 0, jsMs = 0;
+  const N = 120;
+  for (let i = 0; i < N; i++) {
+    const a = performance.now();
+    const res = frame(i / (N - 1));
+    const data = res.toJs({ depth: 2 });
+    res.destroy();
+    const b = performance.now();
+    cam.render(data.map(toVM));
+    const c = performance.now();
+    pyMs += b - a;
+    jsMs += c - b;
+    if (i % 10 === 0) await new Promise((r) => requestAnimationFrame(r));
+  }
+  lap(`真 Manim Transform + always_redraw，每帧：Python(WASM) ${(pyMs / N).toFixed(1)} ms + 数据传递与绘制 ${(jsMs / N).toFixed(1)} ms`);
+  window.spike = { done: true, buildMs, pyMs: pyMs / N, jsMs: jsMs / N, total: (performance.now() - T0) / 1000 };
+} catch (e) {
+  log('失败：' + e);
+  console.error(e);
+  window.spike = { done: true, error: String(e) };
+}
+</script>
+</body>
+</html>

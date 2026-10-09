@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "strict": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "manim-web": [
+        "../manim-web/src/index.ts"
+      ],
+      "manim-web/*": [
+        "../manim-web/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "test"
+  ]
+}

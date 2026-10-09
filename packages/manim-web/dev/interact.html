@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>manim-web interaction toolkit</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 14px/1.45 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: #181818; border-bottom: 1px solid #2a2a2a; }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 20px; padding: 16px; }
+  figure { margin: 0; background: #161616; border: 1px solid #262626; border-radius: 10px; padding: 12px; }
+  figure h2 { font-size: 15px; margin: 0 0 8px; }
+  .stage { position: relative; }
+  .stage canvas:first-child { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 6px; }
+  .stage canvas:focus-visible { outline: 3px solid #60A5FA; outline-offset: 2px; }
+  figcaption { margin-top: 8px; color: #bbb; }
+  .bar { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .bar:empty { display: none; }
+  button { background: #2a2a2a; color: #eee; border: 1px solid #3a3a3a; border-radius: 6px; padding: 4px 12px; font: inherit; cursor: pointer; }
+  button:hover { background: #333; }
+  .log { display: block; margin-top: 6px; min-height: 1.4em; font: 12px ui-monospace, monospace; color: #9CA3AF; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Interaction toolkit (WP1)</h1>
+  <label><input id="mute" type="checkbox" /> Mute</label>
+  <label><input id="reduce" type="checkbox" /> Reduced motion</label>
+  <span>Every figure works with mouse, touch and keyboard (click a figure, then Tab).</span>
+</header>
+<main id="demos"></main>
+<script type="module" src="./interact.ts"></script>
+</body>
+</html>

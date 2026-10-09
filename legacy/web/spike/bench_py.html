@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Bench: Manim kernel in Pyodide</title>
+<style>
+  body { margin: 0; background: #0b0e12; color: #e8ecf1; font: 13px/1.5 ui-monospace, Menlo, monospace; }
+  #log { padding: 12px 16px; white-space: pre-wrap; }
+  canvas { display: block; width: 100%; max-width: 960px; aspect-ratio: 16/9; margin: 0 16px; border: 1px solid #232b36; border-radius: 8px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="log"></div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.28.0/full/pyodide.js"></script>
+<script type="module">
+import { loadMathJax } from '../engine/tex.js';
+import { FRAMES, results, log, lap, camera, unpack, stats, memory } from './bench_util.js';
+import { VMobject, alwaysRedraw, removeRedundancies } from '../engine/core.js';
+import { DashedLine } from '../engine/geometry.js';
+import { Pitch, AngleGraph, viewCone, glowDot, readout } from '../bakeoff/lesson.js';
+
+results.engine = 'manim-in-pyodide';
+const BREAKDOWN_PY = await fetch('breakdown.py').then((r) => r.text());
+const PY_FILES = [
+  'engine/mathkit/__init__.py', 'engine/mathkit/theme.py', 'engine/mathkit/tex.py', 'engine/mathkit/geo.py',
+  'engine/mathkit/pitch.py', 'engine/mathkit/scene.py', 'engine/mathkit/narration.py',
+  'engine/lessons/__init__.py', 'engine/lessons/best_angle/__init__.py', 'engine/lessons/best_angle/common.py',
+];
+
+try {
+  const [py] = await Promise.all([loadPyodide(), loadMathJax('../vendor/tex-svg-full.js')]);
+  lap('runtime', 'Pyodide + MathJax 就绪');
+  await py.loadPackage(['numpy', 'scipy', 'micropip', 'pillow', 'networkx', 'pygments']);
+  lap('packages', 'numpy / scipy 等科学计算包已加载');
+  const micropip = py.pyimport('micropip');
+  const failed = [];
+  for (const [pkg, mod] of [['svgelements', 'svgelements'], ['rich', 'rich'], ['click', 'click'], ['cloup', 'cloup'], ['tqdm', 'tqdm'],
+    ['decorator', 'decorator'], ['typing-extensions', 'typing_extensions'], ['beautifulsoup4', 'bs4'], ['isosurfaces', 'isosurfaces'],
+    [new URL('wheels/srt-3.5.3-py3-none-any.whl', location.href).href, 'srt']]) {
+    try { await micropip.install(pkg); } catch (e) { failed.push(mod); }
+  }
+  await micropip.install.callKwargs(new URL('wheels/manim-0.21.0-py3-none-any.whl', location.href).href, { deps: false });
+  py.globals.set('EXTRA_STUBS', py.toPy(failed));
+  lap('install', 'manim 及纯 Python 依赖已安装');
+
+  // lesson sources -> virtual FS
+  for (const f of PY_FILES) {
+    const src = await fetch('pysrc/' + f).then((r) => r.text());
+    const path = '/home/pyodide/' + f;
+    py.FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+    py.FS.writeFile(path, src);
+  }
+  // MathJax bridge: same cleanup the node server does
+  window.texToSvgString = (tex, display) => {
+    const node = window.MathJax.tex2svg(tex, { display, em: 16, ex: 8, containerWidth: 1280 });
+    return node.querySelector('svg').outerHTML.replace(/<svg([^>]*)>/, (m, a) => '<svg' + a.replace(/\s(width|height|style)="[^"]*"/g, '') + '>');
+  };
+
+  await py.runPythonAsync(`
+import sys, types, importlib.abc, importlib.machinery
+class _Meta(type):
+    def __getattr__(cls, name):
+        if name.startswith('__'): raise AttributeError(name)
+        return _make(name)
+    def __iter__(cls): return iter(())
+class _Base(metaclass=_Meta):
+    def __init__(self, *a, **k): pass
+    def __call__(self, *a, **k): return _Base()
+    def __getattr__(self, name):
+        if name.startswith('__'): raise AttributeError(name)
+        return _Base()
+    def __iter__(self): return iter(())
+    def __bool__(self): return False
+def _make(name): return _Meta(name, (_Base,), {})
+STUBS = ('cairo', 'manimpango', 'moderngl', 'moderngl_window', 'av', 'mapbox_earcut', 'pathops', 'screeninfo',
+         'watchdog', 'audioop', 'pydub', 'IPython', 'glcontext', 'pyglet', 'edge_tts') + tuple(EXTRA_STUBS)
+class _StubModule(types.ModuleType):
+    def __getattr__(self, name):
+        if name.startswith('__'): raise AttributeError(name)
+        return _make(name)
+class _Finder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def find_spec(self, fullname, path, target=None):
+        if fullname.split('.')[0] in STUBS:
+            return importlib.machinery.ModuleSpec(fullname, self, is_package=True)
+    def create_module(self, spec):
+        m = _StubModule(spec.name); m.__path__ = []; return m
+    def exec_module(self, module): pass
+sys.meta_path.insert(0, _Finder())
+import manim
+`);
+  lap('import', 'import manim 完成');
+
+  // Shims for the two things that need native code: TeX (-> browser MathJax) and Text (-> browser metrics)
+  await py.runPythonAsync(`
+import sys, hashlib, js
+sys.path.insert(0, '/home/pyodide/engine')
+import mathkit, mathkit.tex as mtex, mathkit.geo as mgeo
+from manim import VMobject, Text
+from mathkit.theme import FONT, INK
+
+def tex_to_svg_file(tex, display=True):
+    key = hashlib.sha1(f"{display}|{tex}".encode()).hexdigest()[:16]
+    path = mtex.CACHE / f"{key}.svg"
+    if not path.exists():
+        path.write_text(js.texToSvgString(tex, display))
+    return path
+mtex.tex_to_svg_file = tex_to_svg_file
+
+class TextShim(VMobject):
+    def __init__(self, text, font_size=28, color=INK, **kw):
+        super().__init__(fill_color=color, fill_opacity=1, stroke_width=0)
+        x0, x1, y0, y1 = js.measureTextBox(text, font_size).to_py()
+        self.set_points_as_corners([[x1, y1, 0], [x0, y1, 0], [x0, y0, 0], [x1, y0, 0], [x1, y1, 0]])
+        self.center()
+def label(text, font_size=28, color=INK, weight="MEDIUM", **kw):
+    return TextShim(text, font_size, color)
+mgeo.label = label
+mathkit.label = label
+`);
+  lap('shims', '公式桥接（浏览器 MathJax）与文字桥接（浏览器排版）就绪');
+
+  const buildMs = await py.runPythonAsync(`
+import time
+sys.path.insert(0, '/home/pyodide/engine/lessons/best_angle')
+from common import *
+from manim.utils.family import extract_mobject_family_members
+t = time.perf_counter()
+pitch = make_pitch()
+graph = AngleGraph(pitch)
+d = ValueTracker(0.0)
+def trace():
+    v = d.get_value()
+    return graph.curve(0.02, v) if v > 0.1 else VMobject()
+def drop():
+    v = d.get_value()
+    if v < 0.1:
+        return VMobject()
+    return DashedLine(graph.ax.c2p(v, 0), graph.point(v), dash_length=0.06, color=TEAL, stroke_width=1.5).set_stroke(opacity=0.6)
+dyn = [
+    always_redraw(trace), always_redraw(drop),
+    always_redraw(lambda: view_cone(pitch, d.get_value(), number=False)),
+    always_redraw(lambda: glow_dot(graph.point(d.get_value()), TEAL, r=0.07)),
+    always_redraw(lambda: readout(d.get_value(), pitch.theta(d.get_value())).move_to(RIGHT * 3.75 + UP * 3.25)),
+]
+static = [pitch, pitch.path, graph]
+
+def pack(mobs):
+    parts = []
+    for m in extract_mobject_family_members(mobs, only_those_with_points=True):
+        pts = m.points[:, :2].ravel()
+        parts.append(np.array([len(pts), *m.fill_rgbas[0], *m.stroke_rgbas[0], m.stroke_width], dtype=float))
+        parts.append(pts)
+    return np.concatenate(parts) if parts else np.zeros(0)
+
+static_packed = pack(static)
+def frame(v):
+    d.set_value(v)
+    for m in dyn:
+        m.update()
+    return pack(dyn)
+(time.perf_counter() - t) * 1000
+`);
+  lap('build', `静态场景（球场 + 坐标图）构建完成：${buildMs.toFixed(0)} ms`);
+  results.frame.buildMs = +buildMs.toFixed(1);
+
+  const cam = camera();
+  const staticVMs = unpack(py.globals.get('static_packed').toJs());
+  const frame = py.globals.get('frame');
+  // same scene on the TS engine, run interleaved so both see identical CPU conditions
+  const pitchT = new Pitch({ origin: [-6.17, 3.075], scale: 0.21 });
+  const graphT = new AngleGraph(pitchT);
+  let dT = 0;
+  const TEAL = '#3FD7C7';
+  const dynT = [
+    alwaysRedraw(() => (dT > 0.1 ? graphT.curve(0.02, dT) : new VMobject())),
+    alwaysRedraw(() => (dT < 0.1 ? new VMobject() : new DashedLine(graphT.ax.c2p(dT, 0), graphT.point(dT), { dashLength: 0.06, color: TEAL, strokeWidth: 1.5 }).setStroke(null, null, 0.6))),
+    alwaysRedraw(() => viewCone(pitchT, dT)),
+    alwaysRedraw(() => glowDot(graphT.point(dT), TEAL, 0.07)),
+    alwaysRedraw(() => readout(dT, pitchT.theta(dT)).moveTo([3.75, 3.25])),
+  ];
+  const staticsT = [pitchT, pitchT.path, graphT];
+  const comp = [], draw = [], compTS = [];
+  for (let i = 0; i < FRAMES; i++) {
+    const v = (30 * i) / (FRAMES - 1);
+    const t0 = performance.now();
+    dT = v;
+    for (const m of dynT) m.update();
+    removeRedundancies([...staticsT, ...dynT].flatMap((m) => m.familyWithPoints()));
+    compTS.push(performance.now() - t0);
+    const a = performance.now();
+    const res = frame(v);
+    const arr = res.toJs();
+    res.destroy();
+    const b = performance.now();
+    cam.render([...staticVMs, ...unpack(arr)]);
+    const c = performance.now();
+    comp.push(b - a);
+    draw.push(c - b);
+    if (i % 8 === 0) { document.title = `frame ${i}`; await new Promise((r) => setTimeout(r, 0)); }
+  }
+  results.frame.computeTS = stats(compTS);
+  log(`同条件交替测量 · TS 引擎每帧计算：平均 ${results.frame.computeTS.avg} ms / p95 ${results.frame.computeTS.p95} ms`);
+  results.frame.compute = stats(comp);
+  results.frame.draw = stats(draw);
+  log(`拖动一帧（重算圆锥、读数公式、曲线、虚线）：计算 平均 ${results.frame.compute.avg} ms / p95 ${results.frame.compute.p95} ms / 最慢 ${results.frame.compute.max} ms`);
+  log(`传数据 + 绘制：平均 ${results.frame.draw.avg} ms / p95 ${results.frame.draw.p95} ms`);
+  memory(py._module.HEAPU8.buffer.byteLength);
+  results.breakdown = JSON.parse(py.runPython(BREAKDOWN_PY));
+  log('每帧各部分耗时 (ms)：' + JSON.stringify(results.breakdown));
+  results.done = true;
+} catch (e) {
+  log('失败：' + e);
+  console.error(e);
+  results.done = true;
+  results.error = String(e);
+}
+</script>
+</body>
+</html>

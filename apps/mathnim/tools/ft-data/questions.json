@@ -1,0 +1,30 @@
+{
+ "zh": [
+  {"q": "水星白天赤道附近最热能到多少度？", "doc": 0, "gold": "白天时赤道地区温度可达432°C，夜间可降至-172°C。"},
+  {"q": "第一个给水星表面画出将近一半地图的探测器是哪艘？", "doc": 0, "gold": "第一艘是1974至1975年的水手10号，只描绘了45%的水星表面图。"},
+  {"q": "金星表面的大气压是地球的多少倍？", "doc": 1, "gold": "它有着四颗类地行星中最浓厚的大气层，其中超过96%都是二氧化碳，大气压力是地球的92倍。"},
+  {"q": "金星的直径是多少公里？", "doc": 1, "gold": "它的直径是12,092公里（只比地球少 650公里），质量是地球的81.5%。"},
+  {"q": "原始地球大约是在多少年前形成的？", "doc": 2, "gold": "根据放射性定年法的测量结果，太阳系大约在45.6±0.08亿年前形成，而原始地球大约形成于45.4±0.04亿年前。"},
+  {"q": "火星绕太阳一圈要多久？", "doc": 3, "gold": "火星公转周期为1.88地球年(687地球日)，自转周期则约为24小时40分，其公转引起了火星冲日等天文现象。"},
+  {"q": "火星的地壳最厚的地方有多厚？", "doc": 3, "gold": "火星的地壳平均厚约50公里，最厚可达125公里。"},
+  {"q": "现在还在环绕木星工作的探测器是哪一个？", "doc": 4, "gold": "目前朱诺号是木星轨道上唯一运作中的探测器，自2016年7月4日进入环绕木星的轨道后便持续进行观测作业至今。"},
+  {"q": "哪颗行星放进水里会浮起来？", "doc": 5, "gold": "虽然土星核心的密度远高于水，但由于存在较厚的大气层，土星仍是太阳系中唯一密度低于水的行星，它的比重是0.69 公克/公分³。"},
+  {"q": "土星上的风最快有多快？", "doc": 5, "gold": "土星大气层通常呈现均匀特征，但风速可达每小时1,800公里，为太阳系行星之最。"},
+  {"q": "天王星是谁在哪一年宣布发现的？", "doc": 6, "gold": "直到1781年3月13日，威廉·赫歇耳爵士宣布发现天王星，从而在太阳系的现代史上首度扩展已知的界限，也是第一颗使用望远镜发现的行星。"},
+  {"q": "哪颗行星是先用数学算出来、再被望远镜找到的？", "doc": 7, "gold": "海王星于17世纪时已有观测记录，在1846年9月正式被柏林天文台发现，是唯一一颗通过数学计算预测而非实际观测发现的行星。"}
+ ],
+ "en": [
+  {"q": "How long does one day, sunrise to sunrise, last on Mercury?", "doc": 0, "gold": "Consequently, one solar day (sunrise to sunrise) on Mercury lasts for around 176 Earth days, or twice Mercury's sidereal year."},
+  {"q": "Which spacecraft made the first successful flyby of Mercury?", "doc": 0, "gold": "The first successful flyby of Mercury was conducted by Mariner 10 in 1974, and it has since been visited and explored by the MESSENGER and BepiColombo orbiters."},
+  {"q": "How wide is Venus?", "doc": 1, "gold": "It has a diameter of 12,103.6 km (7,520.8 mi)—only 638.4 km (396.7 mi) less than Earth's—and its mass is 81.5% of Earth's, making it the third-smallest planet in the Solar System."},
+  {"q": "What gas makes up most of Venus's atmosphere?", "doc": 1, "gold": "Conditions on the surface of Venus differ radically from those on Earth because its dense atmosphere is 96.5% carbon dioxide, causing an intense greenhouse effect, with most of the remaining 3.5% being nitrogen."},
+  {"q": "How much of Earth's crust is covered by ocean?", "doc": 2, "gold": "Almost all of Earth's water is contained in its ocean, which covers 70.8% of Earth's crust."},
+  {"q": "How long is a year on Mars?", "doc": 3, "gold": "A Martian solar year is equal to 1.88 Earth years (687 Earth days), a Martian solar day (sol) is equal to 24.6 hours."},
+  {"q": "Which probe first flew past Mars successfully?", "doc": 3, "gold": "The first successful flyby exploration of Mars was conducted in 1965 with Mariner 4."},
+  {"q": "How many moons does Jupiter have?", "doc": 4, "gold": "At least 115 moons orbit the planet; the four largest moons—Io, Europa, Ganymede, and Callisto—orbit within the magnetosphere and are visible with common binoculars."},
+  {"q": "Which planet would float in water?", "doc": 5, "gold": "Saturn is the only planet of the Solar System that is less dense than water—about 30% less."},
+  {"q": "How fast can the wind blow on Saturn?", "doc": 5, "gold": "Wind speeds on Saturn can reach 1,800 kilometers per hour (1,100 miles per hour)."},
+  {"q": "When was Uranus recognised as a planet, and by whom?", "doc": 6, "gold": "Uranus is visible to the naked eye, but it is very dim and moves very slowly relative to the background stars and was not classified as a planet until 1781, when it was first observed by William Herschel."},
+  {"q": "Which spacecraft is the only one ever to visit Neptune?", "doc": 7, "gold": "Voyager 2, which flew by Neptune on 25 August 1989, remains the only spacecraft to visit the planet."}
+ ]
+}

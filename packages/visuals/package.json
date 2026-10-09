@@ -1,0 +1,16 @@
+{
+  "name": "@mathnim/visuals",
+  "version": "0.1.0",
+  "description": "Mathnim visuals: parametric, pre-verified explanation scenes shared by lessons and AI answers, their catalog, and colour themes.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "node tools/check_visuals.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "manim-web": "*"
+  }
+}

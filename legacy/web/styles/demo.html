@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; }
+  body[data-theme="paper"] { background: #E9E1D2; }
+  body[data-theme="glass"] { background: #08090B; }
+  body[data-theme="swiss"] { background: #ECEAE4; }
+  body[data-theme="white"] { background: #F6F6F8; }
+  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  #replay { position: fixed; right: 12px; bottom: 12px; font: 12px -apple-system, sans-serif; padding: 5px 10px; border-radius: 6px;
+            border: 1px solid rgba(127,127,127,.4); background: rgba(127,127,127,.12); color: inherit; cursor: pointer; opacity: .7; }
+  body[data-theme="glass"] #replay { color: #ddd; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<button id="replay">重播开场</button>
+<script type="module" src="demo.js"></script>
+</body>
+</html>

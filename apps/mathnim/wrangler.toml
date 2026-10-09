@@ -1,0 +1,29 @@
+# Cloudflare Pages configuration for the "mathnim" project (docs/DEPLOY.md).
+# `wrangler pages deploy dist` (npm run deploy at the repo root) and
+# `wrangler pages dev dist` read this file from apps/mathnim. With this file
+# present, the bindings and variables below are managed here, not in the
+# dashboard. Secrets are not in this file: DEEPSEEK_API_KEY, ADMIN_TOKEN and
+# the optional AZURE_SPEECH_KEY are set with `wrangler pages secret put`.
+name = "mathnim"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-29"
+
+# Learner feedback on answers (/api/feedback). Created with
+# `npx wrangler kv namespace create mathnim-feedback`.
+[[kv_namespaces]]
+binding = "FEEDBACK"
+id = "701c54a91a744109b914e948b4cfd511"
+
+[vars]
+# Models the DeepSeek proxy forwards (comma-separated; "*" = any).
+ALLOWED_MODELS = "deepseek-flash"
+# Extra origins allowed to call /api (the deployment's own origin always is).
+ALLOWED_ORIGINS = "https://mathnim.penghaolun.com,https://mathnim.pages.dev"
+# Per-visitor limits, per 10 minutes / per UTC day (best effort, per isolate).
+RATE_LIMITS = "deepseek=40/300,tts=80/600,feedback=20/100"
+# Seconds an opted-in answer stays in the edge cache (0 = off).
+ANSWER_CACHE_TTL = "86400"
+# Live narration: "" = Azure when AZURE_SPEECH_KEY/AZURE_SPEECH_REGION are set,
+# else Edge's unofficial read-aloud endpoint (demo grade); "off" disables it.
+TTS = ""
+# AZURE_SPEECH_REGION = "eastus"

@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable",
+      "WebWorker"
+    ],
+    "strict": true,
+    "noImplicitOverride": false,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "manim-web": [
+        "../../packages/manim-web/src/index.ts"
+      ],
+      "manim-web/*": [
+        "../../packages/manim-web/src/*"
+      ],
+      "@mathnim/ai": [
+        "../../packages/ai/src/index.ts"
+      ],
+      "@mathnim/core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@mathnim/present": [
+        "../../packages/present/src/index.ts"
+      ],
+      "@mathnim/visuals": [
+        "../../packages/visuals/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src"
+  ]
+}

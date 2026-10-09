@@ -1,0 +1,28 @@
+{
+  "name": "manim-web",
+  "version": "0.1.0",
+  "description": "Manim Community's API, running in real time in the browser.",
+  "type": "module",
+  "main": "dist/manim-web.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite serve dev --port 5174",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "regress": "node tools/regress.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.9",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "mathjax": "^4.1.3",
+    "mathjax-full": "^3.2.1",
+    "mediabunny": "^1.61.0",
+    "opentype.js": "^1.3.4"
+  }
+}

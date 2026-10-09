@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Bench: TS engine</title>
+<style>
+  body { margin: 0; background: #0b0e12; color: #e8ecf1; font: 13px/1.5 ui-monospace, Menlo, monospace; }
+  #log { padding: 12px 16px; white-space: pre-wrap; }
+  canvas { display: block; width: 100%; max-width: 960px; aspect-ratio: 16/9; margin: 0 16px; border: 1px solid #232b36; border-radius: 8px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="log"></div>
+<script type="module">
+import { FRAMES, results, log, lap, camera, stats, memory } from './bench_util.js';
+import { loadMathJax } from '../engine/tex.js';
+import { VMobject, alwaysRedraw, removeRedundancies } from '../engine/core.js';
+import { DashedLine } from '../engine/geometry.js';
+import { Pitch, AngleGraph, viewCone, glowDot, readout } from '../bakeoff/lesson.js';
+
+results.engine = 'ts-engine';
+try {
+  await loadMathJax('../vendor/tex-svg-full.js');
+  lap('runtime', 'MathJax 就绪（引擎本身无需额外加载）');
+  const t = performance.now();
+  const pitch = new Pitch({ origin: [-6.17, 3.075], scale: 0.21 });
+  const graph = new AngleGraph(pitch);
+  let d = 0;
+  const TEAL = '#3FD7C7';
+  const dyn = [
+    alwaysRedraw(() => (d > 0.1 ? graph.curve(0.02, d) : new VMobject())),
+    alwaysRedraw(() => (d < 0.1 ? new VMobject() : new DashedLine(graph.ax.c2p(d, 0), graph.point(d), { dashLength: 0.06, color: TEAL, strokeWidth: 1.5 }).setStroke(null, null, 0.6))),
+    alwaysRedraw(() => viewCone(pitch, d)),
+    alwaysRedraw(() => glowDot(graph.point(d), TEAL, 0.07)),
+    alwaysRedraw(() => readout(d, pitch.theta(d)).moveTo([3.75, 3.25])),
+  ];
+  const statics = [pitch, pitch.path, graph];
+  const buildMs = performance.now() - t;
+  results.frame.buildMs = +buildMs.toFixed(1);
+  lap('build', `静态场景（球场 + 坐标图）构建完成：${buildMs.toFixed(0)} ms`);
+
+  const cam = camera();
+  const fam = (list) => removeRedundancies(list.flatMap((m) => m.familyWithPoints()));
+  const comp = [], draw = [];
+  for (let i = 0; i < FRAMES; i++) {
+    const a = performance.now();
+    d = (30 * i) / (FRAMES - 1);
+    for (const m of dyn) m.update();
+    const drawables = fam([...statics, ...dyn]);
+    const b = performance.now();
+    cam.render(drawables);
+    const c = performance.now();
+    comp.push(b - a);
+    draw.push(c - b);
+    if (i % 8 === 0) { document.title = `frame ${i}`; await new Promise((r) => setTimeout(r, 0)); }
+  }
+  results.frame.compute = stats(comp);
+  results.frame.draw = stats(draw);
+  log(`拖动一帧（重算圆锥、读数公式、曲线、虚线）：计算 平均 ${results.frame.compute.avg} ms / p95 ${results.frame.compute.p95} ms / 最慢 ${results.frame.compute.max} ms`);
+  log(`绘制：平均 ${results.frame.draw.avg} ms / p95 ${results.frame.draw.p95} ms`);
+  memory(0);
+  results.done = true;
+} catch (e) {
+  log('失败：' + e);
+  console.error(e);
+  results.done = true;
+  results.error = String(e);
+}
+</script>
+</body>
+</html>

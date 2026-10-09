@@ -1,0 +1,12 @@
+{
+  "_comment": "Examples whose golden cannot be matched exactly, with the reason. tools/regress.mjs reports them as 'known' instead of warn/fail. Keep this list short: every entry needs a reason that is not a manim-web bug.",
+  "ContinuousMotion": "StreamLines seeds its start points with unseeded numpy randomness; every Manim render differs",
+  "EndAnimation": "StreamLines: unseeded random start points",
+  "StreamLineCreation": "StreamLines: unseeded random start points",
+  "GraphAutoPosition": "Graph layout uses networkx's spring layout with a random initial state",
+  "ImportNetworkxGraph": "networkx spring layout: random initial state",
+  "RandomLayout": "random layout by definition",
+  "SpringLayout": "networkx spring layout: random initial state",
+  "BraceBPExample": "Manim's saved last frame draws the static background twice (brighter grid than its own frame 35, although nothing changes during the final wait); frames during the scene match",
+  "LinearTransformationSceneExample": "Manim's saved last frame draws the static background twice (brighter grid than its own frame 35, although nothing changes during the final wait); frames during the scene match"
+}

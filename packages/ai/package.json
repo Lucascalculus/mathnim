@@ -1,0 +1,18 @@
+{
+  "name": "@mathnim/ai",
+  "version": "0.1.0",
+  "description": "AI answers for Mathnim: question -> explanation + validated manim-web scene.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@mathnim/core": "*",
+    "@mathnim/present": "*",
+    "@mathnim/visuals": "*",
+    "manim-web": "*"
+  }
+}

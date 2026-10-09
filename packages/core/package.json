@@ -1,0 +1,15 @@
+{
+  "name": "@mathnim/core",
+  "version": "0.1.0",
+  "description": "Mathnim core: lesson format, runtime, grading, learner model, events, narration data (no UI).",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "manim-web": "*"
+  }
+}

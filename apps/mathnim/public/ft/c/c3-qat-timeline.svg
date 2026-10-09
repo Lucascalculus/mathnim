@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg role="img" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="470" viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>Where quantisation meets training: QLoRA quantises the frozen base before training to save memory; QAT fake-quantises during training with a straight-through estimator; PTQ (GPTQ, AWQ) quantises after training.</title>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 470 
+L 960 470 
+L 960 0 
+L 0 0 
+L 0 470 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 222 30 
+L 418 30 
+L 418 60 
+L 222 60 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #eeeef0"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 422 30 
+L 698 30 
+L 698 60 
+L 422 60 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #eeeef0"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 702 30 
+L 938 30 
+L 938 60 
+L 702 60 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #eeeef0"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 234 102 
+L 406 102 
+Q 414 102 414 110 
+L 414 180 
+Q 414 188 406 188 
+L 234 188 
+Q 226 188 226 180 
+L 226 110 
+Q 226 102 234 102 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #e7f4f3; stroke: #0d9488; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 434 102 
+L 686 102 
+Q 694 102 694 110 
+L 694 180 
+Q 694 188 686 188 
+L 434 188 
+Q 426 188 426 180 
+L 426 110 
+Q 426 102 434 102 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #e7f4f3; stroke: #0d9488; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 714 102 
+L 926 102 
+Q 934 102 934 110 
+L 934 180 
+Q 934 188 926 188 
+L 714 188 
+Q 706 188 706 180 
+L 706 110 
+Q 706 102 714 102 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #e7f4f3; stroke: #0d9488; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 434 210 
+L 686 210 
+Q 694 210 694 218 
+L 694 288 
+Q 694 296 686 296 
+L 434 296 
+Q 426 296 426 288 
+L 426 218 
+Q 426 210 434 210 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #f2ebfd; stroke: #7c3aed; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 714 210 
+L 926 210 
+Q 934 210 934 218 
+L 934 288 
+Q 934 296 926 296 
+L 714 296 
+Q 706 296 706 288 
+L 706 218 
+Q 706 210 714 210 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #f2ebfd; stroke: #7c3aed; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 714 318 
+L 926 318 
+Q 934 318 934 326 
+L 934 396 
+Q 934 404 926 404 
+L 714 404 
+Q 706 404 706 396 
+L 706 326 
+Q 706 318 714 318 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #f8f3e7; stroke: #b8860b; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 220 30 
+L 220 440 
+" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #e6e6ea; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 420 30 
+L 420 440 
+" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #e6e6ea; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 700 30 
+L 700 440 
+" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #e6e6ea; stroke-width: 1.2"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 940 30 
+L 940 440 
+" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #e6e6ea; stroke-width: 1.2"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 220 72 
+Q 577.5 72 933.849362 72 
+" clip-path="url(#pdad6a5c53b)" style="fill: none; stroke: #86868b; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 926.649362 67.6 
+L 933.849362 72 
+L 926.649362 76.4 
+z
+" clip-path="url(#pdad6a5c53b)" style="fill: #86868b; stroke: #86868b; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="320" y="48.536406" transform="rotate(-0 320 48.536406)">before training</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="560" y="48.536406" transform="rotate(-0 560 48.536406)">during (post-)training</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: middle; fill: #111113" x="820" y="48.536406" transform="rotate(-0 820 48.536406)">after training</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 18px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #0d9488" x="30" y="130.966875" transform="rotate(-0 30 130.966875)">QLoRA</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="153.31125" transform="rotate(-0 30 153.31125)">goal:</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="171.31125" transform="rotate(-0 30 171.31125)">save training memory</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="238" y="127.31125" transform="rotate(-0 238 127.31125)">quantise the frozen base</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="238" y="147.31125" transform="rotate(-0 238 147.31125)">to NF4 when loading</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="438" y="127.31125" transform="rotate(-0 438 127.31125)">train bf16 adapters on the</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="438" y="147.31125" transform="rotate(-0 438 147.31125)">dequantised weights</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="127.31125" transform="rotate(-0 718 127.31125)">output: an adapter; merged</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="147.31125" transform="rotate(-0 718 147.31125)">model is bf16, not 4-bit</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 18px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #7c3aed" x="30" y="238.966875" transform="rotate(-0 30 238.966875)">QAT</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="261.31125" transform="rotate(-0 30 261.31125)">goal:</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="279.31125" transform="rotate(-0 30 279.31125)">a quantised model that keeps quality</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="438" y="235.55125" transform="rotate(-0 438 235.55125)">forward: fake-quant ŵ = s·round(w/s)</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="438" y="255.31125" transform="rotate(-0 438 255.31125)">backward: straight-through</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="438" y="275.31125" transform="rotate(-0 438 275.31125)">estimator, ∂ŵ/∂w ≈ 1</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="235.31125" transform="rotate(-0 718 235.31125)">ship real int4 weights</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="255.31125" transform="rotate(-0 718 255.31125)">e.g. Gemma 3 QAT (int4),</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="275.31125" transform="rotate(-0 718 275.31125)">Kimi K2 Thinking (INT4)</text>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 18px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #b8860b" x="30" y="346.966875" transform="rotate(-0 30 346.966875)">PTQ</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="369.31125" transform="rotate(-0 30 369.31125)">goal:</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="30" y="387.31125" transform="rotate(-0 30 387.31125)">cheap quantisation for inference</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="343.31125" transform="rotate(-0 718 343.31125)">GPTQ / AWQ on the finished</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="363.31125" transform="rotate(-0 718 363.31125)">weights; small calibration</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 12px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif; text-anchor: start; fill: #111113" x="718" y="383.31125" transform="rotate(-0 718 383.31125)">set, no training</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pdad6a5c53b">
+   <rect x="0" y="0" width="960" height="470"/>
+  </clipPath>
+ </defs>
+</svg>
