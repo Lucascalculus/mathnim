@@ -1,5 +1,7 @@
 # Mathnim
 
+Try it on lab.penghaolun.com
+
 An AI math tutor that explains with **live, interactive Manim scenes** in the
 browser: students predict, watch, drag, and get feedback; questions are
 answered with new animations; lessons are generated from a syllabus.
