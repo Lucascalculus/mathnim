@@ -1,6 +1,6 @@
 # Mathnim
 
-Try it on [www.lab.penghaolun.com](https://lab.penghaolun.com)
+Try it on [www.lab.penghaolun.com](https://lab.penghaolun.com/llm-finetuning)
 
 An AI math tutor that explains with **live, interactive Manim scenes** in the
 browser: students predict, watch, drag, and get feedback; questions are
