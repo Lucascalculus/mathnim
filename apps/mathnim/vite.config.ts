@@ -30,6 +30,9 @@ export default defineConfig(({ mode }) => {
     configurePreviewServer: (server) => void server.middlewares.use(dev_api(api_options)),
   };
   return {
+    // real paths (/<course>/<lesson>): assets are absolute, and dev / preview answer every page path with index.html
+    base: '/',
+    appType: 'spa',
     plugins: [api],
     resolve: {
       alias: {

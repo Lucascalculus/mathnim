@@ -1,8 +1,8 @@
 # L2 LoRA SFT：掩码、秩、学习率 / L2 LoRA SFT: the loss mask, the rank, the learning rate
 
-> **状态：** 代码已在 Mac（CPU）上用一个随机初始化的微型 Qwen 做过冒烟测试（2 步训练），**尚未在 T4 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
+> **状态：** 代码已在 Mac（CPU）上用一个随机初始化的微型 Qwen 做过冒烟测试（2 步训练），**尚未在 GPU 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
 >
-> **Status:** smoke-tested on a Mac (CPU) with a randomly initialised tiny Qwen (2 training steps); **not yet run on T4**. The expected results are qualitative, from the cited sources, not measured here.
+> **Status:** smoke-tested on a Mac (CPU) with a randomly initialised tiny Qwen (2 training steps); **not yet run on a GPU**. The expected results are qualitative, from the cited sources, not measured here.
 
 [中文](#中文) · [English](#english)
 

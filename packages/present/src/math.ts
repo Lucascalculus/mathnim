@@ -53,12 +53,17 @@ const CJK_CLOSE = /^[，。、；：！？）」』”’》〉】…—·%]+/;
 const CJK_OPEN = /[（「『“‘《〈【]+$/;
 
 /** HTML for text containing $inline$ and $$display$$ TeX; **bold**, *italic*, `code` and [links](url) are supported. */
+/** Bold that contains math (**the rank of $BA$ is at most $r$**) spans several prose pieces: marked first, closed at the end. */
+const B_OPEN = '\u0001', B_CLOSE = '\u0002';
+const mark_bold_math = (chunk: string): string =>
+  chunk.includes('**') && chunk.includes('$') ? chunk.replace(/\*\*(?=\S)([^*]*?\$[^*]*?\S)\*\*/g, `${B_OPEN}$1${B_CLOSE}`) : chunk;
+
 export function math_html(text: string, o: MarkupOptions = {}): string {
   return text
     .split(/(`[^`\n]+`)/g)
     .map((chunk) => {
       if (/^`[^`\n]+`$/.test(chunk)) return `<code>${esc(chunk.slice(1, -1))}</code>`;
-      const parts = chunk.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+      const parts = mark_bold_math(chunk).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
       const out: string[] = [];
       for (let i = 0; i < parts.length; i++) {
         const m = /^\$\$([^$]+)\$\$$|^\$([^$]+)\$$/.exec(parts[i]);
@@ -79,7 +84,7 @@ export function math_html(text: string, o: MarkupOptions = {}): string {
         }
         out.push(html);
       }
-      return out.join('');
+      return out.join('').replaceAll(B_OPEN, '<b>').replaceAll(B_CLOSE, '</b>');
     })
     .join('');
 }

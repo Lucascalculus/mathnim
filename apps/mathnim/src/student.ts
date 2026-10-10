@@ -58,7 +58,7 @@ export function lesson_context(cl: CourseLesson, view: LessonView): AskContext {
 /** Context for a question asked from the home page. */
 export function home_context(): AskContext {
   return {
-    level: current_course().audience ?? 'secondary school',
+    level: current_course().audience ? tr(current_course().audience, 'en') : 'secondary school',
     lesson: `Course: ${tr(current_course().title, ui_lang())}`,
     learner: mastery() || undefined,
     misconceptions: mistakes(),

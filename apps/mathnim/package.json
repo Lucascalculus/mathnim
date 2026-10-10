@@ -14,7 +14,8 @@
     "snapshots": "node tools/snapshots.mjs",
     "narration": "mkdir -p node_modules/.cache && node tools/narration_texts.mjs > node_modules/.cache/narration.json && ../../reference/.venv/bin/python tools/gen_narration.py node_modules/.cache/narration.json public/narration",
     "thumbs": "node tools/thumbnails.mjs",
-    "ft-manifest": "node tools/ft_manifest.mjs"
+    "ft-manifest": "node tools/ft_manifest.mjs",
+    "labs": "node tools/labs_build.mjs"
   },
   "dependencies": {
     "@mathnim/ai": "*",
@@ -22,5 +23,8 @@
     "@mathnim/present": "*",
     "@mathnim/visuals": "*",
     "manim-web": "*"
+  },
+  "devDependencies": {
+    "marked": "^18.0.14"
   }
 }

@@ -20,7 +20,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     calls.push({ url, body: init?.body as string | undefined });
     if (url === '/api/providers') return Response.json({ anthropic: false, deepseek: true, tts: tts_on });
-    if (url.startsWith('narration/')) return new Response('<html>', { status: 200, headers: { 'content-type': 'text/html' } }); // SPA fallback
+    if (url.startsWith('/narration/')) return new Response('<html>', { status: 200, headers: { 'content-type': 'text/html' } }); // SPA fallback
     if (url === '/api/tts') {
       const { text } = JSON.parse(init!.body as string);
       const n = text.length % 7 + 1;
@@ -79,7 +79,7 @@ describe('Narrator with live narration', () => {
   it('speaks a line without a recording through /api/tts, with cues', async () => {
     const { n, cues } = await narrator();
     await n.say('Drag P along the circle.');
-    expect(calls.map((c) => c.url)).toEqual(['narration/' + (await import('../../../packages/core/src/narration')).narration_key('Drag P along the circle.') + '.json', '/api/providers', '/api/tts']);
+    expect(calls.map((c) => c.url)).toEqual(['/narration/' + (await import('../../../packages/core/src/narration')).narration_key('Drag P along the circle.') + '.json', '/api/providers', '/api/tts']);
     expect(JSON.parse(calls[2].body!)).toEqual({ text: 'Drag P along the circle.', lang: 'en' }); // the server picks the voice by language
     expect(played[0]).toMatch(/^data:audio\/mpeg;base64,/);
     expect(cues.at(-1)![1]).toBe(cues.at(-1)![0].length); // finished

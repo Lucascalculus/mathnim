@@ -8,6 +8,7 @@ export { grade_text, grade_text_prompt, parse_text_grade, GRADE_TEXT_RULES, type
 export { worker_validator, type Validator, type ValidationResult } from './sandbox';
 export { compile_answer, load_answer, run_checks, type AnswerModule } from './run';
 export { RECORDED, recorded_question, recorded_responses, type RecordedAnswer } from './recorded';
+export { RECORDED_TEXT, recorded_text_answers, type RecordedText } from './recorded_text';
 export { AskPanel, type AskPanelOptions, type VisualAnswer } from './ui/ask_panel';
 export { C as PALETTE } from './palette';
 export { apply_white } from './theme';

@@ -1,8 +1,8 @@
 # L4 在 GSM8K 上做 GRPO：自己写评分器 / L4 GRPO on GSM8K: write your own grader
 
-> **状态：** 代码已在 Mac（CPU）上用一个随机初始化的微型 Qwen 做过冒烟测试（评分器测试、2 步训练、几道题的评测），**尚未在 T4 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。vLLM、4 位量化和 Unsloth 只在 Linux + CUDA 上可用，本次构建都没有跑过。
+> **状态：** 代码已在 Mac（CPU）上用一个随机初始化的微型 Qwen 做过冒烟测试（评分器测试、2 步训练、几道题的评测），**尚未在 GPU 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。vLLM、4 位量化和 Unsloth 只在 Linux + CUDA 上可用，本次构建都没有跑过。
 >
-> **Status:** smoke-tested on a Mac (CPU) with a randomly initialised tiny Qwen (grader tests, 2 training steps, an evaluation on a few questions); **not yet run on T4**. The expected results are qualitative, from the cited sources, not measured here. vLLM, 4-bit loading and Unsloth need Linux + CUDA and were not run in this build.
+> **Status:** smoke-tested on a Mac (CPU) with a randomly initialised tiny Qwen (grader tests, 2 training steps, an evaluation on a few questions); **not yet run on a GPU**. The expected results are qualitative, from the cited sources, not measured here. vLLM, 4-bit loading and Unsloth need Linux + CUDA and were not run in this build.
 
 [中文](#中文) · [English](#english)
 

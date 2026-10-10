@@ -1,8 +1,8 @@
 # L3 DPO：观察似然位移 / L3 DPO: watching the likelihood shift
 
-> **状态：** 代码已在 Mac（CPU）上用微型模型和一个十几对的小偏好数据集做过冒烟测试，**尚未在 T4 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
+> **状态：** 代码已在 Mac（CPU）上用微型模型和一个十几对的小偏好数据集做过冒烟测试，**尚未在 GPU 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
 >
-> **Status:** smoke-tested on a Mac (CPU) with a tiny model and a preference set of a dozen pairs; **not yet run on T4**. The expected results are qualitative, from the cited sources, not measured here.
+> **Status:** smoke-tested on a Mac (CPU) with a tiny model and a preference set of a dozen pairs; **not yet run on a GPU**. The expected results are qualitative, from the cited sources, not measured here.
 
 [中文](#中文) · [English](#english)
 

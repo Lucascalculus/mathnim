@@ -40,7 +40,7 @@ export interface ViewOptions {
   /** Called for each scene player (apply a theme, effects...), including visuals embedded in text pages. */
   on_player?: (p: ScenePlayer) => void;
   tex?: TexRenderer;
-  /** Folder with pre-generated narration audio (default 'narration'). */
+  /** Folder with pre-generated narration audio (default '/narration'). */
   narration_base?: string;
   /** Replace the end-of-lesson summary (e.g. to move to the next review item). */
   on_finished?: (view: LessonView) => void;
@@ -55,6 +55,21 @@ export interface ViewOptions {
   visuals?: VisualResolver;
   /** Grades free-text answers; without it the learner assesses their own answer. */
   grade_text?: TextGrader;
+  /** The next lesson of the course: the end card offers it as the main action. */
+  next?: { title: L10n; href: string };
+  /** Remember the furthest step in this browser so the lesson can resume there (resume()). */
+  remember?: boolean;
+  /** Where "back to the course" goes (default '/'). */
+  back?: string;
+  /** Go to an address inside the app (the app's router; default: a page load). */
+  navigate?: (href: string) => void;
+  /** A hands-on lab to suggest on the end card, under the next lesson. */
+  lab?: { title: L10n; note?: L10n; href: string };
+  /**
+   * "Explain this": a small button on every step, and on text pages a button by selected text.
+   * Called with the selected passage, if any; the app opens its chat beside the lesson.
+   */
+  help?: (ask: { selected?: string }) => void;
 }
 
 const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): HTMLElementTagNameMap[K] => {
@@ -105,6 +120,8 @@ export class LessonView {
   private stars: Record<string, number> = {};
   /** Furthest step reached (game view: later levels stay locked). */
   private reached = 0;
+  /** Skills this lesson has graded so far (the mastery panel shows only these, once there is one). */
+  private touched = new Set<string>();
 
   constructor(root: HTMLElement, lesson: Lesson, o: ViewOptions = {}) {
     inject_styles();
@@ -135,8 +152,15 @@ export class LessonView {
     side.append(
       (this.el.kicker = h('div', 'mn-kicker')), (this.el.prompt = h('div', 'mn-prompt')), (this.el.answer = h('div')),
       (this.el.conf = h('div', 'mn-conf')), (this.el.feedback = h('div', 'mn-feedback')), (this.el.hints = h('div', 'mn-hints')),
-      (this.el.actions = h('div', 'mn-actions')), (this.el.mastery = h('div', 'mn-mastery')),
+      (this.el.actions = h('div', 'mn-actions')), (this.el.endextra = h('div', 'mn-endextra')), (this.el.mastery = h('div', 'mn-mastery')),
     );
+    if (o.help) {
+      // "这里没懂": on every step, under the step's actions (on phones it floats at the bottom corner)
+      const help = (this.el.help = h('button', 'mn-helpbtn', `<span class="mn-helpicon" aria-hidden="true">?</span>${esc(t('explain_this'))}`));
+      (help as HTMLButtonElement).type = 'button';
+      help.onclick = () => o.help!({});
+      side.insertBefore(help, this.el.mastery);
+    }
     this.el.feedback.setAttribute('aria-live', 'polite');
     const bar = h('div', 'mn-bar');
     this.el.play = h('button', 'mn-iconbtn', '▶');
@@ -158,7 +182,13 @@ export class LessonView {
     this.el.export = exp;
     this.el.voice = h('button', 'mn-iconbtn', '🔈');
     this.el.voice.setAttribute('aria-label', t('narration_toggle'));
-    bar.append(this.el.play, seek, this.el.time, speed, this.el.voice, exp);
+    // rarely needed: export sits in a small "⋯" menu instead of on every step
+    const more = h('details', 'mn-more', `<summary class="mn-iconbtn" aria-label="${esc(t('more'))}" title="${esc(t('more'))}">⋯</summary>`);
+    const menu = h('div', 'mn-more-menu');
+    menu.append(exp);
+    more.append(menu);
+    exp.addEventListener('click', () => ((more as HTMLDetailsElement).open = false));
+    bar.append(this.el.play, seek, this.el.time, speed, this.el.voice, more);
     const left = h('div');
     left.style.display = 'flex';
     left.style.flexDirection = 'column';
@@ -187,11 +217,14 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      left.append(stage, this.el.caption, bar, this.el.page, this.el.steps);
+      // where am I: "step 5 of 17 · chapter" and a thin bar above the step dots
+      this.el.where = h('div', 'mn-where');
+      left.append(stage, this.el.caption, bar, this.el.page, this.el.where, this.el.steps);
       app.append(head, left, side);
     }
     if (o.dev) app.append((this.el.dev = h('div', 'mn-dev', 'dev: linter + scene description')));
     root.append(app);
+    if (o.help) this.watch_selection();
 
     this.sketch = new SketchPad(sk, { to_data: (x, y) => [x, y], to_px: (x, y) => [x, y] });
     this.narrator = new Narrator(this.el.caption, { base: o.narration_base, lang: this.lang === 'zh' ? 'zh-CN' : 'en-US' });
@@ -338,6 +371,10 @@ export class LessonView {
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
         this.app.classList.toggle('mn-nostage', text || !(s as { scene?: unknown }).scene);
         this.reached = Math.max(this.reached, e.index);
+        if (this.o.remember && !s.branch_only) {
+          const p = this.read_progress();
+          this.save_progress({ furthest: Math.max(e.index, p.done ? 0 : p.furthest), done: false });
+        }
         this.el.levelup?.classList.remove('show');
         this.el.sub.textContent = chapter;
         // narration is for "videos": scenes and worlds are spoken, and in a game the character speaks the questions too;
@@ -362,6 +399,7 @@ export class LessonView {
         this.show_page(e.step);
         break;
       case 'blank':
+        if (e.step.skill) this.touched.add(e.step.skill);
         this.render_mastery(); // the derivation page shows the outcome itself
         break;
       case 'scene-end':
@@ -410,6 +448,10 @@ export class LessonView {
         card?.append(h('div', 'mn-goal', `<span aria-hidden="true">✓</span> ${math_html(e.message)}${stars ? `<span class="mn-stars" aria-label="${esc(t('n_of_3_stars', { n: e.stars! }))}">${stars}</span>` : ''}`));
         const cont = this.el.actions.querySelector<HTMLButtonElement>('[data-role=continue]');
         if (cont) cont.disabled = !this.runtime.can_continue();
+        if (e.final && e.step.skill) {
+          this.touched.add(e.step.skill);
+          this.render_mastery();
+        }
         if (this.game && e.final) {
           this.juice?.success([0, 0, 0]);
           this.level_complete(e.step.id, e.stars, e.message);
@@ -419,6 +461,7 @@ export class LessonView {
       case 'finding': {
         // a misconception shown by what the learner did: name it gently, once
         if (e.finding.kind === 'misconception') {
+          if (e.step.skill) this.touched.add(e.step.skill);
           const msg = e.finding.message !== undefined ? this.runtime.text(e.finding.message) : e.misconception ? t('common_idea', { d: this.tr(e.misconception.description) }) : '';
           if (msg) this.el.prompt.querySelector('.mn-yourturn')?.append(h('div', 'mn-finding', math_html(msg)));
         } else if (e.finding.message !== undefined) this.toast(this.runtime.text(e.finding.message), 'info');
@@ -442,6 +485,7 @@ export class LessonView {
         break;
       case 'graded': {
         const g = e.grade;
+        if (e.step.purpose !== 'predict') this.touched.add(e.step.skill);
         const fb = this.el.feedback;
         const q = e.step.question;
         // a written answer is rarely all or nothing: say how many key points it made, without a red "wrong"
@@ -488,6 +532,7 @@ export class LessonView {
         break;
       }
       case 'finished':
+        if (this.o.remember) this.save_progress({ furthest: 0, done: true }); // a finished lesson opens at the start
         if (this.o.on_finished) this.o.on_finished(this);
         else this.show_summary();
         break;
@@ -502,6 +547,7 @@ export class LessonView {
   }
   /** Remove the view (stops audio and the scene). */
   destroy(): void {
+    this.unwatch?.();
     this.narrator.stop();
     this.page?.dispose();
     this.page = null;
@@ -522,7 +568,7 @@ export class LessonView {
     this.page = null;
     this.el.page.innerHTML = '';
     this.app.classList.remove('mn-casestep');
-    for (const k of ['prompt', 'answer', 'conf', 'hints', 'actions']) this.el[k].innerHTML = '';
+    for (const k of ['prompt', 'answer', 'conf', 'hints', 'actions', 'endextra']) this.el[k].innerHTML = '';
     this.el.feedback.className = 'mn-feedback';
     this.el.feedback.innerHTML = '';
     this.answer = null;
@@ -599,6 +645,44 @@ export class LessonView {
     // the reading column names the case; the panel only says where in it the question is
     if (group.brief?.length) return esc([t('case_label'), num].filter(Boolean).join(' · '));
     return `${esc(t('case_label'))}: ${math_html(this.tr(group.title))}${num ? ` · ${esc(num)}` : ''}`;
+  }
+
+  // ---------------------------------------------------------------- resuming
+  private get progress_key(): string {
+    return `mathnim.progress.${this.lesson.id}`;
+  }
+  /** furthest: step index reached; done: the last visit ended the lesson; finished: it was finished at least once. */
+  private read_progress(): { furthest: number; done: boolean; finished: boolean } {
+    try {
+      const p = JSON.parse(localStorage.getItem(this.progress_key) ?? '{}');
+      return { furthest: +p.furthest || 0, done: !!p.done, finished: !!p.finished };
+    } catch {
+      return { furthest: 0, done: false, finished: false };
+    }
+  }
+  private save_progress(p: { furthest: number; done: boolean }): void {
+    try {
+      localStorage.setItem(this.progress_key, JSON.stringify({ ...p, finished: p.done || this.read_progress().finished }));
+    } catch {
+      /* no storage */
+    }
+  }
+  /** Open at the furthest step reached last time (a finished lesson opens at the start), with a "Start over" link. */
+  async resume(): Promise<void> {
+    const p = this.read_progress();
+    const step = !p.done && p.furthest > 0 ? this.lesson.steps[p.furthest] : undefined;
+    if (!step || step.branch_only) return this.start();
+    await this.start(step.id);
+    const note = h('span', 'mn-resumed', `${esc(t('resumed'))} `);
+    const again = h('button', 'mn-linkbtn', esc(t('start_over')));
+    again.type = 'button';
+    again.onclick = () => {
+      note.remove();
+      this.save_progress({ furthest: 0, done: false });
+      void this.runtime.goto(this.lesson.steps[0].id);
+    };
+    note.append(again);
+    this.app.querySelector('.mn-head')?.append(note);
   }
 
   // ---------------------------------------------------------------- scrubbable numbers
@@ -935,6 +1019,13 @@ export class LessonView {
     const box = this.el.steps;
     box.innerHTML = '';
     const cur = this.runtime?.index ?? -1;
+    // "step 5 of 17 · chapter" and a thin bar (branch-only detours count as the step they came from)
+    const main = this.lesson.steps.map((s, i) => [s, i] as const).filter(([s]) => !s.branch_only);
+    const k = main.filter(([, i]) => i <= cur).length;
+    if (this.el.where && cur >= 0) {
+      const chapter = this.tr(this.chapter_of(cur));
+      this.el.where.innerHTML = `<span>${esc(t('lesson_step', { k: Math.max(1, k), n: main.length }))}${chapter ? ` · ${math_html(chapter)}` : ''}</span><span class="mn-where-bar" aria-hidden="true"><i style="width:${Math.round((Math.max(1, k) / main.length) * 100)}%"></i></span>`;
+    }
     let lastChapter: string | undefined;
     this.lesson.steps.forEach((s, i) => {
       if (s.branch_only) return;
@@ -955,8 +1046,12 @@ export class LessonView {
   private render_mastery(): void {
     const box = this.el.mastery;
     if (!box) return;
-    box.innerHTML = `<div class="mn-kicker">${esc(t('mastery'))}</div>`;
-    for (const s of this.lesson.skills) {
+    // nothing graded yet in this lesson: no panel (untouched skills at 20% read like a score)
+    const skills = this.lesson.skills.filter((s) => this.touched.has(s.id));
+    box.style.display = skills.length ? '' : 'none';
+    box.innerHTML = skills.length ? `<div class="mn-kicker">${esc(t('mastery'))}</div>` : '';
+    if (!skills.length) return;
+    for (const s of skills) {
       const p = this.runtime?.learner.mastery(s.id) ?? 0;
       const row = h('div', 'mn-skill' + (p >= MASTERY ? ' mastered' : ''), `<span>${math_html(this.tr(s.name))}</span><span style="text-align:right">${Math.round(p * 100)}%</span><div class="mn-meter"><i style="width:${Math.round(p * 100)}%"></i></div>`);
       box.append(row);
@@ -966,7 +1061,10 @@ export class LessonView {
   }
   private show_summary(): void {
     this.reset_panel();
-    this.app.classList.remove('mn-textstep', 'mn-nostage');
+    this.app.classList.remove('mn-textstep');
+    // the last scene's final frame stays beside the summary; a lesson that ended on a page has none (no empty stage)
+    this.app.classList.toggle('mn-nostage', !this.runtime.player && !this.game);
+    this.root.querySelector('.mn-resumed')?.remove();
     this.narrator.stop(!this.game); // the character's last words stay in the game view
     this.runtime.player?.show_end();
     const s = this.runtime.log.summary();
@@ -982,10 +1080,81 @@ export class LessonView {
     }
     const due = this.runtime.learner.due().length;
     this.el.hints.innerHTML = `<div class="mn-help">${esc(due ? t('review_later_n', { n: due, s: plural_s(due) }) : t('review_later'))}</div>`;
-    this.el.actions.append(this.button(t('back_to_lessons'), () => (location.hash = '#/'), true), this.button(t('start_again'), () => this.runtime.goto(this.lesson.steps[0].id)));
+    this.el.actions.append(...this.end_actions());
+    if (this.o.lab) this.el.endextra.append(this.lab_card(this.o.lab));
     this.render_mastery();
     this.render_steps();
     if (this.game) this.game_over(mis);
+  }
+  /** The lab that goes with this lesson, as a card under the end actions. */
+  private lab_card(lab: NonNullable<ViewOptions['lab']>): HTMLElement {
+    const a = h('a', 'mn-labcard', `<span class="mn-labcard-kicker">${esc(t('hands_on'))}</span><span class="mn-labcard-title">${math_html(this.tr(lab.title))}</span>${lab.note ? `<span class="mn-labcard-note">${math_html(this.tr(lab.note))}</span>` : ''}`);
+    a.href = lab.href;
+    a.onclick = (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      if (this.o.navigate) this.o.navigate(lab.href);
+      else location.assign(lab.href);
+    };
+    return a;
+  }
+  /** On a text page, selecting a passage offers "Ask about this" next to it. */
+  private unwatch: (() => void) | null = null;
+  private watch_selection(): void {
+    const btn = h('button', 'mn-askhere', esc(t('ask_here')));
+    btn.type = 'button';
+    btn.hidden = true;
+    document.body.append(btn);
+    let passage = '';
+    const place = () => {
+      const sel = document.getSelection();
+      const text = sel && !sel.isCollapsed ? sel.toString().replace(/\s+/g, ' ').trim() : '';
+      const range = text && sel!.rangeCount ? sel!.getRangeAt(0) : null;
+      // only text read on a page of this lesson (not the panel, not a code editor's input)
+      const inside = range && this.el.page.contains(range.commonAncestorContainer) && !(range.commonAncestorContainer as Element).closest?.('textarea,input');
+      if (!inside || text.length < 2) {
+        btn.hidden = true;
+        return;
+      }
+      passage = text.slice(0, 1200);
+      const r = range!.getBoundingClientRect();
+      const touch = matchMedia('(pointer: coarse)').matches;
+      btn.hidden = false;
+      const w = btn.offsetWidth || 90;
+      // below the selection on touch screens (the system's own menu sits above it), above it otherwise
+      const top = touch ? r.bottom + 10 : r.top - 40;
+      btn.style.top = `${Math.max(8, Math.min(innerHeight - 44, top < 8 ? r.bottom + 10 : top))}px`;
+      btn.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`;
+    };
+    let timer = 0;
+    const later = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(place, 120);
+    };
+    // the click must not clear the selection before it is read
+    btn.addEventListener('pointerdown', (e) => e.preventDefault());
+    btn.onclick = () => {
+      btn.hidden = true;
+      this.o.help?.({ selected: passage });
+    };
+    document.addEventListener('selectionchange', later);
+    addEventListener('scroll', place, { passive: true });
+    addEventListener('resize', place);
+    this.unwatch = () => {
+      document.removeEventListener('selectionchange', later);
+      removeEventListener('scroll', place);
+      removeEventListener('resize', place);
+      clearTimeout(timer);
+      btn.remove();
+    };
+  }
+  /** The end of the lesson: on to the next lesson of the course (the main action), or back to the course. */
+  private end_actions(): HTMLButtonElement[] {
+    const next = this.o.next;
+    const go = (href: string) => (this.o.navigate ? this.o.navigate(href) : location.assign(href));
+    const back = this.button(t('back_to_course'), () => go(this.o.back ?? '/'), !next);
+    if (!next) return [back];
+    return [this.button(t('next_lesson', { title: this.tr(next.title) }), () => go(next.href), true), back];
   }
   /** The game view's last card: all the stars, and the ideas that came up. */
   private game_over(ideas: string[]): void {
@@ -994,7 +1163,7 @@ export class LessonView {
     const card = this.el.levelup;
     card.innerHTML = '';
     const acts = h('div', 'mn-actions');
-    acts.append(this.button(t('back_to_lessons'), () => (location.hash = '#/'), true), this.button(t('play_again'), () => this.runtime.goto(this.lesson.steps[0].id)));
+    acts.append(...this.end_actions(), this.button(t('play_again'), () => this.runtime.goto(this.lesson.steps[0].id)));
     // the tray under the stage would only repeat this card
     for (const k of ['prompt', 'feedback', 'actions']) this.el[k].innerHTML = '';
     this.el.kicker.textContent = '';

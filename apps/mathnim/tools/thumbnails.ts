@@ -1,8 +1,9 @@
 // Pre-render the home page's lesson thumbnails (the final frame of each
 // lesson's thumbnail scene) to public/thumbs/<lesson>.<lang>.webp, so the home
 // page shows images instead of running every lesson's first scene in the
-// browser. Lessons without a scene keep their drawn text thumbnail.
-//   npm run thumbs -w mathnim
+// browser. Lessons without a scene keep their drawn text thumbnail. Also the
+// course pages' feature pictures (public/courses/<course>/...).
+//   npm run thumbs -w mathnim [lesson ids...] [features]
 import { createCanvas } from '@napi-rs/canvas';
 import { init_tex } from 'manim-web';
 import { ScenePlayer } from 'manim-web/ext/player';
@@ -13,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
 import { all_lessons, load_all_lessons } from '../src/course';
+import { check_params, get_visual } from '@mathnim/visuals';
 
 // the fine-tuning lessons are loaded on demand in the app; the tools check them all
 await load_all_lessons();
@@ -49,3 +51,31 @@ for (const cl of all_lessons()) {
   }
 }
 console.log(`${n} thumbnails in ${out}`);
+
+// the course pages' feature pictures: a visual at a given state, in each language
+const FEATURES = [
+  { file: 'courses/llm-finetuning/map.{lang}.webp', visual: 'decision_map', params: { upto: 'F1', show_out_of_scope: false } },
+];
+if (!only.length || only.includes('features')) {
+  for (const f of FEATURES) {
+    const v = get_visual(f.visual);
+    if (!v) {
+      console.log(`no visual ${f.visual}`);
+      continue;
+    }
+    for (const lang of LANGS) {
+      await with_cjk(async () => {
+        set_ft_lang(lang);
+        const canvas = createCanvas(1280, 720);
+        const player = new ScenePlayer(v.scene(check_params(v, { ...f.params, lang }).params), canvas as any, { audio: false });
+        apply_theme(player);
+        await player.load();
+        player.show_end();
+        const file = path.join(process.env.MATHNIM_PUBLIC!, f.file.replace('{lang}', lang));
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, await canvas.encode('webp', 86));
+        console.log(path.relative(process.env.MATHNIM_PUBLIC!, file));
+      });
+    }
+  }
+}

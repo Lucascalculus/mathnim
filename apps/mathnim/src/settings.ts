@@ -2,7 +2,7 @@
 import type { Lang } from '@mathnim/core';
 import { set_ui_lang, t } from '@mathnim/present';
 import { ensure_cjk_font } from './cjk_font';
-import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, type Provider } from '@mathnim/ai';
+import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, recorded_text_answers, type Provider } from '@mathnim/ai';
 
 export type ProviderChoice = 'auto' | 'deepseek' | 'anthropic' | 'offline';
 export interface Settings {
@@ -82,7 +82,8 @@ export function provider(): Provider {
     case 'anthropic':
       return new AnthropicProvider({ api_key: s.api_key || undefined, model: s.model, base_url: s.base_url || (server.anthropic ? '/api/anthropic' : undefined) });
     default:
-      mock ??= new MockProvider({ ...recorded_responses(MockProvider.key), ...recorded_lesson_responses(MockProvider.key) });
+      // recorded answers: scenes for the geometry lessons, words only for a few lesson questions (the "explain this" chat)
+      mock ??= new MockProvider({ ...recorded_responses(MockProvider.key), ...recorded_lesson_responses(MockProvider.key) }, undefined, recorded_text_answers(MockProvider.key));
       return mock;
   }
 }

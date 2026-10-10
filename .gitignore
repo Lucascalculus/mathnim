@@ -34,3 +34,6 @@ apps/mathnim/tools/ft-data/.cache/
 
 # caches of the fine-tuning data jobs in any subfolder (models, datasets)
 apps/mathnim/tools/ft-data/**/.cache/
+
+# stale copy of the old scratch workspace, copied in when the session moved here (not part of the project)
+mathviz-demo/

@@ -42,6 +42,9 @@ describe('light markup', () => {
     expect(math_html('claim[^hu]', { footnote: (k) => `<sup>${k}</sup>` })).toBe('claim<sup>hu</sup>');
     expect(math_html('a $x$ and `$y$`')).toBe('a <code>x</code> and <code>$y$</code>');
     // Chinese punctuation never starts a line: it is glued to the math before it (and opening marks to the math after)
+    // bold that contains math is still bold (a tutor answer: "**冻结是为了不替 $W_0$ 存梯度**")
+    expect(math_html('**rank of $BA$ is $r$** here')).toBe('<b>rank of <code>BA</code> is <code>r</code></b> here');
+    expect(math_html('**plain** and $x$')).toBe('<b>plain</b> and <code>x</code>');
     expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap"><code>W_0</code>，</span>只学<span class="mn-nowrap">（<code>r</code>）。</span>');
   });
 });
@@ -68,7 +71,7 @@ describe('blocks as HTML', () => {
     expect(html).toContain('<span class="mn-t-n">1</span>');
     expect(html).toContain('<th scope="col">a</th>');
     expect(html).toContain('<details class="mn-details"><summary><span>More</span></summary>');
-    expect(html).toContain('src="ft/a.svg"');
+    expect(html).toContain('src="/ft/a.svg"');
     expect(html).toContain('出处：After X (2021)');
     expect(html).toMatch(/<li id="[^"]*-fn-hu" value="1">Hu et al\. \(2021\)/);
     expect(html).toMatch(/<li id="[^"]*-fn-other" value="2">Unreferenced/);
@@ -76,8 +79,8 @@ describe('blocks as HTML', () => {
   });
   it('picks the figure of the learner language', () => {
     const fig = [{ type: 'figure', src: { en: 'ft/d/x.en.svg', zh: 'ft/d/x.zh.svg' }, alt: { en: 'A map', zh: '一张图' }, credit: 'original' }] as any;
-    expect(blocks_html(fig, 'zh')).toContain('src="ft/d/x.zh.svg"');
-    expect(blocks_html(fig, 'en')).toContain('src="ft/d/x.en.svg"');
+    expect(blocks_html(fig, 'zh')).toContain('src="/ft/d/x.zh.svg"');
+    expect(blocks_html(fig, 'en')).toContain('src="/ft/d/x.en.svg"');
   });
   it('marks a footnote without a source', () => {
     expect(blocks_html([{ type: 'p', text: 'x[^nope]' }], 'en')).toContain('mn-fnref-missing');

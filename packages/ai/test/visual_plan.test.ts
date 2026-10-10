@@ -26,10 +26,14 @@ describe('parse_visual_plan', () => {
     expect(parse_visual_plan(plan({ params: { n: 12 } }))).toMatchObject({ visual: 'circle_slices', params: { n: 12 }, caption: 'Watch the slices.', followups: ['a?', 'b?'] });
     expect(parse_visual_plan('Sure:\n```json\n{"visual":"eigen_hunt","params":{"A":[[2,1],[1,2]]}}\n```').visual).toBe('eigen_hunt');
   });
-  it('treats a missing, empty or "none" visual as no visual', () => {
-    expect(parse_visual_plan('{"params":{}}').visual).toBeNull();
-    expect(parse_visual_plan('{"visual":"None"}').visual).toBeNull();
+  it('treats a missing, empty or null visual as no ready-made visual (a custom picture)', () => {
+    expect(parse_visual_plan('{"params":{}}')).toMatchObject({ visual: null });
+    expect(parse_visual_plan('{"visual":"null"}').none).toBeUndefined();
     expect(parse_visual_plan('{"visual":null,"caption":""}').visual).toBeNull();
+  });
+  it('reads "none" as no picture at all', () => {
+    expect(parse_visual_plan('{"visual":"None","followups":["x"]}')).toMatchObject({ visual: null, none: true, followups: ['x'] });
+    expect(parse_visual_plan('{"visual":"none"}').none).toBe(true);
   });
   it('normalises the check question and the follow-ups', () => {
     expect(parse_visual_plan(plan({ check: 'What is the height?' })).check).toEqual({ question: 'What is the height?' });
@@ -72,7 +76,7 @@ describe('prompts', () => {
     const m = plan_repair_message(['there is no visual "x" in the CATALOG', 'A: expected a 2x2 matrix'], ['circle_slices', 'eigen_hunt']);
     expect(m).toContain('- there is no visual "x"');
     expect(m).toContain('- A: expected a 2x2 matrix');
-    expect(m).toContain('circle_slices, eigen_hunt (or null)');
+    expect(m).toContain('circle_slices, eigen_hunt (or "none" for no picture, or null)');
   });
   it('puts the catalog in the system prompt and the context in the user message', () => {
     const s = plan_system(list_visuals());
@@ -138,6 +142,13 @@ describe('plan_visual', () => {
     expect(r.calls).toHaveLength(1);
     expect(decide(r)).toEqual({ kind: 'freeform', reason: 'no_visual' });
   });
+  it('does not repair "none": the answer has no picture', async () => {
+    const p = scripted(['{"visual": "none", "params": {}, "caption": "", "followups": ["x"]}']);
+    const r = await plan_visual('What does low-rank mean?', { provider: p });
+    expect(r.calls).toHaveLength(1);
+    expect(r.errors).toEqual([]);
+    expect(decide(r)).toEqual({ kind: 'none' });
+  });
   it('keeps a known visual with defaulted parameters when there is no time to repair', async () => {
     const p = scripted([JSON.stringify({ visual: 'eigen_hunt', params: { A: 'two by two' } })]);
     const r = await plan_visual('?', { provider: p, repair_budget_ms: 0 });
@@ -163,6 +174,7 @@ describe('decide', () => {
     const v = get_visual('circle_slices')!;
     expect(decide({ ...base, plan: parse_visual_plan(plan({})), visual: v, params: { n: 8 } })).toEqual({ kind: 'visual', visual: v, params: { n: 8 } });
     expect(decide({ ...base, plan: parse_visual_plan('{"visual":null}') })).toEqual({ kind: 'freeform', reason: 'no_visual' });
+    expect(decide({ ...base, plan: parse_visual_plan('{"visual":"none"}') })).toEqual({ kind: 'none' });
     expect(decide({ ...base, plan: parse_visual_plan(plan({ visual: 'nope' })), errors: ['there is no visual "nope"'] })).toMatchObject({ kind: 'freeform', reason: 'invalid', detail: 'there is no visual "nope"' });
     expect(decide(null, new Error('deepseek API 503'))).toEqual({ kind: 'freeform', reason: 'failed', detail: 'deepseek API 503' });
   });

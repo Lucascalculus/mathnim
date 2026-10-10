@@ -41,8 +41,10 @@ import { context_block } from './tutor';
 
 /** What the model returns. */
 export interface VisualPlan {
-  /** A name from the catalog, or null when no visual shows the idea. */
+  /** A name from the catalog, or null when no visual shows the idea (a custom picture is drawn, unless `none`). */
   visual: string | null;
+  /** The words answer it: no picture at all ("visual": "none"). */
+  none?: boolean;
   params: Record<string, unknown>;
   /** 1-2 sentences for the student: what to watch, then what to drag or try. */
   caption: string;
@@ -52,17 +54,18 @@ export interface VisualPlan {
 }
 
 export const PLAN_RULES = `You choose the picture for a math tutor's answer. A student asked a question in an interactive lesson; a short text answer is written separately (not by you).
-Pick ONE ready-made interactive visual from the CATALOG below that shows exactly the idea this student needs, and set its parameters for their case - or pick null.
+First decide whether a picture would help at all. Many questions are answered well in words: a definition, a yes or no, a reason, a fact, a comparison, the meaning of a sentence. For those pick "none": the student reads the text answer and nothing else. Only when seeing something (a shape, a motion, a plot, numbers changing) makes the idea clearer, pick ONE ready-made interactive visual from the CATALOG below that shows exactly that idea, and set its parameters for their case - or pick null.
 
 Reply with one JSON object and nothing else:
-{"visual": "<a name from the CATALOG>" or null,
+{"visual": "none" or "<a name from the CATALOG>" or null,
  "params": {"<parameter>": <value>},
  "caption": "<1-2 sentences to the student: what to watch, then what to drag or change>",
  "followups": ["<a next question in the student's voice>", "<another>"],
  "check": {"question": "<a quick question the picture lets them answer>", "answer": "<its short answer>"}}
 
 Rules:
-- Choose a visual only if it directly shows what the question is about. If none does (another topic, or only loosely related), answer {"visual": null, "params": {}, "caption": "", "followups": [...]}: a custom picture is drawn instead. A wrong picture is worse than none.
+- "none" when words suffice (the usual case for "what does this mean", "why", "is it true that"): answer {"visual": "none", "params": {}, "caption": "", "followups": [...]}. A picture the student does not need only costs them time.
+- Choose a visual only if it directly shows what the question is about. If a picture is needed but no visual shows it (another topic, or only loosely related), answer {"visual": null, "params": {}, "caption": "", "followups": [...]}: a custom picture is drawn instead (it takes about a minute). A wrong picture is worse than none.
 - params: only parameters listed for that visual, inside their ranges. Use the student's own numbers (their matrix, radius, data) when the question or the screen gives them; leave out parameters whose default is fine. Matrices are rows first: [[a, b], [c, d]].
 - caption: say only what that visual really shows and lets the student do (read its description). Inline TeX in $...$.
 - followups: short. check: optional, leave it out if nothing fits.`;
@@ -149,7 +152,9 @@ export function parse_visual_plan(text: string): VisualPlan {
   }
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('expected a JSON object');
   let visual = obj.visual;
-  if (visual === undefined || (typeof visual === 'string' && /^\s*(null|none|)\s*$/i.test(visual))) visual = null;
+  // "none": no picture at all; null (or missing, empty): no ready-made one, a custom picture is drawn
+  const none = typeof visual === 'string' && /^\s*(none|no picture|text)\s*$/i.test(visual);
+  if (visual === undefined || none || (typeof visual === 'string' && /^\s*(null|)\s*$/i.test(visual))) visual = null;
   if (visual !== null && typeof visual !== 'string') throw new Error('"visual" must be a name from the catalog, or null');
   if (obj.params != null && (typeof obj.params !== 'object' || Array.isArray(obj.params))) throw new Error('"params" must be an object of parameter values');
   const str = (x: unknown) => (typeof x === 'string' ? x.trim() : '');
@@ -160,6 +165,7 @@ export function parse_visual_plan(text: string): VisualPlan {
   }
   return {
     visual: visual === null ? null : visual.trim(),
+    ...(none ? { none: true } : {}),
     params: obj.params ?? {},
     caption: str(obj.caption),
     followups: Array.isArray(obj.followups) ? obj.followups.map(str).filter(Boolean).slice(0, 3) : [],
@@ -187,7 +193,7 @@ export function check_visual_plan(plan: VisualPlan, lookup: (name: string) => Vi
 
 /** The message that sends problems back to the model (one round-trip). */
 export function plan_repair_message(problems: string[], offered: string[]): string {
-  return `That JSON cannot be used:\n${problems.map((p) => `- ${p}`).join('\n')}\n\nVisual names: ${offered.join(', ')} (or null). Use only the parameters listed for the visual. Return the corrected JSON object only.`;
+  return `That JSON cannot be used:\n${problems.map((p) => `- ${p}`).join('\n')}\n\nVisual names: ${offered.join(', ')} (or "none" for no picture, or null). Use only the parameters listed for the visual. Return the corrected JSON object only.`;
 }
 
 export interface PlanResult {
@@ -298,13 +304,16 @@ export async function plan_visual(question: string, o: PlanOptions): Promise<Pla
 
 /** Where the picture comes from. */
 export type PictureRoute =
+  /** the words answer it: no picture */
+  | { kind: 'none' }
   | { kind: 'visual'; visual: Visual<Params>; params: Params }
   /** no_visual: the model chose none; invalid: nothing usable after the repair; failed: the call failed or timed out. */
   | { kind: 'freeform'; reason: 'no_visual' | 'invalid' | 'failed'; detail?: string };
 
-/** The fallback ladder: a checked visual, else the free-form scene in the background. */
+/** The fallback ladder: no picture when words suffice, a checked visual, else the free-form scene in the background. */
 export function decide(r: PlanResult | null | undefined, error?: unknown): PictureRoute {
   if (!r) return { kind: 'freeform', reason: 'failed', detail: error ? String((error as Error)?.message ?? error) : undefined };
+  if (r.plan?.none) return { kind: 'none' };
   if (r.visual) return { kind: 'visual', visual: r.visual, params: r.params };
   if (r.plan && r.plan.visual === null) return { kind: 'freeform', reason: 'no_visual' };
   return { kind: 'freeform', reason: 'invalid', detail: r.errors.join('; ') };

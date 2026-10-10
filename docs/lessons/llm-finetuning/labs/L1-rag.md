@@ -1,8 +1,8 @@
 # L1 RAG 管线与检索评测 / L1 A RAG pipeline, evaluated retrieval-first
 
-> **状态：** 代码已在 Mac（CPU）上用微型模型做过冒烟测试（几十个问题、几步训练），**尚未在 T4 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
+> **状态：** 代码已在 Mac（CPU）上用微型模型做过冒烟测试（几十个问题、几步训练），**尚未在 GPU 上实跑**。下面的"预期结果"是定性的，来自所引资料，不是本实验的实测数字。
 >
-> **Status:** the code was smoke-tested on a Mac (CPU) with tiny models (a few dozen questions, a few training steps); **not yet run on T4**. The expected results below are qualitative, taken from the cited sources, not measured here.
+> **Status:** the code was smoke-tested on a Mac (CPU) with tiny models (a few dozen questions, a few training steps); **not yet run on a GPU**. The expected results below are qualitative, taken from the cited sources, not measured here.
 
 [中文](#中文) · [English](#english)
 

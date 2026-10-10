@@ -58,6 +58,8 @@ export interface AskContext {
   learner_language?: string;
   /** Subject tags of the lesson, e.g. ['linear algebra', 'pca'] (rank the visual catalog when it is large). */
   topics?: string[];
+  /** A passage the student selected on the page and asks about. */
+  selected?: string;
 }
 export interface ScenePromptExtra {
   /** The tutor's one-line reading of the question (from the fast text answer). */
@@ -73,6 +75,7 @@ export function user_prompt(question: string, ctx: AskContext = {}, extra: Scene
   if (ctx.learner) parts.push(`Learner mastery: ${ctx.learner}`);
   if (ctx.misconceptions?.length) parts.push(`Mistakes shown: ${ctx.misconceptions.join(' | ')}`);
   if (ctx.on_screen) parts.push(`On screen now:\n${ctx.on_screen}`);
+  if (ctx.selected) parts.push(`The student selected this passage and asks about it: "${ctx.selected}"`);
   if (ctx.language) parts.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) parts.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);
   if (extra.diagnosis) parts.push(`What the student most likely needs: ${extra.diagnosis}`);

@@ -2,13 +2,16 @@
 // syllabus entries that the AI turns into lessons on demand (cached locally).
 // Titles and summaries are L10n (plain strings are the same in every language).
 import { INSCRIBED_ENTRY, lesson_from_generated, type GeneratedLesson, type SyllabusEntry } from '@mathnim/ai';
-import { lesson_langs } from '@mathnim/core';
+import { lesson_langs, tr } from '@mathnim/core';
 import type { L10n, Lang, Lesson, Skill } from '@mathnim/core';
 import { lesson as bestAngle } from './lessons/best-angle/lesson';
 import { lesson as pizza } from './lessons/pizza/lesson';
 import { lesson as pizzaGame } from './lessons/pizza-game/lesson';
 import { lesson as eigenPca } from './lessons/eigen-pca/lesson';
 import { lesson as textDemo } from './lessons/text-pages-demo/lesson';
+import { LABS, type LabMeta } from './labs';
+/** The lesson each lab follows (the latest lesson whose interactions it reproduces, per labs.md). */
+const LAB_AFTER: Record<string, string> = { L1: 'ft-a2', L2: 'ft-c2-lora', L3: 'ft-d3', L4: 'ft-e1-rlvr-grpo', L5: 'ft-e3-distill-merge' };
 // the fine-tuning course is data until a lesson is opened (npm run ft-manifest regenerates it)
 import { FT_LOADERS, FT_MANIFEST } from './lessons/ft/manifest.generated';
 
@@ -48,23 +51,74 @@ export interface Unit {
   id: string;
   title: L10n;
   lessons: CourseLesson[];
+  /** Not shown on the course page (its lessons still open by their address), e.g. platform demos. */
+  hidden?: boolean;
 }
 
+/** A hands-on tutorial of a course: its card data (src/labs) and the lesson to finish first. */
+export interface Lab extends LabMeta {
+  /** The lesson after which the lab is suggested (its end card offers the lab). */
+  after?: string;
+}
+/** The recommended setups of a lab in a few words ("推荐 A100 · 也可用 T4"); no single fixed environment is shown. */
+export const lab_setups = (l: LabMeta, lang: Lang): string => (l.configs_summary ? tr(l.configs_summary, lang) : '');
+/** What a learner should know before a course, and where to learn it. */
+export interface Prerequisites {
+  /** One or two lines. */
+  summary: L10n;
+  /** Starter material: a URL per language where it differs. */
+  links: { title: L10n; url: L10n; note?: L10n }[];
+}
 export interface Course {
   id: string;
+  /** Its address: /<slug>, and /<slug>/<lesson-id> for its lessons. */
+  slug: string;
   title: L10n;
-  /** The home page's headline for this course (default: the app's own). */
+  /** One line on the course card and the course page. */
   summary?: L10n;
-  /** Who it is for, told to the AI tutor (default 'secondary school'). */
-  audience?: string;
-  /** Questions offered on the home page's "ask anything" panel. */
+  /** Who it is for (shown on the course page; its English is told to the AI tutor). */
+  audience?: L10n;
+  /** "学完你能": what the learner can do afterwards (about three). */
+  outcomes?: L10n[];
+  /** The course's short name, which its unit titles may start with ("微调 A · …"); a course page leaves it out. */
+  short?: L10n;
+  /** What to know first, with starter links (shown under the audience line). */
+  prerequisites?: Prerequisites;
+  /** The cover: a lesson id (its thumbnail) or an image under public/ ('{lang}' replaced by en / zh; default: the first lesson's thumbnail). */
+  cover?: string;
+  /** A picture beside the course page's header: an image under public/, '{lang}' replaced by en / zh. */
+  feature?: string;
+  /** One colour of the light palette for the course's accents. */
+  accent?: string;
+  /** Shown first to a first-time visitor. */
+  featured?: boolean;
+  /** Questions offered by the course's ask panel. */
   suggestions?: L10n[];
+  /** Hands-on tutorials ("动手实验"). */
+  labs?: Lab[];
   units: Unit[];
 }
 
 export const MATH_COURSE: Course = {
   id: 'math',
+  slug: 'geometry',
   title: { en: 'Geometry through motion', zh: '在运动中学几何' },
+  audience: { en: 'Secondary school, and a first-year linear algebra chapter', zh: '中学生；另有一章大学一年级线性代数' },
+  outcomes: [
+    { en: 'See why a circle’s area is πr², and use it', zh: '看懂圆面积为什么是 πr²，并会用它' },
+    { en: 'Find angles and best viewpoints with circle theorems', zh: '用圆的定理找角度和最佳视角' },
+    { en: 'Read a matrix as a motion, and eigenvectors as the directions it keeps', zh: '把矩阵看成一种运动，把特征向量看成它不改变的方向' },
+  ],
+  accent: '#2563EB',
+  // (for the user to check: the line and the two links)
+  prerequisites: {
+    summary: { en: 'Needs: middle-school algebra and geometry (equations, similar triangles, Pythagoras).', zh: '需要：初中代数与几何基础（解方程、相似三角形、勾股定理）。' },
+    links: [
+      { title: { en: 'Khan Academy: Algebra basics', zh: '可汗学院：代数基础' }, url: 'https://www.khanacademy.org/math/algebra-basics' },
+      { title: { en: 'Khan Academy: Geometry', zh: '可汗学院：几何' }, url: 'https://www.khanacademy.org/math/geometry' },
+    ],
+  },
+  summary: { en: 'Learn math by watching it move - and moving it yourself.', zh: '看着数学动起来，再亲手让它动起来。' },
   units: [
     {
       id: 'area', title: { en: 'Circles and area', zh: '圆与面积' },
@@ -104,7 +158,7 @@ export const MATH_COURSE: Course = {
       ],
     },
     {
-      id: 'platform', title: { en: 'Platform demos', zh: '平台演示' },
+      id: 'platform', title: { en: 'Platform demos', zh: '平台演示' }, hidden: true,
       lessons: [
         {
           id: textDemo.id, title: textDemo.title, lesson: textDemo, minutes: 10, level: { en: 'authors and reviewers', zh: '课程作者与审阅者' },
@@ -118,8 +172,34 @@ export const MATH_COURSE: Course = {
 /** Fine-tuning large language models: parts A-F (units are added as each part is finished). */
 export const FT_COURSE: Course = {
   id: 'llm-finetuning',
+  slug: 'llm-finetuning',
   title: { en: 'Fine-tuning large language models', zh: '大模型微调' },
-  audience: 'university or practitioner; knows neural networks and basic deep learning',
+  audience: { en: 'University students and practitioners who know neural networks', zh: '懂神经网络的大学生与工程师' },
+  outcomes: [
+    { en: 'Choose well between prompting, RAG, SFT, preference training and RL', zh: '在提示词、RAG、SFT、偏好训练和强化学习之间选对方案' },
+    { en: 'Work out memory and cost, and use LoRA and QLoRA well', zh: '算清显存和成本，用好 LoRA 与 QLoRA' },
+    { en: 'Follow the derivations of DPO and GRPO, and how they fail', zh: '看懂 DPO、GRPO 的推导，以及它们会怎样失败' },
+  ],
+  short: { en: 'Fine-tuning', zh: '微调' },
+  prerequisites: {
+    summary: {
+      en: 'Needs: Python; how neural networks are trained (loss, gradient descent, backpropagation); ideally the rough structure of a Transformer.',
+      zh: '需要：会用 Python；懂神经网络的基本训练（损失、梯度下降、反向传播）；最好知道 Transformer 的大致结构。',
+    },
+    links: [
+      { title: { en: 'Dive into Deep Learning', zh: '动手学深度学习' }, url: { en: 'https://d2l.ai/', zh: 'https://zh.d2l.ai/' }, note: { en: 'a free textbook with code, chapters 1-11', zh: '免费教材，带代码，前 11 章' } },
+      { title: '3Blue1Brown: Neural networks', url: 'https://www.3blue1brown.com/topics/neural-networks', note: { en: 'how a network learns, in pictures', zh: '用动画讲清网络怎么学习' } },
+      { title: 'Karpathy: Neural Networks: Zero to Hero', url: 'https://karpathy.ai/zero-to-hero.html', note: { en: 'backpropagation and a small GPT, by hand', zh: '手写反向传播，从零写一个小 GPT' } },
+      { title: 'The Illustrated Transformer', url: 'https://jalammar.github.io/illustrated-transformer/', note: { en: 'the Transformer, step by step', zh: '一步步图解 Transformer' } },
+      { title: { en: 'PyTorch: Learn the basics', zh: 'PyTorch 入门教程' }, url: 'https://pytorch.org/tutorials/beginner/basics/intro.html', note: { en: 'tensors, autograd, a training loop', zh: '张量、自动求导、训练循环' } },
+    ],
+  },
+  feature: '/courses/llm-finetuning/map.{lang}.webp',
+  cover: '/courses/llm-finetuning/map.{lang}.webp',
+  accent: '#7C3AED',
+  featured: true,
+  // a lab is suggested after the lesson whose interactions it reproduces (labs.md, "对应交互")
+  labs: LABS.map((l) => ({ ...l, after: LAB_AFTER[l.id] })),
   summary: { en: 'Prompting, RAG, SFT, LoRA, preference and RL training - what each one does and how to choose.', zh: '提示词、RAG、SFT、LoRA、偏好与强化学习：各自做什么，怎么选。' },
   suggestions: [
     { en: 'When should I fine-tune instead of using RAG?', zh: '什么时候该微调，而不是用 RAG？' },
@@ -137,10 +217,37 @@ export const FT_COURSE: Course = {
 export const COURSES: Course[] = [MATH_COURSE, FT_COURSE];
 /** The first course (kept for older callers). */
 export const COURSE = MATH_COURSE;
+/** The units and lessons a course page shows: hand-made lessons only (AI-generated syllabus entries and hidden units stay out for now). */
+export function visible_units(c: Course): Unit[] {
+  return c.units.filter((u) => !u.hidden).map((u) => ({ ...u, lessons: u.lessons.filter((l) => !!(l.lesson || l.load)) })).filter((u) => u.lessons.length);
+}
+export const visible_lessons = (c: Course): CourseLesson[] => visible_units(c).flatMap((u) => u.lessons);
+/** A unit's title inside its course: without the course's name ("微调 A · 地图与 RAG" → "A · 地图与 RAG"). */
+export function unit_title(c: Course, u: Unit, lang: Lang): string {
+  const title = tr(u.title, lang), short = c.short && tr(c.short, lang);
+  if (!short || !title.startsWith(short + ' ')) return title;
+  return title.slice(short.length).replace(/^\s+(·\s+)?/, '') || title;
+}
+/** A fine-tuning lesson's code from its id ("ft-c2-lora" → "C2", "ft-a2b" → "A2b"); other lessons have none. */
+export function lesson_code(id: string): string {
+  const m = /^ft-([a-f])(\d+[a-z]?)\b/.exec(id);
+  return m ? m[1].toUpperCase() + m[2] : '';
+}
 /** Every lesson of every course. */
 export function all_lessons(): CourseLesson[] {
   return COURSES.flatMap((c) => c.units.flatMap((u) => u.lessons));
 }
+/** A course by id. */
+export const find_course = (id: string): Course | undefined => COURSES.find((c) => c.id === id);
+/** A course by its address (/<slug>). */
+export const course_by_slug = (slug: string): Course | undefined => COURSES.find((c) => c.slug === slug);
+/** The addresses of a course, a lesson and a lab (real paths; the history API routes them). */
+export const course_path = (c: Course): string => `/${c.slug}`;
+export const lesson_path = (id: string): string => {
+  const c = course_of(id);
+  return c ? `/${c.slug}/${encodeURIComponent(id)}` : '/';
+};
+export const lab_path = (c: Course, lab: string): string => `/${c.slug}/labs/${encodeURIComponent(lab)}`;
 /** The course a lesson belongs to. */
 export function course_of(lesson_id: string): Course | undefined {
   return COURSES.find((c) => c.units.some((u) => u.lessons.some((l) => l.id === lesson_id)));

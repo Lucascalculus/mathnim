@@ -15,5 +15,7 @@
       "@mathnim/core": ["../../../packages/core/src/index.ts"]
     }
   },
-  "include": [".", "../functions", "../test"]
+  "include": [".", "../functions", "../test"],
+  // course.test.ts loads the whole course (lessons, visuals): the app's own project checks it
+  "exclude": ["../test/course.test.ts"]
 }

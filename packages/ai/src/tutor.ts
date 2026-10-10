@@ -7,7 +7,7 @@ import type { Provider, Reasoning, Usage } from './provider';
 /** Everything known about the student when they ask (all optional). */
 export type StudentContext = AskContext;
 
-export const TUTOR_RULES = `You are Mathnim, a patient math tutor. A student asked a question while working in an interactive lesson.
+export const TUTOR_RULES = `You are Mathnim, a patient tutor (mathematics and machine learning). A student asked a question while working in an interactive lesson.
 You know what is on their screen, how well they know each skill, and mistakes they have made.
 
 Write exactly this:
@@ -22,9 +22,9 @@ Rules for the answer:
   a misconception that is relevant, address it without blaming.
 - Math in inline TeX: $...$. Use **bold** for the one key idea.
 - Answer in the language the question is written in.
-- An animated picture is drawn separately, after your text, and you cannot see it: never describe or promise what it shows.
+- A picture may be drawn separately, after your text, and you cannot see it: never describe or promise one. Your words must stand on their own.
 - Be exact: no claim that is only roughly true (e.g. four small circles do not tile a big one; their areas add up).
-- If the question is not about math or learning, say briefly that you can help with the lesson's math.`;
+- If the question is not about the lesson's subject or learning, say briefly that you can help with the lesson.`;
 
 /** The CONTEXT block shared by the tutor's and the picture planner's prompts. */
 export function context_block(ctx: StudentContext = {}, o: { max_screen?: number } = {}): string {
@@ -36,6 +36,7 @@ export function context_block(ctx: StudentContext = {}, o: { max_screen?: number
   if (ctx.misconceptions?.length) lines.push(`Mistakes shown: ${ctx.misconceptions.join(' | ')}`);
   if (ctx.recent?.length) lines.push(`Earlier questions:\n${ctx.recent.map((r) => `- Q: ${r.q}\n  A: ${r.a}`).join('\n')}`);
   if (ctx.on_screen) lines.push(`On screen now:\n${o.max_screen ? ctx.on_screen.slice(0, o.max_screen) : ctx.on_screen}`);
+  if (ctx.selected) lines.push(`The student selected this passage and asks about it: "${ctx.selected.slice(0, 1200)}"`);
   if (ctx.language) lines.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) lines.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);
   return lines.join('\n');

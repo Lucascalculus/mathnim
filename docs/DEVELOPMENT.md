@@ -21,6 +21,7 @@ are compiled by whoever consumes them (Vite, Vitest, esbuild).
 | `npm run doctor` | lint all lesson scenes and recorded AI answers |
 | `npm run narration` | record narration for new or changed lines (edge-tts, needs `reference/.venv`) |
 | `npm run -w manim-web dev` | engine playground + regression gallery (`/regress.html`) |
+| `npm run labs -w mathnim` | rebuild the fine-tuning labs (`apps/mathnim/src/labs/`) from `docs/lessons/llm-finetuning/labs/` |
 
 ## Conventions
 
@@ -194,6 +195,12 @@ questions are due; the tools call `load_all_lessons()`.
 **After adding or changing a fine-tuning lesson or unit, run `npm run
 ft-manifest -w mathnim`** (it reads the parts' `unit.ts` files and the lessons
 themselves) and commit the regenerated file.
+
+**After changing a lab tutorial (`docs/lessons/llm-finetuning/labs/*.md`) or
+its code (`labs/code/`), run `npm run labs -w mathnim`**: it regenerates the
+lab modules in `apps/mathnim/src/labs/` (only `types.ts` there is written by
+hand). A lab is offered after one lesson: the `LAB_AFTER` table in
+`apps/mathnim/src/course.ts` (from labs.md, "对应交互").
 
 ## Adding a syllabus entry (AI-generated lesson)
 

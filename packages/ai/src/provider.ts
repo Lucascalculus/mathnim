@@ -41,6 +41,8 @@ export interface Provider {
   complete(req: CompletionRequest, signal?: AbortSignal): Promise<string>;
   /** Like `complete`, calling `on_text` with each new piece as it arrives (providers that can stream). */
   stream?(req: CompletionRequest, on_text: (delta: string) => void, signal?: AbortSignal): Promise<string>;
+  /** A recorded answer in words only, for a question asked offline (no picture). */
+  text_answer?(question: string): { text: string; followups: string[] } | undefined;
 }
 
 /** Read a server-sent-events body, calling `on_data` with each `data:` payload. */
@@ -183,7 +185,10 @@ export class OpenAICompatibleProvider implements Provider {
 /** Offline provider: answers recorded for known questions (demo without a key, tests). */
 export class MockProvider implements Provider {
   name = 'mock';
-  constructor(private answers: Record<string, string>, private fallback?: string) {}
+  constructor(private answers: Record<string, string>, private fallback?: string, private texts: Record<string, { text: string; followups: string[] }> = {}) {}
+  text_answer(question: string): { text: string; followups: string[] } | undefined {
+    return this.texts[MockProvider.key(question)];
+  }
   static key(q: string): string {
     // (Chinese characters are kept, so Chinese questions have keys of their own)
     return q.toLowerCase().replace(/[^a-z0-9θ√\u3400-\u9fff]+/g, ' ').trim();

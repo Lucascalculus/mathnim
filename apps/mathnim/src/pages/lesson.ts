@@ -1,22 +1,27 @@
 // One lesson: the player, questions about it, or generating it from the syllabus.
-import { AskPanel, RECORDED, generate_lesson, lesson_from_generated, recorded_question, worker_validator, type RecordedAnswer } from '@mathnim/ai';
+import { generate_lesson, lesson_from_generated, worker_validator } from '@mathnim/ai';
 import { tr } from '@mathnim/core';
-import { LessonView, esc, math_html, t, ui_lang } from '@mathnim/present';
+import { LessonView, esc, fit_display_math, math_html, t, ui_lang } from '@mathnim/present';
 import { apply_palette, set_theme } from '@mathnim/visuals';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { cache_generation, ensure_lesson, find_lesson, playable, type CourseLesson } from '../course';
+import { cache_generation, course_of, course_path, ensure_lesson, find_lesson, lab_path, lab_setups, lesson_code, lesson_path, playable, visible_lessons, type CourseLesson } from '../course';
+import { load_lab } from '../labs';
+import { render_lab } from './lab';
+import { mount_outline } from '../outline';
+import { navigate, type Route } from '../router';
 import { has_model, load_settings, provider } from '../settings';
+import { mount_side_chat } from '../side_chat';
 import { learner, log, remember_last } from '../store';
-import { lesson_context } from '../student';
 import { is_relocalizing } from '../shell';
 import { text_grader, visual_resolver } from '../lesson_services';
 
-export async function lesson_page(root: HTMLElement, [id]: string[]): Promise<() => void> {
-  const cl = find_lesson(id);
+export async function lesson_page(root: HTMLElement, route: Route): Promise<() => void> {
+  const cl = route.page === 'lesson' ? find_lesson(route.lesson) : undefined;
   if (!cl) {
-    root.innerHTML = `<div class="card">${esc(t('not_found'))} <a href="#/">${esc(t('back'))}</a></div>`;
+    root.innerHTML = `<div class="card">${esc(t('not_found'))} <a href="/">${esc(t('back'))}</a></div>`;
     return () => {};
   }
+  const here = lesson_path(cl.id);
   // a lesson loaded on demand (the fine-tuning course): its code, visuals and data arrive now
   if (cl.load && !cl.lesson) {
     root.innerHTML = `<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lesson'))}</div>`;
@@ -24,56 +29,67 @@ export async function lesson_page(root: HTMLElement, [id]: string[]): Promise<()
       await ensure_lesson(cl);
     } catch (e) {
       console.warn('lesson chunk failed to load', e);
-      root.innerHTML = `<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="#/lesson/${encodeURIComponent(cl.id)}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;
+      root.innerHTML = `<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="${here}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;
       return () => {};
     }
-    if (!location.hash.startsWith(`#/lesson/${cl.id}`)) return () => {}; // the learner went elsewhere meanwhile
+    if (location.pathname !== here) return () => {}; // the learner went elsewhere meanwhile
     root.innerHTML = '';
   }
   const lesson = playable(cl);
   if (!lesson) return generate_view(root, cl);
   remember_last(cl.id);
   const host = document.createElement('div');
-  const asks = document.createElement('section');
-  asks.className = 'card';
-  asks.style.marginTop = '20px';
-  asks.innerHTML = `<h2>${esc(t('lesson_questions'))}</h2><div class="muted" style="font-size:13px;margin-bottom:10px">${esc(t('lesson_questions_sub'))}</div>`;
-  const askRoot = document.createElement('div');
-  asks.append(askRoot);
-  root.append(host, asks);
-  const params = new URLSearchParams(location.hash.split('?')[1] ?? '');
+  host.className = 'lesson-main';
+  const layout = document.createElement('div');
+  layout.append(host);
+  root.append(layout);
+  const params = new URLSearchParams(location.search);
   const mode = params.get('mode') === 'game' || params.get('mode') === 'essay' ? (params.get('mode') as 'game' | 'essay') : undefined;
   // a lesson drawn with the named palette may ask for the dark (3b1b-like) theme
   const dark_lesson = lesson.theme === 'dark';
   set_theme(dark_lesson ? 'dark' : 'light');
+  // the next lesson of the same course (in the order of its page) is the end card's main action
+  const course = course_of(cl.id);
+  const in_course = course ? visible_lessons(course) : [];
+  // where am I: the outline button and "<course> /" above the lesson, back to the course page
+  const top = document.createElement('div');
+  top.className = 'lesson-top';
+  if (course) top.innerHTML = `<nav class="crumb"><a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a> /</nav>`;
+  root.prepend(top);
+  const at = in_course.findIndex((l) => l.id === cl.id);
+  const after = at >= 0 ? in_course[at + 1] : undefined;
+  // the lab that reproduces this lesson on a real model, offered on the end card
+  const lab = course?.labs?.find((l) => l.after === cl.id);
+  const lang = ui_lang();
+  let chat: ReturnType<typeof mount_side_chat> | null = null;
   const view = new LessonView(host, lesson, {
     learner, log, dev: params.has('dev'), dark: load_settings().dark || dark_lesson, on_player: dark_lesson ? apply_palette : apply_theme, mode,
     lang: ui_lang(), visuals: visual_resolver, grade_text: text_grader(),
+    next: after ? { title: after.title, href: lesson_path(after.id) } : undefined,
+    remember: true,
+    back: course ? course_path(course) : '/',
+    navigate,
+    lab: course && lab ? { title: t('lab_try', { id: lab.id, title: tr(lab.title, lang) }), note: [lab_setups(lab, lang), t('lab_card_note')].filter(Boolean).join(' · '), href: lab_path(course, lab.slug) } : undefined,
+    // "这里没懂": the chat beside the lesson (never leaves the page)
+    help: (ask) => chat?.open(ask),
   });
-  const recorded: Record<string, RecordedAnswer[]> = {
-    'best-angle': RECORDED.slice(0, 4),
-    pizza: RECORDED.slice(4, 6),
-    'inscribed-angles': [RECORDED[1]],
-  };
-  const lang = ui_lang();
-  // suggested questions in the learner's language: recorded ones, else the syllabus objectives, else the lesson's own misconceptions
-  const lower = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
-  const suggestions = recorded[cl.id]?.map((r) => recorded_question(r, lang))
-    ?? (cl.entry ? cl.entry.objectives.map((o) => t('why_true', { o: lower(o).replace(/\.$/, '') }))
-      : (lesson.misconceptions ?? []).slice(0, 3).map((m) => t('is_it_true', { d: lower(tr(m.description, lang)).replace(/[.。]$/, '') })));
-  new AskPanel(askRoot, {
-    provider, validate: worker_validator(), log, lesson: lesson.id, suggestions,
-    context: () => lesson_context(cl, view),
-  });
+  chat = mount_side_chat(cl, lesson, view);
+  // the outline of the course with this lesson's steps (docked on wide screens)
+  const outline = course ? mount_outline(layout, host, { course, current: cl, lesson, view }) : null;
+  if (outline) top.prepend(outline.toggle);
   (window as any).mathnim_view = view; // for debugging in the console
-  await view.start(params.get('step') ?? undefined);
+  // a link to a step opens it; otherwise the lesson resumes where the learner left it
+  if (params.get('step')) await view.start(params.get('step')!);
+  else await view.resume();
   return () => {
     // switching language re-renders this page: come back to the same step
-    const at = view.runtime.step?.id;
-    if (is_relocalizing() && at) {
-      params.set('step', at);
-      history.replaceState(null, '', `#/lesson/${encodeURIComponent(cl.id)}?${params}`);
+    const step = view.runtime.step?.id;
+    if (is_relocalizing() && step) {
+      params.set('step', step);
+      history.replaceState(null, '', `${here}?${params}`);
     }
+    outline?.destroy();
+    chat?.destroy();
     view.destroy();
   };
 }
@@ -112,11 +128,47 @@ function generate_view(root: HTMLElement, cl: CourseLesson): () => void {
       cache_generation(g);
       learner.add_skills(g.plan.skills);
       lesson_from_generated(g);
-      location.hash = `#/lesson/${e.id}?new=${Date.now()}`;
+      navigate(`${lesson_path(e.id)}?new=${Date.now()}`);
     } catch (err) {
       put(t('gen_failed', { e: (err as Error).message }));
       (ev.target as HTMLButtonElement).disabled = false;
     }
   };
   return () => ctrl.abort();
+}
+
+/** A lab tutorial (/<course>/labs/<lab>): the breadcrumb, then the tutorial and its code, loaded on demand. */
+export async function lab_page(root: HTMLElement, route: Route): Promise<() => void> {
+  if (route.page !== 'lab') return () => {};
+  const c = route.course;
+  const meta = c.labs?.find((l) => l.slug === route.lab);
+  const crumb = `<nav class="crumb"><a href="${course_path(c)}">${math_html(tr(c.title, ui_lang()))}</a> / <a href="${course_path(c)}#labs">${esc(t('labs'))}</a> /</nav>`;
+  if (!meta) {
+    root.innerHTML = `${crumb}<div class="card">${esc(t('not_found'))} <a href="${course_path(c)}">${esc(t('back'))}</a></div>`;
+    return () => {};
+  }
+  const here = location.pathname;
+  root.innerHTML = `${crumb}<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lab'))}</div>`;
+  let mod;
+  try {
+    mod = await load_lab(meta.slug);
+  } catch (e) {
+    console.warn('lab chunk failed to load', e);
+    root.innerHTML = `${crumb}<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="${here}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;
+    return () => {};
+  }
+  if (location.pathname !== here) return () => {}; // the learner went elsewhere meanwhile
+  const after = meta.after ? find_lesson(meta.after) : undefined;
+  // "建议先学完这节课：C2 · LoRA：…", the lesson as a link
+  const [pre, post] = t('lab_after_page', { l: '\u0000' }).split('\u0000');
+  const link = after ? `<a href="${lesson_path(after.id)}">${esc(lesson_code(after.id))} · ${math_html(tr(after.title, ui_lang()))}</a>` : '';
+  root.innerHTML = `${crumb}${after ? `<p class="muted lab-after">${esc(pre)}${link}${esc(post ?? '')}</p>` : ''}`;
+  const body = document.createElement('div');
+  root.append(body);
+  const stop_lab = render_lab(body, mod, ui_lang());
+  const stop_fit = fit_display_math(body); // wide formulas shrink or scroll, never clipped
+  return () => {
+    stop_fit();
+    stop_lab();
+  };
 }

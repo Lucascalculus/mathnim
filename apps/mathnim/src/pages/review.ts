@@ -29,7 +29,7 @@ export async function review(root: HTMLElement): Promise<() => void> {
   if (to_load.length) {
     root.innerHTML = `<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lesson'))}</div>`;
     await Promise.allSettled(to_load.map(ensure_lesson));
-    if (!location.hash.startsWith('#/review')) return () => {};
+    if (location.pathname !== '/review') return () => {};
     root.innerHTML = '';
   }
   const items = practice_items();
@@ -51,7 +51,7 @@ export async function review(root: HTMLElement): Promise<() => void> {
     view?.destroy();
     if (k >= queue.length) {
       head.innerHTML = '';
-      host.innerHTML = `<div class="card" style="max-width:620px;margin:0 auto"><h2>${esc(t('review_done'))}</h2><p class="muted">${esc(t('review_done_sub', { n: queue.length, s: plural_s(queue.length) }))}</p><a class="mn-btn primary" href="#/" style="text-decoration:none">${esc(t('back_to_lessons'))}</a></div>`;
+      host.innerHTML = `<div class="card" style="max-width:620px;margin:0 auto"><h2>${esc(t('review_done'))}</h2><p class="muted">${esc(t('review_done_sub', { n: queue.length, s: plural_s(queue.length) }))}</p><a class="mn-btn primary" href="/" style="text-decoration:none">${esc(t('back_to_lessons'))}</a></div>`;
       return;
     }
     const { lesson, step } = queue[k++];

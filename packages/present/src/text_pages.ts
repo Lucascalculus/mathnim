@@ -125,7 +125,8 @@ export class BlockRenderer {
         return this.code_block(b);
       case 'figure': {
         this.figures++;
-        const src = tr(b.src, this.lang).replace(/^\//, '');
+        // absolute: lessons live at nested paths (/<course>/<lesson>)
+        const src = '/' + tr(b.src, this.lang).replace(/^\//, '');
         const cap = [b.caption ? this.prose(b.caption) : '', b.credit ? `<span class="mn-credit">${esc(t('source_credit', { c: b.credit }, this.lang))}</span>` : ''].filter(Boolean).join(' ');
         return `<figure class="mn-fig"><img src="${esc(src)}" alt="${esc(tr(b.alt, this.lang))}" loading="lazy" decoding="async">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
       }
@@ -680,11 +681,59 @@ export function code_page(step: CodeStep, chapter: L10n | undefined, ctx: PageCo
   return { el, aside, complete: () => true, dispose: () => io?.disconnect() };
 }
 
-/** The page for a text step. */
+/** The page for a text step (its displayed formulas fitted to the column, see fit_display_math). */
 export function text_page(step: TextStep, chapter: L10n | undefined, ctx: PageContext): PageController {
-  if (step.kind === 'read') return read_page(step, chapter, ctx);
-  if (step.kind === 'derive') return derive_page(step, chapter, ctx);
-  return code_page(step, chapter, ctx);
+  const page = step.kind === 'read' ? read_page(step, chapter, ctx) : step.kind === 'derive' ? derive_page(step, chapter, ctx) : code_page(step, chapter, ctx);
+  const stop = fit_display_math(page.el);
+  const dispose = page.dispose;
+  page.dispose = () => {
+    stop();
+    dispose();
+  };
+  return page;
+}
+
+/** Below this a formula is not shrunk further: it scrolls sideways instead (with a fade at the cut edge). */
+const MIN_MATH_SCALE = 0.72;
+/**
+ * Displayed formulas never get clipped: one wider than its column is scaled
+ * down to fit (to at most MIN_MATH_SCALE), and beyond that it scrolls
+ * sideways with a fade at the edge where it continues. Refitted whenever the
+ * column changes width (a chat or outline opening beside the page) or a hidden
+ * line appears. Returns the function that stops watching.
+ */
+export function fit_display_math(root: HTMLElement): () => void {
+  let frame = 0;
+  const fit = () => {
+    frame = 0;
+    for (const box of root.querySelectorAll<HTMLElement>('.mn-dmath, .mn-dtex')) {
+      const target = box.classList.contains('mn-dmath') ? box.querySelector<HTMLElement>('.mn-dmath-tex') : box.querySelector<HTMLElement>(':scope > .mn-math');
+      if (!target || !box.clientWidth) continue;
+      target.style.zoom = '';
+      const over = box.scrollWidth / box.clientWidth;
+      if (over > 1.01) target.style.zoom = String(Math.max(MIN_MATH_SCALE, Math.floor((1 / over) * 1000) / 1000));
+      const scrolls = box.scrollWidth > box.clientWidth + 1;
+      box.classList.toggle('mn-scrolls', scrolls);
+      if (scrolls && !box.dataset.fitScroll) {
+        // the fade marks the side where the formula goes on; it goes once the end is in view
+        box.dataset.fitScroll = '1';
+        box.addEventListener('scroll', () => box.classList.toggle('mn-at-end', box.scrollLeft + box.clientWidth >= box.scrollWidth - 2), { passive: true });
+      }
+    }
+  };
+  const later = () => {
+    if (!frame) frame = requestAnimationFrame(fit);
+  };
+  if (typeof ResizeObserver === 'undefined') {
+    later();
+    return () => cancelAnimationFrame(frame);
+  }
+  const ro = new ResizeObserver(later);
+  ro.observe(root);
+  return () => {
+    ro.disconnect();
+    cancelAnimationFrame(frame);
+  };
 }
 /** Forget derivation progress (tests, "Start again"). */
 export function reset_derivations(lesson?: string): void {

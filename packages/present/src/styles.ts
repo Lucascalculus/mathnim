@@ -91,7 +91,7 @@ export const CSS = `
 .mn-dev .error{color:var(--mn-bad)}.mn-dev .warning{color:var(--mn-warn)}
 .mn-math svg{vertical-align:middle}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-export{display:none}.mn-bar{gap:8px}}
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -159,7 +159,10 @@ export const CSS = `
 .mn-page :not(pre)>code{font:.86em/1.4 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;background:var(--mn-code-bg);border:1px solid var(--mn-border);border-radius:5px;padding:.06em .35em;word-break:break-word}
 .mn-list{padding-left:1.4em;margin:0 0 1em}.mn-list li{margin:.3em 0}.mn-list li::marker{color:var(--mn-muted)}
 .mn-dmath{display:flex;align-items:center;gap:12px;margin:1.1em 0;overflow-x:auto;overflow-y:hidden;padding:4px 0}
-.mn-dmath-tex{flex:1;min-width:max-content}.mn-eqlabel{color:var(--mn-muted);font-size:14px;flex:none}
+.mn-dmath-tex{flex:1;min-width:max-content}
+/* a formula wider than the column even when scaled down scrolls sideways, faded where it goes on */
+.mn-dmath,.mn-dtex{scrollbar-width:thin}
+.mn-scrolls:not(.mn-at-end){-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}.mn-eqlabel{color:var(--mn-muted);font-size:14px;flex:none}
 /* code blocks: one panel per tab, a copy button, highlighted tokens */
 .mn-codeblock{margin:1.3em 0;border:1px solid var(--mn-border);border-radius:12px;background:var(--mn-code-bg);overflow:hidden}
 .mn-code-head{display:flex;align-items:center;gap:8px;min-height:38px;padding:4px 6px 4px 12px;border-bottom:1px solid var(--mn-border);font-size:12px;color:var(--mn-muted);line-height:1.3}
@@ -294,6 +297,36 @@ export const CSS = `
 .mn-game .mn-page{width:min(100%,880px);margin:0 auto}
 @media (max-width:640px){.mn-page{font-size:16.5px;border-radius:12px}.mn-dline{grid-template-columns:22px minmax(0,1fr);gap:8px;padding:6px 4px}.mn-dnum{width:22px;height:22px;font-size:11px}
  .mn-dcontrols{padding-left:0}.mn-drow{flex-direction:column;align-items:stretch;gap:4px}.mn-drow .mn-dtex{flex:none}.mn-why-btn{align-self:flex-start;margin-left:0}.mn-code{font-size:12.5px}.mn-callout{font-size:15.5px}.mn-dtex{font-size:16px}}
+/* ---- orientation and the overflow menu */
+.mn-where{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mn-muted);margin-top:2px}
+.mn-where>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mn-where-bar{flex:1;min-width:60px;max-width:280px;height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
+.mn-where-bar i{display:block;height:100%;background:var(--mn-accent);transition:width .4s}
+/* step dots: done = filled, now = accent with a ring, upcoming = outline only */
+.mn-app:not(.mn-game) .mn-dot{background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--mn-muted) 45%,transparent);color:var(--mn-muted)}
+.mn-app:not(.mn-game) .mn-dot.done{background:color-mix(in srgb,var(--mn-accent) 22%,var(--mn-panel));box-shadow:none;color:var(--mn-accent)}
+.mn-app:not(.mn-game) .mn-dot.mn-explore:not(.now):not(.done),.mn-app:not(.mn-game) .mn-dot.mn-sketch:not(.now):not(.done){box-shadow:inset 0 0 0 1.5px var(--mn-accent);color:var(--mn-accent)}
+.mn-app:not(.mn-game) .mn-dot.now{background:var(--mn-accent);color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--mn-accent) 25%,transparent)}
+.mn-more{position:relative;flex:none}
+.mn-more>summary{list-style:none;font-size:18px;line-height:1;letter-spacing:1px}
+.mn-more>summary::-webkit-details-marker{display:none}
+.mn-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
+.mn-more-menu .mn-btn{border:0;width:100%;text-align:left}
+.mn-resumed{font-size:13px;color:var(--mn-muted)}
+.mn-resumed .mn-linkbtn{font-size:13px}
+/* "explain this": a quiet button under the step's actions; on phones it floats in the corner */
+.mn-helpbtn{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13.5px;color:var(--mn-muted);background:transparent;border:1px dashed var(--mn-border);border-radius:999px;padding:5px 12px 5px 6px;cursor:pointer}
+.mn-helpbtn:hover,.mn-helpbtn:focus-visible{color:var(--mn-accent);border-color:var(--mn-accent);border-style:solid;outline:none}
+.mn-helpicon{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--mn-accent) 12%,transparent);color:var(--mn-accent);font-weight:700;font-size:12px}
+@media (max-width:900px){.mn-helpbtn{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:20;background:var(--mn-panel);border-style:solid;box-shadow:0 4px 18px rgba(0,0,0,.14);padding:8px 14px 8px 8px;color:var(--mn-fg)}}
+.mn-askhere{position:fixed;z-index:40;font:600 13px/1 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;padding:8px 12px;border-radius:999px;border:0;background:#15171a;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.22);cursor:pointer;white-space:nowrap}
+.mn-askhere[hidden]{display:none}
+.mn-endextra:empty{display:none}
+.mn-labcard{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--mn-border);border-left:3px solid var(--mn-purple);border-radius:12px;text-decoration:none;color:inherit;background:var(--mn-bg)}
+.mn-labcard:hover{border-color:var(--mn-purple)}
+.mn-labcard-kicker{font-size:12px;color:var(--mn-purple);font-weight:600}
+.mn-labcard-title{font-weight:600;font-size:15px}
+.mn-labcard-note{font-size:13px;color:var(--mn-muted)}
 @media (prefers-reduced-motion:reduce){.mn-app *{transition:none!important;animation:none!important}}
 `;
 let injected = false;

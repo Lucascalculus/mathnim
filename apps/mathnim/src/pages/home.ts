@@ -1,89 +1,155 @@
-// Home: continue, reviews due, ask anything, and the course map.
-import { AskPanel, RECORDED, recorded_question, worker_validator } from '@mathnim/ai';
-import { MASTERY, tr, type L10n } from '@mathnim/core';
+// Home (/): get back to learning and pick a course. Course pages (/<slug>):
+// what the course is, how it is laid out, and where the learner is in it.
+// (docs/SITE-STRUCTURE.md)
+import { tr, type L10n, type Lang } from '@mathnim/core';
 import { esc, math_html, t, ui_lang } from '@mathnim/present';
 import { ScenePlayer } from 'manim-web/ext/player';
-import { COURSES, all_lessons, cached_generation, lesson_info, playable, type CourseLesson } from '../course';
+import { COURSES, all_lessons, course_of, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { provider } from '../settings';
-import { home_context } from '../student';
-import { choose_course, current_course, last_lesson, learner, log } from '../store';
+import type { Route } from '../router';
+import { last_in_course, last_lesson, learner, lesson_status } from '../store';
 
-function skills_of(cl: CourseLesson) {
-  return lesson_info(cl)?.skills ?? cached_generation(cl.id)?.plan.skills ?? [];
+/** About how long: "45 min", "1.5 h". */
+const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
+// only what the course page shows: no hidden units, no AI-generated syllabus entries (for now)
+const lessons_of = visible_lessons;
+const done_in = (c: Course) => lessons_of(c).filter((l) => lesson_status(l.id) === 'done').length;
+/** Has the learner begun this course? */
+const started = (c: Course) => !!last_in_course(c) || lessons_of(c).some((l) => lesson_status(l.id) !== 'new');
+/** The lesson to continue with: the one opened last in the course, else the first not finished. */
+function current_lesson(c: Course): CourseLesson {
+  const all = lessons_of(c);
+  return all.find((l) => l.id === last_in_course(c)) ?? all.find((l) => lesson_status(l.id) !== 'done') ?? all[0];
 }
-function ring(cl: CourseLesson): string {
-  const sk = skills_of(cl);
-  if (!sk.length) return '<div class="ring"><i></i><i></i><i></i></div>';
-  return `<div class="ring">${sk.map((s) => {
-    const p = learner.mastery(s.id);
-    return `<i class="${p >= MASTERY ? 'm' : learner.state.skills[s.id]?.attempts ? 'p' : ''}" title="${esc(tr(s.name, ui_lang()))}: ${Math.round(p * 100)}%"></i>`;
-  }).join('')}</div>`;
+const thumb = (lesson_id: string, cls = 'thumb') => `<canvas class="${cls}" width="640" height="360" data-lesson="${esc(lesson_id)}" aria-hidden="true"></canvas>`;
+/** A course's cover: an image under public/, or a lesson's thumbnail. */
+function cover(c: Course): string {
+  if (c.cover?.startsWith('/')) return `<img class="thumb" src="${esc(c.cover.replace('{lang}', ui_lang()))}" alt="" loading="lazy">`;
+  return thumb((lessons_of(c).find((l) => l.id === c.cover) ?? lessons_of(c)[0]).id);
+}
+const progress_bar = (k: number, n: number) => `<div class="course-progress" aria-hidden="true"><i style="width:${Math.round((k / Math.max(1, n)) * 100)}%"></i></div>`;
+const accent = (c: Course) => (c.accent ? ` style="--course-accent:${esc(c.accent)}"` : '');
+
+function course_card(c: Course): string {
+  const lang = ui_lang();
+  const all = lessons_of(c), done = done_in(c);
+  return `
+    <a class="card course-card" href="${course_path(c)}"${accent(c)}>
+      ${cover(c)}
+      <div class="course-name">${math_html(tr(c.title, lang))}</div>
+      ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
+      <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
+      ${done ? progress_bar(done, all.length) : ''}
+    </a>`;
 }
 
-/** The card's tag: what kind of lesson this is. */
-function tag(l: CourseLesson): string {
-  // from the lesson, or for one not loaded yet from its data (the course map never loads lessons)
-  const info = lesson_info(l);
-  if (!info) return t(cached_generation(l.id) ? 'tag_ai' : 'tag_generate');
-  if (info.mode === 'game') return t('tag_game');
-  if (!info.has_scene) return t('tag_reading');
-  return t(tr(l.level, 'en').includes('university') ? 'tag_essay' : 'tag_guided');
-}
-
+/** Home: continue learning (courses already begun, reviews due), then every course. */
 export function home(root: HTMLElement): void {
   const lang = ui_lang();
-  const course = current_course();
-  const all = course.units.flatMap((u) => u.lessons);
-  // "Continue" only for a lesson of this course; a course not started yet says "Start" on its first lesson
-  const resumed = all.find((l) => l.id === last_lesson());
-  const last = resumed ?? all[0];
-  const skills = Object.keys(learner.state.skills);
-  const mastered = skills.filter((s) => learner.mastered(s)).length;
+  const begun = COURSES.filter(started);
+  const recent = course_of(last_lesson() ?? '');
+  const first = recent && begun.includes(recent) ? recent : begun[0];
   const due = learner.due().length;
-  root.innerHTML = `
-    ${COURSES.length > 1 ? `<div class="courses" role="tablist" aria-label="${esc(t('courses'))}">${COURSES.map((c) => `
-      <button class="course-pill${c === course ? ' on' : ''}" role="tab" aria-selected="${c === course}" data-course="${c.id}">${esc(tr(c.title, lang))}</button>`).join('')}
-    </div>` : ''}
-    <div class="hero">
-      <div class="card">
-        <div class="muted" style="font-size:13px">${math_html(tr(course.title, lang))}</div>
-        <h2 style="font-size:26px;letter-spacing:-.02em;margin:6px 0 10px">${esc(course.summary ? tr(course.summary, lang) : t('hero'))}</h2>
-        <div class="row" style="margin:14px 0">
-          <a class="mn-btn primary" href="#/lesson/${last.id}" style="text-decoration:none">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(last.title, lang) }))}</a>
-          <a class="mn-btn" href="#/review" style="text-decoration:none">${esc(due ? t('review_due', { n: due }) : t('practice'))}</a>
+  let html = '';
+  if (!begun.length) {
+    // first visit: one line, then the courses with the featured one first
+    html += `<p class="home-intro">${esc(t('home_intro'))}</p>`;
+  } else {
+    const cl = current_lesson(first);
+    const all = lessons_of(first);
+    const k = all.indexOf(cl) + 1;
+    html += `<h2 class="section-title">${esc(t('continue_learning'))}</h2>
+      <a class="card resume-card" href="${lesson_path(cl.id)}"${accent(first)}>
+        ${thumb(cl.id, 'thumb resume-thumb')}
+        <div class="resume-text">
+          <div class="muted resume-course">${math_html(tr(first.title, lang))} · ${esc(t('lesson_k_of_n', { k, n: all.length }))}</div>
+          <div class="resume-title">${math_html(tr(cl.title, lang))}</div>
+          ${progress_bar(done_in(first), all.length)}
+          <span class="mn-btn primary">${esc(t('continue'))}</span>
         </div>
-        <div class="row muted" style="gap:22px;font-size:13px">
-          <span><span class="stat" style="font-size:20px;color:var(--mn-fg)">${mastered}</span>${esc(t('skills_mastered', { n: skills.length }))}</span>
-          <span><span class="stat" style="font-size:20px;color:var(--mn-fg)">${log.summary().answered}</span>${esc(t('answers_session'))}</span>
-        </div>
-      </div>
-      <div class="card"><h2>${esc(t('ask_anything'))}</h2><div class="muted" style="font-size:13px;margin-bottom:10px">${esc(t('ask_sub'))}</div><div id="ask"></div></div>
-    </div>
-    <div class="units">${course.units.map((u) => `
-      <section class="unit"><h3>${math_html(tr(u.title, lang))}</h3><div class="lessons">${u.lessons.map((l) => `
-        <a class="card lesson-card" href="#/lesson/${l.id}">
-          <canvas class="thumb" width="640" height="360" data-lesson="${l.id}" aria-hidden="true"></canvas>
-          <div class="meta"><span class="row" style="gap:6px"><span class="tag ${lesson_info(l) ? '' : 'ai'}">${esc(tag(l))}</span>${(lesson_info(l)?.langs.length ?? 0) > 1 ? `<span class="tag" title="English · 中文">EN · 中</span>` : ''}</span><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
-          <div style="font-weight:600;font-size:16px">${math_html(tr(l.title, lang))}</div>
-          <div class="muted" style="font-size:13px">${math_html(tr(l.summary, lang))}</div>
-          ${ring(l)}
-        </a>`).join('')}</div></section>`).join('')}
-    </div>`;
-  for (const b of root.querySelectorAll<HTMLButtonElement>('.course-pill')) {
-    b.addEventListener('click', () => {
-      choose_course(b.dataset.course!);
-      home(root);
-    });
+      </a>
+      ${begun.filter((c) => c !== first).map((c) => {
+        const l = current_lesson(c);
+        return `<a class="card resume-row" href="${lesson_path(l.id)}"><span class="resume-row-text"><b>${math_html(tr(c.title, lang))}</b> · ${math_html(tr(l.title, lang))}</span><span class="mn-btn">${esc(t('continue'))}</span></a>`;
+      }).join('')}
+      ${due ? `<a class="card resume-row" href="/review"><span class="resume-row-text">${esc(t('reviews_due', { n: due }))}</span><span class="mn-btn">${esc(t('begin'))}</span></a>` : ''}`;
   }
+  const order = [...COURSES].sort((a, b) => (begun.length ? 0 : Number(!!b.featured) - Number(!!a.featured)));
+  html += `<h2 class="section-title">${esc(t('all_courses'))}</h2><div class="catalog">${order.map(course_card).join('')}</div>`;
+  root.innerHTML = html;
   draw_thumbnails(root);
-  new AskPanel(root.querySelector<HTMLElement>('#ask')!, {
-    provider, validate: worker_validator(), log,
-    suggestions: course.suggestions
-      ? course.suggestions.map((q) => tr(q, lang))
-      : [RECORDED[5], RECORDED[4], RECORDED[1], RECORDED[3]].map((r) => recorded_question(r, ui_lang())),
-    context: home_context,
-  });
+}
+
+/** What a lesson is made of, in words ("动画 · 交互 · 推导 · 代码"); reading and questions go without saying. */
+const KIND_WORD: [string, string][] = [['scene', 'kw_scene'], ['explore', 'kw_explore'], ['derive', 'kw_derive'], ['code', 'kw_code']];
+function kinds_html(l: CourseLesson): string {
+  const kinds = lesson_info(l)?.kinds ?? [];
+  return `<span class="kinds">${esc(KIND_WORD.filter(([k]) => kinds.includes(k)).map(([, key]) => t(key)).join(' · '))}</span>`;
+}
+const STATUS: Record<string, [string, string]> = { done: ['✓', 'status_done'], started: ['●', 'status_started'], new: ['○', 'status_new'] };
+
+/** A course page: header (start/continue, progress, a feature picture), what you will be able to do, its units. */
+export function course_page(root: HTMLElement, route: Route): void {
+  if (route.page !== 'course') return;
+  const c = route.course;
+  const lang = ui_lang();
+  const all = lessons_of(c), done = done_in(c);
+  const go = current_lesson(c);
+  const resumed = started(c);
+  const langs = all.some((l) => (lesson_info(l)?.langs.length ?? 0) > 1) ? '中 / EN' : 'EN';
+  const feature = c.feature?.replace('{lang}', lang);
+  root.innerHTML = `
+    <a class="backlink" href="/">‹ ${esc(t('all_courses'))}</a>
+    <header class="card course-hero${feature ? ' with-feature' : ''}"${accent(c)}>
+      <div class="hero-text">
+        <h1>${math_html(tr(c.title, lang))}</h1>
+        ${c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
+        ${c.audience ? `<p class="muted hero-aud">${esc(t('audience', { a: tr(c.audience, lang) }))}</p>` : ''}
+        ${c.prerequisites ? prerequisites(c, lang) : ''}
+        <p class="muted hero-size">${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))} · ${langs}</p>
+        <div class="row hero-go">
+          <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
+          <span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>
+        </div>
+        ${progress_bar(done, all.length)}
+      </div>
+      ${feature ? `<figure class="hero-feature"><img src="${esc(feature)}" alt="${esc(t('feature_alt'))}" onerror="this.closest('figure').remove()"></figure>` : ''}
+    </header>
+    ${c.outcomes?.length ? `<section class="card outcomes"><h2 class="section-title">${esc(t('outcomes'))}</h2><ul>${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul></section>` : ''}
+    <div class="units">${visible_units(c).map((u) => `
+      <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => {
+        const st = lesson_status(l.id);
+        return `
+        <a class="card lesson-card status-${st}" href="${lesson_path(l.id)}">
+          ${thumb(l.id)}
+          <div class="lesson-title"><span class="status" role="img" aria-label="${esc(t(STATUS[st][1]))}">${STATUS[st][0]}</span>${math_html(tr(l.title, lang))}</div>
+          <div class="meta">${kinds_html(l)}<span>${esc(t('minutes', { n: l.minutes }))}</span></div>
+        </a>`;
+      }).join('')}</div></section>`).join('')}
+      ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
+    </div>`;
+  draw_thumbnails(root);
+}
+
+/** What to know first: a line or two, and starter material behind a disclosure. */
+function prerequisites(c: Course, lang: Lang): string {
+  const p = c.prerequisites!;
+  return `<div class="hero-pre">
+    <p class="hero-pre-sum">${math_html(tr(p.summary, lang))}</p>
+    ${p.links.length ? `<details class="pre-links"><summary>${esc(t('prereq_links'))}</summary><ul>${p.links.map((k) => `
+      <li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span class="muted"> · ${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul></details>` : ''}
+  </div>`;
+}
+
+/** A lab on the course page: what it is, where it runs, and the lesson to finish first. */
+function lab_card(c: Course, l: NonNullable<Course['labs']>[number], lang: Lang): string {
+  const after = l.after ? lessons_of(c).find((x) => x.id === l.after) : undefined;
+  return `
+    <a class="card lab-card" href="${lab_path(c, l.slug)}">
+      <div class="lab-head"><span class="lab-id">${esc(l.id)}</span><span class="lesson-title">${math_html(tr(l.title, lang))}</span></div>
+      <div class="muted lab-sum">${math_html(tr(l.summary, lang))}</div>
+      <div class="meta"><span>${esc([lab_setups(l, lang), l.minutes ? t('minutes', { n: l.minutes }) : ''].filter(Boolean).join(' · '))}</span>${after ? `<span title="${esc(tr(after.title, lang))}">${esc(t('lab_after', { l: lesson_code(after.id) }))}</span>` : ''}</div>
+    </a>`;
 }
 
 /**
@@ -102,8 +168,14 @@ function draw_thumbnails(root: HTMLElement): void {
   const lazy: HTMLCanvasElement[] = [];
   for (const c of canvases) {
     const hit = THUMBS.get(thumb_key(c));
+    const cl = all_lessons().find((l) => l.id === c.dataset.lesson);
+    const info = cl && lesson_info(cl);
     if (hit) c.getContext('2d')!.drawImage(hit, 0, 0, c.width, c.height);
-    else lazy.push(c);
+    // a lesson of text pages has no scene to wait for: its page-style card is drawn at once
+    else if (cl && info && !info.has_scene) {
+      c.classList.add('empty');
+      text_thumbnail(c, { title: cl.title, kinds: info.kinds });
+    } else lazy.push(c);
   }
   if (!lazy.length) return;
   // pre-rendered images (npm run thumbs) first; only lessons without one are rendered live
@@ -124,7 +196,7 @@ function prerendered(c: HTMLCanvasElement): Promise<boolean> {
       done(true);
     };
     img.onerror = () => done(false);
-    img.src = `thumbs/${cl.id}.${lang}.webp`;
+    img.src = `/thumbs/${cl.id}.${lang}.webp`;
   });
 }
 

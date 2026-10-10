@@ -8,7 +8,7 @@
 import { register_font } from 'manim-web/ext/text/fonts';
 
 const FILE = 'noto-sans-sc-chinese-simplified-400-normal.woff';
-const SOURCES = [`fonts/${FILE}`, `https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.2.5/files/${FILE}`];
+const SOURCES = [`/fonts/${FILE}`, `https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.2.5/files/${FILE}`];
 let loading: Promise<boolean> | null = null;
 let ready = false;
 

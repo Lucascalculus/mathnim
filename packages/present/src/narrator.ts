@@ -33,7 +33,7 @@ export class Narrator {
   on_cue: ((cues: Cue[], index: number) => void) | null = null;
 
   constructor(private caption: HTMLElement, o: { base?: string; lang?: string; live?: string | null } = {}) {
-    this.base = o.base ?? 'narration';
+    this.base = o.base ?? '/narration'; // absolute: lessons live at nested paths
     this.lang = o.lang ?? 'en-US';
     this.live = o.live === undefined ? '/api/tts' : o.live;
     let saved: { on?: boolean; system?: boolean } = {};
