@@ -91,6 +91,17 @@ kept there). This file is the short "where are we right now".
 - D (ae50614570d3973a9): built; not yet reviewed with lesson_text.mjs / browser.
 - Then: wire B, C, E; record narration (scenes only); browser review; push.
 
+## Live (2026-10-10, evening)
+
+- Deployed to https://lab.penghaolun.com (and mathnim.pages.dev). The live site has:
+  - the full LLM fine-tuning course (parts A-F) and the labs;
+  - the new site structure (docs/SITE-STRUCTURE.md): path URLs, the home page, course pages, the lesson outline, the "这里没懂" side chat, and prerequisites.
+- Still open:
+  - set the DeepSeek secret on Pages; until then, live AI answers are offline/recorded;
+  - user product ideas not yet done: login and progress sync (the next big item), review linked to lessons, a first-time intro to each mode, sharing a single interaction, asking before narration autoplays;
+  - the math course split was declined for now;
+  - mathviz-demo/ in the repo root is a stale copy (git-ignored), safe to delete.
+
 ## Next
 
 1. The fine-tuning course outline (user's priority); later WP7 (AI lesson
