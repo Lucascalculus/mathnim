@@ -36,6 +36,8 @@ const CSS = `
 .set-fields[hidden],.set-fields>[hidden]{display:none}
 .set-field{display:flex;flex-direction:column;gap:5px;margin:0;font-size:12.5px;color:var(--mn-muted)}
 .set-panel .mn-input{box-sizing:border-box;width:100%;height:36px;margin:0;padding:0 10px;font-size:14px;border-radius:8px;color:var(--mn-fg)}
+.set-panel select.mn-input{-webkit-appearance:none;appearance:none;font:inherit;font-size:14px;line-height:34px;padding:0 30px 0 10px;background:var(--mn-panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' fill='none' stroke='%236b7077' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center/16px 16px;text-overflow:ellipsis;cursor:pointer}
+.set-panel input.mn-input{font:inherit;font-size:14px}
 .set-clear{border:0;background:none;padding:0;font:inherit;font-size:14px;font-weight:600;color:var(--mn-bad);cursor:pointer;text-align:left}
 .set-clear:hover{text-decoration:underline}
 `;
