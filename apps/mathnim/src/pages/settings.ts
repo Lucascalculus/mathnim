@@ -33,7 +33,9 @@ const CSS = `
 .set-chev{flex:none;width:16px;height:16px;color:var(--mn-muted);transition:transform .2s}
 .set-adv[open] .set-chev{transform:rotate(90deg)}
 .set-fields{display:flex;flex-direction:column;gap:12px;padding:2px 0 14px}
-.set-fields[hidden],.set-fields>[hidden]{display:none}
+.set-fields[hidden],.set-fields>[hidden],.set-keynote[hidden]{display:none}
+.set-fields .set-fields{padding:0}
+.set-keynote{display:block;font-size:12px;color:var(--mn-muted);margin:-4px 0 0}
 .set-field{display:flex;flex-direction:column;gap:5px;margin:0;font-size:12.5px;color:var(--mn-muted)}
 .set-panel .mn-input{box-sizing:border-box;width:100%;height:36px;margin:0;padding:0 10px;font-size:14px;border-radius:8px;color:var(--mn-fg)}
 .set-panel select.mn-input{-webkit-appearance:none;appearance:none;font:inherit;font-size:14px;line-height:34px;padding:0 30px 0 10px;background:var(--mn-panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' fill='none' stroke='%236b7077' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center/16px 16px;text-overflow:ellipsis;cursor:pointer}
@@ -64,15 +66,25 @@ export function settings_panel(): HTMLElement {
     <details class="set-adv"><summary><div class="set-what"><b>${esc(t('advanced'))}</b><small>${esc(t('advanced_help'))}</small></div>${chev}</summary>
       <div class="set-fields">
         <label class="set-field">${esc(t('provider'))}<select class="mn-input" id="set-provider">
-          ${opt('auto', t('provider_auto'))}
-          ${opt('deepseek', `DeepSeek${srv.deepseek ? '' : t('no_key_here')}`)}
-          ${opt('anthropic', 'Claude (Anthropic)')}
-          ${opt('offline', t('provider_offline'))}
+          ${opt('gift', t('provider_gift'))}
+          ${opt('openai', 'GPT')}
+          ${opt('anthropic', 'Claude')}
+          ${opt('custom', t('provider_custom'))}
         </select></label>
-        <label class="set-field" id="set-ds">${esc(t('deepseek_model'))}<input class="mn-input" id="set-dsmodel" value="${esc(s.deepseek_model)}"></label>
-        <label class="set-field" id="set-an-key">${esc(t('anthropic_key'))}<input class="mn-input" id="set-key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${esc(s.api_key)}"></label>
-        <label class="set-field" id="set-an-model">${esc(t('claude_model'))}<input class="mn-input" id="set-model" value="${esc(s.model)}"></label>
-        <label class="set-field" id="set-an-base">${esc(t('proxy_url'))}<input class="mn-input" id="set-base" placeholder="/api/anthropic" value="${esc(s.base_url)}"></label>
+        <div class="set-fields" data-for="openai">
+          <label class="set-field">${esc(t('api_key'))}<input class="mn-input" id="set-okey" type="password" autocomplete="off" placeholder="sk-…" value="${esc(s.openai_key)}"></label>
+          <label class="set-field">${esc(t('model_name'))}<input class="mn-input" id="set-omodel" value="${esc(s.openai_model)}"></label>
+        </div>
+        <div class="set-fields" data-for="anthropic">
+          <label class="set-field">${esc(t('api_key'))}<input class="mn-input" id="set-key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${esc(s.api_key)}"></label>
+          <label class="set-field">${esc(t('model_name'))}<input class="mn-input" id="set-model" value="${esc(s.model)}"></label>
+        </div>
+        <div class="set-fields" data-for="custom">
+          <label class="set-field">${esc(t('custom_url'))}<input class="mn-input" id="set-curl" placeholder="https://api.example.com/v1" value="${esc(s.custom_url)}"></label>
+          <label class="set-field">${esc(t('api_key'))}<input class="mn-input" id="set-ckey" type="password" autocomplete="off" value="${esc(s.custom_key)}"></label>
+          <label class="set-field">${esc(t('model_name'))}<input class="mn-input" id="set-cmodel" value="${esc(s.custom_model)}"></label>
+        </div>
+        <small class="set-keynote" data-for="openai anthropic custom">${esc(t('key_local'))}</small>
       </div>
     </details>
     <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>`;
@@ -80,21 +92,23 @@ export function settings_panel(): HTMLElement {
   const read = (): Settings => ({
     ...load_settings(),
     provider: $<HTMLSelectElement>('provider').value as ProviderChoice,
-    deepseek_model: $('dsmodel').value.trim() || 'deepseek-flash',
+    openai_key: $('okey').value.trim(),
+    openai_model: $('omodel').value.trim() || 'gpt-5',
     api_key: $('key').value.trim(),
     model: $('model').value.trim() || 'claude-opus-5-5',
-    base_url: $('base').value.trim(),
+    custom_url: $('curl').value.trim().replace(/\/$/, ''),
+    custom_key: $('ckey').value.trim(),
+    custom_model: $('cmodel').value.trim(),
   });
   const refresh = () => {
-    const now = active_provider(read());
-    $('status').textContent = now === 'offline' ? t('status_offline') : t('status_online', { p: provider_label(now) });
-    const p = $<HTMLSelectElement>('provider').value;
-    $('ds').hidden = !(p === 'deepseek' || (p === 'auto' && now === 'deepseek'));
-    const an = !(p === 'anthropic' || (p === 'auto' && now !== 'deepseek'));
-    for (const id of ['an-key', 'an-model', 'an-base']) $(id).hidden = an;
+    const now = read();
+    const active = active_provider(now);
+    $('status').textContent = active === 'offline' ? t('status_offline') : t('status_online', { p: provider_label(active, now) });
+    // only the chosen provider's fields; the site's own model has none
+    for (const f of el.querySelectorAll<HTMLElement>('[data-for]')) f.hidden = !f.dataset.for!.split(' ').includes(now.provider);
   };
   // every change is kept at once
-  for (const id of ['provider', 'dsmodel', 'key', 'model', 'base']) {
+  for (const id of ['provider', 'okey', 'omodel', 'key', 'model', 'curl', 'ckey', 'cmodel']) {
     $(id).addEventListener('change', () => {
       save_settings(read());
       refresh();

@@ -4,16 +4,26 @@ import { set_ui_lang, t } from '@mathnim/present';
 import { ensure_cjk_font } from './cjk_font';
 import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, recorded_text_answers, type Provider } from '@mathnim/ai';
 
-export type ProviderChoice = 'auto' | 'deepseek' | 'anthropic' | 'offline';
+/**
+ * Where answers come from: 'gift' is the model this site offers (DeepSeek, its key held by the server; nothing to set),
+ * or the learner's own: GPT, Claude, or any OpenAI-compatible endpoint ('custom'). Their keys stay in this browser.
+ */
+export type ProviderChoice = 'gift' | 'openai' | 'anthropic' | 'custom';
 export interface Settings {
-  /** 'auto': a provider whose key the server holds (DeepSeek first), else a key typed here, else offline. */
   provider: ProviderChoice;
   deepseek_model: string;
-  /** Anthropic key typed in this browser (prototype only; a server key is preferred). */
+  /** Anthropic key typed in this browser (sent only to api.anthropic.com). */
   api_key: string;
+  /** Claude model. */
   model: string;
   /** Proxy that adds the Anthropic key server-side, e.g. '/api/anthropic'. */
   base_url: string;
+  openai_key: string;
+  openai_model: string;
+  /** An OpenAI-compatible endpoint (its base URL, e.g. https://api.example.com/v1), key and model. */
+  custom_url: string;
+  custom_key: string;
+  custom_model: string;
   dark: boolean;
   /** The learner's language: the interface, and lessons written in both languages. */
   lang: Lang;
@@ -21,11 +31,14 @@ export interface Settings {
 const KEY = 'mathnim.settings';
 /** A browser set to Chinese starts in Chinese; everyone else in English. */
 const browser_lang = (): Lang => (typeof navigator !== 'undefined' && /^zh\b/i.test(navigator.language ?? '') ? 'zh' : 'en');
-const DEFAULTS: Settings = { provider: 'auto', deepseek_model: 'deepseek-flash', api_key: '', model: 'claude-opus-5-5', base_url: '', dark: false, lang: browser_lang() };
+const DEFAULTS: Settings = { provider: 'gift', deepseek_model: 'deepseek-flash', api_key: '', model: 'claude-opus-5-5', base_url: '', openai_key: '', openai_model: 'gpt-5', custom_url: '', custom_key: '', custom_model: '', dark: false, lang: browser_lang() };
 
 export function load_settings(): Settings {
   try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') } as Settings;
+    // earlier choices ('auto', 'deepseek', 'offline') are the site's own model now
+    if (!['gift', 'openai', 'anthropic', 'custom'].includes(s.provider)) s.provider = 'gift';
+    return s;
   } catch {
     return { ...DEFAULTS };
   }
@@ -59,18 +72,25 @@ export async function detect_server_providers(): Promise<void> {
 }
 export const server_providers = () => ({ ...server });
 
-/** Which provider the settings resolve to right now. */
-export function active_provider(s = load_settings()): Exclude<ProviderChoice, 'auto'> {
-  const anthropic = server.anthropic || !!s.api_key || !!s.base_url;
-  if (s.provider === 'deepseek') return server.deepseek ? 'deepseek' : 'offline';
-  if (s.provider === 'anthropic') return anthropic ? 'anthropic' : 'offline';
-  if (s.provider === 'offline') return 'offline';
-  return server.deepseek ? 'deepseek' : anthropic ? 'anthropic' : 'offline';
+/** What answers right now: the choice, or recorded offline answers when it cannot (no server key, no key typed). */
+export type ActiveProvider = 'deepseek' | 'openai' | 'anthropic' | 'custom' | 'offline';
+export function active_provider(s = load_settings()): ActiveProvider {
+  switch (s.provider) {
+    case 'openai':
+      return s.openai_key ? 'openai' : 'offline';
+    case 'anthropic':
+      return server.anthropic || s.api_key || s.base_url ? 'anthropic' : 'offline';
+    case 'custom':
+      return s.custom_url && s.custom_model ? 'custom' : 'offline';
+    default:
+      return server.deepseek ? 'deepseek' : 'offline';
+  }
 }
 export const has_model = (s = load_settings()) => active_provider(s) !== 'offline';
-export const PROVIDER_LABEL = { deepseek: 'DeepSeek', anthropic: 'Claude', offline: 'offline demo answers' } as const;
-/** The provider's name in the interface language (the offline label is translated). */
-export const provider_label = (p: keyof typeof PROVIDER_LABEL): string => (p === 'offline' ? t('offline_answers') : PROVIDER_LABEL[p]);
+/** The provider's name in the interface language. */
+export function provider_label(p: ActiveProvider, s = load_settings()): string {
+  return { deepseek: t('provider_gift'), openai: 'GPT', anthropic: 'Claude', custom: s.custom_model || t('provider_custom'), offline: t('offline_answers') }[p];
+}
 
 let mock: MockProvider | null = null;
 /** The configured model, or recorded answers when none is available. */
@@ -79,6 +99,10 @@ export function provider(): Provider {
   switch (active_provider(s)) {
     case 'deepseek':
       return new OpenAICompatibleProvider({ name: 'deepseek', base_url: '/api/deepseek', model: s.deepseek_model || DEFAULTS.deepseek_model, default_max_tokens: 32000 });
+    case 'openai':
+      return new OpenAICompatibleProvider({ name: 'openai', base_url: 'https://api.openai.com/v1', api_key: s.openai_key, model: s.openai_model || DEFAULTS.openai_model });
+    case 'custom':
+      return new OpenAICompatibleProvider({ name: 'custom', base_url: s.custom_url, api_key: s.custom_key || undefined, model: s.custom_model });
     case 'anthropic':
       return new AnthropicProvider({ api_key: s.api_key || undefined, model: s.model, base_url: s.base_url || (server.anthropic ? '/api/anthropic' : undefined) });
     default:
