@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="760" height="400" font-family="-apple-system, 'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif">
+<rect width="760" height="400" fill="#FFFFFF"/>
+<text x="20" y="32" font-size="19" fill="#111113" text-anchor="start" font-weight="600">每个采样只做一次实时迭代（RTI）</text>
+<text x="740" y="32" font-size="13" fill="#86868B" text-anchor="end" font-weight="400">示意图，未按比例</text>
+<line x1="200" y1="60" x2="200" y2="330" stroke="#86868B" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="200" y="352" font-size="15" fill="#111113" text-anchor="middle" font-weight="400">t<tspan baseline-shift="sub" font-size="11">i−1</tspan></text>
+<line x1="470" y1="60" x2="470" y2="330" stroke="#86868B" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="470" y="352" font-size="15" fill="#111113" text-anchor="middle" font-weight="400">t<tspan baseline-shift="sub" font-size="11">i</tspan></text>
+<line x1="740" y1="60" x2="740" y2="330" stroke="#86868B" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="740" y="352" font-size="15" fill="#111113" text-anchor="middle" font-weight="400">t<tspan baseline-shift="sub" font-size="11">i+1</tspan></text>
+<line x1="180" y1="330" x2="750" y2="330" stroke="#111113" stroke-width="1.4"/>
+<text x="20" y="131" font-size="16" fill="#111113" text-anchor="start" font-weight="600">RTI</text>
+<rect x="234" y="95" width="224" height="66" rx="6" fill="#F2EBFD" fill-opacity="1" stroke="#7C3AED" stroke-width="1.6"/>
+<text x="244" y="115" font-size="13.5" fill="#7C3AED" text-anchor="start" font-weight="600">准备（x̂ 到达之前）</text>
+<text x="244" y="134" font-size="13.5" fill="#111113" text-anchor="start" font-weight="400">平移上一个计划，沿它线性化，</text>
+<text x="244" y="153" font-size="13.5" fill="#111113" text-anchor="start" font-weight="400">把 QP 搭好、分解好</text>
+<rect x="470" y="95" width="30" height="66" rx="6" fill="#E5ECFD" fill-opacity="1" stroke="#2563EB" stroke-width="1.6"/>
+<rect x="512" y="95" width="216" height="66" rx="6" fill="#F2EBFD" fill-opacity="0.5" stroke="#7C3AED" stroke-width="1.6"/>
+<rect x="200" y="95" width="30" height="66" rx="6" fill="#E5ECFD" fill-opacity="0.5" stroke="#2563EB" stroke-width="1.6"/>
+<text x="510" y="181" font-size="13.5" fill="#2563EB" text-anchor="start" font-weight="600">反馈：解一个 QP，这是唯一的延迟</text>
+<path d="M 470 91 l -5 -10 h 10 z" fill="#0D9488"/>
+<path d="M 500 91 l -5 -10 h 10 z" fill="#2563EB"/>
+<text x="462" y="89" font-size="13" fill="#0D9488" text-anchor="end" font-weight="400">测得 x̂</text>
+<text x="508" y="89" font-size="13" fill="#2563EB" text-anchor="start" font-weight="400">执行 u₀</text>
+<text x="20" y="253" font-size="15" fill="#111113" text-anchor="start" font-weight="600">迭代到</text>
+<text x="20" y="272" font-size="15" fill="#111113" text-anchor="start" font-weight="600">收敛</text>
+<rect x="470" y="225" width="42" height="50" rx="6" fill="#FDECE7" fill-opacity="1" stroke="#E4572E" stroke-width="1.6"/>
+<rect x="516" y="225" width="42" height="50" rx="6" fill="#FDECE7" fill-opacity="1" stroke="#E4572E" stroke-width="1.6"/>
+<rect x="562" y="225" width="42" height="50" rx="6" fill="#FDECE7" fill-opacity="1" stroke="#E4572E" stroke-width="1.6"/>
+<rect x="608" y="225" width="42" height="50" rx="6" fill="#FDECE7" fill-opacity="1" stroke="#E4572E" stroke-width="1.6"/>
+<rect x="654" y="225" width="42" height="50" rx="6" fill="#FDECE7" fill-opacity="1" stroke="#E4572E" stroke-width="1.6"/>
+<text x="583" y="295" font-size="13.5" fill="#E4572E" text-anchor="middle" font-weight="600">线性化、QP、线性化、QP……</text>
+<path d="M 470 221 l -5 -10 h 10 z" fill="#0D9488"/>
+<path d="M 696 221 l -5 -10 h 10 z" fill="#2563EB"/>
+<line x1="470" y1="205" x2="696" y2="205" stroke="#111113" stroke-width="1.2"/>
+<text x="583.0" y="199" font-size="13" fill="#111113" text-anchor="middle" font-weight="400">延迟：好几个 QP</text>
+<text x="462" y="255" font-size="13" fill="#86868B" text-anchor="end" font-weight="400">等 x̂ 到来</text>
+<text x="20" y="385" font-size="12.5" fill="#86868B" text-anchor="start" font-weight="400">据 Diehl 等（2002）与 Gros 等（2020，算法 3）绘制。线性 MPC 就是"准备"只在离线时做一次的特例。</text>
+</svg>

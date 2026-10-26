@@ -82,7 +82,7 @@ export const mpc_gain_horizon = define_visual<GainHorizonParams>({
           VGroup(dots ? VGroup(...[-5.9, -5.7, -5.5].map((x) => Dot([x, y, 0], { radius: 0.055, color, fill_opacity: 1 }))) : polyline([[-6.0, y], [-5.4, y]], color, 4.5), words(s, 22, c.ink, -5.25, y));
         const legend = VGroup(
           leg(2.45, c.accent, false, L('terminal weight P = Q: grows with N, settles on the LQR gain', '终端权重 P = Q：随 N 增大，最后停在 LQR 增益上')),
-          leg(2.05, c.good, true, L('terminal weight P = P∞ (the LQR cost-to-go): the LQR gain for every N', '终端权重 P = P∞（LQR 的剩余代价）：任何 N 都等于 LQR 增益')),
+          leg(2.05, c.good, true, L('terminal weight = the LQR cost-to-go: the LQR gain for every N', '终端权重取 LQR 的剩余代价：任何 N 都等于 LQR 增益')),
         );
         legend.name = 'legend';
         this.play(FadeIn(title), FadeIn(note), FadeIn(left.plot.group), FadeIn(right.plot.group), { run_time: 1.2 });

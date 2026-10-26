@@ -136,7 +136,7 @@ export const mpc_bars = define_visual<BarsParams>({
         const p_flag = live_label(() => {
           const s = st();
           if (s.past_k > 0) return L(`past the wall from k = ${s.past_k}`, `从 k = ${s.past_k} 起穿过了墙`);
-          if (s.at_rest && s.short_by > 0) return L(`stops ${Math.round(100 * s.short_by)} cm short`, `离墙还差 ${Math.round(100 * s.short_by)} cm 就停了`);
+          if (s.at_rest && s.short_by > 0) return L(`stops ${(100 * s.short_by).toFixed(1)} cm short`, `离墙还差 ${(100 * s.short_by).toFixed(1)} cm 就停了`);
           return '';
         }, 20, () => (st().past_k > 0 ? c.coral : c.ink), (m) => m.move_to([BX1 - m.width / 2, P_BOX.y1 + 0.22, 0]));
         p_flag.name = 'p_flag';
@@ -147,7 +147,7 @@ export const mpc_bars = define_visual<BarsParams>({
         model.move_to([RX0 + model.width / 2, 3.2, 0]);
         model.name = 'model';
         const v_formula = fit(tex('v_{10} = 0.5 + 0.1 \\textstyle\\sum_j u_j', 32, c.teal) as any, W);
-        v_formula.move_to([RX0 + v_formula.width / 2, 2.5, 0]);
+        v_formula.move_to([RX0 + v_formula.width / 2, 2.55, 0]);
         v_formula.name = 'v_formula';
         /** A TeX name and its live value, left edge at x. */
         const pair = (lhs: string, value: () => string, x: number, y: number, color: string) => {
@@ -157,33 +157,33 @@ export const mpc_bars = define_visual<BarsParams>({
           return VGroup(l, r);
         };
         const v_value = VGroup(
-          pair('\\textstyle\\sum u_j', () => `= ${fmt(end_state(this.plan()).sum, 1)}`, RX0 + 0.1, 1.95, c.ink),
-          pair('v_{10}', () => `= ${fmt(pr().v[N], 2)} m/s`, RX0 + 1.75, 1.95, c.teal),
+          pair('\\textstyle\\sum u_j', () => `= ${fmt(end_state(this.plan()).sum, 1)}`, RX0 + 0.1, 2.05, c.ink),
+          pair('v_{10}', () => `= ${fmt(pr().v[N], 2)} m/s`, RX0 + 0.1, 1.6, c.teal),
         );
         v_value.name = 'v_value';
         const p_formula = fit(tex('p_{10} = 10.2 + 0.01 \\textstyle\\sum_j (9.5 - j)\\, u_j', 32, c.accent) as any, W);
-        p_formula.move_to([RX0 + p_formula.width / 2, 1.1, 0]);
+        p_formula.move_to([RX0 + p_formula.width / 2, 1.0, 0]);
         p_formula.name = 'p_formula';
         const p_value = VGroup(
-          pair('\\textstyle\\sum (9.5-j)\\,u_j', () => `= ${fmt(end_state(this.plan()).wsum, 2)}`, RX0 + 0.1, 0.55, c.ink),
-          pair('p_{10}', () => `= ${fmt(pr().p[N], 3)} m`, RX0 + 0.1, 0.0, c.accent),
+          pair('\\textstyle\\sum (9.5-j)\\,u_j', () => `= ${fmt(end_state(this.plan()).wsum, 2)}`, RX0 + 0.1, 0.5, c.ink),
+          pair('p_{10}', () => `= ${fmt(pr().p[N], 3)} m`, RX0 + 0.1, 0.05, c.accent),
         );
         p_value.name = 'p_value';
         const goal = (y: number, en: string, zh: string, met: () => boolean) => {
-          const t = words(L(en, zh), 22, c.ink, RX0 + 0.1, y, { max_w: 2.5 });
-          const s = live_label(() => (met() ? L('met', '达成') : L('not yet', '未达成')), 22, () => (met() ? c.good : c.muted), (m) => m.move_to([RX1 - m.width / 2, y, 0]), { weight: 'BOLD' });
+          const t = words(L(en, zh), 22, c.ink, RX0 + 1.15, y, { max_w: RX1 - RX0 - 1.15 });
+          const s = live_label(() => (met() ? L('met', '达成') : L('not yet', '未达成')), 22, () => (met() ? c.good : c.muted), (m) => m.move_to([RX0 + 0.1 + m.width / 2, y, 0]), { weight: 'BOLD' });
           return VGroup(t, s);
         };
         const goals = VGroup(
-          words(L('goals', '目标'), 22, c.muted, RX0, -0.75),
-          goal(-1.2, 'at rest at k = 10', 'k = 10 时停住', () => st().at_rest),
-          goal(-1.65, 'at the wall, not past it', '停在墙边，不穿墙', () => st().docked),
+          words(L('goals', '目标'), 22, c.muted, RX0, -0.65),
+          goal(-1.05, 'at rest at k = 10', 'k = 10 时停住', () => st().at_rest),
+          goal(-1.45, 'at the wall, not past it', '停在墙边，不穿墙', () => st().docked),
         );
         goals.name = 'goals';
         const legend = VGroup(
-          words(L('dashed: every u = 0 (coasting)', '虚线：所有 u = 0（一直滑行）'), 20, c.muted, RX0, -2.35, { max_w: W }),
-          words(L('grey numbers under the bars:', '柱子下的灰色数字：'), 20, c.muted, RX0, -2.75, { max_w: W }),
-          words(L('how much each bar moves p at k = 10', '每根柱子对 k = 10 时位置的权重'), 20, c.muted, RX0, -3.1, { max_w: W }),
+          words(L('dashed: every u = 0 (coasting)', '虚线：所有 u = 0（一直滑行）'), 20, c.muted, RX0, -2.25, { max_w: W }),
+          words(L('grey numbers under the bars:', '柱子下的灰色数字：'), 20, c.muted, RX0, -2.65, { max_w: W }),
+          words(L('their weight in p at k = 10', '各自在 k = 10 时位置里的权重'), 20, c.muted, RX0, -3.0, { max_w: W }),
         );
         legend.name = 'legend';
 

@@ -32,6 +32,12 @@ describe('explicit MPC map', () => {
       expect(solve_plan(x0).z[0]).toBeCloseTo(free_a1(x0[0], x0[1]), 9);
     }
   });
+  it('law-predict (M4): at v0 = 1.5 the law starts flat at 0.5 (speed limit), then bends; it is not a clipped line', () => {
+    const { pts, kinks } = slice_law(1.5);
+    expect(pts[0][1]).toBeCloseTo(0.5, 6);
+    expect(kinks.length).toBeGreaterThanOrEqual(2);
+    expect(Math.min(...pts.map((p) => p[1]))).toBeGreaterThanOrEqual(-1 - 1e-9);
+  });
   it('qp_view reports what the world needs', () => {
     const v = qp_view([7, 0]);
     expect(v.flip).toBe(true);

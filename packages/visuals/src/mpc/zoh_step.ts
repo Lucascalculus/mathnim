@@ -13,7 +13,7 @@ export interface ZohStepParams extends Record<string, unknown> {
 }
 
 // data: one step has length 1; the held inputs before, during and after step k
-const A_HELD = [0.5, 1.0, 0.35];
+const A_HELD = [0.5, 1.0, 0.15];
 const V_K = 1.0;
 
 export const mpc_zoh_step = define_visual<ZohStepParams>({
@@ -56,7 +56,7 @@ export const mpc_zoh_step = define_visual<ZohStepParams>({
         const vk = tex('v_k', 26, c.teal);
         vk.move_to([vp.X(0) - 0.12 - vk.width / 2, vp.Y(V_K) + 0.18, 0]);
         const vk1 = tex('v_{k+1} = v_k + \\Delta t\\, a_k', 24, c.teal);
-        vk1.move_to([vp.X(1) + 0.12 + vk1.width / 2, vp.Y(V_K + A_HELD[1]) + 0.3, 0]);
+        vk1.move_to([vp.X(1) + 0.12 + vk1.width / 2, vp.Y(V_K + A_HELD[1]) + 0.42, 0]);
         const r_lab = tex('\\Delta t\\, v_k', 28, c.accent);
         r_lab.move_to([vp.X(0.5), vp.Y(V_K / 2), 0]);
         const t_lab = tex('\\tfrac12 \\Delta t^2 a_k', 26, c.coral);
@@ -75,7 +75,7 @@ export const mpc_zoh_step = define_visual<ZohStepParams>({
         const ex_w = words(L('rectangle + triangle', '矩形 + 三角形'), 22, c.ink, RX0, 0.5, { max_w: RX1 - RX0 });
         const exact = VGroup(ex_h, ex, ex_w);
         exact.name = 'exact';
-        const eu_h = words(L('forward Euler (speed frozen at v_k):', '前向欧拉（把速度冻结在 v_k）：'), 22, c.muted, RX0, -0.5, { max_w: RX1 - RX0 });
+        const eu_h = words(L('forward Euler (speed frozen at its start value):', '前向欧拉（把速度冻结在这一步开头的值）：'), 22, c.muted, RX0, -0.5, { max_w: RX1 - RX0 });
         const eu = fit(tex('p_{k+1} = p_k + \\Delta t\\, v_k', 34, c.ink) as any, RX1 - RX0);
         eu.move_to([RX0 + eu.width / 2, -1.1, 0]);
         const eu_w = words(L('rectangle only: the triangle is lost every step', '只有矩形：每一步都丢掉那个三角形'), 22, c.coral, RX0, -1.75, { max_w: RX1 - RX0 });

@@ -15,8 +15,9 @@
 //   iterates stay inside the polygon and approach the optimum along the
 //   central path. Each step factors a new KKT matrix.
 // - admm_path: the OSQP iteration (Stellato et al. 2020, Algorithm 1) with
-//   OSQP's defaults ρ = 0.1, σ = 1e-6, α = 1.6, no scaling and no adaptive ρ;
-//   its stopping test (eps_abs = eps_rel = 1e-3). The matrix of its linear
+//   σ = 1e-6, α = 1.6 and OSQP's stopping test (eps_abs = eps_rel = 1e-3), but
+//   no scaling and a fixed ρ (default 0.1 as in OSQP; the lesson's picture uses
+//   ρ = 3, since unscaled ρ = 0.1 needs hundreds of steps on this QP). The matrix of its linear
 //   system never changes, so it is factored once; each step is two triangular
 //   solves and a clip.
 // All three are exact enough to compare with solve_plan() (unit-tested).
@@ -238,13 +239,26 @@ export function admm_path(x0: Vec, o: { rho?: number; sigma?: number; alpha?: nu
     const ok = rp <= ep && rd <= ed;
     out.push({ z: z.slice(), r_prim: rp, r_dual: rd, converged: ok });
     if (ok) break;
-    (out as any)._y = y;
   }
-  (out as any).y = y;
-  (out as any).lam = lam;
   return out;
 }
 
 /** The exact optimum (the kit's solver), for comparison. */
 export const exact = (x0: Vec): Vec => solve_plan(x0).z;
 export { kkt_ok, working_set_point };
+
+/**
+ * The two-move MPC's own closed loop from x0 (default (4, 0), at rest 6 m from
+ * the flag): at each sample solve the QP exactly, apply a₁ for one sample
+ * (Δt = 0.1 s), repeat. States x_0..x_{n-1}. M5's active-set world steps along it.
+ */
+export function loop_states(n: number, x0: Vec = [4, 0]): [number, number][] {
+  const out: [number, number][] = [];
+  let x: [number, number] = [x0[0], x0[1]];
+  for (let k = 0; k < n; k++) {
+    out.push(x);
+    const a = solve_plan(x).z[0], dt = 0.1;
+    x = [x[0] + x[1] * dt + 0.5 * a * dt * dt, x[1] + a * dt];
+  }
+  return out;
+}

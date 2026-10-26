@@ -115,3 +115,14 @@ All **(computed)**:
 - Linear feedback scales with the error: from rest at distance d, the first
   push is a_0 = d·k_p. So 12 m with the entry weights gives
   12 × 2.786 ≈ 33.4 m/s².
+
+## 5. Numbers added while writing the lesson (2026-10-26, all **(computed)** with the lesson's Python listing plus a 0.1 s simulation of a = −K(x − x_ref) from rest at 0 to 6 m)
+
+- Short horizon, P = Q, M1's docking cost (q_v = 0, r = 0.1):
+  - K_5 = [1.171, 0.444]: overshoots the flag by 3.38 m, settles (±5 cm) only after 24 s;
+  - K_3 = [0.445, 0.109]: overshoots by 4.9 m, not settled within 60 s;
+  - K_3 with Q (and P) × 10 = [4.06, 0.99]: still overshoots 3.16 m, first push 24.4 m/s²;
+  - K_3 with P = P_∞ = K_LQR = [2.789, 2.362].
+- Bryson's rule on the cart ("error up to 6 m, push up to 1 m/s²": q_p = 1/36, q_v = 0, r = 1): K = [0.162, 0.569], first push 0.97 m/s² from 6 m, 1.94 m/s² from 12 m.
+- Doubling Q and R leaves K unchanged ([2.786, 2.377] for q_v = 0.01, r = 0.1).
+- Check q-push: K = [2.786, 2.377], p = 4, v = −1: a_0 = 5.572 + 2.377 = 7.949 m/s².

@@ -53,9 +53,16 @@ export function car_result(guess: Guess, iters: Iters): CarResult {
 }
 
 // ---- the map: road coordinates [m] to scene units (equal scale)
-const MAP = { x0: -6.9, y0: -3.0, scale: 0.235, xmin: -1.5, ymin: -2.5 };
+const MAP = { x0: -6.9, y0: -3.0, scale: 0.235, xmin: -2.0, ymin: -2.5 };
+/** The part of the road drawn [m]: plan curves are cut where they leave it (they never cross the panels). */
+const VIEW = { xmax: 35.5, ymax: 24.6 };
 const M = (x: number, y: number): XY => [MAP.x0 + (x - MAP.xmin) * MAP.scale, MAP.y0 + (y - MAP.ymin) * MAP.scale];
-const MAP_X1 = M(35.5, 0)[0];
+const MAP_X1 = M(VIEW.xmax, 0)[0];
+/** A curve's points up to where it first leaves the drawn part of the road. */
+function in_view(X: number[][]): number[][] {
+  const i = X.findIndex((q) => q[0] > VIEW.xmax || q[1] > VIEW.ymax);
+  return i < 0 ? X : X.slice(0, i);
+}
 const RX = 2.3, RX1 = 6.9;
 
 /** The road's centre line and lane edges as scene polylines. */
@@ -145,14 +152,14 @@ export const mpc_car_track = define_visual<CarTrackParams>({
         };
 
         // ---- honest label
-        const note = words(L('simulation of a toy car (kinematic bicycle model, 6 m/s, horizon 2 s); the car obeys the same model the controller uses', '玩具小车的模拟（运动学自行车模型，6 m/s，预测时域 2 秒）；小车遵循的正是控制器所用的模型'), 19, c.muted, -6.9, 3.65, { max_w: 13.8 });
+        const note = words(L('simulation of a toy car (kinematic bicycle, 6 m/s, horizon 2 s) that obeys the controller’s own model; the 15 cm brief is a toy number', '玩具小车的模拟（运动学自行车模型，6 m/s，预测时域 2 秒），小车遵循的就是控制器的模型；15 cm 的要求是教学用的玩具数字'), 19, c.muted, -6.9, 3.72, { max_w: 13.8 });
         note.name = 'note';
 
         // ---- the road
         const rl = road_lines();
         const road = VGroup(polyline(rl.left, c.muted, 2.5), polyline(rl.right, c.muted, 2.5), polyline(rl.centre, c.faint, 2.5, { dash: [0.16, 0.12] }));
         road.name = 'road';
-        const lane_word = words(L('lane: ±1.5 m', '车道：±1.5 m'), 19, c.muted, M(6, -2.2)[0], M(6, -2.2)[1]);
+        const lane_word = words(L('lane: ±1.5 m (no run leaves it)', '车道：±1.5 m（所有设置都没出车道）'), 19, c.muted, M(6, -2.2)[0], M(6, -2.2)[1]);
         road.add(lane_word);
 
         // ---- what the car did, and the car
@@ -174,14 +181,14 @@ export const mpc_car_track = define_visual<CarTrackParams>({
         const plan = () => run().plans[k_of()];
         const ref_dots = live_vm(VMobject({ fill_color: c.good, fill_opacity: 1, stroke_width: 0, stroke_color: c.good }), () => {
           const r = 0.045, segs: XY[][] = [];
-          for (const q of plan().ref) {
+          for (const q of in_view(plan().ref)) {
             const [cx, cy] = M(q[0], q[1]);
             segs.push([[cx - r, cy - r], [cx + r, cy - r], [cx + r, cy + r], [cx - r, cy + r], [cx - r, cy - r]]);
           }
           return polys_points(segs);
         }, key_k);
         ref_dots.name = 'reference';
-        const curve_pts = (X: number[][]) => X.map((s) => M(s[0], s[1]));
+        const curve_pts = (X: number[][]) => in_view(X).map((s) => M(s[0], s[1]));
         const guess_curve = live_vm(stroke(c.muted, 3), () => polys_points(dash_polys(curve_pts(plan().X_guess), 0.05, 0.08)), key_k);
         guess_curve.name = 'guess_curve';
         const true_curve = live_vm(stroke(c.ink, 2.5), () => poly_points(curve_pts(plan().X_true)), key_k);
@@ -190,7 +197,7 @@ export const mpc_car_track = define_visual<CarTrackParams>({
         qp_curve.name = 'qp_curve';
 
         // ---- the legend, in the map's empty top-left corner
-        const LX = -6.75, LW = 3.55;
+        const LX = -6.75, LW = 4.2;
         const sample = (y: number, kind: 'dots' | 'dotted' | 'dashed' | 'thin' | 'solid') => {
           const a: XY = [LX, y], b: XY = [LX + 0.45, y];
           if (kind === 'dots') return VGroup(...[0.05, 0.22, 0.39].map((dx) => polyline([[LX + dx - 0.04, y], [LX + dx + 0.04, y]], c.good, 7)));
@@ -222,15 +229,15 @@ export const mpc_car_track = define_visual<CarTrackParams>({
 
         // ---- controls: the guess and the QPs per sample
         const cap = (s: string, y: number) => words(s, 21, c.muted, RX, y, { max_w: RX1 - RX });
-        this.guess_choice = new Choice({ tracker: guess, values: [0, 1], labels: [L('straight ahead', '直行'), L('last plan, shifted', '上一个计划，平移')], x0: RX, x1: RX1, y: 2.95, font_size: 21 });
-        const guess_choice = VGroup(cap(pick(lang, CAR_LABELS.guess.en, CAR_LABELS.guess.zh), 3.38), this.guess_choice);
+        this.guess_choice = new Choice({ tracker: guess, values: [0, 1], labels: [L('straight ahead', '直行'), L('last plan, shifted', '上一个计划，平移')], x0: RX, x1: RX1, y: 2.85, font_size: 21 });
+        const guess_choice = VGroup(cap(pick(lang, CAR_LABELS.guess.en, CAR_LABELS.guess.zh), 3.27), this.guess_choice);
         guess_choice.name = 'guess_choice';
-        this.iters_choice = new Choice({ tracker: iters, values: [0, 1, 2, 3], labels: ['1', '2', '3', L('converge', '到收敛')], x0: RX, x1: RX1, y: 1.95, font_size: 21 });
-        const iters_choice = VGroup(cap(pick(lang, CAR_LABELS.iters.en, CAR_LABELS.iters.zh), 2.38), this.iters_choice);
+        this.iters_choice = new Choice({ tracker: iters, values: [0, 1, 2, 3], labels: ['1', '2', '3', L('converge', '到收敛')], x0: RX, x1: RX1, y: 1.9, font_size: 21 });
+        const iters_choice = VGroup(cap(pick(lang, CAR_LABELS.iters.en, CAR_LABELS.iters.zh), 2.32), this.iters_choice);
         iters_choice.name = 'iters_choice';
 
         // ---- e(t) against the brief
-        const E = new Plot({ box: { x0: RX + 0.55, x1: RX1 - 0.05, y0: -0.75, y1: 1.0 }, x: [0, 8], y: [-40, 40], y_ticks: [-30, -15, 0, 15, 30], x_ticks: [0, 2, 4, 6, 8], y_label: L('lateral error e (cm), + = left', '横向误差 e（cm），+ 为偏左'), x_label: { tex: 't\\;(\\mathrm{s})' }, font: 19 });
+        const E = new Plot({ box: { x0: RX + 0.55, x1: RX1 - 0.05, y0: -0.75, y1: 1.0 }, x: [0, 8], y: [-40, 48], y_ticks: [-30, -15, 0, 15, 30], x_ticks: [0, 2, 4, 6, 8], y_label: L('lateral error e (cm), + = left', '横向误差 e（cm），+ 为偏左'), x_label: { tex: 't\\;(\\mathrm{s})' }, font: 19 });
         E.group.name = 'e_plot';
         const brief_band = E.band(-100 * CAR_BRIEF, 100 * CAR_BRIEF, c.good, 0.13);
         brief_band.name = 'brief_band';
@@ -238,13 +245,13 @@ export const mpc_car_track = define_visual<CarTrackParams>({
         e_curve.name = 'e_curve';
         const cursor = E.cursor(() => k_of() * CAR.dt, c.muted, 2);
         // the bends, under the time axis
-        const bends = VGroup(E.note(L('bend 1', '弯 1'), 2.0, 33, c.muted, 17), E.note(L('bend 2', '弯 2'), 4.9, 33, c.muted, 17));
+        const bends = VGroup(E.note(L('bend 1', '弯 1'), 2.0, 42, c.muted, 17), E.note(L('bend 2', '弯 2'), 4.9, 42, c.muted, 17));
 
         // ---- the run's numbers
         const res = () => this.result();
         const readout = VGroup(
           live_label(() => L(`largest |e|: ${Math.round(100 * res().max_e)} cm`, `最大 |e|：${Math.round(100 * res().max_e)} cm`), 22, () => (res().in_brief ? c.good : c.coral), (m) => m.move_to([RX + m.width / 2, -1.72, 0]), { weight: 'BOLD', max_width: RX1 - RX }),
-          live_label(() => L(`brief: within ${Math.round(100 * CAR_BRIEF)} cm — ${res().in_brief ? 'met' : 'not met'}`, `要求：不超过 ${Math.round(100 * CAR_BRIEF)} cm，${res().in_brief ? '达到' : '未达到'}`), 20, () => (res().in_brief ? c.good : c.coral), (m) => m.move_to([RX + m.width / 2, -2.12, 0]), { max_width: RX1 - RX }),
+          live_label(() => L(`toy brief: within ${Math.round(100 * CAR_BRIEF)} cm — ${res().in_brief ? 'met' : 'not met'}`, `玩具要求：不超过 ${Math.round(100 * CAR_BRIEF)} cm，${res().in_brief ? '达到' : '未达到'}`), 20, () => (res().in_brief ? c.good : c.coral), (m) => m.move_to([RX + m.width / 2, -2.12, 0]), { max_width: RX1 - RX }),
           live_label(() => L(`QPs per sample: ${res().mean_qps.toFixed(1)} on average`, `每个采样平均解 ${res().mean_qps.toFixed(1)} 个 QP`), 22, c.ink, (m) => m.move_to([RX + m.width / 2, -2.6, 0]), { max_width: RX1 - RX }),
           live_label(() => L(`slowest speed: ${res().min_v.toFixed(1)} m/s (asked: 6)`, `最低车速：${res().min_v.toFixed(1)} m/s（要求 6）`), 22, () => (res().min_v < 5.8 ? c.coral : c.ink), (m) => m.move_to([RX + m.width / 2, -3.05, 0]), { max_width: RX1 - RX }),
         );

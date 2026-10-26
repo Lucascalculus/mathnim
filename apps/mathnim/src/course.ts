@@ -83,6 +83,8 @@ export interface Course {
   short?: L10n;
   /** What to know first, with starter links (shown under the audience line). */
   prerequisites?: Prerequisites;
+  /** When set, only these lessons are shown (a course published in batches); the rest stay reachable by address and checked by the tools. */
+  published?: string[];
   /** The cover: a lesson id (its thumbnail) or an image under public/ ('{lang}' replaced by en / zh; default: the first lesson's thumbnail). */
   cover?: string;
   /** A picture beside the course page's header: an image under public/, '{lang}' replaced by en / zh. */
@@ -256,8 +258,6 @@ export const MPC_COURSE: Course = {
   },
   feature: '/courses/mpc/horizon.{lang}.webp',
   accent: '#0F766E',
-  // listed on home once its lessons exist (remove this to publish)
-  hidden: true,
   // no labs section for this course (the user's decision, 2026-10-26)
   suggestions: [
     { en: 'Why apply only the first step of the plan?', zh: '为什么只执行计划的第一步？' },
@@ -266,6 +266,7 @@ export const MPC_COURSE: Course = {
   ],
   // order and cards from src/lessons/mpc/unit.ts (tools/course_manifest.ts); lessons load when opened
   units: MPC_UNITS,
+  // planned in two batches (M1-M4, then M5-M8); both were ready together, so all eight are published
 };
 
 /** In this order on the home page (a first-time visitor's list starts at the featured course). */
@@ -274,7 +275,10 @@ export const COURSES: Course[] = [MATH_COURSE, FT_COURSE, MPC_COURSE];
 export const COURSE = MATH_COURSE;
 /** The units and lessons a course page shows: hand-made lessons only (AI-generated syllabus entries and hidden units stay out for now). */
 export function visible_units(c: Course): Unit[] {
-  return c.units.filter((u) => !u.hidden).map((u) => ({ ...u, lessons: u.lessons.filter((l) => !!(l.lesson || l.load)) })).filter((u) => u.lessons.length);
+  return c.units
+    .filter((u) => !u.hidden)
+    .map((u) => ({ ...u, lessons: u.lessons.filter((l) => !!(l.lesson || l.load) && (!c.published || c.published.includes(l.id))) }))
+    .filter((u) => u.lessons.length);
 }
 export const visible_lessons = (c: Course): CourseLesson[] => visible_units(c).flatMap((u) => u.lessons);
 /** A unit's title inside its course: without the course's name ("微调 A · 地图与 RAG" → "A · 地图与 RAG"). */

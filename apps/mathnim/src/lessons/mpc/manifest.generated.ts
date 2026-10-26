@@ -5,10 +5,599 @@ import type { Lesson } from '@mathnim/core';
 import type { CourseManifest } from '../../course';
 
 export const MANIFEST: CourseManifest = {
- "units": [],
- "lessons": {}
+ "units": [
+  {
+   "id": "mpc-basics",
+   "title": {
+    "en": "Basics",
+    "zh": "基础"
+   },
+   "lessons": [
+    {
+     "id": "mpc-m1-lookahead",
+     "title": {
+      "en": "Look ahead, then act",
+      "zh": "往前看再动手"
+     },
+     "summary": {
+      "en": "Why reacting to the error cannot respect limits, the MPC loop (plan N steps, apply the first, re-plan), and how far ahead it must look.",
+      "zh": "只对误差做反应为什么守不住限制；MPC 的循环（规划 N 步、执行第一步、重新规划）；以及要往前看多远。"
+     },
+     "minutes": 30,
+     "thumb": "loop"
+    },
+    {
+     "id": "mpc-m2-model",
+     "title": {
+      "en": "The model: from physics to prediction",
+      "zh": "模型：从物理到预测"
+     },
+     "summary": {
+      "en": "Discretize the cart exactly, predict a whole plan with X = Φx₀ + ΓU, and see why linear predictions make MPC a QP.",
+      "zh": "把小车精确离散化，用 X = Φx₀ + ΓU 预测整个计划，并看清线性预测为什么让 MPC 成为 QP。"
+     },
+     "minutes": 30,
+     "thumb": "dock-world"
+    },
+    {
+     "id": "mpc-m3-cost",
+     "title": {
+      "en": "The cost: saying what you want",
+      "zh": "代价：想要什么"
+     },
+     "summary": {
+      "en": "Weights are prices, not limits: what Q and R buy, why the unconstrained plan is a fixed feedback gain, and how the horizon and terminal cost lead to LQR.",
+      "zh": "权重是价格，不是上限：Q 和 R 各买到什么，为什么无约束的计划就是固定的反馈增益，时域和终端代价怎样通向 LQR。"
+     },
+     "minutes": 30,
+     "thumb": "r-sweep"
+    }
+   ]
+  },
+  {
+   "id": "mpc-constraints",
+   "title": {
+    "en": "Constraints and solving",
+    "zh": "约束与求解"
+   },
+   "lessons": [
+    {
+     "id": "mpc-m4-constraints",
+     "title": {
+      "en": "Constraints: writing the limits in",
+      "zh": "约束：把限制写进去"
+     },
+     "summary": {
+      "en": "Limits turn MPC into a quadratic program: the best plan is where the smallest cost ellipse touches the allowed polygon, clipping is not solving, and the law becomes piecewise affine.",
+      "zh": "限制把 MPC 变成二次规划：最好的计划在最小的代价椭圆碰到允许多边形的地方；截断不等于求解；控制律变成分段仿射的。"
+     },
+     "minutes": 30,
+     "thumb": "qp-scene"
+    },
+    {
+     "id": "mpc-m5-solving",
+     "title": {
+      "en": "Solving: fast enough, every step",
+      "zh": "求解：每一步都要解得够快"
+     },
+     "summary": {
+      "en": "The QP must be solved every sample, worst case included: condensed versus sparse, active set, interior point and ADMM, warm starting from the last plan, and what to do when the solver is late.",
+      "zh": "QP 每个采样都要重解，最慢的那次也得按时：稠密与稀疏两种写法，有效集法、内点法和 ADMM，从上一份计划热启动，以及求解器迟到时怎么办。"
+     },
+     "minutes": 35,
+     "thumb": "paths"
+    },
+    {
+     "id": "mpc-m6-feasibility",
+     "title": {
+      "en": "Stability and feasibility: the price of short sight",
+      "zh": "稳定与可行：短视的代价"
+     },
+     "summary": {
+      "en": "Why a short horizon crashes although every QP had a solution, how a terminal set keeps every later QP solvable, what the terminal cost adds, and soft constraints for limits a disturbance can break.",
+      "zh": "为什么短时域每个 QP 都有解却还是撞墙；终端集怎样让之后的每个 QP 都有解；终端代价又补上了什么；以及扰动可能打破的限制怎样用软约束处理。"
+     },
+     "minutes": 30,
+     "thumb": "trap-scene"
+    }
+   ]
+  },
+  {
+   "id": "mpc-real",
+   "title": {
+    "en": "Real systems",
+    "zh": "真实系统"
+   },
+   "lessons": [
+    {
+     "id": "mpc-m7-disturbances",
+     "title": {
+      "en": "When the model is wrong",
+      "zh": "模型不准时"
+     },
+     "summary": {
+      "en": "Why an unknown steady push leaves an offset however you tune, how estimating it removes the offset (integral action), what a Kalman filter adds, and how tube MPC keeps hard limits under changing pushes.",
+      "zh": "模型不知道的恒定推力为什么怎么调都留下偏差，把它估计出来为什么就能消掉（积分作用），卡尔曼滤波补上了什么，管道 MPC 怎样在变化的推力下守住硬约束。"
+     },
+     "minutes": 35,
+     "thumb": "offset-scene"
+    },
+    {
+     "id": "mpc-m8-nmpc",
+     "title": {
+      "en": "Nonlinear MPC, and how to choose",
+      "zh": "非线性 MPC 与怎么选"
+     },
+     "summary": {
+      "en": "When the model is nonlinear: shooting, one QP at a time (SQP), why the real-time iteration needs only one QP per sample if it starts from the last plan, tools and real uses, and a card for choosing PID, LQR, MPC, nonlinear MPC or RL.",
+      "zh": "模型非线性时怎么办：打靶法、一次解一个 QP（SQP）、为什么实时迭代从上一个计划出发时每个采样只需一个 QP、工具与真实应用，以及在 PID、LQR、MPC、非线性 MPC 和强化学习之间做选择的卡片。"
+     },
+     "minutes": 35,
+     "thumb": "world"
+    }
+   ]
+  }
+ ],
+ "lessons": {
+  "mpc-m1-lookahead": {
+   "title": {
+    "en": "Look ahead, then act",
+    "zh": "往前看再动手"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "scene",
+    "code",
+    "checkpoint",
+    "explore"
+   ],
+   "skills": [
+    {
+     "id": "mpc-loop",
+     "name": {
+      "en": "The MPC loop: predict, optimise, apply the first, repeat",
+      "zh": "MPC 的循环：预测、优化、执行第一步、重来"
+     }
+    },
+    {
+     "id": "first-step",
+     "name": {
+      "en": "Why only the first step is applied",
+      "zh": "为什么只执行第一步"
+     }
+    },
+    {
+     "id": "horizon-length",
+     "name": {
+      "en": "How far ahead the plan must look",
+      "zh": "计划要往前看多远"
+     }
+    },
+    {
+     "id": "mpc-vs-pid",
+     "name": {
+      "en": "When MPC is worth it over PID",
+      "zh": "什么时候值得用 MPC 而不是 PID"
+     }
+    }
+   ],
+   "checkpoints": 6
+  },
+  "mpc-m2-model": {
+   "title": {
+    "en": "The model: from physics to prediction",
+    "zh": "模型：从物理到预测"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "derive",
+    "checkpoint",
+    "scene",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "discretize",
+     "name": {
+      "en": "Discretizing with a zero-order hold",
+      "zh": "用零阶保持离散化"
+     }
+    },
+    {
+     "id": "stack-predictions",
+     "name": {
+      "en": "Stacking predictions: X = Φx₀ + ΓU",
+      "zh": "把预测叠起来：X = Φx₀ + ΓU"
+     }
+    },
+    {
+     "id": "input-timing",
+     "name": {
+      "en": "How an input’s timing enters the prediction",
+      "zh": "输入的时机怎样进入预测"
+     }
+    },
+    {
+     "id": "linear-qp",
+     "name": {
+      "en": "Why linear predictions make MPC a QP",
+      "zh": "为什么线性预测让 MPC 成为 QP"
+     }
+    }
+   ],
+   "checkpoints": 5
+  },
+  "mpc-m3-cost": {
+   "title": {
+    "en": "The cost: saying what you want",
+    "zh": "代价：想要什么"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "checkpoint",
+    "scene",
+    "explore",
+    "derive",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "cost-terms",
+     "name": {
+      "en": "What each term of the quadratic cost does",
+      "zh": "二次代价里每一项的作用"
+     }
+    },
+    {
+     "id": "weights-tradeoff",
+     "name": {
+      "en": "Weights as prices: speed against effort",
+      "zh": "权重是价格：速度与用力的取舍"
+     }
+    },
+    {
+     "id": "unconstrained-solution",
+     "name": {
+      "en": "The unconstrained optimum is linear feedback",
+      "zh": "无约束最优解是线性反馈"
+     }
+    },
+    {
+     "id": "riccati-lqr",
+     "name": {
+      "en": "Horizon, terminal cost, Riccati and LQR",
+      "zh": "时域、终端代价、Riccati 与 LQR"
+     }
+    },
+    {
+     "id": "lqr-or-mpc",
+     "name": {
+      "en": "When LQR is enough and when you need MPC",
+      "zh": "什么时候 LQR 就够，什么时候需要 MPC"
+     }
+    }
+   ],
+   "checkpoints": 7
+  },
+  "mpc-m4-constraints": {
+   "title": {
+    "en": "Constraints: writing the limits in",
+    "zh": "约束：把限制写进去"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "derive",
+    "scene",
+    "checkpoint",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "constraint-rows",
+     "name": {
+      "en": "Writing limits as linear rows in U",
+      "zh": "把限制写成关于 U 的线性不等式"
+     }
+    },
+    {
+     "id": "qp-geometry",
+     "name": {
+      "en": "Reading a QP as ellipses and a polygon",
+      "zh": "把 QP 看成椭圆和多边形"
+     }
+    },
+    {
+     "id": "kkt-multipliers",
+     "name": {
+      "en": "Active limits and their multipliers",
+      "zh": "起作用的约束与乘子"
+     }
+    },
+    {
+     "id": "clip-vs-solve",
+     "name": {
+      "en": "Why clipping is not solving",
+      "zh": "为什么截断不等于求解"
+     }
+    },
+    {
+     "id": "explicit-pwa",
+     "name": {
+      "en": "The piecewise affine MPC law",
+      "zh": "分段仿射的 MPC 控制律"
+     }
+    }
+   ],
+   "checkpoints": 6
+  },
+  "mpc-m5-solving": {
+   "title": {
+    "en": "Solving: fast enough, every step",
+    "zh": "求解：每一步都要解得够快"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "checkpoint",
+    "derive",
+    "scene",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "formulation",
+     "name": {
+      "en": "Condensed versus sparse QPs",
+      "zh": "稠密形式与稀疏形式的 QP"
+     }
+    },
+    {
+     "id": "solver-families",
+     "name": {
+      "en": "Active set, interior point and ADMM",
+      "zh": "有效集法、内点法和 ADMM"
+     }
+    },
+    {
+     "id": "active-set",
+     "name": {
+      "en": "Working sets and multipliers",
+      "zh": "工作集与乘子"
+     }
+    },
+    {
+     "id": "warm-start",
+     "name": {
+      "en": "Warm starting across samples",
+      "zh": "跨采样的热启动"
+     }
+    },
+    {
+     "id": "real-time",
+     "name": {
+      "en": "Budgets, early termination and fallbacks",
+      "zh": "时间预算、提前终止与兜底"
+     }
+    }
+   ],
+   "checkpoints": 6
+  },
+  "mpc-m6-feasibility": {
+   "title": {
+    "en": "Stability and feasibility: the price of short sight",
+    "zh": "稳定与可行：短视的代价"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "scene",
+    "derive",
+    "checkpoint",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "trap",
+     "name": {
+      "en": "Why a feasible QP can still lead to a crash",
+      "zh": "为什么 QP 有解，最后仍可能撞"
+     }
+    },
+    {
+     "id": "terminal-set",
+     "name": {
+      "en": "What a terminal set is and how to build one",
+      "zh": "终端集是什么，怎样构造"
+     }
+    },
+    {
+     "id": "recursive-feasibility",
+     "name": {
+      "en": "Recursive feasibility: the shift argument",
+      "zh": "递归可行性：平移论证"
+     }
+    },
+    {
+     "id": "terminal-cost",
+     "name": {
+      "en": "Terminal cost and the cost decrease (stability)",
+      "zh": "终端代价与代价下降（稳定性）"
+     }
+    },
+    {
+     "id": "soft-constraints",
+     "name": {
+      "en": "Soft constraints and the slack price",
+      "zh": "软约束与松弛的价格"
+     }
+    }
+   ],
+   "checkpoints": 5
+  },
+  "mpc-m7-disturbances": {
+   "title": {
+    "en": "When the model is wrong",
+    "zh": "模型不准时"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "scene",
+    "derive",
+    "checkpoint",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "offset-cause",
+     "name": {
+      "en": "Why a model error leaves a steady offset",
+      "zh": "模型误差为什么留下稳态偏差"
+     }
+    },
+    {
+     "id": "offset-free",
+     "name": {
+      "en": "Offset-free MPC: estimate the disturbance, shift the target",
+      "zh": "无偏差 MPC：估计扰动，移动目标"
+     }
+    },
+    {
+     "id": "disturbance-placement",
+     "name": {
+      "en": "Where the disturbance model must enter",
+      "zh": "扰动模型该加在哪里"
+     }
+    },
+    {
+     "id": "kalman",
+     "name": {
+      "en": "What a Kalman filter does",
+      "zh": "卡尔曼滤波在做什么"
+     }
+    },
+    {
+     "id": "tube",
+     "name": {
+      "en": "The tube idea of robust MPC",
+      "zh": "鲁棒 MPC 的管道思想"
+     }
+    }
+   ],
+   "checkpoints": 7
+  },
+  "mpc-m8-nmpc": {
+   "title": {
+    "en": "Nonlinear MPC, and how to choose",
+    "zh": "非线性 MPC 与怎么选"
+   },
+   "mode": "essay",
+   "langs": [
+    "en",
+    "zh"
+   ],
+   "has_scene": true,
+   "kinds": [
+    "read",
+    "derive",
+    "checkpoint",
+    "scene",
+    "explore",
+    "code"
+   ],
+   "skills": [
+    {
+     "id": "vehicle-model",
+     "name": {
+      "en": "The kinematic bicycle model and its limits",
+      "zh": "运动学自行车模型及其适用范围"
+     }
+    },
+    {
+     "id": "nmpc-problem",
+     "name": {
+      "en": "Why nonlinear MPC is not a QP",
+      "zh": "为什么非线性 MPC 不是 QP"
+     }
+    },
+    {
+     "id": "shooting",
+     "name": {
+      "en": "Single vs multiple shooting",
+      "zh": "单次打靶与多重打靶"
+     }
+    },
+    {
+     "id": "sqp-rti",
+     "name": {
+      "en": "SQP and the real-time iteration",
+      "zh": "SQP 与实时迭代"
+     }
+    },
+    {
+     "id": "choose-controller",
+     "name": {
+      "en": "Choosing PID, LQR, MPC, NMPC or RL",
+      "zh": "在 PID、LQR、MPC、NMPC、RL 之间做选择"
+     }
+    }
+   ],
+   "checkpoints": 7
+  }
+ }
 };
 
 export const LOADERS: Record<string, () => Promise<Lesson>> = {
-
+  "mpc-m1-lookahead": () => Promise.all([import('./m1_lookahead'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m2-model": () => Promise.all([import('./m2_model'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m3-cost": () => Promise.all([import('./m3_cost'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m4-constraints": () => Promise.all([import('./m4_constraints'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m5-solving": () => Promise.all([import('./m5_solving'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m6-feasibility": () => Promise.all([import('./m6_feasibility'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m7-disturbances": () => Promise.all([import('./m7_disturbances'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
+  "mpc-m8-nmpc": () => Promise.all([import('./m8_nmpc'), import('@mathnim/visuals/mpc')]).then(([m]) => m.lesson),
 };

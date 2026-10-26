@@ -102,7 +102,9 @@ kept there). This file is the short "where are we right now".
   - the math course split was declined for now;
   - mathviz-demo/ in the repo root is a stale copy (git-ignored), safe to delete.
 
-## MPC course in progress (2026-10-26 ~15:35, paused because the laptop lid closed)
+## MPC course: LIVE at https://lab.penghaolun.com/mpc (2026-10-26). All 8 lessons were published together. Notes below are kept for history
+
+### (was) MPC course in progress (2026-10-26 ~15:35, paused because the laptop lid closed)
 
 - **Plan:** docs/lessons/mpc/README.md (with the update at its end) and docs/lessons/mpc/AGENT-BRIEF.md, which every lesson agent follows.
 - **User decisions:**

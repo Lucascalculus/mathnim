@@ -184,3 +184,73 @@ describe('what the M4 pictures draw', () => {
     expect(feasible([9.3, 1.8])).toBe(false);
   });
 });
+
+describe('the numbers in the M4 lesson text', () => {
+  const ids = (x0: Vec) => ids_of(solve_plan(x0).active).sort();
+  it('the key states (two-move QP)', () => {
+    // (8, 0): a1 saturates, a2 re-planned positive; lambda of a1 <= 1 is 9.06
+    let s = solve_plan([8, 0]);
+    expect(unconstrained([8, 0])[0]).toBeCloseTo(1.465, 2);
+    expect(unconstrained([8, 0])[1]).toBeCloseTo(-0.453, 2);
+    expect(s.z[1]).toBeCloseTo(0.253, 2);
+    expect(s.lambda[ROW_INDEX['a1+']]).toBeCloseTo(9.06, 1);
+    expect(horizon_J(s.z, [8, 0])).toBeCloseTo(23.35, 1);
+    expect(horizon_J(clipped([8, 0]), [8, 0])).toBeCloseTo(24.17, 1);
+    // (7, 0): M3's law asks 2.44; clip brakes -0.75 in the 2nd second, best pushes +1
+    expect(unconstrained([7, 0])[0]).toBeCloseTo(2.442, 2);
+    expect(clipped([7, 0])[1]).toBeCloseTo(-0.754, 2);
+    s = solve_plan([7, 0]);
+    expect(s.z[0]).toBeCloseTo(1, 9);
+    expect(s.z[1]).toBeCloseTo(1, 9);
+    expect(ids([7, 0])).toEqual(['a1+', 'a2+']);
+    expect(horizon_J(s.z, [7, 0])).toBeCloseTo(79.57, 1);
+    expect(horizon_J(clipped([7, 0]), [7, 0])).toBeCloseTo(87.06, 1);
+    // (6, 1.5): best (0.5, 0) on both speed rows; the clipped plan breaks v(1 s) <= 2
+    s = solve_plan([6, 1.5]);
+    expect(s.z[0]).toBeCloseTo(0.5, 6);
+    expect(s.z[1]).toBeCloseTo(0, 6);
+    // clipped = (1, -1): v(1 s) = 2.5 m/s, over the limit
+    expect(clipped([6, 1.5])).toEqual([1, -1]);
+    expect(slack_of(ROW_INDEX['v1+'], clipped([6, 1.5]), [6, 1.5])).toBeCloseTo(0.5, 9);
+    expect(horizon_J(clipped([6, 1.5]), [6, 1.5])).toBeLessThan(horizon_J(s.z, [6, 1.5]));
+    // (7.1, 1.9): only the wall at 2 s; the clipped (= no-limits) plan breaks it
+    expect(ids([7.1, 1.9])).toEqual(['p2']);
+    expect(slack_of(ROW_INDEX['p2'], clipped([7.1, 1.9]), [7.1, 1.9])).toBeGreaterThan(0);
+    expect(solve_plan([7.1, 1.9]).lambda[ROW_INDEX['p2']]).toBeCloseTo(1.08, 1);
+    expect(horizon_J(s.z, [6, 1.5])).toBeCloseTo(89.13, 1);
+    expect(horizon_J(clipped([6, 1.5]), [6, 1.5])).toBeCloseTo(83.52, 1);
+    const w = solve_plan([7.1, 1.9]);
+    expect(w.z[0]).toBeCloseTo(-0.313, 2);
+    expect(w.z[1]).toBeCloseTo(-0.861, 2);
+    expect(clipped([7.1, 1.9])[0]).toBeCloseTo(-0.272, 2);
+    expect(clipped([7.1, 1.9])[1]).toBeCloseTo(-0.758, 2);
+    expect(horizon_J(w.z, [7.1, 1.9])).toBeCloseTo(30.15, 1);
+    expect(horizon_J(clipped([7.1, 1.9]), [7.1, 1.9])).toBeCloseTo(30.09, 1);
+    expect(COST.H[0][1]).toBeCloseTo(4.95, 2);
+    // (9, 0.2): nothing active
+    expect(ids([9, 0.2])).toEqual([]);
+    expect(feasible([9.3, 1.8])).toBe(false);
+    expect(feasible([9.5, 1.8])).toBe(false);
+  });
+  it('lambda is the price of a limit: relaxing a1 <= 1 by 0.01 lowers J* by about 0.09', () => {
+    const x0 = [8, 0];
+    const base = solve_plan(x0);
+    const relaxed = (d: number) => {
+      // same QP with the a1 limit at 1 + d (solve_plan uses ROWS, so shift via a modified rhs)
+      const old = ROWS[ROW_INDEX['a1+']].w;
+      (ROWS[ROW_INDEX['a1+']] as { w: number }).w = old + d;
+      const r = solve_plan(x0);
+      (ROWS[ROW_INDEX['a1+']] as { w: number }).w = old;
+      return r;
+    };
+    const drop = (d: number) => cost(base.z, x0) - cost(relaxed(d).z, x0);
+    expect(drop(0.01)).toBeCloseTo(0.0896, 3);
+    expect(drop(0.01)).toBeCloseTo(base.lambda[ROW_INDEX['a1+']] * 0.01, 2);
+    expect(drop(0.1)).toBeCloseTo(0.81, 1);
+  });
+  it('H of the two-move QP', () => {
+    expect(COST.H[0][0]).toBeCloseTo(26.97, 1);
+    expect(COST.H[0][1]).toBeCloseTo(4.95, 1);
+    expect(COST.H[1][1]).toBeCloseTo(3.27, 1);
+  });
+});
