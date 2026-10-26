@@ -178,7 +178,7 @@ export const lesson: Lesson = {
       ],
     },
     {
-      id: 'sig-1', kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice',
+      id: 'sig-1', title: T('A team that can write the answer', '会写标准答案的团队'), kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice',
       group: SIG,
       prompt: T('The legal team can write a model contract summary for any contract.', '法务团队能给任何一份合同写出标准的摘要。'),
       question: { type: 'choice', options: [
@@ -189,7 +189,7 @@ export const lesson: Lesson = {
       ] },
     },
     {
-      id: 'sig-2', kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice', group: SIG,
+      id: 'sig-2', title: T('Reviewers who can only compare', '只会比较好坏的评审'), kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice', group: SIG,
       prompt: T('Reviewers cannot write a perfect reply, but they reliably agree on which of two replies is more appropriate.', '评审员写不出完美的回复，但能稳定判断两份回复哪份更得体。'),
       question: { type: 'choice', options: [
         { id: 'sft', label: T('SFT', 'SFT'), feedback: T('SFT needs good demonstrations - here nobody can write them.', 'SFT 需要好的示范，这里没人写得出来。') },
@@ -199,7 +199,7 @@ export const lesson: Lesson = {
       ] },
     },
     {
-      id: 'sig-3', kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice', group: SIG,
+      id: 'sig-3', title: T('Half a million tickets a day', '每天 50 万张工单'), kind: 'checkpoint', skill: 'a1-signals', purpose: 'practice', group: SIG,
       prompt: T('500,000 support tickets a day must be routed to one of 12 queues; 20,000 past tickets are labelled with the right queue.', '每天 50 万张工单要分到 12 个处理队列之一；已有 2 万张历史工单标好了队列。'),
       question: { type: 'choice', options: [
         { id: 'enc', label: T('encoder classifier', '编码器分类模型'), correct: true },

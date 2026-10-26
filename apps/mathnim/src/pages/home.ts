@@ -8,6 +8,7 @@ import { check_params, get_visual } from '@mathnim/visuals';
 import { COURSES, all_lessons, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
 import type { Route } from '../router';
+import { ready_visuals } from '../cjk_font';
 import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '../store';
 
 /** About how long: "45 min", "1.5 h". */
@@ -42,7 +43,7 @@ function course_card(c: Course): string {
       <a class="course-link" href="${course_path(c)}">
         ${cover(c)}
         <div class="course-name">${math_html(tr(c.title, lang))}</div>
-        ${c.summary ? `<div class="muted course-sum" title="${esc(tr(c.summary, lang))}">${math_html(tr(c.summary, lang))}</div>` : ''}
+        ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
         <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
         ${go ? progress_bar(done, all.length) : ''}
       </a>
@@ -123,6 +124,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     </div>`;
   draw_thumbnails(root);
   celebrate(root, c);
+  up_next(root, c);
   const stop_crown = play_crown(root, c);
   const stop_cover = play_cover(root, c);
   return () => {
@@ -133,6 +135,22 @@ export function course_page(root: HTMLElement, route: Route): () => void {
 
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
+
+/** Back from a finished lesson (?after=<lesson>): the next lesson's card is marked "next" and scrolled to, after the map. */
+function up_next(root: HTMLElement, c: Course): void {
+  const params = new URLSearchParams(location.search);
+  const after = params.get('after');
+  if (!after) return;
+  history.replaceState(null, '', location.pathname);
+  const all = lessons_of(c);
+  const at = all.findIndex((l) => l.id === after);
+  const next = all.slice(at + 1).find((l) => lesson_status(l.id) !== 'done') ?? all.find((l) => lesson_status(l.id) !== 'done');
+  const card = next && root.querySelector<HTMLElement>(`.lesson-card[href="${lesson_path(next.id)}"]`);
+  if (!card) return;
+  card.classList.add('up-next');
+  card.insertAdjacentHTML('beforeend', `<span class="up-next-tag">${esc(t('up_next'))} →</span>`);
+  setTimeout(() => card.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }), 1200);
+}
 
 /** Questions of this course that are due again (spaced repetition): one quiet line under the map, only when there are some. */
 function review_line(c: Course): string {
@@ -318,7 +336,7 @@ function play_cover(root: HTMLElement, c: Course): () => void {
   if (!fig || !canvas || !m || matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
   void (async () => {
     try {
-      await m.pack?.();
+      await Promise.all([m.pack?.(), ready_visuals()]);
       const v = get_visual(m.visual);
       if (!v || !alive) return;
       const raw = 'lang' in v.params ? { ...m.params, lang: ui_lang() } : { ...m.params };
@@ -479,6 +497,7 @@ async function draw_one(c: HTMLCanvasElement): Promise<void> {
     return;
   }
   try {
+    await ready_visuals();
     const spec: any = (step as any).scene;
     const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: Math.random, lang: ui_lang() });
     const player = new ScenePlayer(scene, c, { audio: false });

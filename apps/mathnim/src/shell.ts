@@ -57,7 +57,7 @@ body{margin:0;background:#fbfbfa}
 .course-card:hover{transform:translateY(-2px)}
 .course-card .thumb{width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#f3f4f8,#e9ebf2);border:1px solid var(--mn-border);display:block;object-fit:cover}
 .course-name{font-weight:700;font-size:19px;letter-spacing:-.01em}
-.course-sum{font-size:14px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.course-sum{font-size:14px;line-height:1.55}
 .course-card .meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mn-muted)}
 .course-progress{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
 .course-progress i{display:block;height:100%;background:var(--mn-good)}
@@ -77,6 +77,14 @@ body{margin:0;background:#fbfbfa}
 .hero-coming{margin:12px 0 4px;font-size:14px;color:var(--mn-muted)}
 .hero-go .mn-btn{text-decoration:none}
 .course-hero>.course-progress{margin-top:20px}
+.lesson-card.up-next{border-color:var(--course-accent,var(--mn-accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 18%,transparent),var(--mn-shadow)}
+.up-next-tag{align-self:flex-start;margin-top:2px;padding:7px 14px;border-radius:999px;background:var(--mn-fg);color:var(--mn-bg);font-size:13.5px;font-weight:600}
+.lesson-done{min-height:50vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:22px;animation:ld-in .5s cubic-bezier(.2,.8,.2,1) both}
+.ld-check{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--mn-good);color:#fff;font-size:30px;animation:ld-pop .6s cubic-bezier(.3,1.6,.5,1) .1s both}
+@keyframes ld-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ld-pop{from{transform:scale(.4)}to{transform:none}}
+/* the mastery percentage is not shown: it read as a failing mark */
+.mn-mastery{display:none!important}
 .hero-review{display:inline-block;margin-top:16px;font-size:13.5px;color:var(--course-accent,var(--mn-accent));text-decoration:none}
 .hero-review:hover{text-decoration:underline}
 /* the cover is the course's signature animation, in proportion, framed like the lesson pictures; a click replays it */

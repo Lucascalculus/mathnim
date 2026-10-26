@@ -306,7 +306,7 @@ export const lesson: Lesson = {
       ],
     },
     {
-      id: 'diag-1', kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check',
+      id: 'diag-1', title: T('The right chunk, ranked 37th', '正确的块排在第 37 位'), kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check',
       group: case_group('a2-diag', T('Diagnose', '诊断'), [{ type: 'p', text: T('A company assistant answers questions from internal documents. For each symptom, choose the first thing to fix.', '一个公司助手根据内部文档回答问题。每个症状，选出最先该修的地方。') }]),
       prompt: T('The correct chunk exists, but is ranked 37th; the prompt holds 10 chunks.', '正确的块存在，但排在第 37 位；提示里放 10 块。'),
       question: { type: 'choice', options: [
@@ -316,7 +316,7 @@ export const lesson: Lesson = {
       ] },
     },
     {
-      id: 'diag-2', kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check', group: case_group('a2-diag', T('Diagnose', '诊断'), []),
+      id: 'diag-2', title: T('An answer from the old version', '回答引用了旧版本'), kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check', group: case_group('a2-diag', T('Diagnose', '诊断'), []),
       prompt: T('The right chunk is in the prompt, but the answer quotes a number from an outdated version of the same policy, also in the prompt.', '正确的块在提示里，但回答引用了同一份规定旧版本里的数字，旧版本也在提示里。'),
       question: { type: 'choice', options: [
         { id: 'a', label: T('Filter by date and version, and say "if versions conflict, use the newest" (FP4)', '按日期和版本过滤，并规定"版本冲突时以最新为准"（FP4）'), correct: true },
@@ -325,7 +325,7 @@ export const lesson: Lesson = {
       ] },
     },
     {
-      id: 'diag-3', kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check', group: case_group('a2-diag', T('Diagnose', '诊断'), []),
+      id: 'diag-3', title: T('A product the documents never mention', '文档里没有的产品'), kind: 'checkpoint', skill: 'a2-failure-diagnosis', purpose: 'check', group: case_group('a2-diag', T('Diagnose', '诊断'), []),
       prompt: T('A user asks about a product the documents never mention; the assistant answers confidently with specs.', '用户问了一款文档里根本没有的产品，助手自信地给出了参数。'),
       question: { type: 'choice', options: [
         { id: 'a', label: T('Instruct it to say when the documents do not contain the answer, and add such questions to the test set (FP1)', '规定文档里没有答案时要明说，并在评测集里加入这类问题（FP1）'), correct: true },

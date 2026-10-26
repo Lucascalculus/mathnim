@@ -38,6 +38,7 @@ const CSS = `
 .rail-q:hover,.mn-rail .mn-chip:hover{color:var(--mn-fg);border:0}
 .rail-talk.active .rail-qs{display:none}
 @keyframes rail-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.rail-talk.waiting{display:none!important}
 /* the step's conversations: a head each ("ASK · 01", its first question when folded or put away, "+ 02" to start the next) */
 .ask-head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
 .ask-head button{border:0;background:none;padding:0;cursor:pointer;font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
@@ -65,6 +66,7 @@ const CSS = `
 .mn-rail .mn-answer-text:not(:empty){animation:ink-in 1.1s ease-out both}
 @keyframes ink-in{from{opacity:0;filter:blur(5px)}to{opacity:1;filter:none}}
 .mn-rail .mn-card details,.mn-rail .mn-card .mn-status{display:none}
+.mn-rail .ai-fail{font:italic 14px/1.6 ${SERIF};color:var(--mn-muted)}
 .mn-rail .mn-card .mn-actions .mn-btn{border:0;background:none;box-shadow:none;padding:2px 0;font:italic 13.5px/1.4 ${SERIF};color:var(--mn-muted);cursor:pointer}
 .mn-rail .mn-card .mn-actions .mn-btn:hover{color:var(--mn-accent)}
 .mn-rail .mn-chips{flex-direction:column;align-items:stretch;gap:0}
@@ -142,7 +144,7 @@ async function starters(cl: CourseLesson, lesson: Lesson, s: Step, view: LessonV
   } catch {
     /* none kept */
   }
-  const page = is_text_step(s) ? describe_step(s, lang) : [s.narration ? view.runtime.text(s.narration) : '', view.root.querySelector('.mn-side .mn-prompt')?.textContent ?? ''].join('\n');
+  const page = is_text_step(s) ? describe_step(s, lang) : [s.narration ? view.runtime.text(s.narration) : '', view.runtime.step === s ? view.root.querySelector('.mn-side .mn-prompt')?.textContent ?? '' : ''].join('\n');
   const zh = lang === 'zh';
   const system = `You write the two questions a curious, sharp learner would most want to ask right after reading one page of a lesson. Each question: in ${zh ? 'Simplified Chinese, at most 18 characters' : 'English, at most 10 words'}; about something specific on this page; asks why, what for, or what would happen, not for a definition; not a quiz question. Reply with JSON only: {"questions": ["...", "..."]}`;
   const content = `LESSON: ${tr(lesson.title, lang)}\nPAGE: ${tr(s.title, lang)}\n\n${page.slice(0, 2600)}`;
@@ -289,6 +291,8 @@ class Note {
       },
       empty_question: () => (this.phrase && !this.panel.transcript().length ? t('explain_passage') : null),
       on_card: (card) => {
+        // no words after a while (no model, the network, too many questions): say so rather than wait in silence
+        setTimeout(() => this.no_answer(card), 25000);
         this.busy = true;
         el.classList.add('busy');
         rail.talking(this);
@@ -298,7 +302,8 @@ class Note {
         this.fold_earlier(card);
         rail.layout();
       },
-      on_done: () => {
+      on_done: (card) => {
+        this.no_answer(card, true);
         this.busy = false;
         el.classList.remove('busy');
         this.save();
@@ -330,6 +335,15 @@ class Note {
       this.mark?.addEventListener('mouseleave', () => lit(false));
       this.mark?.addEventListener('click', () => this.fold(false, true));
     }
+  }
+  /** A card left without an answer gets one short line; `done` checks at once, else only if nothing has come yet. */
+  private no_answer(card: HTMLElement, done = false): void {
+    const words = card.querySelector('.mn-answer-text')?.textContent?.trim();
+    const picture = card.querySelector('.mn-picture canvas, .mn-wait');
+    if (words || (!done && picture) || card.querySelector('.ai-fail') || !card.isConnected) return;
+    card.querySelector('.mn-body')?.append(Object.assign(document.createElement('div'), { className: 'ai-fail', textContent: t('ai_offline') }));
+    this.busy = false;
+    this.el.classList.remove('busy');
   }
   /** The ink of the conversation's i-th question: a note starts from its own, the step's conversation from the first. */
   private ink_of(i: number): number {
@@ -405,6 +419,8 @@ export class AskRail {
     this.view = view;
     this.off = view.runtime.on((e) => {
       if (e.type === 'step') this.on_step();
+      // on a question step the block waits until the answer and its explanation are out
+      else if (e.type === 'graded' && (e.final || e.grade.correct)) this.talk.classList.remove('waiting');
       else if (e.type === 'page') requestAnimationFrame(() => this.on_page());
     });
     this.on_step();
@@ -503,6 +519,7 @@ export class AskRail {
     this.qs.replaceChildren();
     const s = this.view?.runtime.step;
     if (!s || !this.view) return;
+    this.talk.classList.toggle('waiting', s.kind === 'checkpoint');
     // the step's conversations, kept from before (ASK · 01, 02, …); the newest is open
     const saved = load_notes(this.lesson.id);
     const keys = Object.keys(saved).filter((k) => k === `${s.id}#talk` || k.startsWith(`${s.id}#talk.`));
@@ -520,8 +537,16 @@ export class AskRail {
         b.onclick = () => void this.convo?.panel.ask(q);
         return b;
       }));
-    }, (e) => console.warn('starter questions', e));
+    }, (e) => console.warn('starter questions', e)).finally(() => this.preload(s));
     this.layout();
+  }
+  /** The questions of the next two steps, written while this one is read (kept, so they appear at once). */
+  private preload(from: Step): void {
+    const view = this.view;
+    if (!view || !has_model()) return;
+    const steps = view.runtime.lesson.steps;
+    const next = steps.slice(steps.indexOf(from) + 1).filter((s) => s.kind !== 'checkpoint' && !s.branch_only).slice(0, 2);
+    void next.reduce<Promise<unknown>>((p, s) => p.then(() => starters(this.cl, this.lesson, s, view).catch(() => null)), Promise.resolve());
   }
   private on_page(): void {
     const view = this.view;

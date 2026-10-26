@@ -434,7 +434,8 @@ export class LessonView {
         const card = h('div', 'mn-yourturn', `<div class="mn-yt-head"><span class="mn-yt-icon" aria-hidden="true">${ICON.explore}</span>${esc(t('your_turn'))}</div><div>${prompt_html}</div><div class="mn-help">${Object.keys(scrubs).length ? esc(t('drag_numbers')) : ''}${esc(t('drag_handle'))}</div>`);
         this.el.prompt.append(card);
         this.bind_scrubs(card, e.step.scrub);
-        const cont = this.button(t('continue'), () => this.runtime.next(), true);
+        // one main button at a time: the task's own action while the world is unsolved, then "continue"
+        const cont = this.button(t('continue'), () => this.runtime.next(), !(e.step.actions ?? []).some((a) => a.primary));
         cont.dataset.role = 'continue';
         cont.disabled = !this.runtime.can_continue();
         this.el.actions.append(cont);
@@ -471,6 +472,10 @@ export class LessonView {
         card?.append(h('div', 'mn-goal', `<span aria-hidden="true">✓</span> ${math_html(e.message)}${stars ? `<span class="mn-stars" aria-label="${esc(t('n_of_3_stars', { n: e.stars! }))}">${stars}</span>` : ''}`));
         const cont = this.el.actions.querySelector<HTMLButtonElement>('[data-role=continue]');
         if (cont) cont.disabled = !this.runtime.can_continue();
+        if (cont && e.final && this.runtime.can_continue()) {
+          cont.classList.add('primary');
+          for (const b of this.el.actions.querySelectorAll('[data-role=action]')) b.classList.remove('primary');
+        }
         if (e.final && e.step.skill) {
           this.touched.add(e.step.skill);
           this.render_mastery();

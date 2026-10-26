@@ -5,6 +5,8 @@
 // offline), else from the jsDelivr CDN (about 1.6 MB, cached by the browser).
 // Until it is loaded, or if it cannot be, visuals keep English labels rather
 // than draw empty boxes.
+import { ui_lang } from '@mathnim/present';
+import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
 import { register_font } from 'manim-web/ext/text/fonts';
 
 const FILE = 'noto-sans-sc-chinese-simplified-400-normal.woff';
@@ -35,4 +37,13 @@ export function ensure_cjk_font(): Promise<boolean> {
     return false;
   })();
   return loading;
+}
+
+/**
+ * Before drawing a visual in Chinese: the font, loaded the first time one is needed (pages that only show pictures,
+ * like the home page, never load it). Visuals draw English labels until it is there.
+ */
+export async function ready_visuals(): Promise<void> {
+  if (ui_lang() !== 'zh' || ready) return;
+  if (await ensure_cjk_font()) set_ft_lang('zh');
 }

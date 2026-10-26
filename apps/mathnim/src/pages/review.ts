@@ -7,6 +7,7 @@ import { apply_theme } from '../lessons/best-angle/theme';
 import { all_lessons, ensure_lesson, playable } from '../course';
 import { load_settings } from '../settings';
 import { learner, log } from '../store';
+import { ready_visuals } from '../cjk_font';
 
 interface Item {
   lesson: Lesson;
@@ -32,6 +33,8 @@ export async function review(root: HTMLElement): Promise<() => void> {
     if (location.pathname !== '/review') return () => {};
     root.innerHTML = '';
   }
+  await ready_visuals();
+  if (location.pathname !== '/review') return () => {};
   const items = practice_items();
   const byId = new Map(items.map((i) => [`${i.lesson.id}/${i.step.id}`, i]));
   let queue = learner.due().map((r) => byId.get(r.id)).filter((x): x is Item => !!x);

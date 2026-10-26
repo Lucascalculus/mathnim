@@ -9,6 +9,7 @@ import { load_lab } from '../labs';
 import { render_lab } from './lab';
 import { mount_outline } from '../outline';
 import { navigate, type Route } from '../router';
+import { ready_visuals } from '../cjk_font';
 import { has_model, load_settings, provider } from '../settings';
 import { AskRail } from '../side_chat';
 import { learner, log, remember_last } from '../store';
@@ -37,6 +38,8 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   }
   const lesson = playable(cl);
   if (!lesson) return generate_view(root, cl);
+  await ready_visuals(); // (Chinese labels need their font, loaded the first time a visual is drawn)
+  if (location.pathname !== here) return () => {};
   remember_last(cl.id);
   const host = document.createElement('div');
   host.className = 'lesson-main';
@@ -72,6 +75,14 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
     navigate,
     lab: course && lab ? { title: t('lab_try', { id: lab.id, title: tr(lab.title, lang) }), note: [lab_setups(lab, lang), t('lab_card_note')].filter(Boolean).join(' · '), href: lab_path(course, lab.slug) } : undefined,
     rail: rail.el,
+    // the end of a lesson: a moment of "lesson complete", then back to the course, where its map moves on and the
+    // next lesson waits (the course page scrolls to it)
+    on_finished: course
+      ? () => {
+          host.innerHTML = `<div class="lesson-done"><span class="ld-check" aria-hidden="true">✓</span><b>${esc(t('lesson_complete'))}</b></div>`;
+          setTimeout(() => location.pathname === here && navigate(`${course_path(course)}?after=${encodeURIComponent(cl.id)}`), 1500);
+        }
+      : undefined,
     // a passage selected on the page: asked about on the card
     help: (ask) => rail.open(ask),
   });

@@ -121,6 +121,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     const cur = o.view.runtime.index;
     let last: string | undefined;
     const items: string[] = [];
+    let untitled = 0;
     o.lesson.steps.forEach((s: Step, i) => {
       if (s.branch_only) return;
       const chapter = s.chapter !== undefined ? tr(s.chapter, lang) : undefined;
@@ -128,7 +129,8 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
         last = chapter;
         items.push(`<li class="ol-chapter">${math_html(chapter)}</li>`);
       }
-      const title = tr(s.title, lang) || s.id;
+      // (a step without a title is never shown by its id: it is the n-th practice)
+      const title = tr(s.title, lang) || t('practice_n', { n: ++untitled });
       items.push(`<li><button type="button" class="ol-step${i < cur ? ' done' : i === cur ? ' now' : ''}" data-step="${esc(s.id)}"${i === cur ? ' aria-current="step"' : ''}><span class="ol-dot" aria-hidden="true"></span><span>${math_html(title)}</span></button></li>`);
     });
     steps.innerHTML = items.join('');
