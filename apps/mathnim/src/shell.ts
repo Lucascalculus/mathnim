@@ -4,8 +4,8 @@ import { inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
 import './i18n';
 import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
-import { learner } from './store';
 import { load_settings, set_language } from './settings';
+import { settings_panel } from './pages/settings';
 
 const CSS = `
 body{margin:0;background:#fbfbfa}
@@ -18,6 +18,13 @@ body{margin:0;background:#fbfbfa}
 .nav a.on{color:var(--mn-fg);font-weight:600}
 .nav .count{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--mn-accent);color:#fff;font-size:11px;text-align:center;margin-left:4px}
 .nav .langs{margin-left:auto}
+.nav{position:sticky}
+.gear{flex:none;display:grid;place-items:center;width:32px;height:32px;margin-left:-10px;border:0;border-radius:50%;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s,background-color .15s,transform .4s}
+.gear:hover,.gear[aria-expanded=true]{color:var(--mn-fg);background:var(--mn-faint)}
+.gear[aria-expanded=true]{transform:rotate(60deg)}
+.set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:6px 18px 12px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
+.set-pop[hidden]{display:none}
+@media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
 .langs{display:inline-flex;border:1px solid var(--mn-border);border-radius:999px;padding:2px;gap:2px;background:var(--mn-panel);flex:none}
 .langs button{border:0;background:transparent;color:var(--mn-muted);font:inherit;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;cursor:pointer;line-height:1.4}
 .langs button[aria-pressed=true]{background:var(--mn-fg);color:var(--mn-bg)}
@@ -66,6 +73,8 @@ body{margin:0;background:#fbfbfa}
 .hero-coming{margin:12px 0 4px;font-size:14px;color:var(--mn-muted)}
 .hero-go .mn-btn{text-decoration:none}
 .course-hero>.course-progress{margin-top:20px}
+.hero-review{display:inline-block;margin-top:16px;font-size:13.5px;color:var(--course-accent,var(--mn-accent));text-decoration:none}
+.hero-review:hover{text-decoration:underline}
 /* the cover is the course's signature animation, in proportion, framed like the lesson pictures; a click replays it */
 .hero-feature{flex:none;position:relative;margin:0;height:196px;aspect-ratio:16/9;border:1px solid var(--mn-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}
 .hero-feature img,.hero-feature canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
@@ -178,14 +187,7 @@ label.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
 @media (max-width:640px){.catalog{grid-template-columns:minmax(0,1fr)}.course-hero{padding:18px}.hero-top{flex-direction:column;align-items:stretch;gap:18px}.hero-feature{order:-1;height:auto;width:100%}.course-hero h1{font-size:26px}.milestones{flex-direction:column;margin-top:20px}.milestones .ms{flex:none;padding-bottom:14px}.milestones .ms::after,.milestones .ms.done::before{top:9px;bottom:-9px;left:8px;right:auto;width:2px;height:auto}.milestones a{flex-direction:row;align-items:center;gap:12px;font-size:14px;padding-right:0}.milestones .goal{margin:0 0 0 -4px}.resume-title{font-size:18px}.app-shell{--mn-sticky-top:52px}.nav{gap:14px;padding:12px 14px}.langs{margin-left:auto}.page{padding:16px 12px}
  .bar{grid-template-columns:1fr 84px;row-gap:4px}.bar .track{grid-column:1/-1;grid-row:2}}
 /* phones: logo and language on top, a tab bar at the bottom (not inside lessons) */
-.tabbar{display:none}
-@media (max-width:699px){.nav .navlink{display:none}.langs{margin-left:auto}
- .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--mn-panel) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--mn-border);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
- .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--mn-muted);text-decoration:none;position:relative;padding:2px 0}
- .tabbar a.on{color:var(--mn-accent);font-weight:600}
- .tabbar .count{position:absolute;top:-2px;left:58%}
- .app-shell:not(.in-lesson) .page{padding-bottom:88px}
- .in-lesson .tabbar{display:none}}
+
 @media (max-width:420px){.nav .brand .name{display:none}.nav{gap:11px;padding:12px 10px}.nav a{font-size:13.5px}.langs button{padding:3px 7px}}
 `;
 
@@ -196,12 +198,7 @@ let relocalizing = false;
 export const is_relocalizing = () => relocalizing;
 const LANG_LABEL: Record<Lang, string> = { en: 'EN', zh: '中文' };
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
-const TAB_ICON: Record<string, string> = {
-  home: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
-  review: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  dashboard: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-  settings: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-};
+const GEAR = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M10.3 3.2h3.4l.5 2.4 1.7.9 2.3-.8 1.7 2.9-1.8 1.6v2l1.8 1.6-1.7 2.9-2.3-.8-1.7.9-.5 2.4h-3.4l-.5-2.4-1.7-.9-2.3.8-1.7-2.9 1.8-1.6v-2L4.3 8.6 6 5.7l2.3.8 1.7-.9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
 export function mount_shell(pages: Record<Route['page'], Page>): void {
   inject_styles();
@@ -214,22 +211,26 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
   nav.className = 'nav';
   const page = document.createElement('main');
   page.className = 'page';
-  // phones: a bottom tab bar instead of the links in the top bar (hidden inside lessons)
-  const tabs = document.createElement('nav');
-  tabs.className = 'tabbar';
-  app.append(nav, page, tabs);
+  app.append(nav, page);
+  // settings: a panel that drops from the gear (closed by a click elsewhere, Escape, or going to another page)
+  const pop = document.createElement('div');
+  pop.className = 'set-pop card';
+  pop.hidden = true;
+  const close_settings = () => {
+    pop.hidden = true;
+    nav.querySelector('.gear')?.setAttribute('aria-expanded', 'false');
+  };
+  document.addEventListener('pointerdown', (e) => {
+    if (!pop.hidden && !pop.contains(e.target as Node) && !(e.target as Element).closest?.('.gear')) close_settings();
+  });
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && close_settings());
   let current: Route = parse(location.pathname);
   const render_nav = () => {
-    const here = current.page === 'course' || current.page === 'lesson' || current.page === 'lab' ? 'home' : current.page;
-    const due = learner.due().length;
     const lang = ui_lang();
-    const count = due ? `<span class="count">${due}</span>` : '';
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <a href="/" class="navlink ${here === 'home' ? 'on' : ''}">${t('nav_courses')}</a>
-      <a href="/review" class="navlink ${here === 'review' ? 'on' : ''}">${t('nav_review')}${count}</a>
-      <a href="/dashboard" class="navlink ${here === 'dashboard' ? 'on' : ''}">${t('nav_dashboard')}</a>
-      <a href="/settings" class="navlink ${here === 'settings' ? 'on' : ''}">${t('nav_settings')}</a>
-      <span class="langs" role="group" aria-label="${t('language')} / Language">${LANGS.map((l) => `<button type="button" data-lang="${l}" lang="${l === 'zh' ? 'zh-CN' : 'en'}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('')}</span>`;
+      <span class="langs" role="group" aria-label="${t('language')} / Language">${LANGS.map((l) => `<button type="button" data-lang="${l}" lang="${l === 'zh' ? 'zh-CN' : 'en'}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('')}</span>
+      <button type="button" class="gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button>`;
+    nav.append(pop);
     nav.querySelectorAll<HTMLButtonElement>('.langs button').forEach((b) => (b.onclick = async () => {
       // switching to Chinese may first load the Chinese font for the visuals (a second or two, once)
       if (b.getAttribute('aria-pressed') === 'true') return;
@@ -237,8 +238,13 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       b.style.opacity = '0.6';
       await set_language(b.dataset.lang as Lang);
     }));
-    const tab = (key: string, href: string, label: string, extra = '') => `<a href="${href}" class="${here === key ? 'on' : ''}"${here === key ? ' aria-current="page"' : ''}>${TAB_ICON[key]}<span>${label}</span>${extra}</a>`;
-    tabs.innerHTML = tab('home', '/', t('nav_home')) + tab('review', '/review', t('nav_review'), count) + tab('dashboard', '/dashboard', t('nav_dashboard')) + tab('settings', '/settings', t('nav_settings'));
+    const gear = nav.querySelector<HTMLButtonElement>('.gear')!;
+    gear.onclick = () => {
+      if (!pop.hidden) return close_settings();
+      pop.replaceChildren(settings_panel());
+      pop.hidden = false;
+      gear.setAttribute('aria-expanded', 'true');
+    };
     app.classList.toggle('in-lesson', current.page === 'lesson' || current.page === 'lab');
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   };
@@ -253,6 +259,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       const canonical = lesson_path(current.lesson);
       if (canonical !== location.pathname) history.replaceState(null, '', canonical + location.search);
     }
+    close_settings();
     render_nav();
     page.innerHTML = '';
     if (!keep_scroll) window.scrollTo(0, 0);
@@ -287,6 +294,5 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     }
     window.scrollTo(0, y);
   });
-  setInterval(render_nav, 30000);
   void route();
 }

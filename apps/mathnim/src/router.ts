@@ -15,15 +15,15 @@ export type Route =
   | { page: 'course'; course: Course }
   | { page: 'lesson'; course: Course; lesson: string }
   | { page: 'lab'; course: Course; lab: string }
-  | { page: 'review' | 'dashboard' | 'settings' };
+  | { page: 'review' | 'settings' };
 
-const OTHER = new Set(['review', 'dashboard', 'settings']);
+const OTHER = new Set(['review', 'settings']);
 
 /** The route of a path; unknown paths go home (and wrong course slugs to the lesson's own course). */
 export function parse(pathname: string): Route {
   const parts = pathname.split('/').filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return { page: 'home' };
-  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'dashboard' | 'settings' };
+  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' };
   const course = course_by_slug(parts[0]);
   if (course && parts.length === 1) return { page: 'course', course };
   if (course && parts[1] === 'labs' && parts[2]) return { page: 'lab', course, lab: parts[2] };

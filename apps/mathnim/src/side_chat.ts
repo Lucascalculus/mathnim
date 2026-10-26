@@ -38,6 +38,20 @@ const CSS = `
 .rail-q:hover,.mn-rail .mn-chip:hover{color:var(--mn-fg);border:0}
 .rail-talk.active .rail-qs{display:none}
 @keyframes rail-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* the step's conversations: a head each ("ASK · 01", its first question when folded or put away, "+ 02" to start the next) */
+.ask-head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.ask-head button{border:0;background:none;padding:0;cursor:pointer;font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
+.ask-id{flex:1;min-width:0;text-align:left;display:flex;gap:10px;align-items:baseline}
+.ask-n{flex:none;white-space:nowrap}
+.ask-id:hover,.ask-new:hover{color:var(--mn-accent)}
+.ask-sum{display:none;font:italic 13px/1.5 ${SERIF};letter-spacing:0;color:var(--mn-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rail-convo.folded .ask-sum,.rail-convo.shelved .ask-sum{display:block}
+.ask-new{flex:none;opacity:0;pointer-events:none;transition:opacity .2s}
+.rail-convo.has-q:not(.shelved) .ask-new{opacity:1;pointer-events:auto}
+.rail-convo.shelved .note-body{display:none}
+.rail-convo.shelved .ask-head{margin-bottom:4px}
+.rail-convo.folded .note-past,.rail-convo.folded .note-panel .mn-card{display:none}
+.rail-convo+.rail-convo{margin-top:2px}
 /* a conversation: each question under a stroke of highlighter, the answer in ink */
 .mn-rail .mn-ask{gap:12px}
 .mn-rail .mn-card{border:0;box-shadow:none;background:none;border-radius:0;overflow:visible}
@@ -83,8 +97,8 @@ const CSS = `
 /* the conversation block on wide screens: an engineering drawing (a dot grid, crop marks at the corners, a small label) */
 @media (min-width:901px){
 .rail-talk{margin-top:0;top:calc(var(--mn-sticky-top,58px) + 10px);max-height:calc(100vh - var(--mn-sticky-top,58px) - 20px)}
-.rail-talk{--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:30px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)}
-.rail-talk::before{content:'ASK · 01';position:absolute;top:11px;left:18px;font:500 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--m)}
+.rail-talk{--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:12px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)}
+
 .rail-talk .rail-q{font:500 14px/1.55 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;font-style:normal;color:var(--mn-fg);padding-left:18px;position:relative}
 .rail-talk .rail-q::before{content:'→';position:absolute;left:0;font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mn-accent)}
 .rail-talk .mn-ask form .mn-input{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -183,6 +197,9 @@ function next_ink(lesson_id: string): number {
   }
   return n % INKS.length;
 }
+
+/** A conversation's number from its key ("<step>#talk" is 1, "<step>#talk.2" is 2). */
+const ask_number = (key: string) => Number(/#talk\.(\d+)$/.exec(key)?.[1] ?? 1);
 
 /** The paragraphs of a text page a sentence can be selected in. */
 const PARAS = ['.mn-prose > p', '.mn-prose > ul > li', '.mn-prose > ol > li'].map((s) => `.mn-pagehost ${s}`).join(',');
@@ -357,6 +374,7 @@ export class AskRail {
   private talk: HTMLElement;
   private qs: HTMLElement;
   private convo: Note | null = null;
+  private convos: Note[] = [];
   private view: LessonView | null = null;
   private off: (() => void) | null = null;
   private notes = new Map<string, Note>();
@@ -416,7 +434,7 @@ export class AskRail {
     this.ro.disconnect();
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
-    this.convo?.destroy();
+    for (const c of this.convos) c.destroy();
     this.el.remove();
     this.view = null;
   }
@@ -427,7 +445,48 @@ export class AskRail {
   }
   /** A conversation started: the step's suggestions give way to it. */
   talking(n: Note): void {
-    if (n === this.convo) this.talk.classList.add('active');
+    if (n !== this.convo) return;
+    this.talk.classList.add('active');
+    requestAnimationFrame(() => this.label(n));
+  }
+
+  // ---------------------------------------------------------------- the step's conversations
+  /** A conversation with its head: "ASK · 0n" (a click folds it, or opens it when another is open), its first question when
+   *  folded or put away, and "+ 0n+1" to start the next one once it has a question. */
+  private add_convo(key: string, saved: Saved | undefined): Note {
+    const n = new Note(key, null, '', saved, this);
+    const num = ask_number(key);
+    const head = document.createElement('div');
+    head.className = 'ask-head';
+    head.innerHTML = `<button type="button" class="ask-id"><span class="ask-n">ASK · ${String(num).padStart(2, '0')}</span><span class="ask-sum"></span></button><button type="button" class="ask-new" aria-label="${esc(t('ask_new'))}" title="${esc(t('ask_new'))}">+ ${String(num + 1).padStart(2, '0')}</button>`;
+    head.querySelector<HTMLButtonElement>('.ask-id')!.onclick = () => (n === this.convo ? n.fold(!n.el.classList.contains('folded')) : this.show(n));
+    head.querySelector<HTMLButtonElement>('.ask-new')!.onclick = () => {
+      const s = this.view?.runtime.step;
+      if (!s) return;
+      const next = this.add_convo(`${s.id}#talk.${ask_number(this.convos[this.convos.length - 1].key) + 1}`, undefined);
+      this.show(next);
+      next.focus();
+    };
+    n.el.prepend(head);
+    this.convos.push(n);
+    this.talk.append(n.el);
+    this.label(n);
+    return n;
+  }
+  /** Open one conversation (unfolded, with the step's questions if it has none yet); put the others away to their head. */
+  private show(n: Note): void {
+    this.convo = n;
+    for (const c of this.convos) c.el.classList.toggle('shelved', c !== n);
+    n.el.classList.remove('folded');
+    n.el.querySelector('.note-body')!.prepend(this.qs);
+    this.talk.classList.toggle('active', n.asked);
+    this.layout();
+  }
+  /** The head shows the first question (seen when folded or put away); "+" appears once there is one. */
+  private label(n: Note): void {
+    const first = n.el.querySelector<HTMLElement>('.mn-card .mn-q');
+    n.el.querySelector('.ask-sum')!.textContent = first ? text_of(first) : '';
+    n.el.classList.toggle('has-q', !!first);
   }
 
   // ---------------------------------------------------------------- steps and pages
@@ -437,17 +496,20 @@ export class AskRail {
   private on_step(): void {
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
-    this.convo?.destroy();
+    for (const c of this.convos) c.destroy();
+    this.convos = [];
+    this.convo = null;
     this.ro.disconnect();
     this.qs.replaceChildren();
     const s = this.view?.runtime.step;
     if (!s || !this.view) return;
-    // the step's conversation, kept from before if there is one
-    const key = `${s.id}#talk`;
-    const saved = load_notes(this.lesson.id)[key];
-    this.convo = new Note(key, null, '', saved, this);
-    this.talk.classList.toggle('active', !!saved);
-    this.talk.append(this.convo.el);
+    // the step's conversations, kept from before (ASK · 01, 02, …); the newest is open
+    const saved = load_notes(this.lesson.id);
+    const keys = Object.keys(saved).filter((k) => k === `${s.id}#talk` || k.startsWith(`${s.id}#talk.`));
+    keys.sort((a, b) => ask_number(a) - ask_number(b));
+    for (const k of keys) this.add_convo(k, saved[k]);
+    if (!this.convos.length) this.add_convo(`${s.id}#talk`, undefined);
+    this.show(this.convos[this.convos.length - 1]);
     starters(this.cl, this.lesson, s, this.view).then((qs) => {
       if (this.view?.runtime.step !== s) return; // the learner moved on meanwhile
       this.qs.replaceChildren(...qs.map((q) => {

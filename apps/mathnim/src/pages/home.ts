@@ -8,7 +8,7 @@ import { check_params, get_visual } from '@mathnim/visuals';
 import { COURSES, all_lessons, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
 import type { Route } from '../router';
-import { last_in_course, lesson_status, map_seen, set_map_seen } from '../store';
+import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '../store';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -106,6 +106,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         ${cover_box ? `<figure class="hero-feature" title="${esc(t('cover_replay'))}">${still ? `<img src="${esc(still)}" alt="" onerror="this.remove()">` : ''}<canvas width="1280" height="720" aria-label="${esc(tr(c.title, lang))}"></canvas></figure>` : ''}
       </div>
       ${go ? milestones(c, go, lang) : ''}
+      ${review_line(c)}
     </header>
     ${about(c, lang)}
     <div class="units">${visible_units(c).map((u) => `
@@ -132,6 +133,13 @@ export function course_page(root: HTMLElement, route: Route): () => void {
 
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
+
+/** Questions of this course that are due again (spaced repetition): one quiet line under the map, only when there are some. */
+function review_line(c: Course): string {
+  const mine = new Set(lessons_of(c).map((l) => l.id));
+  const due = learner.due().filter((r) => mine.has(r.id.split('/')[0])).length;
+  return due ? `<a class="hero-review" href="/review">${esc(t('reviews_due', { n: due }))} →</a>` : '';
+}
 
 /** The learning map, a level route: the course's units as stops, named as on the page below (a check once all their
  *  lessons are done, the next one pulsing; each opens its first lesson not yet done), and a crown at the end, won by

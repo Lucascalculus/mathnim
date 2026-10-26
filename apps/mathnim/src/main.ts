@@ -3,7 +3,6 @@ import type { Lang } from '@mathnim/core';
 import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
 import { cjk_ready, ensure_cjk_font } from './cjk_font';
 import './i18n';
-import { dashboard } from './pages/dashboard';
 import { course_page, home } from './pages/home';
 import { lab_page, lesson_page } from './pages/lesson';
 import { review } from './pages/review';
@@ -21,5 +20,5 @@ const start_lang = load_settings().lang;
 Promise.allSettled([enable_dom_tex(), detect_server_providers(), start_lang === 'zh' ? ensure_cjk_font() : null]).finally(() => {
   visual_lang(start_lang);
   set_ui_lang(start_lang);
-  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, dashboard, settings: settings_page });
+  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, settings: settings_page });
 });

@@ -1,91 +1,128 @@
-// Settings: language, model access (kept in this browser only), narration and appearance.
-import { LANGS, type Lang } from '@mathnim/core';
+// Settings: a small panel that drops from the gear at the right of the top bar
+// (and the same panel on /settings). Changes apply at once. The language is in
+// the top bar itself; the model choice and keys are under "Advanced"; clearing
+// this browser's records asks first.
 import { esc, t } from '@mathnim/present';
-import { active_provider, load_settings, provider_label, save_settings, server_providers, set_language, type ProviderChoice, type Settings } from '../settings';
-
-/** Unsaved edits, kept while the page re-renders in a new language. */
-let draft: Settings | null = null;
-const LANG_NAME: Record<Lang, string> = { en: 'English', zh: '中文' };
+import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
 
 // the lesson narrator keeps its own switches under this key (see Narrator)
 const NARRATION = 'mathnim.narration';
-function narration(): { on: boolean; system: boolean } {
+function narration_on(): boolean {
   try {
-    const n = JSON.parse(localStorage.getItem(NARRATION) ?? '{}');
-    return { on: n.on ?? true, system: n.system ?? false };
+    return JSON.parse(localStorage.getItem(NARRATION) ?? '{}').on ?? true;
   } catch {
-    return { on: true, system: false };
+    return true;
   }
 }
+/** What clearing keeps: the settings themselves. */
+const KEEP = new Set(['mathnim.settings', NARRATION]);
 
-export function settings_page(root: HTMLElement): void {
-  const s = draft ?? load_settings();
-  draft = null;
-  const n = narration();
+const CSS = `
+.set-panel{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.set-row{display:flex;align-items:center;gap:14px;padding:12px 2px}
+.set-row+.set-row,.set-adv,.set-foot{border-top:1px solid var(--mn-border)}
+.set-row .set-what{flex:1;min-width:0}
+.set-row b{display:block;font-weight:600}
+.set-row small{display:block;color:var(--mn-muted);font-size:12.5px;margin-top:2px;line-height:1.45}
+.set-switch{position:relative;flex:none;width:38px;height:22px;border-radius:11px;border:0;padding:0;background:var(--mn-border);cursor:pointer;transition:background-color .2s}
+.set-switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.set-switch[aria-checked=true]{background:var(--mn-accent)}
+.set-switch[aria-checked=true]::after{transform:translateX(16px)}
+.set-adv>summary{cursor:pointer;list-style:none;padding:12px 2px;color:var(--mn-muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.set-adv>summary::-webkit-details-marker{display:none}
+.set-adv>summary::before{content:'›';transition:transform .15s;display:inline-block}
+.set-adv[open]>summary::before{transform:rotate(90deg)}
+.set-adv .field{margin:0 2px 10px}
+.set-foot{padding:12px 2px 2px;display:flex;align-items:center;gap:10px}
+.set-clear{border:0;background:none;padding:0;color:var(--mn-bad);font:inherit;font-size:13px;cursor:pointer}
+.set-clear:hover{text-decoration:underline}
+`;
+let injected = false;
+
+/** The panel: narration, the AI in use (the rest under Advanced), clearing this browser's records. */
+export function settings_panel(): HTMLElement {
+  if (!injected) {
+    injected = true;
+    const s = document.createElement('style');
+    s.textContent = CSS;
+    document.head.append(s);
+  }
+  const s = load_settings();
   const srv = server_providers();
   const opt = (v: ProviderChoice, label: string) => `<option value="${v}" ${s.provider === v ? 'selected' : ''}>${label}</option>`;
-  root.innerHTML = `<div class="card" style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
-    <h2>${esc(t('settings'))}</h2>
-    <h3 style="margin:0">${esc(t('language'))} / Language</h3>
-    <div class="row" role="radiogroup" aria-label="${esc(t('language'))}">${LANGS.map((l) => `<label class="row" style="gap:6px;cursor:pointer" lang="${l === 'zh' ? 'zh-CN' : 'en'}"><input type="radio" name="lang" value="${l}" ${s.lang === l ? 'checked' : ''}> ${LANG_NAME[l]}</label>`).join('')}</div>
-    <p class="muted" style="margin:-8px 0 0;font-size:13px">${esc(t('language_help'))}</p>
-    <h3 style="margin:8px 0 0">${esc(t('ai_model'))}</h3>
-    <p class="muted" style="margin:0" id="status"></p>
-    <label class="field">${esc(t('provider'))}<select class="mn-input" id="provider">
-      ${opt('auto', t('provider_auto'))}
-      ${opt('deepseek', `DeepSeek${srv.deepseek ? '' : t('no_key_here')}`)}
-      ${opt('anthropic', 'Claude (Anthropic)')}
-      ${opt('offline', t('provider_offline'))}
-    </select></label>
-    <div id="ds" class="col"><label class="field">${esc(t('deepseek_model'))}<input class="mn-input" id="dsmodel" value="${s.deepseek_model}"></label></div>
-    <div id="an" class="col">
-      <label class="field">${esc(t('anthropic_key'))}<input class="mn-input" id="key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${s.api_key}"></label>
-      <p class="muted" style="margin:-8px 0 0;font-size:12px">${esc(t('key_note'))}</p>
-      <label class="field">${esc(t('claude_model'))}<input class="mn-input" id="model" value="${s.model}"></label>
-      <label class="field">${esc(t('proxy_url'))}<input class="mn-input" id="base" placeholder="/api/anthropic" value="${s.base_url}"></label>
-    </div>
-    <h3 style="margin:8px 0 0">${esc(t('narration'))}</h3>
-    <label class="row"><input type="checkbox" id="voice" ${n.on ? 'checked' : ''}> ${esc(t('read_aloud'))}</label>
-    <label class="row"><input type="checkbox" id="system" ${n.system ? 'checked' : ''}> ${esc(t('system_voice'))}</label>
-    <h3 style="margin:8px 0 0">${esc(t('appearance'))}</h3>
-    <label class="row"><input type="checkbox" id="dark" ${s.dark ? 'checked' : ''}> ${esc(t('dark_ui'))}</label>
-    <div class="row"><button class="mn-btn primary" id="save">${esc(t('save'))}</button><span class="muted" id="saved"></span></div>
-  </div>`;
-  const $ = (id: string) => root.querySelector<HTMLInputElement>('#' + id)!;
-  const lang_now = () => (root.querySelector<HTMLInputElement>('input[name=lang]:checked')?.value as Lang | undefined) ?? s.lang;
+  const el = document.createElement('div');
+  el.className = 'set-panel';
+  el.innerHTML = `
+    <div class="set-row"><div class="set-what"><b>${esc(t('narration'))}</b><small>${esc(t('narration_help'))}</small></div>
+      <button type="button" class="set-switch" role="switch" id="set-voice" aria-checked="${narration_on()}" aria-label="${esc(t('narration'))}"></button></div>
+    <div class="set-row"><div class="set-what"><b>AI</b><small id="set-status"></small></div></div>
+    <details class="set-adv"><summary>${esc(t('advanced'))}</summary>
+      <label class="field">${esc(t('provider'))}<select class="mn-input" id="set-provider">
+        ${opt('auto', t('provider_auto'))}
+        ${opt('deepseek', `DeepSeek${srv.deepseek ? '' : t('no_key_here')}`)}
+        ${opt('anthropic', 'Claude (Anthropic)')}
+        ${opt('offline', t('provider_offline'))}
+      </select></label>
+      <div id="set-ds"><label class="field">${esc(t('deepseek_model'))}<input class="mn-input" id="set-dsmodel" value="${esc(s.deepseek_model)}"></label></div>
+      <div id="set-an">
+        <label class="field">${esc(t('anthropic_key'))}<input class="mn-input" id="set-key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${esc(s.api_key)}"></label>
+        <label class="field">${esc(t('claude_model'))}<input class="mn-input" id="set-model" value="${esc(s.model)}"></label>
+        <label class="field">${esc(t('proxy_url'))}<input class="mn-input" id="set-base" placeholder="/api/anthropic" value="${esc(s.base_url)}"></label>
+      </div>
+    </details>
+    <div class="set-foot"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><span class="muted" id="set-note" style="font-size:12.5px"></span></div>`;
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => el.querySelector<T>('#set-' + id)!;
   const read = (): Settings => ({
-    lang: lang_now(),
-    provider: $('provider').value as ProviderChoice,
+    ...load_settings(),
+    provider: $<HTMLSelectElement>('provider').value as ProviderChoice,
     deepseek_model: $('dsmodel').value.trim() || 'deepseek-flash',
     api_key: $('key').value.trim(),
     model: $('model').value.trim() || 'claude-opus-5-5',
     base_url: $('base').value.trim(),
-    dark: $('dark').checked,
   });
   const refresh = () => {
     const now = active_provider(read());
     $('status').textContent = now === 'offline' ? t('status_offline') : t('status_online', { p: provider_label(now) });
-    const p = $('provider').value;
-    root.querySelector<HTMLElement>('#ds')!.style.display = p === 'deepseek' || (p === 'auto' && now === 'deepseek') ? '' : 'none';
-    root.querySelector<HTMLElement>('#an')!.style.display = p === 'anthropic' || (p === 'auto' && now !== 'deepseek') ? '' : 'none';
+    const p = $<HTMLSelectElement>('provider').value;
+    $('ds').style.display = p === 'deepseek' || (p === 'auto' && now === 'deepseek') ? '' : 'none';
+    $('an').style.display = p === 'anthropic' || (p === 'auto' && now !== 'deepseek') ? '' : 'none';
   };
-  for (const id of ['provider', 'key', 'base']) $(id).addEventListener('input', refresh);
-  refresh();
-  // the language applies at once (the page re-renders in it, keeping unsaved edits)
-  root.querySelectorAll<HTMLInputElement>('input[name=lang]').forEach((r) => (r.onchange = () => {
-    draft = read();
-    set_language(r.value as Lang);
-  }));
-  $('save').onclick = () => {
-    save_settings(read());
+  // every change is kept at once
+  for (const id of ['provider', 'dsmodel', 'key', 'model', 'base']) {
+    $(id).addEventListener('change', () => {
+      save_settings(read());
+      refresh();
+    });
+    $(id).addEventListener('input', refresh);
+  }
+  $('voice').onclick = () => {
+    const on = $('voice').getAttribute('aria-checked') !== 'true';
+    $('voice').setAttribute('aria-checked', String(on));
     try {
-      localStorage.setItem(NARRATION, JSON.stringify({ on: $('voice').checked, system: $('system').checked }));
+      localStorage.setItem(NARRATION, JSON.stringify({ ...JSON.parse(localStorage.getItem(NARRATION) ?? '{}'), on }));
     } catch {
       /* no storage */
     }
-    $('saved').textContent = t('saved');
-    const mode = document.querySelector('.nav .mode');
-    if (mode) mode.textContent = t('nav_ai', { p: provider_label(active_provider()) });
-    document.getElementById('app')!.classList.toggle('dark', $('dark').checked);
   };
+  $('clear').onclick = () => {
+    if (!confirm(t('clear_confirm'))) return;
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith('mathnim.') && !KEEP.has(k)) localStorage.removeItem(k);
+    } catch {
+      /* no storage */
+    }
+    location.reload();
+  };
+  refresh();
+  return el;
+}
+
+/** /settings: the same panel on a page of its own. */
+export function settings_page(root: HTMLElement): void {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = 'max-width:520px;margin:0 auto';
+  card.innerHTML = `<h2 style="margin:0 0 4px">${esc(t('settings'))}</h2>`;
+  card.append(settings_panel());
+  root.append(card);
 }

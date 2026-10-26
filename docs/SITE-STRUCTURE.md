@@ -78,6 +78,12 @@ The tutorials in `docs/lessons/llm-finetuning/labs/*.md` each have `## 中文` a
   - on phones the line sits at the bottom of the screen and notes sit under their paragraph;
   - a text page's 继续 sits at the end of the page;
   - no instructional copy: the mark, the questions and the line are the guidance.
+- **2026-10-27, the margin and the top bar:**
+  - the top of the margin holds the step's conversations, drawn as an engineering sheet: "ASK · 01" folds it; "+ 02" starts the next and puts the earlier ones away to one line each; a click on one opens it again;
+  - each question is marked with a highlighter, a different colour each time; a sentence selected and asked about ("问这句") becomes a note beside its paragraph, highlighted in the text and the note in the same colour;
+  - the top bar is the logo, the language and a gear; settings drop from the gear and apply at once; there is no tab bar on phones;
+  - 学习记录 (the dashboard) is gone: progress shows on each course page's map. 复习 left the top bar: a course page shows "待复习 n 题 →" under the map when questions of that course are due;
+  - no dark interface and no browser voice (one light theme; recorded narration only).
 - **Course page prerequisites:** one or two lines of prerequisites, which expand to a short list of starter links. No self-test.
 - **Not now:** splitting the math course into geometry and linear algebra.
 - **Learner-facing cleanup:**
