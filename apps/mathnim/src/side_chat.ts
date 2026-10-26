@@ -1,15 +1,16 @@
-// The tutor in the margin. On a text page the side column is the page's
-// margin: questions become numbered notes written beside the paragraph they
-// are about (a matching number ends the paragraph), as in the margins of a
-// well-read book. Hovering a paragraph shows a mark in the margin beside it;
-// a click starts a note there. The top of the margin holds two suggested
-// questions and a ruled line to write on. A note can be folded to its number
-// and first question, and opened again to go on asking; notes are kept.
-// Elsewhere (a scene, a question) the same notes sit under the step's panel,
-// and on phones they sit under their paragraph, with the line to write on at
-// the bottom of the screen.
+// The tutor in the margin. At the top of a lesson's side column (it follows
+// the scroll) is a conversation: two questions the model wrote for the step,
+// what has been asked and answered, and a line to write on. Each question is
+// marked with a highlighter, a different colour each time; answers appear as
+// ink spreading on paper; earlier turns fold to their question.
+// A sentence selected on a page and asked about ("问这句") becomes a note in
+// the margin beside its paragraph: the sentence is highlighted in the text
+// and in the note, in the same colour. Notes fold, reopen to go on asking, and
+// are kept (so is the conversation of each step).
+// On phones the line sits at the bottom of the screen and the conversation
+// opens above it; notes sit under their paragraph.
 // The question goes out with the lesson, the step, what is on screen, the
-// paragraph and the learner's recent mistakes; answers stream.
+// selected sentence and the learner's recent mistakes; answers stream.
 import { AskPanel, RECORDED, RECORDED_TEXT, recorded_question, worker_validator, type AskContext } from '@mathnim/ai';
 import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
 import { esc, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
@@ -19,85 +20,74 @@ import { log } from './store';
 import { lesson_context } from './student';
 
 const SERIF = `"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Noto Serif SC","Source Han Serif SC",serif`;
-const PEN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z M13.8 6.8l3.4 3.4"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5"/></svg>';
-const ENTER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6v5a3 3 0 0 1-3 3H6M10 10l-4 4 4 4"/></svg>';
+/** Highlighter inks: one per question, in turn. */
+const INKS = ['#ffe27a', '#ffbfd2', '#b9ecc8', '#bcd9ff', '#d8c7ff', '#ffd2a3'];
 
 const CSS = `
 .mn-rail{position:relative;font-family:inherit}
 .mn-app.mn-textstep .mn-side.mn-railed{position:relative;top:auto;align-self:stretch}
-/* the top of the margin: two questions and the line to write on */
 .mn-app.mn-textstep .mn-railed>.mn-rail{flex:1 0 auto}
-.rail-start{position:sticky;top:var(--mn-sticky-top,58px);z-index:3;margin-top:-14px;padding:18px 0 12px;background:var(--mn-bg)}
-.rail-start::after{content:'';position:absolute;left:0;right:0;top:100%;height:20px;background:linear-gradient(var(--mn-bg),transparent);pointer-events:none}
-.mn-app:not(.mn-textstep) .rail-start{position:relative;top:auto;background:none}
-.mn-app:not(.mn-textstep) .rail-start::after{display:none}
-.rail-qs{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
-.rail-q,.rail-note .mn-chip{display:block;position:relative;width:100%;text-align:left;border:0;background:none;padding:5px 0 5px 18px;margin:0;border-radius:0;font:italic 15px/1.55 ${SERIF};color:var(--mn-muted);cursor:pointer;transition:color .15s;animation:rail-in .55s cubic-bezier(.2,.8,.2,1) both}
+/* the conversation at the top of the margin, following the scroll */
+.rail-talk{position:sticky;top:var(--mn-sticky-top,58px);z-index:3;margin-top:-14px;padding:18px 0 14px;background:var(--mn-bg);max-height:calc(100vh - var(--mn-sticky-top,58px));overflow:auto;overscroll-behavior:contain;scrollbar-width:none}
+.rail-talk::-webkit-scrollbar{display:none}
+.mn-app:not(.mn-textstep) .rail-talk{position:relative;top:auto;margin-top:0;padding-top:4px;background:none;max-height:none;overflow:visible}
+.rail-qs{display:flex;flex-direction:column;margin-bottom:6px}
+.rail-q,.mn-rail .mn-chip{display:block;width:100%;text-align:left;border:0;background:none;padding:4px 0;margin:0;border-radius:0;font:italic 14px/1.55 ${SERIF};color:var(--mn-muted);cursor:pointer;transition:color .15s;animation:rail-in .55s cubic-bezier(.2,.8,.2,1) both}
 .rail-q:nth-child(2){animation-delay:.08s}
-.rail-q::before,.rail-note .mn-chip::before{content:'?';position:absolute;left:1px;top:5px;font-style:normal;color:var(--mn-accent);font-size:14px}
-.rail-q:hover,.rail-note .mn-chip:hover{color:var(--mn-fg);border:0}
+.rail-q:hover,.mn-rail .mn-chip:hover{color:var(--mn-fg);border:0}
+.rail-talk.active .rail-qs{display:none}
 @keyframes rail-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-/* the line to write on: a rule (A), or a breathing line (B) */
-.rail-line{position:relative;display:flex;align-items:center;gap:6px;padding:2px 0 6px}
-.rail-line::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:color-mix(in srgb,var(--mn-fg) 28%,transparent);transition:background-color .2s}
-.rail-line:focus-within::after{background:var(--mn-accent)}
-.rail-note.busy .rail-line::after{background:linear-gradient(90deg,transparent,var(--mn-accent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--mn-fg) 28%,transparent);animation:rail-run 1.2s linear infinite}
+/* a conversation: each question under a stroke of highlighter, the answer in ink */
+.mn-rail .mn-ask{gap:12px}
+.mn-rail .mn-card{border:0;box-shadow:none;background:none;border-radius:0;overflow:visible}
+.mn-rail .mn-card .mn-q{padding:0;border:0;background:none;font:italic 15px/1.6 ${SERIF};color:var(--mn-fg);cursor:default}
+.mn-rail .mn-q .mn-quote{display:none}
+.ink-q{background-image:linear-gradient(transparent 52%,var(--ink) 52%,var(--ink) 90%,transparent 90%);background-repeat:no-repeat;background-size:100% 100%;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 2px}
+.ink-q.draw{animation:ink-draw .7s cubic-bezier(.4,0,.2,1) both}
+@keyframes ink-draw{from{background-size:0 100%}to{background-size:100% 100%}}
+.mn-rail .mn-card .mn-body{padding:6px 0 0;gap:8px}
+.mn-rail .mn-answer-text{font:15px/1.8 ${SERIF};color:var(--mn-fg)}
+.mn-rail .mn-answer-text:not(:empty){animation:ink-in 1.1s ease-out both}
+@keyframes ink-in{from{opacity:0;filter:blur(5px)}to{opacity:1;filter:none}}
+.mn-rail .mn-card details,.mn-rail .mn-card .mn-status{display:none}
+.mn-rail .mn-card .mn-actions .mn-btn{border:0;background:none;box-shadow:none;padding:2px 0;font:italic 13.5px/1.4 ${SERIF};color:var(--mn-muted);cursor:pointer}
+.mn-rail .mn-card .mn-actions .mn-btn:hover{color:var(--mn-accent)}
+.mn-rail .mn-chips{flex-direction:column;align-items:stretch;gap:0}
+/* earlier turns fold to their question; a click opens one again */
+.mn-rail .mn-card.past .mn-body{display:none}
+.mn-rail .mn-card.past .mn-q{cursor:pointer;opacity:.7}
+.mn-rail .mn-card.past .mn-q:hover{opacity:1}
+/* the line to write on; a light runs along it while the tutor writes */
+.mn-rail .mn-ask form{position:relative;display:flex;align-items:center;gap:6px;padding:2px 0 6px}
+.mn-rail .mn-ask form::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:color-mix(in srgb,var(--mn-fg) 28%,transparent);transition:background-color .2s}
+.mn-rail .mn-ask form:focus-within::after{background:var(--mn-accent)}
+.mn-rail .busy .mn-ask form::after{background:linear-gradient(90deg,transparent,var(--mn-accent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--mn-fg) 28%,transparent);animation:rail-run 1.2s linear infinite}
 @keyframes rail-run{from{background-position:-40% 0,0 0}to{background-position:140% 0,0 0}}
-.rail-line input,.rail-note .mn-ask form .mn-input{flex:1;min-width:0;border:0;background:none;padding:6px 0;font:15px/1.5 ${SERIF};color:var(--mn-fg);box-shadow:none;outline:none}
-.rail-line input::placeholder,.rail-note .mn-ask form .mn-input::placeholder{font-style:italic;color:color-mix(in srgb,var(--mn-muted) 85%,transparent)}
-.rail-send{flex:none;width:26px;height:26px;border:0;background:none;color:var(--mn-accent);display:grid;place-items:center;padding:0;cursor:pointer;opacity:0;transition:opacity .15s}
-.rail-send svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.rail-line:has(input:not(:placeholder-shown)) .rail-send,.rail-line.quoted .rail-send{opacity:1}
-/* a note: its number and first question (a fold), the conversation, the line to go on */
+.mn-rail .mn-ask form .mn-input{flex:1;min-width:0;border:0;background:none;padding:6px 0;font:15px/1.5 ${SERIF};color:var(--mn-fg);box-shadow:none;outline:none}
+.mn-rail .mn-ask form .mn-input::placeholder{font-style:italic;color:color-mix(in srgb,var(--mn-muted) 85%,transparent)}
+.mn-rail .mn-ask form .mn-btn{display:none}
+/* a note: the sentence it is about (a fold), the conversation, the line to go on */
 .rail-note{position:absolute;left:0;right:0;padding:2px 0 2px 14px;border-left:1px solid var(--mn-border);transition:top .35s cubic-bezier(.3,0,.2,1),border-color .2s;animation:rail-in .4s ease-out both}
 .rail-note.inline{position:relative;top:auto!important;margin:6px 0 18px}
-.rail-note.lit,.rail-note:focus-within{border-left-color:var(--mn-accent)}
-.note-head{display:flex;align-items:baseline;gap:7px;width:100%;border:0;background:none;padding:2px 0 6px;text-align:left;cursor:pointer;font:italic 14.5px/1.5 ${SERIF};color:var(--mn-muted)}
-.note-head[hidden]{display:none}
-.note-head sup,.mn-noteref{font:600 11px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--mn-accent);font-style:normal}
-.note-head .note-title{flex:1;min-width:0}
-.rail-note.folded .note-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.note-head svg{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transform:translateY(2px);opacity:0;transition:opacity .15s,transform .25s}
-.rail-note:hover .note-head svg{opacity:.7}
-.rail-note.folded .note-head svg{transform:translateY(2px) rotate(180deg)}
-.note-head:hover{color:var(--mn-fg)}
+.rail-note.lit,.rail-note:focus-within{border-left-color:var(--note-ink)}
+.note-head{display:block;width:100%;border:0;background:none;padding:2px 0 8px;text-align:left;cursor:pointer;font:italic 14px/1.6 ${SERIF};color:var(--mn-fg)}
+.rail-note.folded .note-head{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .rail-note.folded .note-body{display:none}
-.rail-note .mn-ask{gap:10px}
-.rail-note .mn-card{border:0;box-shadow:none;background:none;border-radius:0;overflow:visible;animation:rail-in .35s ease-out both}
-.rail-note .mn-card .mn-q{padding:0;border:0;background:none;font:italic 14.5px/1.55 ${SERIF};color:var(--mn-muted)}
-.rail-note .note-body .mn-card:first-child .mn-q{display:none}
-.rail-note .mn-q .mn-quote{display:none}
-.rail-note .mn-card .mn-body{padding:4px 0 0;gap:8px}
-.rail-note .mn-answer-text{font:15px/1.8 ${SERIF};color:var(--mn-fg)}
-.rail-note .mn-card details{display:none}
-.rail-note .mn-card .mn-actions .mn-btn{border:0;background:none;box-shadow:none;padding:2px 0;font:italic 13.5px/1.4 ${SERIF};color:var(--mn-muted);cursor:pointer}
-.rail-note .mn-card .mn-actions .mn-btn:hover{color:var(--mn-accent)}
-.rail-note .mn-chips{flex-direction:column;align-items:stretch;gap:0}
-.rail-note .mn-card .mn-status{display:none}
-.rail-note .mn-ask form{position:relative;display:flex;align-items:center;gap:6px;padding:2px 0 6px}
-.rail-note .mn-ask form .mn-btn{display:none}
-.note-quote{font:italic 13.5px/1.5 ${SERIF};color:var(--mn-muted);padding-left:10px;border-left:2px solid color-mix(in srgb,var(--mn-accent) 40%,transparent);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.note-quote[hidden]{display:none}
-/* the paragraph a note belongs to */
-.mn-noteref{margin-left:2px;cursor:pointer;vertical-align:super}
+.rail-note .note-body .mn-card:first-child .mn-q.asked-default{display:none}
+.mn-echo{background-image:linear-gradient(transparent 52%,var(--ink) 52%,var(--ink) 90%,transparent 90%);background-repeat:no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone;color:inherit;background-color:transparent;padding:0 1px;border-radius:2px;transition:filter .2s}
+.mn-echo.draw{animation:ink-draw .8s cubic-bezier(.4,0,.2,1) both}
+.mn-echo.lit{filter:saturate(1.6) brightness(.97)}
 .mn-para{transition:background-color .25s,box-shadow .25s;border-radius:5px}
 .mn-para.lit{background-color:color-mix(in srgb,var(--mn-accent) 5%,transparent);box-shadow:0 0 0 6px color-mix(in srgb,var(--mn-accent) 5%,transparent)}
-/* the mark beside a paragraph under the pointer: write a note here */
-.rail-stub{position:absolute;left:-2px;width:28px;height:28px;display:grid;place-items:center;border:0;background:none;padding:0;color:var(--mn-muted);cursor:pointer;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .2s,top .2s;pointer-events:none}
-.rail-stub.on{opacity:.75;transform:none;pointer-events:auto}
-.rail-stub:hover{opacity:1;color:var(--mn-accent)}
-.rail-stub svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-/* phones: the line at the bottom of the screen; notes under their paragraph */
+/* phones: the line at the bottom of the screen; the conversation opens above it */
 @media (max-width:900px){
  .mn-app.mn-textstep .mn-side.mn-railed{min-height:0}
- .rail-start::after{display:none}
- .rail-start,.mn-app:not(.mn-textstep) .rail-start{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:25;padding:8px 18px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--mn-bg) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--mn-border)}
- .rail-start .rail-qs{display:none}
+ .rail-talk,.mn-app:not(.mn-textstep) .rail-talk{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:25;margin:0;padding:8px 18px calc(10px + env(safe-area-inset-bottom));max-height:min(64vh,560px);overflow:auto;background:color-mix(in srgb,var(--mn-bg) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--mn-border)}
+ .rail-talk:not(:focus-within) .rail-qs{display:none}
  .mn-app.mn-has-rail{padding-bottom:76px}
- .rail-stub{display:none}
 }
-@media (prefers-reduced-motion:reduce){.mn-rail *,.rail-note,.mn-para{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){.mn-rail *,.rail-note,.mn-para,.mn-echo{animation:none!important;transition:none!important}}
 `;
 let injected = false;
 
@@ -143,10 +133,14 @@ async function starters(cl: CourseLesson, lesson: Lesson, s: Step, view: LessonV
   return qs;
 }
 
-// ---------------------------------------------------------------- kept notes
+// ---------------------------------------------------------------- kept conversations
 interface Saved {
   turns: { q: string; a: string }[];
   folded?: boolean;
+  /** A note's sentence, as selected. */
+  phrase?: string;
+  /** Its first ink. */
+  ink?: number;
 }
 const notes_key = (lesson_id: string) => `mathnim.notes.${lesson_id}`;
 function load_notes(lesson_id: string): Record<string, Saved> {
@@ -168,107 +162,165 @@ function store_note(lesson_id: string, key: string, s: Saved | null): void {
     /* no storage */
   }
 }
+/** The next ink in turn for this lesson (each question gets the next colour). */
+function next_ink(lesson_id: string): number {
+  const key = `mathnim.ink.${lesson_id}`;
+  let n = 0;
+  try {
+    n = Number(localStorage.getItem(key) ?? 0) || 0;
+    localStorage.setItem(key, String(n + 1));
+  } catch {
+    /* no storage */
+  }
+  return n % INKS.length;
+}
 
-/** The paragraphs of a text page a note can belong to. */
+/** The paragraphs of a text page a sentence can be selected in. */
 const PARAS = ['.mn-prose > p', '.mn-prose > ul > li', '.mn-prose > ol > li'].map((s) => `.mn-pagehost ${s}`).join(',');
 const text_of = (el: Element) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
 const wide = () => matchMedia('(min-width: 901px)').matches;
 
-/** One note: about a paragraph (or the page, or the step), its conversation, folded or open. */
+/** Mark a question with a stroke of highlighter (the question element's words move into the mark). */
+function ink_question(q: HTMLElement, ink: number, draw: boolean): void {
+  if (q.querySelector('.ink-q')) return;
+  const mark = document.createElement('span');
+  mark.className = `ink-q${draw ? ' draw' : ''}`;
+  mark.style.setProperty('--ink', INKS[ink % INKS.length]);
+  for (const n of [...q.childNodes]) if (!(n instanceof HTMLElement && n.classList.contains('mn-quote'))) mark.append(n);
+  q.append(mark);
+}
+
+/** Highlight a sentence in its paragraph (the text node holding its start; never inside formulas). */
+function echo(p: HTMLElement, phrase: string, ink: number, draw: boolean): HTMLElement | null {
+  const head = phrase.slice(0, 16);
+  const walk = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => ((n.parentElement?.closest('.katex,.mn-echo') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT)),
+  });
+  for (let n = walk.nextNode() as Text | null; n; n = walk.nextNode() as Text | null) {
+    const at = n.data.indexOf(head);
+    if (at < 0) continue;
+    const range = document.createRange();
+    range.setStart(n, at);
+    range.setEnd(n, Math.min(n.data.length, at + phrase.length));
+    const mark = document.createElement('mark');
+    mark.className = `mn-echo${draw ? ' draw' : ''}`;
+    mark.style.setProperty('--ink', INKS[ink % INKS.length]);
+    range.surroundContents(mark);
+    return mark;
+  }
+  return null;
+}
+
+/** One conversation: the step's own (at the top of the margin), or a note on a selected sentence. */
 class Note {
   readonly el: HTMLElement;
   readonly panel: AskPanel;
-  private head: HTMLButtonElement;
-  private quote_el: HTMLElement;
+  private head: HTMLButtonElement | null = null;
+  private mark: HTMLElement | null = null;
+  /** A selected sentence attached to the next question. */
   quote = '';
   busy = false;
-  /** Where the note was asked from (px from the top of the margin): it is never placed above it, so it appears there. */
-  floor = 0;
+  private ink: number;
+  private turns_shown = 0;
   constructor(
     readonly key: string,
     readonly para: HTMLElement | null,
+    readonly phrase: string,
     saved: Saved | undefined,
     private rail: AskRail,
   ) {
     const el = (this.el = document.createElement('section'));
-    el.className = 'rail-note';
-    el.innerHTML = `<button type="button" class="note-head" hidden><sup></sup><span class="note-title"></span>${CHEV}</button><div class="note-body"><div class="note-past"></div><div class="note-panel"></div></div>`;
-    this.head = el.querySelector('.note-head')!;
-    this.head.onclick = () => this.fold(!el.classList.contains('folded'));
-    // the conversation so far (kept from an earlier visit), then the panel to go on
+    el.className = phrase ? 'rail-note' : 'rail-convo';
+    this.ink = saved?.ink ?? (phrase ? (next_ink(rail.lesson.id) + 2) % INKS.length : 0);
+    el.style.setProperty('--note-ink', INKS[this.ink]);
+    el.innerHTML = `${phrase ? `<button type="button" class="note-head"></button>` : ''}<div class="note-body"><div class="note-past"></div><div class="note-panel"></div></div>`;
+    if (phrase) {
+      this.head = el.querySelector('.note-head')!;
+      this.head.innerHTML = `<span class="ink-q">${esc(phrase)}</span>`;
+      this.head.querySelector<HTMLElement>('.ink-q')!.style.setProperty('--ink', INKS[this.ink]);
+      this.head.onclick = () => this.fold(!el.classList.contains('folded'));
+    }
+    // the conversation so far (kept from an earlier visit), each question in its ink
     const past = el.querySelector<HTMLElement>('.note-past')!;
-    for (const turn of saved?.turns ?? []) {
+    (saved?.turns ?? []).forEach((turn, i) => {
       const c = document.createElement('div');
       c.className = 'mn-card';
       c.innerHTML = `<div class="mn-q">${math_html(turn.q)}</div><div class="mn-body"><div class="mn-answer-text">${math_html(turn.a)}</div></div>`;
+      if (phrase && i === 0 && turn.q === t('explain_passage')) c.querySelector('.mn-q')!.classList.add('asked-default');
+      ink_question(c.querySelector('.mn-q')!, this.ink_of(i), false);
       past.append(c);
-    }
+    });
+    this.turns_shown = saved?.turns.length ?? 0;
     this.panel = new AskPanel(el.querySelector<HTMLElement>('.note-panel')!, {
       provider, validate: worker_validator(), log, lesson: rail.lesson.id, thread: true, read_aloud: false,
       placeholder: t('ask_short'), history: saved?.turns,
-      suggestions: para && !saved ? [t('explain_passage')] : [],
       context: (): AskContext => rail.context(),
-      // the note's paragraph goes with every question asked in it (a selected passage, when there is one)
+      // a note's sentence goes with every question asked in it
       extra: () => {
-        const selected = this.quote || (para ? text_of(para).slice(0, 1200) : '');
-        this.set_quote('');
+        const selected = this.quote || this.phrase;
+        this.quote = '';
         return selected ? { selected } : undefined;
       },
-      empty_question: () => (this.quote || (para && !this.panel.transcript().length) ? t('explain_passage') : null),
-      on_card: () => {
+      empty_question: () => (this.phrase && !this.panel.transcript().length ? t('explain_passage') : null),
+      on_card: (card) => {
         this.busy = true;
-        this.el.classList.add('busy');
-        this.update_head();
-        this.panel.set_suggestions([]);
+        el.classList.add('busy');
+        rail.talking(this);
+        const q = card.querySelector<HTMLElement>('.mn-q')!;
+        if (this.phrase && this.turns_shown === 0 && text_of(q) === t('explain_passage')) q.classList.add('asked-default');
+        ink_question(q, this.ink_of(this.turns_shown++), true);
+        this.fold_earlier(card);
         rail.layout();
       },
       on_done: () => {
         this.busy = false;
-        this.el.classList.remove('busy');
-        this.update_head();
+        el.classList.remove('busy');
         this.save();
         rail.layout();
       },
     });
-    const form = el.querySelector<HTMLFormElement>('.note-panel .mn-ask > form')!;
-    form.classList.add('rail-line');
-    this.quote_el = document.createElement('div');
-    this.quote_el.className = 'note-quote';
-    this.quote_el.hidden = true;
-    form.before(this.quote_el);
     if (saved?.folded) el.classList.add('folded');
-    this.update_head();
-    // the note and its paragraph light up together
-    const lit = (on: boolean) => {
-      el.classList.toggle('lit', on);
-      para?.classList.toggle('lit', on);
-    };
-    el.addEventListener('mouseenter', () => lit(true));
-    el.addEventListener('mouseleave', () => lit(false));
-    // a note opened and left without a question goes away
-    el.addEventListener('focusout', () => setTimeout(() => {
-      if (!el.contains(document.activeElement) && !this.asked && !this.quote) rail.drop(this);
-    }, 250));
+    this.fold_earlier(null);
+    // a click on a folded question opens it again
+    el.addEventListener('click', (e) => {
+      const q = (e.target as Element).closest?.('.mn-card.past .mn-q');
+      if (q) {
+        q.closest('.mn-card')!.classList.remove('past');
+        rail.layout();
+      }
+    });
+    if (para && phrase) {
+      this.mark = para.querySelector<HTMLElement>(`.mn-echo[data-note="${window.CSS.escape(key)}"]`) ?? echo(para, phrase, this.ink, !saved);
+      this.mark?.setAttribute('data-note', key);
+      // the note and its sentence light up together
+      const lit = (on: boolean) => {
+        el.classList.toggle('lit', on);
+        para.classList.toggle('lit', on);
+        this.mark?.classList.toggle('lit', on);
+      };
+      el.addEventListener('mouseenter', () => lit(true));
+      el.addEventListener('mouseleave', () => lit(false));
+      this.mark?.addEventListener('mouseenter', () => lit(true));
+      this.mark?.addEventListener('mouseleave', () => lit(false));
+      this.mark?.addEventListener('click', () => this.fold(false, true));
+    }
+  }
+  /** The ink of the conversation's i-th question: a note starts from its own, the step's conversation from the first. */
+  private ink_of(i: number): number {
+    return (this.ink + i) % INKS.length;
+  }
+  /** Fold every answer but the newest. */
+  private fold_earlier(newest: HTMLElement | null): void {
+    const cards = [...this.el.querySelectorAll<HTMLElement>('.mn-card')];
+    const last = newest ?? cards[cards.length - 1];
+    for (const c of cards) c.classList.toggle('past', c !== last);
+  }
+  /** Fold every answer of this conversation to its question. */
+  fold_all(): void {
+    for (const c of this.el.querySelectorAll<HTMLElement>('.mn-card')) c.classList.add('past');
   }
   get asked(): boolean {
     return this.panel.transcript().length > 0 || this.busy;
-  }
-  set number(n: number) {
-    this.head.querySelector('sup')!.textContent = String(n);
-    let ref = this.para?.querySelector<HTMLElement>(':scope > .mn-noteref');
-    if (this.para && !ref) {
-      ref = document.createElement('sup');
-      ref.className = 'mn-noteref';
-      ref.onclick = () => this.fold(false, true);
-      this.para.append(ref);
-    }
-    if (ref) ref.textContent = String(n);
-  }
-  set_quote(text: string): void {
-    this.quote = text;
-    this.quote_el.hidden = !text;
-    this.quote_el.textContent = text;
-    this.el.querySelector('.note-panel form')?.classList.toggle('quoted', !!text);
   }
   focus(): void {
     this.panel.focus();
@@ -279,24 +331,13 @@ class Note {
     this.rail.layout();
     if (!folded && focus) this.focus();
   }
-  private update_head(): void {
-    let first = this.panel.transcript()[0]?.q ?? '';
-    const asked = this.el.querySelector<HTMLElement>('.note-panel .mn-card .mn-q');
-    if (!first && asked) {
-      const q = asked.cloneNode(true) as HTMLElement;
-      q.querySelector('.mn-quote')?.remove();
-      first = text_of(q);
-    }
-    this.head.hidden = !first;
-    this.head.querySelector('.note-title')!.innerHTML = math_html(first);
-  }
   save(): void {
-    store_note(this.rail.lesson.id, this.key, { turns: this.panel.transcript(), folded: this.el.classList.contains('folded') });
+    store_note(this.rail.lesson.id, this.key, { turns: this.panel.transcript(), folded: this.el.classList.contains('folded'), phrase: this.phrase || undefined, ink: this.ink });
   }
   destroy(): void {
     this.panel.clear();
     this.el.remove();
-    this.para?.querySelector(':scope > .mn-noteref')?.remove();
+    if (this.mark) this.mark.replaceWith(...this.mark.childNodes);
     this.para?.classList.remove('lit');
   }
 }
@@ -304,15 +345,12 @@ class Note {
 export class AskRail {
   /** The margin; the lesson view puts it in its side column. */
   readonly el: HTMLElement;
-  private start: HTMLElement;
+  private talk: HTMLElement;
   private qs: HTMLElement;
-  private input: HTMLInputElement;
-  private stub: HTMLButtonElement;
+  private convo: Note | null = null;
   private view: LessonView | null = null;
   private off: (() => void) | null = null;
   private notes = new Map<string, Note>();
-  private stub_para: HTMLElement | null = null;
-  private peeked = false;
   private ro: ResizeObserver;
   private queued = false;
   private unlisten: (() => void)[] = [];
@@ -326,40 +364,18 @@ export class AskRail {
     }
     const el = (this.el = document.createElement('aside'));
     el.setAttribute('aria-label', t('ask_ai'));
-    el.innerHTML = `<div class="rail-start"><div class="rail-qs"></div><form class="rail-line"><input aria-label="${esc(t('ask_ai'))}" placeholder="${esc(t('ask_short'))}" autocomplete="off"><button type="submit" class="rail-send" aria-label="${esc(t('ask_go'))}">${ENTER}</button></form></div>
-      <button type="button" class="rail-stub" aria-label="${esc(t('ask_para'))}" title="${esc(t('ask_para'))}" tabindex="-1">${PEN}</button>`;
-    this.start = el.querySelector('.rail-start')!;
+    el.innerHTML = `<div class="rail-talk"><div class="rail-qs"></div></div>`;
+    this.talk = el.querySelector('.rail-talk')!;
     this.qs = el.querySelector('.rail-qs')!;
-    this.input = el.querySelector('.rail-start input')!;
-    const form = el.querySelector<HTMLFormElement>('.rail-start form')!;
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const q = this.input.value.trim();
-      this.input.value = '';
-      if (q) this.ask_here(q);
-    };
-    this.stub = el.querySelector('.rail-stub')!;
-    this.stub.onclick = () => this.stub_para && this.note_for(this.stub_para, true).focus();
     this.ro = new ResizeObserver(() => this.layout());
     const on_resize = () => this.layout();
     addEventListener('resize', on_resize);
     this.unlisten.push(() => removeEventListener('resize', on_resize));
   }
 
-  /** Follow this lesson view: its steps' suggestions, its pages' paragraphs. */
+  /** Follow this lesson view: its steps' conversations, its pages' notes. */
   attach(view: LessonView): void {
     this.view = view;
-    const host = view.root;
-    // the mark beside the paragraph under the pointer
-    const move = (e: PointerEvent) => {
-      if (!wide()) return;
-      const target = e.target as Element;
-      const p = target.closest?.<HTMLElement>('.mn-para');
-      if (p) this.show_stub(p);
-      else if (!target.closest?.('.rail-stub')) this.show_stub(null);
-    };
-    host.addEventListener('pointermove', move);
-    this.unlisten.push(() => host.removeEventListener('pointermove', move));
     this.off = view.runtime.on((e) => {
       if (e.type === 'step') this.on_step();
       else if (e.type === 'page') requestAnimationFrame(() => this.on_page());
@@ -367,14 +383,22 @@ export class AskRail {
     this.on_step();
   }
 
-  /** Ask about a passage the learner selected: a note on its paragraph, the passage quoted. */
+  /** "问这句": a note on the selected sentence, beside its paragraph. */
   open(ask: { selected?: string }): void {
-    const head = ask.selected?.slice(0, 24) ?? '';
+    const phrase = (ask.selected ?? '').trim();
+    const head = phrase.slice(0, 16);
     const para = head ? this.paras().find((p) => text_of(p).includes(head)) : undefined;
-    const note = para ? this.note_for(para, true) : this.note_here(true);
-    if (ask.selected) note.set_quote(ask.selected);
-    note.fold(false);
-    note.focus();
+    if (!para) {
+      // not on a paragraph (a scene, a question): the step's conversation, with the passage attached
+      if (this.convo && phrase) this.convo.quote = phrase;
+      this.convo?.focus();
+      return;
+    }
+    const key = `${this.step_id()}#${this.paras().indexOf(para)}:${phrase.slice(0, 40)}`;
+    const n = this.notes.get(key) ?? this.add(new Note(key, para, phrase, undefined, this));
+    this.convo?.fold_all(); // (the conversation steps back so the note has room)
+    n.fold(false);
+    n.focus();
   }
 
   destroy(): void {
@@ -383,20 +407,18 @@ export class AskRail {
     this.ro.disconnect();
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
+    this.convo?.destroy();
     this.el.remove();
     this.view = null;
   }
 
-  /** What the tutor knows (the paragraph comes with the note's own questions). */
+  /** What the tutor knows (a note's sentence comes with its own questions). */
   context(): AskContext {
     return this.view ? lesson_context(this.cl, this.view) : {};
   }
-  /** A note left without a question. */
-  drop(n: Note): void {
-    if (this.notes.get(n.key) !== n) return;
-    n.destroy();
-    this.notes.delete(n.key);
-    this.layout();
+  /** A conversation started: the step's suggestions give way to it. */
+  talking(n: Note): void {
+    if (n === this.convo) this.talk.classList.add('active');
   }
 
   // ---------------------------------------------------------------- steps and pages
@@ -406,151 +428,83 @@ export class AskRail {
   private on_step(): void {
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
+    this.convo?.destroy();
     this.ro.disconnect();
-    this.show_stub(null);
     this.qs.replaceChildren();
     const s = this.view?.runtime.step;
-    if (s && this.view) {
-      starters(this.cl, this.lesson, s, this.view).then((qs) => {
-        if (this.view?.runtime.step !== s) return; // the learner moved on meanwhile
-        this.qs.replaceChildren(...qs.map((q) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'rail-q';
-          b.innerHTML = math_html(q);
-          b.onclick = () => this.ask_here(q);
-          return b;
-        }));
-        this.layout();
-      }, (e) => console.warn('starter questions', e));
-    }
-    // a step without paragraphs keeps its notes under the step's panel
-    if (s && !is_text_step(s)) {
-      const saved = load_notes(this.lesson.id)[`${s.id}#step`];
-      if (saved) this.add(new Note(`${s.id}#step`, null, saved, this));
-    }
+    if (!s || !this.view) return;
+    // the step's conversation, kept from before if there is one
+    const key = `${s.id}#talk`;
+    const saved = load_notes(this.lesson.id)[key];
+    this.convo = new Note(key, null, '', saved, this);
+    this.talk.classList.toggle('active', !!saved);
+    this.talk.append(this.convo.el);
+    starters(this.cl, this.lesson, s, this.view).then((qs) => {
+      if (this.view?.runtime.step !== s) return; // the learner moved on meanwhile
+      this.qs.replaceChildren(...qs.map((q) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rail-q';
+        b.innerHTML = math_html(q);
+        b.onclick = () => void this.convo?.panel.ask(q);
+        return b;
+      }));
+    }, (e) => console.warn('starter questions', e));
     this.layout();
   }
   private on_page(): void {
     const view = this.view;
     const s = view?.runtime.step;
     if (!view || !s || !is_text_step(s)) return;
+    const paras = [...view.root.querySelectorAll<HTMLElement>(PARAS)].filter((p) => !p.classList.contains('mn-para'));
+    paras.forEach((p) => p.classList.add('mn-para'));
+    // the notes left on this page before
     const saved = load_notes(this.lesson.id);
-    const paras = [...view.root.querySelectorAll<HTMLElement>(PARAS)].filter((p) => !p.classList.contains('mn-para') && text_of(p).length >= 16);
-    paras.forEach((p, i) => {
-      p.classList.add('mn-para');
-      p.dataset.note = `${s.id}#${i}`;
-    });
-    const top = saved[`${s.id}#top`];
-    if (top) this.add(new Note(`${s.id}#top`, null, top, this));
-    for (const p of paras) {
-      const kept = saved[p.dataset.note!];
-      if (kept) this.add(new Note(p.dataset.note!, p, kept, this));
+    for (const [key, kept] of Object.entries(saved)) {
+      const m = /^(.*)#(\d+):/.exec(key);
+      if (!m || m[1] !== s.id || !kept.phrase) continue;
+      const para = this.paras()[Number(m[2])];
+      if (para) this.add(new Note(key, para, kept.phrase, kept, this));
     }
     const page = view.root.querySelector<HTMLElement>('.mn-pagehost');
     if (page) this.ro.observe(page);
     this.layout();
-    // once per visit the mark shows itself beside the paragraph being read: this is where notes go
-    if (!this.peeked && paras.length && wide()) {
-      this.peeked = true;
-      setTimeout(() => {
-        const p = this.in_view() ?? paras[0];
-        if (!p.isConnected || this.stub_para) return;
-        this.show_stub(p);
-        setTimeout(() => this.stub_para === p && this.show_stub(null), 2200);
-      }, 1100);
-    }
   }
   private paras(): HTMLElement[] {
     return [...(this.view?.root.querySelectorAll<HTMLElement>('.mn-para') ?? [])];
-  }
-  /** The paragraph being read: the first to start below the line one writes on (on phones, a third of the way down). */
-  private in_view(): HTMLElement | null {
-    const y = wide() ? this.start.getBoundingClientRect().bottom + 8 : innerHeight * 0.35;
-    let best: HTMLElement | null = null;
-    let d = Infinity;
-    for (const p of this.paras()) {
-      const r = p.getBoundingClientRect();
-      if (r.bottom < y - 40 || r.top > innerHeight) continue;
-      // one starting below the line is where the note can sit; one that started above it comes after
-      const k = r.top >= y - 12 ? r.top - y : 2000 + (y - r.top);
-      if (k < d) [d, best] = [k, p];
-    }
-    if (best) return best;
-    // only a figure on screen: the paragraph just above it
-    for (const p of this.paras()) if (p.getBoundingClientRect().top < y) best = p;
-    return best;
   }
 
   // ---------------------------------------------------------------- notes
   private add(n: Note): Note {
     this.notes.set(n.key, n);
     this.ro.observe(n.el);
-    this.place(n);
-    return n;
-  }
-  /** Beside the page in the margin; under its paragraph on phones; under the step's panel elsewhere. */
-  private place(n: Note): void {
-    const s = this.view?.runtime.step;
-    const margin = wide() && !!s && is_text_step(s);
+    // beside the page in the margin; under its paragraph on phones
+    const margin = wide();
     n.el.classList.toggle('inline', !margin);
     if (margin || !n.para) this.el.append(n.el);
     else n.para.after(n.el);
-  }
-  private note_for(p: HTMLElement, open: boolean): Note {
-    const n = this.notes.get(p.dataset.note!) ?? this.add(new Note(p.dataset.note!, p, undefined, this));
-    if (open) n.el.classList.remove('folded');
-    this.show_stub(null);
     this.layout();
     return n;
   }
-  /** The note for a question asked from the line one writes on: where it was asked, beside the paragraph being read
-   *  (a page without paragraphs in view, or a step without paragraphs, has one note of its own). */
-  private note_here(open: boolean): Note {
-    const s = this.view?.runtime.step;
-    if (s && is_text_step(s)) {
-      const p = this.in_view();
-      if (p) return this.note_for(p, open);
-    }
-    const key = `${this.step_id()}#${s && is_text_step(s) ? 'top' : 'step'}`;
-    const n = this.notes.get(key) ?? this.add(new Note(key, null, undefined, this));
-    if (open) n.el.classList.remove('folded');
-    return n;
-  }
-  private ask_here(q: string): void {
-    const n = this.note_here(true);
-    if (wide()) n.floor = this.start.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + 14;
-    else requestAnimationFrame(() => n.el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-    void n.panel.ask(q, n.para ? { selected: text_of(n.para).slice(0, 1200) } : undefined);
-  }
-  private show_stub(p: HTMLElement | null): void {
-    if (p && this.notes.get(p.dataset.note ?? '')?.asked) p = null; // its note is already there
-    this.stub_para = p;
-    this.stub.classList.toggle('on', !!p);
-    if (p) this.stub.style.top = `${p.getBoundingClientRect().top - this.el.getBoundingClientRect().top - 2}px`;
-  }
 
-  /** Lay the margin's notes beside their paragraphs (never overlapping); number them in page order. */
+  /** Lay the notes beside their paragraphs, never overlapping one another. */
   layout(): void {
     if (this.queued) return;
     this.queued = true;
     requestAnimationFrame(() => {
       this.queued = false;
-      const notes = [...this.notes.values()].filter((n) => n.el.isConnected);
+      const notes = [...this.notes.values()].filter((n) => n.el.isConnected && !n.el.classList.contains('inline'));
       const order = (n: Note) => (n.para ? this.paras().indexOf(n.para) : -1);
       notes.sort((a, b) => order(a) - order(b));
-      let k = 0;
-      for (const n of notes) if (n.asked) n.number = ++k;
-      const margin = notes.filter((n) => !n.el.classList.contains('inline'));
       const base = this.el.getBoundingClientRect().top;
-      let floor = this.start.offsetHeight + 22; // (its place at the top, wherever it is stuck now)
-      for (const n of margin) {
-        const want = Math.max(n.para ? n.para.getBoundingClientRect().top - base : floor, n.floor);
-        const top = Math.max(want, floor);
+      // (below the conversation where it sits at the top of the page; it covers notes only as they scroll under it)
+      let floor = this.talk.offsetHeight + 12;
+      for (const n of notes) {
+        const top = Math.max(n.para ? n.para.getBoundingClientRect().top - base : 0, floor);
         n.el.style.top = `${top}px`;
         floor = top + n.el.offsetHeight + 18;
       }
-      this.el.style.minHeight = margin.length ? `${floor}px` : '';
+      this.el.style.minHeight = notes.length ? `${floor}px` : '';
     });
   }
 }

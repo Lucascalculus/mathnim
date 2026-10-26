@@ -122,7 +122,12 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     </div>`;
   draw_thumbnails(root);
   celebrate(root, c);
-  return play_cover(root, c);
+  const stop_crown = play_crown(root, c);
+  const stop_cover = play_cover(root, c);
+  return () => {
+    stop_cover();
+    stop_crown();
+  };
 }
 
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
@@ -180,6 +185,119 @@ function celebrate(root: HTMLElement, c: Course): void {
       host.append(s);
     }
   });
+}
+
+/**
+ * The crown can be picked up. Before the course is done it is on a rubber band: pulled, it stretches and springs back,
+ * and a light runs along the route from the next stop to it (that far to go). Once won it comes free: dropped on the
+ * course's title it sits there (kept), and a click sends it home.
+ */
+function play_crown(root: HTMLElement, c: Course): () => void {
+  const goal = root.querySelector<HTMLElement>('.milestones .goal');
+  const svg = goal?.querySelector<SVGSVGElement>('svg');
+  const title = root.querySelector<HTMLElement>('.course-hero h1');
+  if (!goal || !svg || !title) return () => {};
+  const won = goal.classList.contains('won');
+  const key = `mathnim.crown.${c.id}`;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let worn: HTMLElement | null = null;
+  const wear = (fly_from?: DOMRect) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    worn = b;
+    worn.className = 'title-crown';
+    worn.setAttribute('aria-label', t('map_won'));
+    worn.innerHTML = CROWN;
+    title.append(worn);
+    goal.classList.add('away');
+    try {
+      localStorage.setItem(key, 'worn');
+    } catch {
+      /* no storage */
+    }
+    if (fly_from && !still) {
+      const to = worn.getBoundingClientRect();
+      worn.animate([{ transform: `translate(${fly_from.left - to.left}px,${fly_from.top - to.top}px) rotate(0)` }, { transform: 'translate(0,-10px) rotate(-30deg)', offset: 0.7 }, { transform: 'rotate(-14deg)' }], { duration: 650, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+    }
+    worn.onclick = () => {
+      const from = worn!.getBoundingClientRect();
+      worn!.remove();
+      worn = null;
+      goal.classList.remove('away');
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        /* no storage */
+      }
+      const to = svg.getBoundingClientRect();
+      if (!still) svg.animate([{ transform: `translate(${from.left - to.left}px,${from.top - to.top}px) rotate(-14deg)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.3,1.3,.5,1)' });
+    };
+  };
+  if (won) {
+    try {
+      if (localStorage.getItem(key) === 'worn') wear();
+    } catch {
+      /* no storage */
+    }
+  }
+  /** A light from the next stop along the route to the crown. */
+  const run_light = () => {
+    const map = goal.parentElement!;
+    const from = map.querySelector<HTMLElement>('.ms.next i') ?? map.querySelector<HTMLElement>('.ms:not(.done) i');
+    if (!from || still) return;
+    const m = map.getBoundingClientRect(), a = from.getBoundingClientRect(), b = svg.getBoundingClientRect();
+    const dot = document.createElement('b');
+    dot.className = 'route-light';
+    map.append(dot);
+    const at = (r: DOMRect) => `translate(${r.left + r.width / 2 - m.left}px,${r.top + r.height / 2 - m.top}px)`;
+    dot.animate([{ transform: at(a), opacity: 0 }, { opacity: 1, offset: 0.15 }, { transform: at(b), opacity: 1, offset: 0.9 }, { transform: at(b), opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.5,0,.3,1)' }).onfinish = () => dot.remove();
+  };
+  let start: { x: number; y: number } | null = null, moved = false;
+  const down = (e: PointerEvent) => {
+    start = { x: e.clientX, y: e.clientY };
+    moved = false;
+    goal.setPointerCapture(e.pointerId);
+    goal.classList.remove('wiggle', 'fresh'); // (their animations would hold the crown in place)
+    goal.classList.add('held');
+  };
+  const move = (e: PointerEvent) => {
+    if (!start) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    if (!moved && Math.hypot(dx, dy) > 4) {
+      moved = true;
+      if (!won) run_light();
+    }
+    // locked: it stretches less the further it goes (a rubber band); won: it follows the pointer
+    const k = won ? 1 : 1 / (1 + Math.hypot(dx, dy) / 60);
+    svg.style.transform = `translate(${dx * k}px,${dy * k}px) rotate(${Math.max(-25, Math.min(25, dx * k * 0.4))}deg)`;
+  };
+  const up = (e: PointerEvent) => {
+    if (!start) return;
+    goal.classList.remove('held');
+    const dropped = { x: e.clientX, y: e.clientY };
+    start = null;
+    const was = svg.style.transform;
+    svg.style.transform = '';
+    if (!moved) {
+      // a click: the crown hops, and the light shows the way
+      if (!still) svg.animate([{ transform: 'none' }, { transform: 'translateY(-10px) rotate(-8deg)', offset: 0.4 }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+      if (!won) run_light();
+      return;
+    }
+    const r = title.getBoundingClientRect();
+    if (won && !worn && dropped.x >= r.left && dropped.x <= r.right && dropped.y >= r.top - 20 && dropped.y <= r.bottom + 20) {
+      const from = svg.getBoundingClientRect();
+      wear(new DOMRect(from.left + (dropped.x - from.left) - from.width / 2, from.top + (dropped.y - from.top) - from.height / 2, from.width, from.height));
+      return;
+    }
+    // back to its place, wobbling
+    if (!still) svg.animate([{ transform: was }, { transform: 'translate(0,0) rotate(-10deg)', offset: 0.45 }, { transform: 'rotate(7deg)', offset: 0.65 }, { transform: 'rotate(-3deg)', offset: 0.82 }, { transform: 'none' }], { duration: 700, easing: 'ease-out' });
+  };
+  goal.addEventListener('pointerdown', down);
+  goal.addEventListener('pointermove', move);
+  goal.addEventListener('pointerup', up);
+  goal.addEventListener('pointercancel', up);
+  return () => worn?.remove();
 }
 
 /** The moving cover: play the course's animation once (muted), rest on its last frame, replay on click. */

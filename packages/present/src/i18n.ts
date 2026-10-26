@@ -103,7 +103,7 @@ const DICT: Record<string, Entry> = {
   next_lesson: { en: 'Next: {title}', zh: '下一课：{title}' },
   resumed: { en: 'Picked up where you left off.', zh: '已回到上次学到的地方。' },
   explain_this: { en: 'Explain this', zh: '这里没懂' },
-  ask_here: { en: 'Ask about this', zh: '问这里' },
+  ask_here: { en: 'Ask about this', zh: '问这句' },
   hands_on: { en: 'Hands-on lab', zh: '动手实验' },
   start_over: { en: 'Start over', zh: '从头开始' },
   lesson_step: { en: 'Step {k} of {n}', zh: '第 {k} / {n} 步' },

@@ -90,6 +90,13 @@ body{margin:0;background:#fbfbfa}
 .milestones .goal{flex:none;position:relative;z-index:2;margin-top:-2px}
 .milestones .goal svg{display:block;width:26px;height:22px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
 .milestones .goal.won svg{fill:#F5B400;stroke:#DB9A00;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
+.milestones .goal{cursor:grab;touch-action:none;user-select:none}
+.milestones .goal.held{cursor:grabbing}
+.milestones .goal.held svg{transition:none}
+.milestones .goal.away svg{opacity:.18}
+.milestones .route-light{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#F5B400;box-shadow:0 0 10px 3px rgba(245,180,0,.55);pointer-events:none;z-index:3}
+.course-hero h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
+.course-hero h1 .title-crown svg{display:block;width:30px;height:25px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
 /* cleared since last seen: the node pops, the check draws, the route runs on to the next stop; sparks fly */
 .milestones .fresh i{animation:ms-pop .6s cubic-bezier(.3,1.7,.5,1) var(--d) both}
 .milestones .fresh i path{stroke-dasharray:10;animation:ms-check .3s ease-out calc(var(--d) + .25s) both}
