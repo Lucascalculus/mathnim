@@ -44,6 +44,7 @@ const CSS = `
 .rail-line:focus-within::after{background:var(--mn-accent)}
 .rail-note.busy .rail-line::after{background:linear-gradient(90deg,transparent,var(--mn-accent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--mn-fg) 28%,transparent);animation:rail-run 1.2s linear infinite}
 @keyframes rail-run{from{background-position:-40% 0,0 0}to{background-position:140% 0,0 0}}
+.rail-line input,.rail-note .mn-ask form .mn-input{flex:1;min-width:0;border:0;background:none;padding:6px 0;font:15px/1.5 ${SERIF};color:var(--mn-fg);box-shadow:none;outline:none}
 .rail-line input::placeholder,.rail-note .mn-ask form .mn-input::placeholder{font-style:italic;color:color-mix(in srgb,var(--mn-muted) 85%,transparent)}
 .rail-send{flex:none;width:26px;height:26px;border:0;background:none;color:var(--mn-accent);display:grid;place-items:center;padding:0;cursor:pointer;opacity:0;transition:opacity .15s}
 .rail-send svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -181,6 +182,8 @@ class Note {
   private quote_el: HTMLElement;
   quote = '';
   busy = false;
+  /** Where the note was asked from (px from the top of the margin): it is never placed above it, so it appears there. */
+  floor = 0;
   constructor(
     readonly key: string,
     readonly para: HTMLElement | null,
@@ -473,6 +476,9 @@ export class AskRail {
       const k = r.top >= y - 12 ? r.top - y : 2000 + (y - r.top);
       if (k < d) [d, best] = [k, p];
     }
+    if (best) return best;
+    // only a figure on screen: the paragraph just above it
+    for (const p of this.paras()) if (p.getBoundingClientRect().top < y) best = p;
     return best;
   }
 
@@ -513,6 +519,8 @@ export class AskRail {
   }
   private ask_here(q: string): void {
     const n = this.note_here(true);
+    if (wide()) n.floor = this.start.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + 14;
+    else requestAnimationFrame(() => n.el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     void n.panel.ask(q, n.para ? { selected: text_of(n.para).slice(0, 1200) } : undefined);
   }
   private show_stub(p: HTMLElement | null): void {
@@ -537,7 +545,7 @@ export class AskRail {
       const base = this.el.getBoundingClientRect().top;
       let floor = this.start.offsetHeight + 22; // (its place at the top, wherever it is stuck now)
       for (const n of margin) {
-        const want = n.para ? n.para.getBoundingClientRect().top - base : floor;
+        const want = Math.max(n.para ? n.para.getBoundingClientRect().top - base : floor, n.floor);
         const top = Math.max(want, floor);
         n.el.style.top = `${top}px`;
         floor = top + n.el.offsetHeight + 18;
