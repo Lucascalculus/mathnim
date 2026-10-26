@@ -168,7 +168,7 @@ body{margin:0;background:#fbfbfa}
 .col{display:flex;flex-direction:column;gap:16px}
 label.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
 @media (max-width:900px){.hero,.grid2,.resume-card{grid-template-columns:minmax(0,1fr)}.bar{grid-template-columns:1fr 1fr 84px}}
-@media (max-width:640px){.catalog{grid-template-columns:minmax(0,1fr)}.course-hero{padding:18px}.hero-top{flex-direction:column;align-items:stretch;gap:18px}.hero-feature{order:-1;height:auto;width:100%}.course-hero h1{font-size:26px}.milestones a{font-size:11px;padding-right:2px;gap:7px}.resume-title{font-size:18px}.app-shell{--mn-sticky-top:52px}.nav{gap:14px;padding:12px 14px}.langs{margin-left:auto}.page{padding:16px 12px}
+@media (max-width:640px){.catalog{grid-template-columns:minmax(0,1fr)}.course-hero{padding:18px}.hero-top{flex-direction:column;align-items:stretch;gap:18px}.hero-feature{order:-1;height:auto;width:100%}.course-hero h1{font-size:26px}.milestones{flex-direction:column;margin-top:20px}.milestones .ms{flex:none;padding-bottom:14px}.milestones .ms::after,.milestones .ms.done::before{top:9px;bottom:-9px;left:8px;right:auto;width:2px;height:auto}.milestones a{flex-direction:row;align-items:center;gap:12px;font-size:14px;padding-right:0}.milestones .goal{margin:0 0 0 -4px}.resume-title{font-size:18px}.app-shell{--mn-sticky-top:52px}.nav{gap:14px;padding:12px 14px}.langs{margin-left:auto}.page{padding:16px 12px}
  .bar{grid-template-columns:1fr 84px;row-gap:4px}.bar .track{grid-column:1/-1;grid-row:2}}
 /* phones: logo and language on top, a tab bar at the bottom (not inside lessons) */
 .tabbar{display:none}

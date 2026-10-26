@@ -89,8 +89,6 @@ export interface Course {
    * `feature` (a still of it) shows until it is ready, and instead of it for reduced motion.
    */
   cover_motion?: { visual: string; params?: Record<string, unknown>; pack?: () => Promise<unknown>; rate?: number };
-  /** The learning map on the course page: the course's key topics, each a stop at the lesson that teaches it (lit once that lesson is done). */
-  milestones?: { label: L10n; lesson: string }[];
   /** Where the course sits on the home page ("中学数学", "大学与工程"); courses with the same category are listed together. */
   category?: L10n;
   /** When set, only these lessons are shown (a course published in batches); the rest stay reachable by address and checked by the tools. */
@@ -126,11 +124,6 @@ function course_labs(course: string, units: Unit[], after: Record<string, string
 
 export const MATH_COURSE: Course = {
   id: 'math',
-  milestones: [
-    { label: { en: 'Circle area', zh: '圆的面积' }, lesson: 'pizza-game' },
-    { label: { en: 'Angles in circles', zh: '圆与角' }, lesson: 'best-angle' },
-    { label: { en: 'Eigenvectors', zh: '特征向量' }, lesson: 'eigen-pca' },
-  ],
   // a circle cut into slices and laid out as a rectangle: the area formula, seen
   cover_motion: { visual: 'circle_slices', params: {} },
   category: { en: 'Secondary-school math', zh: '中学数学' },
@@ -206,14 +199,6 @@ const FT_UNITS = lazy_units(FT_MANIFEST, FT_LOADERS);
 /** Fine-tuning large language models: parts A-F (units are added as each part is finished). */
 export const FT_COURSE: Course = {
   id: 'llm-finetuning',
-  milestones: [
-    { label: { en: 'Prompting', zh: '提示词' }, lesson: 'ft-a1' },
-    { label: { en: 'RAG', zh: 'RAG' }, lesson: 'ft-a2' },
-    { label: { en: 'SFT', zh: 'SFT' }, lesson: 'ft-b1-sft-mechanics' },
-    { label: { en: 'LoRA', zh: 'LoRA' }, lesson: 'ft-c2-lora' },
-    { label: { en: 'Preferences', zh: '偏好' }, lesson: 'ft-d1' },
-    { label: { en: 'RL', zh: '强化学习' }, lesson: 'ft-e1-rlvr-grpo' },
-  ],
   // the course's decision map, growing node by node
   cover_motion: { visual: 'decision_map', params: { upto: 'F1', show_out_of_scope: false }, pack: () => import('@mathnim/visuals/ft/f') },
   category: { en: 'AI', zh: 'AI' },
@@ -260,14 +245,6 @@ const MPC_UNITS = lazy_units(MPC_MANIFEST, MPC_LOADERS);
 /** Model predictive control (docs/lessons/mpc/README.md): eight lessons on one running example, a cart on a track. */
 export const MPC_COURSE: Course = {
   id: 'mpc',
-  milestones: [
-    { label: { en: 'Prediction', zh: '预测' }, lesson: 'mpc-m2-model' },
-    { label: { en: 'Cost', zh: '代价' }, lesson: 'mpc-m3-cost' },
-    { label: { en: 'Constraints', zh: '约束' }, lesson: 'mpc-m4-constraints' },
-    { label: { en: 'QP', zh: '二次规划' }, lesson: 'mpc-m5-solving' },
-    { label: { en: 'Stability', zh: '稳定性' }, lesson: 'mpc-m6-feasibility' },
-    { label: { en: 'Nonlinear MPC', zh: '非线性 MPC' }, lesson: 'mpc-m8-nmpc' },
-  ],
   // plan, apply the first step, plan again: the cart docks at the wall
   cover_motion: { visual: 'mpc_receding_loop', params: { N: 20 }, pack: () => import('@mathnim/visuals/mpc'), rate: 1.6 },
   category: { en: 'AI', zh: 'AI' },

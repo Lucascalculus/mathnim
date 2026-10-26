@@ -97,7 +97,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         <div class="hero-text">
           ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
           <h1>${math_html(tr(c.title, lang))}</h1>
-          ${c.milestones?.length ? '' : c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
+          
           ${go ? `<div class="row hero-go">
             <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
             ${done ? `<span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>` : ''}
@@ -105,7 +105,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         </div>
         ${cover_box ? `<figure class="hero-feature" title="${esc(t('cover_replay'))}">${still ? `<img src="${esc(still)}" alt="" onerror="this.remove()">` : ''}<canvas width="1280" height="720" aria-label="${esc(tr(c.title, lang))}"></canvas></figure>` : ''}
       </div>
-      ${go ? (c.milestones?.length ? milestones(c, go, lang) : progress_bar(done, all.length)) : ''}
+      ${go ? milestones(c, go, lang) : ''}
     </header>
     ${about(c, lang)}
     <div class="units">${visible_units(c).map((u) => `
@@ -128,22 +128,22 @@ export function course_page(root: HTMLElement, route: Route): () => void {
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
 
-/** The learning map, a level route: the course's key topics as stops (a check once their lesson is done, the next one
- *  pulsing; each opens its lesson), and a crown at the end, won by finishing every lesson. */
+/** The learning map, a level route: the course's units as stops, named as on the page below (a check once all their
+ *  lessons are done, the next one pulsing; each opens its first lesson not yet done), and a crown at the end, won by
+ *  finishing every lesson. */
 function milestones(c: Course, go: CourseLesson | undefined, lang: Lang): string {
   const all = lessons_of(c);
-  const shown = new Set(all.map((l) => l.id));
-  const stops = c.milestones!.filter((m) => shown.has(m.lesson));
-  const order = all.map((l) => l.id);
-  const at = go ? order.indexOf(go.id) : 0;
-  // the next stop: the first not done at or after the lesson to continue with
-  const next = stops.find((m) => lesson_status(m.lesson) !== 'done' && order.indexOf(m.lesson) >= at) ?? stops.find((m) => lesson_status(m.lesson) !== 'done');
+  const units = visible_units(c);
+  const cleared = (u: (typeof units)[number]) => u.lessons.every((l) => lesson_status(l.id) === 'done');
+  // the next stop: the unit of the lesson to continue with, unless it is cleared; else the first not cleared
+  const here = units.find((u) => u.lessons.some((l) => l.id === go?.id));
+  const next = here && !cleared(here) ? here : units.find((u) => !cleared(u));
   const won = done_in(c) === all.length;
   const goal = won ? t('map_won') : t('map_goal', { n: all.length });
-  return `<ol class="milestones">${stops.map((m) => {
-    const st = lesson_status(m.lesson) === 'done' ? 'done' : m === next ? 'next' : 'todo';
-    const l = all.find((x) => x.id === m.lesson)!;
-    return `<li class="ms ${st}" data-ms="${esc(m.lesson)}"><a href="${lesson_path(m.lesson)}" title="${esc(tr(l.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(tr(m.label, lang))}</span></a></li>`;
+  return `<ol class="milestones">${units.map((u) => {
+    const st = cleared(u) ? 'done' : u === next ? 'next' : 'todo';
+    const to = u.lessons.find((l) => lesson_status(l.id) !== 'done') ?? u.lessons[0];
+    return `<li class="ms ${st}" data-ms="${esc(u.id)}"><a href="${lesson_path(to.id)}" title="${esc(tr(to.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(unit_title(c, u, lang))}</span></a></li>`;
   }).join('')}<li class="goal${won ? ' won' : ''}" data-ms="crown" title="${esc(goal)}" role="img" aria-label="${esc(goal)}">${CROWN}</li></ol>`;
 }
 
