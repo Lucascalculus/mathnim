@@ -31,7 +31,7 @@ const CSS = `
 /* the conversation at the top of the margin, following the scroll */
 .rail-talk{position:sticky;top:var(--mn-sticky-top,58px);z-index:3;margin-top:-14px;padding:18px 0 14px;background:var(--mn-bg);max-height:calc(100vh - var(--mn-sticky-top,58px));overflow:auto;overscroll-behavior:contain;scrollbar-width:none}
 .rail-talk::-webkit-scrollbar{display:none}
-.mn-app:not(.mn-textstep) .rail-talk{position:relative;top:auto;margin-top:0;padding-top:4px;background:none;max-height:none;overflow:visible}
+.mn-app:not(.mn-textstep) .rail-talk{position:relative;top:auto;margin-top:0;max-height:none;overflow:visible}
 .rail-qs{display:flex;flex-direction:column;margin-bottom:6px}
 .rail-q,.mn-rail .mn-chip{display:block;width:100%;text-align:left;border:0;background:none;padding:4px 0;margin:0;border-radius:0;font:italic 14px/1.55 ${SERIF};color:var(--mn-muted);cursor:pointer;transition:color .15s;animation:rail-in .55s cubic-bezier(.2,.8,.2,1) both}
 .rail-q:nth-child(2){animation-delay:.08s}
@@ -80,6 +80,15 @@ const CSS = `
 .mn-echo.lit{filter:saturate(1.6) brightness(.97)}
 .mn-para{transition:background-color .25s,box-shadow .25s;border-radius:5px}
 .mn-para.lit{background-color:color-mix(in srgb,var(--mn-accent) 5%,transparent);box-shadow:0 0 0 6px color-mix(in srgb,var(--mn-accent) 5%,transparent)}
+/* the conversation block on wide screens: an engineering drawing (a dot grid, crop marks at the corners, a small label) */
+@media (min-width:901px){
+.rail-talk{margin-top:0;top:calc(var(--mn-sticky-top,58px) + 10px);max-height:calc(100vh - var(--mn-sticky-top,58px) - 20px)}
+.rail-talk{--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:30px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)}
+.rail-talk::before{content:'ASK · 01';position:absolute;top:11px;left:18px;font:500 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--m)}
+.rail-talk .rail-q{font:500 14px/1.55 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;font-style:normal;color:var(--mn-fg);padding-left:18px;position:relative}
+.rail-talk .rail-q::before{content:'→';position:absolute;left:0;font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mn-accent)}
+.rail-talk .mn-ask form .mn-input{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+}
 /* phones: the line at the bottom of the screen; the conversation opens above it */
 @media (max-width:900px){
  .mn-app.mn-textstep .mn-side.mn-railed{min-height:0}
