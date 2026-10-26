@@ -10,10 +10,6 @@
 // the bottom of the screen.
 // The question goes out with the lesson, the step, what is on screen, the
 // paragraph and the learner's recent mistakes; answers stream.
-//
-// The line one writes on is a plain rule that ripples while the tutor is
-// writing, then lies flat again. For comparison (remembered): ?line=rule never
-// ripples, ?line=wave always breathes.
 import { AskPanel, RECORDED, RECORDED_TEXT, recorded_question, worker_validator, type AskContext } from '@mathnim/ai';
 import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
 import { esc, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
@@ -46,11 +42,8 @@ const CSS = `
 .rail-line{position:relative;display:flex;align-items:center;gap:6px;padding:2px 0 6px}
 .rail-line::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:color-mix(in srgb,var(--mn-fg) 28%,transparent);transition:background-color .2s}
 .rail-line:focus-within::after{background:var(--mn-accent)}
-.rail-line.wave::after{display:none}
-.rail-line svg.rail-wave{position:absolute;left:0;bottom:-6px;width:100%;height:13px;overflow:visible;pointer-events:none}
-.rail-wave path{vector-effect:non-scaling-stroke;fill:none;stroke:color-mix(in srgb,var(--mn-fg) 32%,transparent);stroke-width:1.1;stroke-linecap:round;transition:stroke .3s}
-.rail-line:focus-within .rail-wave path,.rail-note.busy .rail-wave path{stroke:var(--mn-accent)}
-.rail-line input,.rail-note .mn-ask form .mn-input{flex:1;min-width:0;border:0;background:none;padding:6px 0;font:15px/1.5 ${SERIF};color:var(--mn-fg);box-shadow:none;outline:none}
+.rail-note.busy .rail-line::after{background:linear-gradient(90deg,transparent,var(--mn-accent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--mn-fg) 28%,transparent);animation:rail-run 1.2s linear infinite}
+@keyframes rail-run{from{background-position:-40% 0,0 0}to{background-position:140% 0,0 0}}
 .rail-line input::placeholder,.rail-note .mn-ask form .mn-input::placeholder{font-style:italic;color:color-mix(in srgb,var(--mn-muted) 85%,transparent)}
 .rail-send{flex:none;width:26px;height:26px;border:0;background:none;color:var(--mn-accent);display:grid;place-items:center;padding:0;cursor:pointer;opacity:0;transition:opacity .15s}
 .rail-send svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -106,72 +99,6 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.mn-rail *,.rail-note,.mn-para{animation:none!important;transition:none!important}}
 `;
 let injected = false;
-
-/** How the line one writes on moves: 'ripple' (flat, a wave while the tutor writes), 'rule' (never), 'wave' (always breathes). */
-const LINE = (() => {
-  try {
-    const v = new URLSearchParams(location.search).get('line');
-    if (v) localStorage.setItem('mathnim.line', v);
-    const kept = v ?? localStorage.getItem('mathnim.line');
-    return kept === 'rule' || kept === 'wave' ? kept : 'ripple';
-  } catch {
-    return 'ripple';
-  }
-})();
-/** The lines on the page, drawn by one animation loop that runs only while one of them moves. */
-const waves = new Set<{ path: SVGPathElement; amp: number; target: () => number }>();
-let looping = false;
-function draw_waves(now: number): void {
-  let moving = false;
-  for (const w of waves) {
-    if (!w.path.isConnected) {
-      waves.delete(w);
-      continue;
-    }
-    const goal = w.target();
-    w.amp += (goal - w.amp) * 0.05;
-    if (goal === 0 && w.amp < 0.02) w.amp = 0;
-    else moving = true;
-    // (drawn in a 300-wide box stretched to the line's width)
-    const width = 300;
-    let d = '';
-    for (let x = 0; x <= width; x += 3) {
-      // an envelope keeps the ends on the rule; the wave travels slowly along it
-      const env = Math.sin((Math.PI * x) / width);
-      const y = 6.5 + w.amp * env * Math.sin(x / 11 - (now / 1000) * (1.2 + goal * 0.5));
-      d += `${x ? 'L' : 'M'}${x} ${y.toFixed(2)}`;
-    }
-    w.path.setAttribute('d', d);
-  }
-  looping = moving;
-  if (moving) requestAnimationFrame(draw_waves);
-}
-/** Set the lines moving (after something changed what they should do). */
-function wake_lines(): void {
-  if (looping || !waves.size) return;
-  looping = true;
-  requestAnimationFrame(draw_waves);
-}
-/** Draw a line as a moving one; `thinking` says when the tutor is writing. */
-function breathe(line: HTMLElement, thinking: () => boolean): void {
-  if (LINE === 'rule') return;
-  line.classList.add('wave');
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'rail-wave');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('viewBox', '0 0 300 13');
-  svg.setAttribute('preserveAspectRatio', 'none');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'M0 6.5L300 6.5');
-  svg.append(path);
-  line.append(svg);
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const focused = () => line.contains(document.activeElement);
-  const target = LINE === 'wave' ? () => (thinking() ? 4.2 : focused() ? 1.4 : 0.7) : () => (thinking() ? 3.2 : 0);
-  waves.add({ path, amp: 0, target });
-  line.addEventListener('focusin', wake_lines);
-  wake_lines();
-}
 
 /** Suggested questions for the step on screen: recorded ones first, then the lesson's misconceptions as questions. */
 function suggestions(cl: CourseLesson, lesson: Lesson, step_id: string | undefined): string[] {
@@ -288,7 +215,6 @@ class Note {
       on_card: () => {
         this.busy = true;
         this.el.classList.add('busy');
-        wake_lines();
         this.update_head();
         this.panel.set_suggestions([]);
         rail.layout();
@@ -296,7 +222,6 @@ class Note {
       on_done: () => {
         this.busy = false;
         this.el.classList.remove('busy');
-        wake_lines();
         this.update_head();
         this.save();
         rail.layout();
@@ -304,7 +229,6 @@ class Note {
     });
     const form = el.querySelector<HTMLFormElement>('.note-panel .mn-ask > form')!;
     form.classList.add('rail-line');
-    breathe(form, () => this.busy);
     this.quote_el = document.createElement('div');
     this.quote_el.className = 'note-quote';
     this.quote_el.hidden = true;
@@ -405,7 +329,6 @@ export class AskRail {
     this.qs = el.querySelector('.rail-qs')!;
     this.input = el.querySelector('.rail-start input')!;
     const form = el.querySelector<HTMLFormElement>('.rail-start form')!;
-    breathe(form, () => [...this.notes.values()].some((n) => n.busy && !n.para));
     form.onsubmit = (e) => {
       e.preventDefault();
       const q = this.input.value.trim();

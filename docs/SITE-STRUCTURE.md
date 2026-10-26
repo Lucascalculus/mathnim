@@ -73,7 +73,7 @@ The tutorials in `docs/lessons/llm-finetuning/labs/*.md` each have `## 中文` a
   - on a text page the side column is the page's margin. Hovering a paragraph shows a pen mark beside it, and a click starts a note there;
   - the top of the margin follows the scroll. It holds two questions the model writes for each page (one shared, cached request) and a ruled line to write on. A question asked there becomes a note beside the paragraph being read;
   - notes are numbered, with a matching superscript at the end of the paragraph. They can be folded to one line and reopened to go on asking, and they are kept per lesson in the browser;
-  - the line ripples while the tutor is writing (`?line=rule` and `?line=wave` show the two variants it was compared with);
+  - while the tutor is writing, a light runs along the note's line (a breathing-wave variant was tried and dropped);
   - on scene and question steps the notes sit under the step's panel; question steps get no suggested questions;
   - on phones the line sits at the bottom of the screen and notes sit under their paragraph;
   - a text page's 继续 sits at the end of the page;
