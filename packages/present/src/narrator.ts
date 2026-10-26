@@ -65,6 +65,7 @@ export class Narrator {
 
   /** Show and speak a line. Resolves when it has finished (or was replaced). */
   async say(text: string): Promise<void> {
+    if (this.dead) return;
     this.stop();
     const my = ++this.token;
     this.caption.textContent = text;
@@ -133,6 +134,12 @@ export class Narrator {
     if (this.audio && this.audio.paused && !this.audio.ended) void this.audio.play();
     if (typeof speechSynthesis !== 'undefined') speechSynthesis.resume();
   }
+  /** For good (the view is gone): stop, and ignore every later line. */
+  dispose(): void {
+    this.dead = true;
+    this.stop();
+  }
+  private dead = false;
   stop(clear = true): void {
     this.token++;
     cancelAnimationFrame(this.raf);

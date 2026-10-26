@@ -35,6 +35,8 @@ export interface CompletionRequest {
   reasoning?: Reasoning;
   /** Called with the token usage when the provider reports it. */
   on_usage?: (u: Usage) => void;
+  /** The same request for every learner (nothing personal in it): a server that keeps answers may answer it from there. */
+  shared?: boolean;
 }
 export interface Provider {
   name: string;
@@ -142,6 +144,7 @@ export class OpenAICompatibleProvider implements Provider {
   private async request(req: CompletionRequest, stream: boolean, signal?: AbortSignal): Promise<Response> {
     const headers: Record<string, string> = { 'content-type': 'application/json' };
     if (this.o.api_key) headers.authorization = `Bearer ${this.o.api_key}`;
+    if (req.shared) headers['x-mathnim-cache'] = '1';
     const url = `${this.o.base_url.replace(/\/$/, '')}/chat/completions`;
     const send = (extras: boolean) => fetch(url, { method: 'POST', headers, body: JSON.stringify(this.body(req, stream, extras)), signal });
     const extras = !this.plain && !!(req.json || req.reasoning);

@@ -25,6 +25,21 @@ export const remember_last = (id: string) => {
   }
 };
 export const last_lesson = () => get(LAST);
+/** The stops of a course's learning map the learner has already seen cleared (so each is celebrated once). */
+export function map_seen(course_id: string): string[] {
+  try {
+    return JSON.parse(get(`mathnim.map.${course_id}`) ?? '[]');
+  } catch {
+    return [];
+  }
+}
+export const set_map_seen = (course_id: string, ids: string[]) => {
+  try {
+    localStorage.setItem(`mathnim.map.${course_id}`, JSON.stringify(ids));
+  } catch {
+    /* no storage */
+  }
+};
 /** The lesson opened last in this course (null if none). */
 export const last_in_course = (c: Course): string | null => {
   const id = get(`${LAST}.${c.id}`) ?? last_lesson();

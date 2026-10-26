@@ -186,6 +186,18 @@ export class LessonRuntime {
     const s = this.step;
     return !s || (this.opts.flow ?? LINEAR_FLOW).can_continue(s, this.world);
   }
+  /**
+   * Stop for good: the learner left the lesson. Stops the world's idle timer (whose
+   * lines would otherwise keep being spoken), the player and the handles; pending
+   * steps are cancelled and no more events are emitted.
+   */
+  dispose(): void {
+    this.disposed = true;
+    this.token++;
+    this.listeners = [];
+    this.teardown();
+  }
+  private disposed = false;
   private teardown(): void {
     this.world?.stop();
     this.world = null;
@@ -195,6 +207,7 @@ export class LessonRuntime {
     this.player?.stop_live();
   }
   private async go(i: number): Promise<void> {
+    if (this.disposed) return;
     const my = ++this.token;
     this.teardown();
     this.index = i;

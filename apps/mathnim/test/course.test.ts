@@ -51,7 +51,7 @@ describe('course pages', () => {
   });
   it('keep a course without lessons off the home page', () => {
     if (!visible_lessons(MPC_COURSE).length) expect(MPC_COURSE.hidden).toBe(true);
-    expect(COURSES.map((c) => c.id)).toEqual(['math', 'llm-finetuning', 'mpc']);
+    expect(COURSES.map((c) => c.id)).toEqual(['llm-finetuning', 'mpc', 'math']);
   });
   it('give every prerequisite link a URL in both languages', () => {
     for (const c of COURSES) {

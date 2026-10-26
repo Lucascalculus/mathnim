@@ -38,7 +38,11 @@ body{margin:0;background:#fbfbfa}
 .resume-row-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resume-row .mn-btn{flex:none}
 .catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
-.course-card{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s;border-top:4px solid var(--course-accent,var(--mn-border))}
+.course-card{display:flex;flex-direction:column;gap:10px;transition:transform .15s,border-color .15s;border-top:4px solid var(--course-accent,var(--mn-border))}
+.course-link{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit}
+.course-resume{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;font-size:14px;text-decoration:none;color:var(--mn-fg);background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 8%,transparent)}
+.course-resume b{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.course-resume:hover{background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 15%,transparent)}
 .course-card:hover{transform:translateY(-2px)}
 .course-card .thumb{width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#f3f4f8,#e9ebf2);border:1px solid var(--mn-border);display:block;object-fit:cover}
 .course-name{font-weight:700;font-size:19px;letter-spacing:-.01em}
@@ -49,20 +53,59 @@ body{margin:0;background:#fbfbfa}
 /* a course page */
 .backlink{display:inline-block;font-size:14px;color:var(--mn-muted);text-decoration:none;margin:0 0 12px}
 .backlink:hover{color:var(--mn-accent)}
-.course-hero{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;border-top:4px solid var(--course-accent,var(--mn-accent))}
-.course-hero.with-feature{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center}
-.course-hero h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px;line-height:1.2}
-.hero-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+/* a course page's header: what the course is and how to begin, its moving cover in a plain frame, and the route along the bottom */
+.course-hero{padding:26px 28px 22px}
+.hero-top{display:flex;align-items:center;gap:32px}
+.hero-text{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
 .hero-text p{margin:0}
+.hero-meta{font-size:13px;color:var(--mn-muted)}
+.hero-meta b{font-weight:600;color:var(--course-accent,var(--mn-accent))}
+.course-hero h1{font-size:38px;letter-spacing:-.025em;margin:0;line-height:1.15}
 .hero-sum{font-size:16px}
-.hero-aud,.hero-size{font-size:13.5px}
-.hero-go{margin:12px 0 6px}
+.hero-go{margin-top:14px}
 .hero-coming{margin:12px 0 4px;font-size:14px;color:var(--mn-muted)}
 .hero-go .mn-btn{text-decoration:none}
-.hero-text .course-progress{max-width:420px}
-.hero-feature{margin:0}
-.hero-feature img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--mn-border);background:#fff}
-.hero-kicker{font-size:13px;color:var(--course-accent,var(--mn-accent));font-weight:600;margin:0 0 2px}
+.course-hero>.course-progress{margin-top:20px}
+/* the cover is the course's signature animation, in proportion, framed like the lesson pictures; a click replays it */
+.hero-feature{flex:none;position:relative;margin:0;height:196px;aspect-ratio:16/9;border:1px solid var(--mn-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}
+.hero-feature img,.hero-feature canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.hero-feature canvas{visibility:hidden}
+.hero-feature.live canvas{visibility:visible}
+.hero-feature.live img{visibility:hidden}
+/* the learning map, a level route: stops (a check when cleared, the next one pulsing) and a crown at the end */
+.milestones{list-style:none;margin:26px 0 0;padding:0;display:flex;position:relative;isolation:isolate}
+.milestones .ms{flex:1;position:relative;min-width:0}
+.milestones .ms::after,.milestones .ms.done::before{content:'';position:absolute;top:8px;left:9px;right:0;height:2px;background:var(--mn-border)}
+.milestones .ms.done::before{background:var(--course-accent,var(--mn-accent));z-index:1}
+.milestones a{position:relative;z-index:2;display:inline-flex;flex-direction:column;align-items:flex-start;gap:8px;padding-right:10px;text-decoration:none;color:var(--mn-muted);font-size:13px;line-height:1.3;word-break:keep-all}
+.milestones i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--mn-panel);border:2px solid var(--mn-border);box-sizing:border-box;transition:transform .15s}
+.milestones i svg{width:12px;height:12px;fill:none;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.milestones .done i{background:var(--course-accent,var(--mn-accent));border-color:var(--course-accent,var(--mn-accent))}
+.milestones .done i svg{stroke:#fff}
+.milestones .next i{border-color:var(--course-accent,var(--mn-accent));animation:ms-ping 2.2s ease-out infinite}
+.milestones .done a,.milestones .next a{color:var(--mn-fg)}
+.milestones .next a{font-weight:600}
+.milestones a:hover{color:var(--course-accent,var(--mn-accent))}
+.milestones a:hover i{transform:scale(1.15)}
+.milestones .goal{flex:none;position:relative;z-index:2;margin-top:-2px}
+.milestones .goal svg{display:block;width:26px;height:22px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
+.milestones .goal.won svg{fill:#F5B400;stroke:#DB9A00;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
+/* cleared since last seen: the node pops, the check draws, the route runs on to the next stop; sparks fly */
+.milestones .fresh i{animation:ms-pop .6s cubic-bezier(.3,1.7,.5,1) var(--d) both}
+.milestones .fresh i path{stroke-dasharray:10;animation:ms-check .3s ease-out calc(var(--d) + .25s) both}
+.milestones .ms.fresh::before{transform-origin:left;animation:ms-run .45s ease-in-out calc(var(--d) + .3s) both}
+.milestones .goal.fresh svg{animation:ms-crown .9s cubic-bezier(.3,1.7,.5,1) var(--d) both}
+.milestones .goal.wiggle svg{transform-origin:50% 85%;animation:ms-wiggle 1s ease-in-out var(--w) both}
+.milestones .spark{position:absolute;left:9px;top:9px;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--course-accent,var(--mn-accent));pointer-events:none;animation:ms-spark .65s ease-out both}
+.milestones .goal .spark{left:13px;top:11px;background:#F5B400}
+@keyframes ms-ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--course-accent,var(--mn-accent)) 45%,transparent)}75%,100%{box-shadow:0 0 0 9px transparent}}
+@keyframes ms-pop{from{background:var(--mn-panel);border-color:var(--mn-border);transform:scale(.8)}55%{transform:scale(1.4)}to{transform:scale(1)}}
+@keyframes ms-check{from{stroke-dashoffset:10}to{stroke-dashoffset:0}}
+@keyframes ms-run{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes ms-crown{from{fill:var(--mn-panel);stroke:var(--mn-border);transform:scale(.6) rotate(-14deg)}55%{transform:scale(1.5) rotate(8deg)}to{transform:none}}
+@keyframes ms-wiggle{0%,100%{transform:none}12%{transform:scale(1.15) rotate(-16deg);fill:#FCE7A6;stroke:#E0A800}28%{transform:scale(1.15) rotate(13deg);fill:#FCE7A6;stroke:#E0A800}44%{transform:scale(1.1) rotate(-9deg);fill:#FCE7A6;stroke:#E0A800}60%{transform:rotate(6deg)}76%{transform:rotate(-3deg)}}
+@keyframes ms-spark{0%{opacity:0;transform:none}10%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+@media (prefers-reduced-motion:reduce){.milestones .next i{animation:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 18%,transparent)}}
 .about-course{margin-top:14px;padding:14px 18px}
 .about-course>summary{cursor:pointer;font-size:14px;color:var(--mn-muted);list-style:none;display:flex;align-items:center;gap:8px}
 .about-course>summary::before{content:'›';font-size:18px;line-height:1;transition:transform .15s}
@@ -81,11 +124,8 @@ body{margin:0;background:#fbfbfa}
 .hero-pre{margin:6px 0 2px;font-size:13.5px}
 .hero-pre-sum{margin:0;color:var(--mn-muted);line-height:1.5}
 .pre-links{margin-top:4px}
-.pre-links summary{cursor:pointer;color:var(--mn-accent);font-weight:600;width:max-content;list-style:none;display:inline-flex;align-items:center;gap:6px}
-.pre-links summary::-webkit-details-marker{display:none}
-.pre-links summary::before{content:"";width:6px;height:6px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
-.pre-links[open] summary::before{transform:rotate(45deg) translate(-1px,-1px)}
-.pre-links ul{margin:8px 0 2px;padding-left:1.15em;display:flex;flex-direction:column;gap:5px}
+.pre-links-title{font-weight:600;color:var(--mn-fg);margin:2px 0 4px}
+.pre-links ul{margin:2px 0 2px;padding-left:1.15em;display:flex;flex-direction:column;gap:5px}
 .pre-links a{color:var(--mn-fg);font-weight:600;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-accent) 45%,transparent);text-underline-offset:2px}
 .pre-links a:hover{color:var(--mn-accent)}
 .lab-card{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
@@ -127,8 +167,8 @@ body{margin:0;background:#fbfbfa}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .col{display:flex;flex-direction:column;gap:16px}
 label.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
-@media (max-width:900px){.hero,.grid2,.resume-card,.course-hero.with-feature{grid-template-columns:1fr}.bar{grid-template-columns:1fr 1fr 84px}}
-@media (max-width:640px){.catalog{grid-template-columns:minmax(0,1fr)}.course-hero h1{font-size:24px}.resume-title{font-size:18px}.app-shell{--mn-sticky-top:52px}.nav{gap:14px;padding:12px 14px}.langs{margin-left:auto}.page{padding:16px 12px}
+@media (max-width:900px){.hero,.grid2,.resume-card{grid-template-columns:minmax(0,1fr)}.bar{grid-template-columns:1fr 1fr 84px}}
+@media (max-width:640px){.catalog{grid-template-columns:minmax(0,1fr)}.course-hero{padding:18px}.hero-top{flex-direction:column;align-items:stretch;gap:18px}.hero-feature{order:-1;height:auto;width:100%}.course-hero h1{font-size:26px}.milestones a{font-size:11px;padding-right:2px;gap:7px}.resume-title{font-size:18px}.app-shell{--mn-sticky-top:52px}.nav{gap:14px;padding:12px 14px}.langs{margin-left:auto}.page{padding:16px 12px}
  .bar{grid-template-columns:1fr 84px;row-gap:4px}.bar .track{grid-column:1/-1;grid-row:2}}
 /* phones: logo and language on top, a tab bar at the bottom (not inside lessons) */
 .tabbar{display:none}
@@ -195,7 +235,9 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     app.classList.toggle('in-lesson', current.page === 'lesson' || current.page === 'lab');
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   };
+  let routing = 0;
   const route = async (keep_scroll = false) => {
+    const mine = ++routing;
     if (typeof cleanup === 'function') cleanup();
     cleanup = undefined;
     current = parse(location.pathname);
@@ -207,7 +249,13 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     render_nav();
     page.innerHTML = '';
     if (!keep_scroll) window.scrollTo(0, 0);
-    cleanup = await pages[current.page](page, current);
+    const done = await pages[current.page](page, current);
+    // the learner went elsewhere while this page was loading: take it down now (no sound left playing)
+    if (mine !== routing) {
+      if (typeof done === 'function') done();
+      return;
+    }
+    cleanup = done;
     // an anchor in the address (e.g. /llm-finetuning#labs) is scrolled to once the page is there
     if (!keep_scroll && location.hash.length > 1 && !location.hash.startsWith('#/')) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   };

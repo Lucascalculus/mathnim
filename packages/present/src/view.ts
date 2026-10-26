@@ -70,6 +70,12 @@ export interface ViewOptions {
    * Called with the selected passage, if any; the app opens its chat beside the lesson.
    */
   help?: (ask: { selected?: string }) => void;
+  /**
+   * The app's own element for the side column (e.g. a chat with the tutor), kept below the step's panel.
+   * With it, a text page's side holds only this element: the page's way on moves to the end of the page,
+   * and there is no "Explain this" button (the element is the way to ask).
+   */
+  rail?: HTMLElement;
 }
 
 const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): HTMLElementTagNameMap[K] => {
@@ -113,6 +119,10 @@ export class LessonView {
   private juice: Juice | null = null;
   private confidence: 1 | 2 | 3 | undefined;
   private final = false;
+  /** An auto-advancing question's wait before the next step (cleared when the step changes). */
+  private auto_timer = 0;
+  /** The next step arrives after an auto-advancing question: it fades in. */
+  private entering = false;
   private app: HTMLElement;
   /** Game view: levels, stars and a speaking character instead of chapters and a player bar. */
   readonly game: boolean;
@@ -154,13 +164,18 @@ export class LessonView {
       (this.el.conf = h('div', 'mn-conf')), (this.el.feedback = h('div', 'mn-feedback')), (this.el.hints = h('div', 'mn-hints')),
       (this.el.actions = h('div', 'mn-actions')), (this.el.endextra = h('div', 'mn-endextra')), (this.el.mastery = h('div', 'mn-mastery')),
     );
-    if (o.help) {
+    if (o.rail) {
+      side.classList.add('mn-railed');
+      app.classList.add('mn-has-rail');
+      o.rail.classList.add('mn-rail');
+    } else if (o.help) {
       // "这里没懂": on every step, under the step's actions (on phones it floats at the bottom corner)
       const help = (this.el.help = h('button', 'mn-helpbtn', `<span class="mn-helpicon" aria-hidden="true">?</span>${esc(t('explain_this'))}`));
       (help as HTMLButtonElement).type = 'button';
       help.onclick = () => o.help!({});
       side.insertBefore(help, this.el.mastery);
     }
+    if (o.rail) side.append(o.rail);
     this.el.feedback.setAttribute('aria-live', 'polite');
     const bar = h('div', 'mn-bar');
     this.el.play = h('button', 'mn-iconbtn', '▶');
@@ -355,10 +370,18 @@ export class LessonView {
   }
 
   // ---------------------------------------------------------------- runtime events
+  private destroyed = false;
   private on_event(e: RuntimeEvent): void {
+    if (this.destroyed) return;
     switch (e.type) {
       case 'step': {
         this.reset_panel();
+        if (this.entering) {
+          // arriving from an auto-advancing question: the new step fades in
+          this.entering = false;
+          this.app.classList.add('mn-enter');
+          setTimeout(() => this.app.classList.remove('mn-enter'), 900);
+        }
         const s = e.step;
         const chapter = this.tr(this.chapter_of(e.index));
         const text = is_text_step(s);
@@ -509,6 +532,20 @@ export class LessonView {
         // (a self-assessment already shows the model answer and the ticked points)
         if (q.type === 'text' && e.final && !this.el.answer.querySelector('.mn-selfcheck')) fb.append(this.rubric_summary(e.step, g.points));
         this.mark_choices(e.step, e.final);
+        if (q.type === 'choice' && !e.final) {
+          // try again: the wrong option stays marked and can't be picked twice
+          const tried = this.el.answer.querySelector<HTMLButtonElement>('.mn-choice[aria-pressed=true]');
+          if (tried) {
+            tried.classList.add('tried');
+            tried.disabled = true;
+            tried.setAttribute('aria-pressed', 'false');
+          }
+        }
+        if (e.final && e.step.auto_advance && q.type === 'choice') {
+          this.auto_advance(e.step, g.correct);
+          this.render_mastery();
+          break;
+        }
         if (q.type === 'sketch' && e.final) {
           this.show_truth(e.step);
           fb.insertAdjacentHTML('beforeend', `<p class="mn-legend"><span class="mn-sw you"></span>${esc(t('your_sketch'))} <span class="mn-sw real"></span>${esc(t('real_graph'))}</p>`);
@@ -547,8 +584,19 @@ export class LessonView {
   }
   /** Remove the view (stops audio and the scene). */
   destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    clearTimeout(this.auto_timer);
+    // keep the place: the furthest step reached so far is where the lesson resumes
+    if (this.o.remember) {
+      const p = this.read_progress();
+      const i = this.runtime.index ?? 0;
+      const s = this.lesson.steps[i];
+      if (!p.done && s && !s.branch_only && i > p.furthest) this.save_progress({ furthest: i, done: false });
+    }
     this.unwatch?.();
-    this.narrator.stop();
+    this.narrator.dispose();
+    this.runtime.dispose();
     this.page?.dispose();
     this.page = null;
     this.runtime.player?.pause();
@@ -574,6 +622,8 @@ export class LessonView {
     this.answer = null;
     this.confidence = undefined;
     this.final = false;
+    clearTimeout(this.auto_timer);
+    this.app.classList.remove('mn-auto');
     const sk = this.sketch.canvas;
     sk.style.display = 'none';
     this.sketch.truth = null;
@@ -611,8 +661,15 @@ export class LessonView {
     });
     this.page = page;
     this.el.page.append(page.el);
-    this.el.prompt.append(page.aside);
-    this.el.actions.append(cont);
+    if (this.o.rail) {
+      // the side is the app's: the way on is where reading ends
+      const next = h('div', 'mn-page-next');
+      next.append(cont);
+      this.el.page.append(next);
+    } else {
+      this.el.prompt.append(page.aside);
+      this.el.actions.append(cont);
+    }
     sync();
     this.scroll_to_page();
   }
@@ -815,10 +872,12 @@ export class LessonView {
         const b = h('button', 'mn-choice', `<span class="mn-key">${i + 1}</span><span>${math_html(fill(this.tr(o.label), vars))}</span>`);
         b.dataset.id = o.id;
         b.setAttribute('aria-pressed', 'false');
+        // one click answers: no separate "check" for a choice
         b.onclick = () => {
-          if (this.final) return;
+          if (this.final || (b as HTMLButtonElement).disabled) return;
           chosen = o.id;
           wrap.querySelectorAll('.mn-choice').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          this.runtime.submit({ type: 'choice', option: o.id }, { confidence: this.confidence });
         };
         wrap.append(b);
       });
@@ -865,7 +924,8 @@ export class LessonView {
       box.append(card, clear);
       this.answer = () => (sk.points.length ? (q.type === 'sketch' ? { type: 'sketch', points: sk.points } : { type: 'point', point: sk.points[0] }) : null);
     }
-    if (step.confidence) {
+    // (a choice is answered by its click, so there is no moment to ask how sure the learner is)
+    if (step.confidence && q.type !== 'choice') {
       const c = this.el.conf;
       c.append(h('span', '', esc(t('how_sure'))));
       (['guessing', 'fairly', 'certain'] as const).forEach((key, i) => {
@@ -886,13 +946,13 @@ export class LessonView {
       this.runtime.submit(r, { confidence: this.confidence });
     }, true);
     check.dataset.role = 'check';
-    this.el.actions.append(check);
-    if (step.hints?.length) {
+    if (q.type !== 'choice') this.el.actions.append(check);
+    if (step.hints?.length && !step.auto_advance) {
       const hb = this.button(t('hint'), () => this.runtime.hint());
       hb.dataset.role = 'hint';
       this.el.actions.append(hb);
     }
-    if (step.purpose !== 'predict') {
+    if (step.purpose !== 'predict' && !step.auto_advance) {
       const give = this.button(t('show_answer'), () => this.runtime.reveal_answer());
       give.dataset.role = 'give';
       this.el.actions.append(give);
@@ -962,6 +1022,30 @@ export class LessonView {
     fb.className = 'mn-feedback info';
     fb.textContent = msg;
   }
+  /**
+   * An opening question that goes on by itself: the options fade away, the feedback takes their place
+   * (what was right, the explanation), and after a pause long enough to read it the next step fades in.
+   * A click on the feedback goes on at once.
+   */
+  private auto_advance(step: CheckpointStep, correct: boolean): void {
+    this.final = true;
+    const lines = [correct ? t('guess_right') : '', step.explain ? this.runtime.text(step.explain) : ''].filter(Boolean);
+    const fb = this.el.feedback;
+    fb.className = 'mn-feedback mn-say';
+    fb.innerHTML = lines.map((l) => `<p>${math_html(l)}</p>`).join('');
+    this.el.answer.querySelector('.mn-choices')?.classList.add('mn-leaving');
+    this.app.classList.add('mn-auto');
+    const chars = lines.join('').length;
+    const wait = Math.min(4500, Math.max(2200, 1400 + chars * (this.lang === 'zh' ? 28 : 12)));
+    const go = () => {
+      clearTimeout(this.auto_timer);
+      if (this.runtime.step !== step || this.destroyed) return;
+      this.entering = true;
+      this.runtime.next();
+    };
+    fb.onclick = go;
+    this.auto_timer = window.setTimeout(go, wait);
+  }
   private finalize_actions(step: CheckpointStep): void {
     this.final = true;
     this.el.actions.querySelectorAll<HTMLButtonElement>('[data-role]').forEach((b) => (b.disabled = true));
@@ -974,8 +1058,9 @@ export class LessonView {
   private mark_choices(step: CheckpointStep, final: boolean): void {
     if (step.question.type !== 'choice') return;
     const opts = step.question.options;
-    this.el.answer.querySelectorAll<HTMLElement>('.mn-choice').forEach((b) => {
+    this.el.answer.querySelectorAll<HTMLButtonElement>('.mn-choice').forEach((b) => {
       const o = opts.find((x) => x.id === b.dataset.id)!;
+      if (b.classList.contains('tried')) return; // an earlier wrong try stays marked
       b.classList.remove('good', 'bad');
       if (b.getAttribute('aria-pressed') === 'true') b.classList.add(o.correct ? 'good' : 'bad');
       else if (final && o.correct) b.classList.add('good');

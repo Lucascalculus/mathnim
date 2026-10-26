@@ -57,6 +57,16 @@ export const CSS = `
 .mn-feedback.bad{display:block;background:color-mix(in srgb,var(--mn-bad) 9%,transparent);color:var(--mn-bad)}
 .mn-feedback.info{display:block;background:var(--mn-faint);color:var(--mn-fg)}
 .mn-feedback p{margin:0 0 4px}.mn-feedback p:last-child{margin:0}
+/* an auto-advancing question: the options fade out, the feedback is said in their place, the next step fades in */
+.mn-choices.mn-leaving{animation:mn-leave .35s ease forwards;pointer-events:none}
+@keyframes mn-leave{to{opacity:0;transform:translateY(-4px);height:0;margin:0;overflow:hidden}}
+.mn-feedback.mn-say{display:block;background:none;padding:6px 4px;text-align:center;font-size:17px;line-height:1.65;color:var(--mn-fg);cursor:pointer;animation:mn-say .5s ease .3s both}
+.mn-feedback.mn-say p{margin:0 0 6px}
+.mn-feedback.mn-say p:first-child:not(:last-child){color:var(--mn-good);font-weight:600}
+@keyframes mn-say{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.mn-enter .mn-pagehost,.mn-enter .mn-side{animation:mn-enter .7s ease both}
+@keyframes mn-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.mn-choices.mn-leaving{animation:none;display:none}.mn-feedback.mn-say,.mn-enter .mn-pagehost,.mn-enter .mn-side{animation:none}}
 .mn-hints{display:flex;flex-direction:column;gap:6px;font-size:14px}
 .mn-hint{padding:8px 10px;border-left:3px solid var(--mn-warn);background:color-mix(in srgb,var(--mn-warn) 8%,transparent);border-radius:0 8px 8px 0}
 .mn-conf{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mn-muted)}
@@ -143,6 +153,10 @@ export const CSS = `
 .mn-app.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game) .mn-side{grid-column:1;grid-row:auto;width:100%;max-width:46rem;margin:0 auto}
 .mn-textstep .mn-side>:empty{display:none}
 .mn-textstep .mn-side,.mn-casestep .mn-side{position:sticky;top:calc(var(--mn-sticky-top,0px) + 12px);max-height:calc(100vh - var(--mn-sticky-top,0px) - 24px);align-self:start}
+/* an app element in the side column (rail): on text pages it is all the side holds, the way on ends the page */
+.mn-textstep .mn-side.mn-railed{background:none;border:0;box-shadow:none;padding:0;overflow:visible;max-height:none}
+.mn-textstep .mn-side.mn-railed>:not(.mn-rail){display:none}
+.mn-page-next{display:flex;justify-content:flex-end;margin-top:14px}
 .mn-page{background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:var(--mn-radius);box-shadow:var(--mn-shadow);padding:clamp(18px,4vw,44px) clamp(16px,4.5vw,52px);font-size:17px;line-height:1.7;color:var(--mn-fg);min-width:0}
 .mn-page:lang(zh){line-height:1.85;letter-spacing:.01em}
 .mn-read>*,.mn-derive>*,.mn-case>*{max-width:42rem;margin-left:auto;margin-right:auto}

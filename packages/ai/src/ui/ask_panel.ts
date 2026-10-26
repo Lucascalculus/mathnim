@@ -151,6 +151,10 @@ export interface AskPanelOptions {
   empty_question?: () => string | null;
   /** Called with each new answer card (e.g. to scroll it into view). */
   on_card?: (card: HTMLElement) => void;
+  /** An earlier conversation to continue (its turns are context for the next question; the app shows them). */
+  history?: { q: string; a: string }[];
+  /** Called once a card's answer can be read: its words are in (streamed), or the whole answer is (offline). */
+  on_done?: (card: HTMLElement) => void;
 }
 
 /** An answer whose picture is a ready-made visual. */
@@ -200,6 +204,7 @@ export class AskPanel {
       document.head.appendChild(s);
     }
     this.root = root;
+    if (o.history) this.history = [...o.history];
     const wrap = document.createElement('div');
     wrap.className = 'mn-ask' + (o.thread ? ' mn-thread' : '');
     const form = document.createElement('form');
@@ -234,6 +239,20 @@ export class AskPanel {
   /** Put the cursor in the question box. */
   focus(): void {
     this.input.focus({ preventScroll: true });
+  }
+  /** This conversation's questions and answers (whole), oldest first. */
+  transcript(): { q: string; a: string }[] {
+    return [...this.history];
+  }
+  /** Take the answers off the panel (their pictures stopped); the conversation's history stays as context. */
+  clear(): void {
+    this.stop_reading();
+    for (const p of this.players) {
+      p.pause();
+      p.stop_live();
+    }
+    this.players = [];
+    this.list.replaceChildren();
   }
   /** Replace the suggested questions. */
   set_suggestions(qs: string[]): void {
@@ -309,13 +328,14 @@ export class AskPanel {
     let diagnosed: () => void = () => {};
     const c: Card = {
       question, t0: performance.now(), body, status, text, say_row, picture, provider,
-      context: { ...this.o.context?.(), ...extra, recent: this.history.slice(-3) },
+      context: { ...this.o.context?.(), ...extra, recent: this.history.slice(-3).map((h) => ({ q: h.q, a: h.a.slice(0, 240) })) },
       timing: {}, fast: null, got_diagnosis: new Promise<void>((res) => (diagnosed = res)), spoken: { text: '', caption: '' },
     };
 
+    const done = () => this.o.on_done?.(card);
     // offline, a question answered in words only: shown like a streamed answer, no picture
     const recorded = provider.stream ? undefined : provider.text_answer?.(question);
-    if (recorded) return this.recorded_text(c, recorded);
+    if (recorded) return this.recorded_text(c, recorded).finally(done);
 
     // 1. the personal text answer, streamed (only for models that can stream; offline answers come whole)
     status.textContent = t('ask_thinking');
@@ -337,7 +357,7 @@ export class AskPanel {
             text.innerHTML = math_html(x.text);
             c.spoken.text = x.text;
             this.read_button(c);
-            this.history.push({ q: question, a: x.text.slice(0, 240) });
+            this.history.push({ q: question, a: x.text });
             return x;
           },
           (e) => {
@@ -349,8 +369,12 @@ export class AskPanel {
         ).finally(() => diagnosed())
       : null;
 
+    // the words are what the learner reads first: once they are in, the answer can be closed
+    if (c.fast) void c.fast.then(done);
+
     // 2. the picture
-    if (!c.fast || this.o.visuals === false) return this.freeform(c, null);
+    if (!c.fast) return this.freeform(c, null).finally(done);
+    if (this.o.visuals === false) return this.freeform(c, null);
     return this.visual_first(c);
   }
 
@@ -378,7 +402,7 @@ export class AskPanel {
     c.status.remove();
     c.spoken.text = r.text;
     this.read_button(c);
-    this.history.push({ q: c.question, a: r.text.slice(0, 240) });
+    this.history.push({ q: c.question, a: r.text });
     this.followups(c, r.followups);
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.provider.name, picture: 'none', recorded: true } });
     return null;
@@ -481,7 +505,7 @@ export class AskPanel {
         caption.innerHTML = '';
         c.spoken = { text: caption_md, caption: '' };
         this.read_button(c);
-        this.history.push({ q: c.question, a: caption_md.slice(0, 240) });
+        this.history.push({ q: c.question, a: caption_md });
       }
       this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.provider.name, picture: 'visual', visual: v.name, repaired: plan.repaired, ...c.timing, diagnosis: c.diagnosis } });
     });
@@ -576,7 +600,7 @@ export class AskPanel {
       text.innerHTML = math_html(r.explanation);
       c.spoken.text = r.explanation;
       this.read_button(c);
-      this.history.push({ q: c.question, a: r.explanation.slice(0, 240) });
+      this.history.push({ q: c.question, a: r.explanation });
     }
     const h = document.createElement('h3');
     const badge = r.verified ? `<span class="mn-badge ok">${t('ask_checked')}</span>` : `<span class="mn-badge warn">${t('ask_unverified')}</span>`;

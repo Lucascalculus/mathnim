@@ -36,6 +36,8 @@ export const lesson: Lesson = {
     // ---------------------------------------------------------------- 1. when not to fine-tune
     {
       id: 'guess', kind: 'checkpoint', skill: 'a1-when-not', purpose: 'predict', chapter: T('Before fine-tuning', '先别急着微调'),
+      // the course's first question: answered with one click, then straight on to the first page
+      auto_advance: true,
       title: T('A guess first', '先猜一下'),
       prompt: T('Of the teams building AI applications, about how many change the model\'s weights (fine-tune)?', '在做 AI 应用的团队里，你猜大约有多少在改模型的权重（做微调）？'),
       question: {

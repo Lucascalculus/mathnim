@@ -6,13 +6,10 @@
 import { tr, type Lesson, type Step } from '@mathnim/core';
 import { esc, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
 import { course_path, lesson_code, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
-import { CHAT_EVENT } from './side_chat';
 import { lesson_status } from './store';
 
 const KEY = 'mathnim.outline';
 const WIDE = '(min-width: 1280px)';
-/** Below this width a docked outline and the open chat leave the page too narrow: the outline steps aside. */
-const ROOM_FOR_BOTH = 1500;
 
 const CSS = `
 .lesson-layout{display:block}
@@ -149,10 +146,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
       if (!wide.matches) set(false, false);
     }
   });
-  panel.querySelector<HTMLButtonElement>('.ol-close')!.onclick = () => {
-    folded_for_chat = false;
-    set(false);
-  };
+  panel.querySelector<HTMLButtonElement>('.ol-close')!.onclick = () => set(false);
   backdrop.onclick = () => set(false, false);
 
   let open = false;
@@ -167,24 +161,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     if (remember && wide.matches) save(v);
     if (v) render_steps();
   }
-  // the chat opening beside a docked outline on a screen narrower than ROOM_FOR_BOTH: fold the outline away,
-  // and bring it back when the chat closes, unless the learner opened or closed it themselves meanwhile
-  let folded_for_chat = false;
-  const on_chat = (e: Event) => {
-    const chat_open = (e as CustomEvent<{ open: boolean }>).detail.open;
-    if (chat_open && open && wide.matches && innerWidth < ROOM_FOR_BOTH) {
-      folded_for_chat = true;
-      set(false, false);
-    } else if (!chat_open && folded_for_chat) {
-      folded_for_chat = false;
-      if (wide.matches) set(true, false);
-    }
-  };
-  addEventListener(CHAT_EVENT, on_chat);
-  toggle.onclick = () => {
-    folded_for_chat = false;
-    set(!open);
-  };
+  toggle.onclick = () => set(!open);
   const on_width = () => set(wide.matches ? saved() ?? true : false, false);
   wide.addEventListener('change', on_width);
   const on_key = (e: KeyboardEvent) => {
@@ -199,7 +176,6 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     toggle,
     destroy() {
       off();
-      removeEventListener(CHAT_EVENT, on_chat);
       wide.removeEventListener('change', on_width);
       document.removeEventListener('keydown', on_key);
     },

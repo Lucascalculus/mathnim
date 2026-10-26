@@ -62,6 +62,7 @@ const DICT: Record<string, Entry> = {
   watch: { en: 'Watch', zh: '观看' },
   correct: { en: 'Correct.', zh: '正确。' },
   predict_match: { en: 'Your prediction matches. Now watch why.', zh: '预测对了。来看看为什么。' },
+  guess_right: { en: 'Good guess.', zh: '猜对了。' },
   not_yet: { en: 'Not yet - try again.', zh: '还不对，再试一次。' },
   predict_miss: { en: "Interesting bet - let's see what really happens.", zh: '有意思的猜测——来看看实际会怎样。' },
   not_this_time: { en: 'Not this time.', zh: '这次没答对。' },

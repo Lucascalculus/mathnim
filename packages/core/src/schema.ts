@@ -165,6 +165,11 @@ export interface CheckpointStep extends StepBase {
   on_wrong?: string;
   /** Part of a case: consecutive checkpoints with the same group id share its title and brief and are numbered. */
   group?: CaseGroup;
+  /**
+   * Go on by itself once answered: the options give way to the feedback, then the next step fades in.
+   * For an opening question that should cost the learner nothing (choice questions).
+   */
+  auto_advance?: boolean;
 }
 /** A text page: prose, formulas, code, figures and embedded visuals (content.ts). No scene; Continue is always allowed. */
 export interface ReadStep extends StepBase, ReadContent {}

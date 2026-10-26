@@ -61,10 +61,10 @@ export interface Explanation {
  */
 export function split_reply(sofar: string): { diagnosis: string | null; answer: string } {
   if (!sofar.trim()) return { diagnosis: null, answer: '' };
-  const m = /^\s*DIAGNOSIS:\s*([^\n]*)(\n|$)/i.exec(sofar);
+  const m = /^\s*DIAGNOSIS\s*[:：]\s*([^\n]*)(\n|$)/i.exec(sofar); // (models writing Chinese may use a full-width colon)
   if (!m) {
     // not (yet) a diagnosis line: hold back a possible prefix, else it is all answer
-    return /^\s*D(I(A(G(N(O(S(I(S:?)?)?)?)?)?)?)?)?\s*$/i.test(sofar) ? { diagnosis: null, answer: '' } : { diagnosis: '', answer: sofar.trimStart() };
+    return /^\s*D(I(A(G(N(O(S(I(S\s*[:：]?)?)?)?)?)?)?)?)?\s*$/i.test(sofar) ? { diagnosis: null, answer: '' } : { diagnosis: '', answer: sofar.trimStart() };
   }
   if (!m[2]) return { diagnosis: null, answer: '' }; // the line is still arriving
   return { diagnosis: m[1].trim(), answer: sofar.slice(m[0].length).trimStart() };

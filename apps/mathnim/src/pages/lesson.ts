@@ -10,7 +10,7 @@ import { render_lab } from './lab';
 import { mount_outline } from '../outline';
 import { navigate, type Route } from '../router';
 import { has_model, load_settings, provider } from '../settings';
-import { mount_side_chat } from '../side_chat';
+import { AskRail } from '../side_chat';
 import { learner, log, remember_last } from '../store';
 import { is_relocalizing } from '../shell';
 import { text_grader, visual_resolver } from '../lesson_services';
@@ -61,7 +61,8 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   // the lab that reproduces this lesson on a real model, offered on the end card
   const lab = course?.labs?.find((l) => l.after === cl.id);
   const lang = ui_lang();
-  let chat: ReturnType<typeof mount_side_chat> | null = null;
+  // the tutor in the side column: a small card that grows as the learner asks
+  const rail = new AskRail(cl, lesson);
   const view = new LessonView(host, lesson, {
     learner, log, dev: params.has('dev'), dark: load_settings().dark || dark_lesson, on_player: dark_lesson ? apply_palette : apply_theme, mode,
     lang: ui_lang(), visuals: visual_resolver, grade_text: text_grader(),
@@ -70,17 +71,18 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
     back: course ? course_path(course) : '/',
     navigate,
     lab: course && lab ? { title: t('lab_try', { id: lab.id, title: tr(lab.title, lang) }), note: [lab_setups(lab, lang), t('lab_card_note')].filter(Boolean).join(' · '), href: lab_path(course, lab.slug) } : undefined,
-    // "这里没懂": the chat beside the lesson (never leaves the page)
-    help: (ask) => chat?.open(ask),
+    rail: rail.el,
+    // a passage selected on the page: asked about on the card
+    help: (ask) => rail.open(ask),
   });
-  chat = mount_side_chat(cl, lesson, view);
+  rail.attach(view);
   // the outline of the course with this lesson's steps (docked on wide screens)
   const outline = course ? mount_outline(layout, host, { course, current: cl, lesson, view }) : null;
   if (outline) top.prepend(outline.toggle);
   (window as any).mathnim_view = view; // for debugging in the console
   // a link to a step opens it; otherwise the lesson resumes where the learner left it
-  if (params.get('step')) await view.start(params.get('step')!);
-  else await view.resume();
+  // (not awaited: the page hands back its cleanup at once, so leaving mid-scene stops it)
+  void (params.get('step') ? view.start(params.get('step')!) : view.resume()).catch((e) => console.warn('lesson start', e));
   return () => {
     // switching language re-renders this page: come back to the same step
     const step = view.runtime.step?.id;
@@ -89,7 +91,7 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
       history.replaceState(null, '', `${here}?${params}`);
     }
     outline?.destroy();
-    chat?.destroy();
+    rail.destroy();
     view.destroy();
   };
 }

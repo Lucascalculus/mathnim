@@ -4,10 +4,11 @@
 import { tr, type L10n, type Lang } from '@mathnim/core';
 import { esc, math_html, t, ui_lang } from '@mathnim/present';
 import { ScenePlayer } from 'manim-web/ext/player';
-import { COURSES, all_lessons, course_of, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
+import { check_params, get_visual } from '@mathnim/visuals';
+import { COURSES, all_lessons, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
 import { apply_theme } from '../lessons/best-angle/theme';
 import type { Route } from '../router';
-import { last_in_course, last_lesson, learner, lesson_status } from '../store';
+import { last_in_course, lesson_status, map_seen, set_map_seen } from '../store';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -34,58 +35,33 @@ const accent = (c: Course) => (c.accent ? ` style="--course-accent:${esc(c.accen
 function course_card(c: Course): string {
   const lang = ui_lang();
   const all = lessons_of(c), done = done_in(c);
+  // a course already begun says where to pick up, right on its card (no separate "continue" section)
+  const go = started(c) ? current_lesson(c) : undefined;
   return `
-    <a class="card course-card" href="${course_path(c)}"${accent(c)}>
-      ${cover(c)}
-      <div class="course-name">${math_html(tr(c.title, lang))}</div>
-      ${c.summary ? `<div class="muted course-sum" title="${esc(tr(c.summary, lang))}">${math_html(tr(c.summary, lang))}</div>` : ''}
-      <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
-      ${done ? progress_bar(done, all.length) : ''}
-    </a>`;
+    <article class="card course-card"${accent(c)}>
+      <a class="course-link" href="${course_path(c)}">
+        ${cover(c)}
+        <div class="course-name">${math_html(tr(c.title, lang))}</div>
+        ${c.summary ? `<div class="muted course-sum" title="${esc(tr(c.summary, lang))}">${math_html(tr(c.summary, lang))}</div>` : ''}
+        <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
+        ${go ? progress_bar(done, all.length) : ''}
+      </a>
+      ${go ? `<a class="course-resume" href="${lesson_path(go.id)}"><span class="muted">${esc(t('continue'))}</span><b>${math_html(tr(go.title, lang))}</b><span aria-hidden="true">→</span></a>` : ''}
+    </article>`;
 }
 
-/** Home: continue learning (courses already begun, reviews due), then every course. */
+/** Home: every course, grouped by category; a course already begun shows where to pick up on its card. */
 export function home(root: HTMLElement): void {
   const lang = ui_lang();
   // a course being built (hidden) is not listed yet; its pages open by their address
   const shown = COURSES.filter((c) => !c.hidden);
-  const begun = shown.filter(started);
-  const recent = course_of(last_lesson() ?? '');
-  const first = recent && begun.includes(recent) ? recent : begun[0];
-  const due = learner.due().length;
-  let html = '';
-  if (begun.length) {
-    const cl = current_lesson(first)!; // (a begun course has lessons)
-    const all = lessons_of(first);
-    const k = all.indexOf(cl) + 1;
-    html += `<h2 class="section-title">${esc(t('continue_learning'))}</h2>
-      <a class="card resume-card" href="${lesson_path(cl.id)}"${accent(first)}>
-        ${thumb(cl.id, 'thumb resume-thumb')}
-        <div class="resume-text">
-          <div class="muted resume-course">${math_html(tr(first.title, lang))} · ${esc(t('lesson_k_of_n', { k, n: all.length }))}</div>
-          <div class="resume-title">${math_html(tr(cl.title, lang))}</div>
-          ${progress_bar(done_in(first), all.length)}
-          <span class="mn-btn primary">${esc(t('continue'))}</span>
-        </div>
-      </a>
-      ${begun.filter((c) => c !== first).map((c) => {
-        const l = current_lesson(c)!;
-        return `<a class="card resume-row" href="${lesson_path(l.id)}"><span class="resume-row-text"><b>${math_html(tr(c.title, lang))}</b> · ${math_html(tr(l.title, lang))}</span><span class="mn-btn">${esc(t('continue'))}</span></a>`;
-      }).join('')}
-      ${due ? `<a class="card resume-row" href="/review"><span class="resume-row-text">${esc(t('reviews_due', { n: due }))}</span><span class="mn-btn">${esc(t('begin'))}</span></a>` : ''}`;
-  }
-  // a first-time visitor's list starts at the featured course (the courses after it follow, then the ones before)
-  const f = shown.findIndex((c) => c.featured);
-  const order = begun.length || f < 0 ? shown : [...shown.slice(f), ...shown.slice(0, f)];
-  // courses are listed by category ("大学与工程", "中学数学"), each group in that order
   const groups: { name: string; courses: Course[] }[] = [];
-  for (const c of order) {
+  for (const c of shown) {
     const name = c.category ? tr(c.category, lang) : t('all_courses');
     const g = groups.find((x) => x.name === name) ?? (groups.push({ name, courses: [] }), groups[groups.length - 1]);
     g.courses.push(c);
   }
-  html += groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('');
-  root.innerHTML = html;
+  root.innerHTML = groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('');
   draw_thumbnails(root);
 }
 
@@ -98,30 +74,38 @@ function kinds_text(l: CourseLesson): string {
 const STATUS: Record<string, [string, string]> = { done: ['✓', 'status_done'], started: ['●', 'status_started'], new: ['○', 'status_new'] };
 
 /** A course page: header (start/continue, progress, a feature picture), what you will be able to do, its units. */
-export function course_page(root: HTMLElement, route: Route): void {
-  if (route.page !== 'course') return;
+export function course_page(root: HTMLElement, route: Route): () => void {
+  if (route.page !== 'course') return () => {};
   const c = route.course;
   const lang = ui_lang();
   const all = lessons_of(c), done = done_in(c);
   const go = current_lesson(c);
   const resumed = started(c);
   const langs = all.some((l) => (lesson_info(l)?.langs.length ?? 0) > 1) ? '中 / EN' : 'EN';
-  const feature = c.feature?.replace('{lang}', lang);
+  const still = c.feature?.replace('{lang}', lang);
+  const cover_box = c.cover_motion || still;
+  // one quiet line above the title: category · size · languages
+  const meta = [
+    c.category ? `<b>${esc(tr(c.category, lang))}</b>` : '',
+    all.length ? esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) })) : '',
+    all.length ? langs : '',
+  ].filter(Boolean).join(' · ');
   root.innerHTML = `
     <a class="backlink" href="/">‹ ${esc(t('all_courses'))}</a>
-    <header class="card course-hero${feature ? ' with-feature' : ''}"${accent(c)}>
-      <div class="hero-text">
-        ${c.category ? `<p class="hero-kicker">${esc(tr(c.category, lang))}</p>` : ''}
-        <h1>${math_html(tr(c.title, lang))}</h1>
-        ${c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
-        ${all.length ? `<p class="muted hero-size">${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))} · ${langs}</p>` : ''}
-        ${go ? `<div class="row hero-go">
-          <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
-          <span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>
+    <header class="card course-hero"${accent(c)}>
+      <div class="hero-top">
+        <div class="hero-text">
+          ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
+          <h1>${math_html(tr(c.title, lang))}</h1>
+          ${c.milestones?.length ? '' : c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
+          ${go ? `<div class="row hero-go">
+            <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
+            ${done ? `<span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>` : ''}
+          </div>` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}
         </div>
-        ${progress_bar(done, all.length)}` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}
+        ${cover_box ? `<figure class="hero-feature" title="${esc(t('cover_replay'))}">${still ? `<img src="${esc(still)}" alt="" onerror="this.remove()">` : ''}<canvas width="1280" height="720" aria-label="${esc(tr(c.title, lang))}"></canvas></figure>` : ''}
       </div>
-      ${feature ? `<figure class="hero-feature"><img src="${esc(feature)}" alt="${esc(t('feature_alt'))}" onerror="this.closest('header').classList.remove('with-feature');this.closest('figure').remove()"></figure>` : ''}
+      ${go ? (c.milestones?.length ? milestones(c, go, lang) : progress_bar(done, all.length)) : ''}
     </header>
     ${about(c, lang)}
     <div class="units">${visible_units(c).map((u) => `
@@ -137,6 +121,100 @@ export function course_page(root: HTMLElement, route: Route): void {
       ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
     </div>`;
   draw_thumbnails(root);
+  celebrate(root, c);
+  return play_cover(root, c);
+}
+
+const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
+const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
+
+/** The learning map, a level route: the course's key topics as stops (a check once their lesson is done, the next one
+ *  pulsing; each opens its lesson), and a crown at the end, won by finishing every lesson. */
+function milestones(c: Course, go: CourseLesson | undefined, lang: Lang): string {
+  const all = lessons_of(c);
+  const shown = new Set(all.map((l) => l.id));
+  const stops = c.milestones!.filter((m) => shown.has(m.lesson));
+  const order = all.map((l) => l.id);
+  const at = go ? order.indexOf(go.id) : 0;
+  // the next stop: the first not done at or after the lesson to continue with
+  const next = stops.find((m) => lesson_status(m.lesson) !== 'done' && order.indexOf(m.lesson) >= at) ?? stops.find((m) => lesson_status(m.lesson) !== 'done');
+  const won = done_in(c) === all.length;
+  const goal = won ? t('map_won') : t('map_goal', { n: all.length });
+  return `<ol class="milestones">${stops.map((m) => {
+    const st = lesson_status(m.lesson) === 'done' ? 'done' : m === next ? 'next' : 'todo';
+    const l = all.find((x) => x.id === m.lesson)!;
+    return `<li class="ms ${st}" data-ms="${esc(m.lesson)}"><a href="${lesson_path(m.lesson)}" title="${esc(tr(l.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(tr(m.label, lang))}</span></a></li>`;
+  }).join('')}<li class="goal${won ? ' won' : ''}" data-ms="crown" title="${esc(goal)}" role="img" aria-label="${esc(goal)}">${CROWN}</li></ol>`;
+}
+
+/** Clearing a stop should feel like clearing a level: the stops cleared since the learner last saw this map light up
+ *  in turn (the node pops, its check draws, the route runs on), and the crown when the course is complete. Once each.
+ *  Otherwise the crown gives a little wiggle as the page opens: the prize is waiting. */
+function celebrate(root: HTMLElement, c: Course): void {
+  const map = root.querySelector('.milestones');
+  if (!map) return;
+  const cleared = [...map.querySelectorAll<HTMLElement>('.ms.done, .goal.won')];
+  const seen = map_seen(c.id);
+  set_map_seen(c.id, cleared.map((li) => li.dataset.ms!));
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const fresh = cleared.filter((li) => !seen.includes(li.dataset.ms!));
+  const crown = map.querySelector<HTMLElement>('.goal');
+  if (crown && !fresh.includes(crown)) {
+    crown.classList.add('wiggle');
+    crown.style.setProperty('--w', `${fresh.length ? 350 + fresh.length * 550 + 250 : 600}ms`);
+  }
+  fresh.forEach((li, k) => {
+    const d = 350 + k * 550;
+    li.classList.add('fresh');
+    li.style.setProperty('--d', `${d}ms`);
+    // sparks from the node
+    const host = li.querySelector('a') ?? li;
+    const n = li.classList.contains('goal') ? 12 : 8;
+    for (let j = 0; j < n; j++) {
+      const s = document.createElement('b');
+      s.className = 'spark';
+      const a = (j / n) * Math.PI * 2 + k;
+      const r = li.classList.contains('goal') ? 30 : 22;
+      s.style.cssText = `--dx:${(Math.cos(a) * r).toFixed(1)}px;--dy:${(Math.sin(a) * r).toFixed(1)}px;animation-delay:${d + 180}ms`;
+      s.addEventListener('animationend', () => s.remove());
+      host.append(s);
+    }
+  });
+}
+
+/** The moving cover: play the course's animation once (muted), rest on its last frame, replay on click. */
+function play_cover(root: HTMLElement, c: Course): () => void {
+  const fig = root.querySelector<HTMLElement>('.hero-feature');
+  const canvas = fig?.querySelector('canvas');
+  const m = c.cover_motion;
+  let player: ScenePlayer | null = null;
+  let alive = true;
+  if (!fig || !canvas || !m || matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
+  void (async () => {
+    try {
+      await m.pack?.();
+      const v = get_visual(m.visual);
+      if (!v || !alive) return;
+      const raw = 'lang' in v.params ? { ...m.params, lang: ui_lang() } : { ...m.params };
+      player = new ScenePlayer(v.scene(check_params(v, raw).params), canvas, { audio: false });
+      apply_theme(player);
+      await player.load();
+      if (!alive) return;
+      if (m.rate) player.set_rate(m.rate);
+      fig.classList.add('live');
+      player.play();
+      canvas.onclick = () => {
+        player?.seek_time(0);
+        player?.play();
+      };
+    } catch (e) {
+      console.warn('course cover', e); // the still (or nothing) stays
+    }
+  })();
+  return () => {
+    alive = false;
+    player?.pause();
+  };
 }
 
 /** Who it is for, what to know first, what you will be able to do: one disclosure, closed by default (the page leads with the lessons). */
@@ -157,8 +235,8 @@ function prerequisites(c: Course, lang: Lang): string {
   const p = c.prerequisites!;
   return `<div class="hero-pre">
     <p class="hero-pre-sum">${math_html(tr(p.summary, lang))}</p>
-    ${p.links.length ? `<details class="pre-links"><summary>${esc(t('prereq_links'))}</summary><ul>${p.links.map((k) => `
-      <li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span class="muted"> · ${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul></details>` : ''}
+    ${p.links.length ? `<div class="pre-links"><div class="pre-links-title">${esc(t('prereq_links'))}</div><ul>${p.links.map((k) => `
+      <li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span class="muted"> · ${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
   </div>`;
 }
 

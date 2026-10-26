@@ -69,6 +69,15 @@ The tutorials in `docs/lessons/llm-finetuning/labs/*.md` each have `## 中文` a
   - the answer is text first. A picture appears only when it explains better than words; the visual planner may return none;
   - on phones it is a bottom sheet;
   - it replaces the separate ask box at the bottom of the lesson.
+- **Superseded 2026-10-26: questions are margin notes** (apps/mathnim/src/side_chat.ts):
+  - on a text page the side column is the page's margin. Hovering a paragraph shows a pen mark beside it, and a click starts a note there;
+  - the top of the margin follows the scroll. It holds two questions the model writes for each page (one shared, cached request) and a ruled line to write on. A question asked there becomes a note beside the paragraph being read;
+  - notes are numbered, with a matching superscript at the end of the paragraph. They can be folded to one line and reopened to go on asking, and they are kept per lesson in the browser;
+  - the line ripples while the tutor is writing (`?line=rule` and `?line=wave` show the two variants it was compared with);
+  - on scene and question steps the notes sit under the step's panel; question steps get no suggested questions;
+  - on phones the line sits at the bottom of the screen and notes sit under their paragraph;
+  - a text page's 继续 sits at the end of the page;
+  - no instructional copy: the mark, the questions and the line are the guidance.
 - **Course page prerequisites:** one or two lines of prerequisites, which expand to a short list of starter links. No self-test.
 - **Not now:** splitting the math course into geometry and linear algebra.
 - **Learner-facing cleanup:**
