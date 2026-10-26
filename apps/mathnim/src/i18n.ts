@@ -67,6 +67,8 @@ define_ui({
   ask_new: { en: 'A new question', zh: '另起一问' },
   narration_help: { en: 'Videos are read aloud', zh: '视频讲解自动朗读' },
   advanced: { en: 'Advanced', zh: '高级' },
+  advanced_help: { en: 'Model and keys', zh: '模型与密钥' },
+  clear_help: { en: 'Progress, notes and conversations', zh: '学习进度、批注和对话' },
   clear_data: { en: 'Clear what this browser keeps', zh: '清除本机记录' },
   clear_confirm: { en: "Clear this browser's progress, notes and conversations? This cannot be undone.", zh: '清除本机的学习进度、批注和对话？此操作无法撤销。' },
   kw_scene: { en: 'Animation', zh: '动画' },

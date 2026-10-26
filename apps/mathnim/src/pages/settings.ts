@@ -18,25 +18,25 @@ function narration_on(): boolean {
 const KEEP = new Set(['mathnim.settings', NARRATION]);
 
 const CSS = `
-.set-panel{display:flex;flex-direction:column;gap:2px;font-size:14px}
-.set-row{display:flex;align-items:center;gap:14px;padding:12px 2px}
-.set-row+.set-row,.set-adv,.set-foot{border-top:1px solid var(--mn-border)}
-.set-row .set-what{flex:1;min-width:0}
-.set-row b{display:block;font-weight:600}
-.set-row small{display:block;color:var(--mn-muted);font-size:12.5px;margin-top:2px;line-height:1.45}
+.set-panel{display:flex;flex-direction:column;font-size:14px}
+.set-row,.set-adv>summary,.set-foot{display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 0;box-sizing:border-box}
+.set-panel>*+*{border-top:1px solid var(--mn-border)}
+.set-what{flex:1;min-width:0}
+.set-what b{display:block;font-size:14px;font-weight:600;line-height:1.4;color:var(--mn-fg)}
+.set-what small{display:block;font-size:12.5px;line-height:1.45;color:var(--mn-muted);margin-top:1px}
 .set-switch{position:relative;flex:none;width:38px;height:22px;border-radius:11px;border:0;padding:0;background:var(--mn-border);cursor:pointer;transition:background-color .2s}
 .set-switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
 .set-switch[aria-checked=true]{background:var(--mn-accent)}
 .set-switch[aria-checked=true]::after{transform:translateX(16px)}
-.set-adv>summary{cursor:pointer;list-style:none;padding:12px 2px;color:var(--mn-muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.set-adv>summary{cursor:pointer;list-style:none}
 .set-adv>summary::-webkit-details-marker{display:none}
-.set-adv>summary::before{content:'›';transition:transform .15s;display:inline-block}
-.set-adv[open]>summary::before{transform:rotate(90deg)}
-.set-adv .field{margin:0 2px 12px;font-size:12.5px;color:var(--mn-muted);gap:5px}
-.set-panel .mn-input{font-size:14px;padding:8px 10px;border-radius:8px;height:36px;color:var(--mn-fg)}
-.set-panel select.mn-input{padding-right:28px}
-.set-foot{padding:12px 2px 2px;display:flex;align-items:center;gap:10px}
-.set-clear{border:0;background:none;padding:0;color:var(--mn-bad);font:inherit;font-size:13px;cursor:pointer}
+.set-chev{flex:none;width:16px;height:16px;color:var(--mn-muted);transition:transform .2s}
+.set-adv[open] .set-chev{transform:rotate(90deg)}
+.set-fields{display:flex;flex-direction:column;gap:12px;padding:2px 0 14px}
+.set-fields[hidden],.set-fields>[hidden]{display:none}
+.set-field{display:flex;flex-direction:column;gap:5px;margin:0;font-size:12.5px;color:var(--mn-muted)}
+.set-panel .mn-input{box-sizing:border-box;width:100%;height:36px;margin:0;padding:0 10px;font-size:14px;border-radius:8px;color:var(--mn-fg)}
+.set-clear{border:0;background:none;padding:0;font:inherit;font-size:14px;font-weight:600;color:var(--mn-bad);cursor:pointer;text-align:left}
 .set-clear:hover{text-decoration:underline}
 `;
 let injected = false;
@@ -54,25 +54,26 @@ export function settings_panel(): HTMLElement {
   const opt = (v: ProviderChoice, label: string) => `<option value="${v}" ${s.provider === v ? 'selected' : ''}>${label}</option>`;
   const el = document.createElement('div');
   el.className = 'set-panel';
+  const chev = '<svg class="set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   el.innerHTML = `
     <div class="set-row"><div class="set-what"><b>${esc(t('narration'))}</b><small>${esc(t('narration_help'))}</small></div>
       <button type="button" class="set-switch" role="switch" id="set-voice" aria-checked="${narration_on()}" aria-label="${esc(t('narration'))}"></button></div>
     <div class="set-row"><div class="set-what"><b>AI</b><small id="set-status"></small></div></div>
-    <details class="set-adv"><summary>${esc(t('advanced'))}</summary>
-      <label class="field">${esc(t('provider'))}<select class="mn-input" id="set-provider">
-        ${opt('auto', t('provider_auto'))}
-        ${opt('deepseek', `DeepSeek${srv.deepseek ? '' : t('no_key_here')}`)}
-        ${opt('anthropic', 'Claude (Anthropic)')}
-        ${opt('offline', t('provider_offline'))}
-      </select></label>
-      <div id="set-ds"><label class="field">${esc(t('deepseek_model'))}<input class="mn-input" id="set-dsmodel" value="${esc(s.deepseek_model)}"></label></div>
-      <div id="set-an">
-        <label class="field">${esc(t('anthropic_key'))}<input class="mn-input" id="set-key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${esc(s.api_key)}"></label>
-        <label class="field">${esc(t('claude_model'))}<input class="mn-input" id="set-model" value="${esc(s.model)}"></label>
-        <label class="field">${esc(t('proxy_url'))}<input class="mn-input" id="set-base" placeholder="/api/anthropic" value="${esc(s.base_url)}"></label>
+    <details class="set-adv"><summary><div class="set-what"><b>${esc(t('advanced'))}</b><small>${esc(t('advanced_help'))}</small></div>${chev}</summary>
+      <div class="set-fields">
+        <label class="set-field">${esc(t('provider'))}<select class="mn-input" id="set-provider">
+          ${opt('auto', t('provider_auto'))}
+          ${opt('deepseek', `DeepSeek${srv.deepseek ? '' : t('no_key_here')}`)}
+          ${opt('anthropic', 'Claude (Anthropic)')}
+          ${opt('offline', t('provider_offline'))}
+        </select></label>
+        <label class="set-field" id="set-ds">${esc(t('deepseek_model'))}<input class="mn-input" id="set-dsmodel" value="${esc(s.deepseek_model)}"></label>
+        <label class="set-field" id="set-an-key">${esc(t('anthropic_key'))}<input class="mn-input" id="set-key" type="password" autocomplete="off" placeholder="${srv.anthropic ? esc(t('key_held')) : 'sk-ant-…'}" value="${esc(s.api_key)}"></label>
+        <label class="set-field" id="set-an-model">${esc(t('claude_model'))}<input class="mn-input" id="set-model" value="${esc(s.model)}"></label>
+        <label class="set-field" id="set-an-base">${esc(t('proxy_url'))}<input class="mn-input" id="set-base" placeholder="/api/anthropic" value="${esc(s.base_url)}"></label>
       </div>
     </details>
-    <div class="set-foot"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><span class="muted" id="set-note" style="font-size:12.5px"></span></div>`;
+    <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>`;
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => el.querySelector<T>('#set-' + id)!;
   const read = (): Settings => ({
     ...load_settings(),
@@ -86,8 +87,9 @@ export function settings_panel(): HTMLElement {
     const now = active_provider(read());
     $('status').textContent = now === 'offline' ? t('status_offline') : t('status_online', { p: provider_label(now) });
     const p = $<HTMLSelectElement>('provider').value;
-    $('ds').style.display = p === 'deepseek' || (p === 'auto' && now === 'deepseek') ? '' : 'none';
-    $('an').style.display = p === 'anthropic' || (p === 'auto' && now !== 'deepseek') ? '' : 'none';
+    $('ds').hidden = !(p === 'deepseek' || (p === 'auto' && now === 'deepseek'));
+    const an = !(p === 'anthropic' || (p === 'auto' && now !== 'deepseek'));
+    for (const id of ['an-key', 'an-model', 'an-base']) $(id).hidden = an;
   };
   // every change is kept at once
   for (const id of ['provider', 'dsmodel', 'key', 'model', 'base']) {
