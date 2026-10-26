@@ -127,23 +127,19 @@ body{margin:0;background:#fbfbfa}
 .about-course>summary::before{content:'›';font-size:18px;line-height:1;transition:transform .15s}
 .about-course[open]>summary::before{transform:rotate(90deg)}
 .about-course>summary::-webkit-details-marker{display:none}
-.about-body{display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:14px}
+.about-body{display:flex;flex-direction:column;gap:16px;margin-top:14px;font-size:14px;line-height:1.65}
+.about-lead{margin:0;font-size:14.5px;color:var(--mn-fg)}
+.about-sec h3{margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--mn-muted);letter-spacing:.02em}
+.about-sec ul{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.about-sec a{color:var(--mn-fg);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-fg) 25%,transparent);text-underline-offset:3px}
+.about-sec a:hover{color:var(--mn-accent);text-decoration-color:currentColor}
 .about-body p{margin:0}
-.outcomes h3{font-size:13px;color:var(--mn-muted);margin:4px 0 6px;font-weight:600}
-.outcomes ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
 .lesson-title{font-weight:600;font-size:16px;display:flex;gap:8px;align-items:baseline}
 .lesson-title .status{flex:none;font-size:13px;width:16px;text-align:center;color:var(--mn-muted)}
 .status-done .lesson-title .status{color:var(--mn-good)}
 .status-started .lesson-title .status{color:var(--mn-accent)}
 .kinds{display:inline-flex;gap:5px;color:var(--mn-muted);align-items:center}
 .labs-soon{font-size:14px}
-.hero-pre{margin:6px 0 2px;font-size:13.5px}
-.hero-pre-sum{margin:0;color:var(--mn-muted);line-height:1.5}
-.pre-links{margin-top:4px}
-.pre-links-title{font-weight:600;color:var(--mn-fg);margin:2px 0 4px}
-.pre-links ul{margin:2px 0 2px;padding-left:1.15em;display:flex;flex-direction:column;gap:5px}
-.pre-links a{color:var(--mn-fg);font-weight:600;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-accent) 45%,transparent);text-underline-offset:2px}
-.pre-links a:hover{color:var(--mn-accent)}
 .lab-card{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
 .lab-card:hover{transform:translateY(-2px);border-color:var(--mn-accent)}
 .lab-head{display:flex;gap:8px;align-items:baseline}
@@ -198,7 +194,8 @@ let relocalizing = false;
 export const is_relocalizing = () => relocalizing;
 const LANG_LABEL: Record<Lang, string> = { en: 'EN', zh: '中文' };
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
-const GEAR = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M10.3 3.2h3.4l.5 2.4 1.7.9 2.3-.8 1.7 2.9-1.8 1.6v2l1.8 1.6-1.7 2.9-2.3-.8-1.7.9-.5 2.4h-3.4l-.5-2.4-1.7-.9-2.3.8-1.7-2.9 1.8-1.6v-2L4.3 8.6 6 5.7l2.3.8 1.7-.9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+// (a symmetric gear, centred on the middle of its box)
+const GEAR = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
 
 export function mount_shell(pages: Record<Route['page'], Page>): void {
   inject_styles();

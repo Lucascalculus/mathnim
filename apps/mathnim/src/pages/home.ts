@@ -345,25 +345,18 @@ function play_cover(root: HTMLElement, c: Course): () => void {
 
 /** Who it is for, what to know first, what you will be able to do: one disclosure, closed by default (the page leads with the lessons). */
 function about(c: Course, lang: Lang): string {
-  if (!c.audience && !c.prerequisites && !c.outcomes?.length) return '';
+  const p = c.prerequisites;
+  if (!p && !c.outcomes?.length) return '';
+  // one sentence on who it is for and what to know, then two short lists in the same type
+  const list = (title: string, items: string[]) => `<section class="about-sec"><h3>${esc(title)}</h3><ul>${items.join('')}</ul></section>`;
   return `<details class="card about-course">
     <summary>${esc(t('about_course'))}</summary>
     <div class="about-body">
-      ${c.audience ? `<p>${esc(t('audience', { a: tr(c.audience, lang) }))}</p>` : ''}
-      ${c.prerequisites ? prerequisites(c, lang) : ''}
-      ${c.outcomes?.length ? `<div class="outcomes"><h3>${esc(t('outcomes'))}</h3><ul>${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul></div>` : ''}
+      ${p ? `<p class="about-lead">${math_html(tr(p.summary, lang))}</p>` : ''}
+      ${p?.links.length ? list(t('prereq_links'), p.links.map((k) => `<li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span class="muted"> · ${esc(tr(k.note, lang))}</span>` : ''}</li>`)) : ''}
+      ${c.outcomes?.length ? list(t('outcomes'), c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`)) : ''}
     </div>
   </details>`;
-}
-
-/** What to know first: a line or two, and starter material behind a disclosure. */
-function prerequisites(c: Course, lang: Lang): string {
-  const p = c.prerequisites!;
-  return `<div class="hero-pre">
-    <p class="hero-pre-sum">${math_html(tr(p.summary, lang))}</p>
-    ${p.links.length ? `<div class="pre-links"><div class="pre-links-title">${esc(t('prereq_links'))}</div><ul>${p.links.map((k) => `
-      <li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span class="muted"> · ${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
-  </div>`;
 }
 
 /** A lab on the course page: what it is, where it runs, and the lesson to finish first. */

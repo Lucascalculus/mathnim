@@ -138,7 +138,7 @@ export const MATH_COURSE: Course = {
   accent: '#2563EB',
   // (for the user to check: the line and the two links)
   prerequisites: {
-    summary: { en: 'Needs: middle-school algebra and geometry (equations, similar triangles, Pythagoras).', zh: '需要：初中代数与几何基础（解方程、相似三角形、勾股定理）。' },
+    summary: { en: 'For secondary-school students (the last chapter is first-year linear algebra): middle-school algebra and geometry are enough, that is equations, similar triangles and Pythagoras.', zh: '写给中学生（最后一章是大学一年级的线性代数）：会初中代数和几何就够了，比如解方程、相似三角形、勾股定理。' },
     links: [
       { title: { en: 'Khan Academy: Algebra basics', zh: '可汗学院：代数基础' }, url: 'https://www.khanacademy.org/math/algebra-basics' },
       { title: { en: 'Khan Academy: Geometry', zh: '可汗学院：几何' }, url: 'https://www.khanacademy.org/math/geometry' },
@@ -213,8 +213,8 @@ export const FT_COURSE: Course = {
   short: { en: 'Fine-tuning', zh: '微调' },
   prerequisites: {
     summary: {
-      en: 'Needs: Python; how neural networks are trained (loss, gradient descent, backpropagation); ideally the rough structure of a Transformer.',
-      zh: '需要：会用 Python；懂神经网络的基本训练（损失、梯度下降、反向传播）；最好知道 Transformer 的大致结构。',
+      en: 'For university students and engineers who know neural networks: Python, how networks are trained (loss, gradient descent, backpropagation), and ideally the rough shape of a Transformer.',
+      zh: '写给懂神经网络的大学生和工程师：会用 Python，知道神经网络怎么训练（损失、梯度下降、反向传播），最好了解 Transformer 的大致结构。',
     },
     links: [
       { title: { en: 'Dive into Deep Learning', zh: '动手学深度学习' }, url: { en: 'https://d2l.ai/', zh: 'https://zh.d2l.ai/' }, note: { en: 'a free textbook with code, chapters 1-11', zh: '免费教材，带代码，前 11 章' } },
@@ -264,8 +264,8 @@ export const MPC_COURSE: Course = {
   // (each link opened with curl on 2026-10-26: the playlist "Control Bootcamp", the two book pages with their free PDFs)
   prerequisites: {
     summary: {
-      en: 'Needs: linear algebra (matrices, eigenvalues) and calculus; least squares helps. No control theory is assumed.',
-      zh: '需要：线性代数（矩阵、特征值）和微积分；会一点最小二乘更好。不需要控制理论基础。',
+      en: 'For university students and engineers: linear algebra (matrices, eigenvalues) and calculus are enough, some least squares helps, and no control theory is assumed.',
+      zh: '写给大学生和工程师：会线性代数（矩阵、特征值）和微积分就够了，懂一点最小二乘更好，不需要控制理论基础。',
     },
     links: [
       { title: 'Steve Brunton: Control Bootcamp', url: 'https://www.youtube.com/playlist?list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m', note: { en: 'videos: state space, LQR, the Kalman filter', zh: '视频课（英文）：状态空间、LQR、卡尔曼滤波' } },

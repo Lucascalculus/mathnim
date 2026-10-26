@@ -32,7 +32,9 @@ const CSS = `
 .set-adv>summary::-webkit-details-marker{display:none}
 .set-adv>summary::before{content:'›';transition:transform .15s;display:inline-block}
 .set-adv[open]>summary::before{transform:rotate(90deg)}
-.set-adv .field{margin:0 2px 10px}
+.set-adv .field{margin:0 2px 12px;font-size:12.5px;color:var(--mn-muted);gap:5px}
+.set-panel .mn-input{font-size:14px;padding:8px 10px;border-radius:8px;height:36px;color:var(--mn-fg)}
+.set-panel select.mn-input{padding-right:28px}
 .set-foot{padding:12px 2px 2px;display:flex;align-items:center;gap:10px}
 .set-clear{border:0;background:none;padding:0;color:var(--mn-bad);font:inherit;font-size:13px;cursor:pointer}
 .set-clear:hover{text-decoration:underline}
