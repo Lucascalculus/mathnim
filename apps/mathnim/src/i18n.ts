@@ -66,6 +66,7 @@ define_ui({
   got_it: { en: 'Got it', zh: '懂了' },
   ask_new: { en: 'A new question', zh: '另起一问' },
   narration_help: { en: 'Videos are read aloud', zh: '视频讲解自动朗读' },
+  language_help_short: { en: 'The interface, and lessons written in both', zh: '界面，以及有双语版本的课程' },
   advanced: { en: 'Advanced', zh: '高级' },
   advanced_help: { en: 'Model and keys', zh: '模型与密钥' },
   clear_help: { en: 'Progress, notes and conversations', zh: '学习进度、批注和对话' },

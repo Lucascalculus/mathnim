@@ -3,6 +3,7 @@
 // the top bar itself; the model choice and keys are under "Advanced"; clearing
 // this browser's records asks first.
 import { esc, t } from '@mathnim/present';
+import { lang_switch } from '../lang_switch';
 import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
 
 // the lesson narrator keeps its own switches under this key (see Narrator)
@@ -60,6 +61,7 @@ export function settings_panel(): HTMLElement {
   el.className = 'set-panel';
   const chev = '<svg class="set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   el.innerHTML = `
+    <div class="set-row"><div class="set-what"><b>${esc(t('language'))}</b><small>${esc(t('language_help_short'))}</small></div><span class="set-lang"></span></div>
     <div class="set-row"><div class="set-what"><b>${esc(t('narration'))}</b><small>${esc(t('narration_help'))}</small></div>
       <button type="button" class="set-switch" role="switch" id="set-voice" aria-checked="${narration_on()}" aria-label="${esc(t('narration'))}"></button></div>
     <div class="set-row"><div class="set-what"><b>AI</b><small id="set-status"></small></div></div>
@@ -88,6 +90,7 @@ export function settings_panel(): HTMLElement {
       </div>
     </details>
     <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>`;
+  el.querySelector('.set-lang')!.replaceWith(lang_switch());
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => el.querySelector<T>('#set-' + id)!;
   const read = (): Settings => ({
     ...load_settings(),

@@ -4,8 +4,9 @@ import { inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
 import './i18n';
 import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
-import { load_settings, set_language } from './settings';
+import { load_settings } from './settings';
 import { settings_panel } from './pages/settings';
+import { lang_switch } from './lang_switch';
 
 const CSS = `
 body{margin:0;background:#fbfbfa}
@@ -25,9 +26,12 @@ body{margin:0;background:#fbfbfa}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
-.langs{display:inline-flex;border:1px solid var(--mn-border);border-radius:999px;padding:2px;gap:2px;background:var(--mn-panel);flex:none}
-.langs button{border:0;background:transparent;color:var(--mn-muted);font:inherit;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;cursor:pointer;line-height:1.4}
-.langs button[aria-pressed=true]{background:var(--mn-fg);color:var(--mn-bg)}
+.langs{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--mn-border);border-radius:999px;padding:2px;background:var(--mn-panel);flex:none;isolation:isolate}
+.langs::before{content:'';position:absolute;z-index:-1;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);border-radius:999px;background:var(--mn-fg);transition:transform .42s cubic-bezier(.3,1.35,.45,1)}
+.langs[data-on="1"]::before{transform:translateX(100%)}
+.langs button{border:0;background:transparent;color:var(--mn-muted);font:inherit;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;cursor:pointer;line-height:1.4;min-width:44px;transition:color .3s .08s}
+.langs button[aria-pressed=true]{color:var(--mn-bg)}
+@media (prefers-reduced-motion:reduce){.langs::before,.langs button{transition:none}}
 .langs button:focus-visible{outline:2px solid var(--mn-accent);outline-offset:1px}
 .page{max-width:1500px;margin:0 auto;padding:24px}
 /* home: continue learning, all courses */
@@ -192,7 +196,6 @@ let cleanup: (() => void) | void;
 let relocalizing = false;
 /** True while the page is re-rendered for a new language (a lesson stays on its step). */
 export const is_relocalizing = () => relocalizing;
-const LANG_LABEL: Record<Lang, string> = { en: 'EN', zh: '中文' };
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
 // (a symmetric gear, centred on the middle of its box)
 const GEAR = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -225,16 +228,10 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
   const render_nav = () => {
     const lang = ui_lang();
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <span class="langs" role="group" aria-label="${t('language')} / Language">${LANGS.map((l) => `<button type="button" data-lang="${l}" lang="${l === 'zh' ? 'zh-CN' : 'en'}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('')}</span>
+      <span class="langs-slot"></span>
       <button type="button" class="gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button>`;
     nav.append(pop);
-    nav.querySelectorAll<HTMLButtonElement>('.langs button').forEach((b) => (b.onclick = async () => {
-      // switching to Chinese may first load the Chinese font for the visuals (a second or two, once)
-      if (b.getAttribute('aria-pressed') === 'true') return;
-      b.setAttribute('aria-busy', 'true');
-      b.style.opacity = '0.6';
-      await set_language(b.dataset.lang as Lang);
-    }));
+    nav.querySelector('.langs-slot')!.replaceWith(lang_switch());
     const gear = nav.querySelector<HTMLButtonElement>('.gear')!;
     gear.onclick = () => {
       if (!pop.hidden) return close_settings();
@@ -256,8 +253,11 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       const canonical = lesson_path(current.lesson);
       if (canonical !== location.pathname) history.replaceState(null, '', canonical + location.search);
     }
-    close_settings();
+    // (a new language keeps the settings open, re-set in it; any other page closes them)
+    if (!relocalizing) close_settings();
+    else if (!pop.hidden) pop.replaceChildren(settings_panel());
     render_nav();
+    if (!pop.hidden) nav.querySelector('.gear')?.setAttribute('aria-expanded', 'true');
     page.innerHTML = '';
     if (!keep_scroll) window.scrollTo(0, 0);
     const done = await pages[current.page](page, current);
@@ -284,12 +284,17 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
   on_ui_lang(async () => {
     relocalizing = true;
     const y = window.scrollY;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     try {
+      // the page is re-set in the new language: the old words soften away, the new ones rise in (the top bar stays)
+      if (!still) await page.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(4px)' }], { duration: 180, easing: 'ease-in', fill: 'forwards' }).finished;
       await route(true);
     } finally {
       relocalizing = false;
     }
     window.scrollTo(0, y);
+    page.getAnimations().forEach((a) => a.cancel()); // (the fade-out held the page hidden)
+    if (!still) page.animate([{ opacity: 0, filter: 'blur(4px)', transform: 'translateY(8px)' }, { opacity: 1, filter: 'blur(0)', transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' });
   });
   void route();
 }
