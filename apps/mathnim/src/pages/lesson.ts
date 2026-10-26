@@ -151,7 +151,7 @@ export async function lab_page(root: HTMLElement, route: Route): Promise<() => v
   root.innerHTML = `${crumb}<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lab'))}</div>`;
   let mod;
   try {
-    mod = await load_lab(meta.slug);
+    mod = await load_lab(c.id, meta.slug);
   } catch (e) {
     console.warn('lab chunk failed to load', e);
     root.innerHTML = `${crumb}<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="${here}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;

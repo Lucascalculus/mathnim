@@ -102,6 +102,39 @@ kept there). This file is the short "where are we right now".
   - the math course split was declined for now;
   - mathviz-demo/ in the repo root is a stale copy (git-ignored), safe to delete.
 
+## MPC course in progress (2026-10-26 ~15:35, paused because the laptop lid closed)
+
+- **Plan:** docs/lessons/mpc/README.md (with the update at its end) and docs/lessons/mpc/AGENT-BRIEF.md, which every lesson agent follows.
+- **User decisions:**
+  - Model Predictive Control, for university students and engineers;
+  - 8 lessons, no labs;
+  - published in two batches: M1–M4 first (deploy as soon as all four pass the doctor), then M5–M8;
+  - one agent per lesson, at effort medium, without lowering the standard;
+  - "做完直接部署".
+- **State:**
+  - The kit and many visuals are in packages/visuals/src/mpc/. No lesson file yet.
+  - Each agent wrote its notes to docs/lessons/mpc/checkpoints/m<N>.md (done, files, design, what is left).
+- **To resume:**
+  - Start one agent per lesson with effort "medium". Its prompt: follow AGENT-BRIEF.md and continue from checkpoints/m<N>.md.
+  - Registration: each agent fills its own slot in apps/mathnim/src/lessons/mpc/unit.ts and its section in packages/visuals/src/mpc/index.ts, then runs `npm run manifest -w mathnim`.
+- **Publish batch 1** once M1–M4 are registered and pass:
+  1. `npm run thumbs -w mathnim mpc features`
+  2. `npm run narration` (scene steps only)
+  3. `npm run doctor`
+  4. a review against 讲明白
+  5. remove `hidden: true` from MPC_COURSE in apps/mathnim/src/course.ts
+  6. commit, push, `npm run deploy`
+- **Also pending deploy:** the home intro line was removed (the user asked).
+- **Notes from the checkpoints:**
+  - **M1:** the shortest docking look-ahead with a_max = 1 is N = 19 (1.9 s), not 20.
+  - **M5:**
+    - the timing benchmark ran on this Mac; it is docs/lessons/mpc/m5/bench.json;
+    - OSQP's 1e-3 tolerance lets the cart pass the wall by 2–5 mm, so keep a 1 mm back-off or explain it;
+    - solvers2d.ts is not yet typechecked.
+  - **M8:**
+    - car_track_wip.ts is not yet typechecked or registered;
+    - the CasADi code page is untested; the old lab venv in docs/lessons/mpc/labs/code/.venv may already have CasADi.
+
 ## Next
 
 1. The fine-tuning course outline (user's priority); later WP7 (AI lesson

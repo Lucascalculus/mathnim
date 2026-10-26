@@ -26,7 +26,6 @@ body{margin:0;background:#fbfbfa}
 /* home: continue learning, all courses */
 .section-title{font-size:13px;letter-spacing:.02em;color:var(--mn-muted);margin:26px 0 12px;font-weight:600}
 .page>.section-title:first-child{margin-top:4px}
-.home-intro{font-size:18px;margin:4px 0 6px;color:var(--mn-fg)}
 .resume-card{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:20px;align-items:center;text-decoration:none;color:inherit;border-left:4px solid var(--course-accent,var(--mn-accent))}
 .resume-card:hover,.resume-row:hover,.course-card:hover{border-color:var(--mn-accent)}
 .resume-card:hover{border-left-color:var(--course-accent,var(--mn-accent))}
@@ -58,6 +57,7 @@ body{margin:0;background:#fbfbfa}
 .hero-sum{font-size:16px}
 .hero-aud,.hero-size{font-size:13.5px}
 .hero-go{margin:12px 0 6px}
+.hero-coming{margin:12px 0 4px;font-size:14px;color:var(--mn-muted)}
 .hero-go .mn-btn{text-decoration:none}
 .hero-text .course-progress{max-width:420px}
 .hero-feature{margin:0}

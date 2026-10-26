@@ -21,7 +21,8 @@ are compiled by whoever consumes them (Vite, Vitest, esbuild).
 | `npm run doctor` | lint all lesson scenes and recorded AI answers |
 | `npm run narration` | record narration for new or changed lines (edge-tts, needs `reference/.venv`) |
 | `npm run -w manim-web dev` | engine playground + regression gallery (`/regress.html`) |
-| `npm run labs -w mathnim` | rebuild the fine-tuning labs (`apps/mathnim/src/labs/`) from `docs/lessons/llm-finetuning/labs/` |
+| `npm run labs -w mathnim` | rebuild every course's labs (`apps/mathnim/src/labs/`) from `docs/lessons/<course>/labs/` |
+| `npm run manifest -w mathnim` | regenerate the on-demand courses' manifests (fine-tuning, MPC) after a lesson or unit changes |
 
 ## Conventions
 
@@ -181,26 +182,42 @@ languages; all older lessons) or `{ en, zh }`.
   grade their own answer, case questions consecutive) and builds embedded
   visuals like scenes.
 
-## The fine-tuning course loads on demand
+## Courses that load on demand (fine-tuning, MPC)
 
-The home page and the math course download none of the fine-tuning course's
-code, visuals or data. `src/lessons/ft/manifest.generated.ts` holds the course
-as data (units, cards, and per lesson its skills, languages, mode and step
-kinds) and one loader per lesson, which imports the lesson module and the
-visuals of the parts it uses (each `packages/visuals/src/ft/<part>/index.ts`
-registers its visuals; the visuals index no longer re-exports them). The lesson
-page awaits `ensure_lesson(cl)`; the review page loads only the lessons whose
-questions are due; the tools call `load_all_lessons()`.
+The home page and the course pages download none of a lazy course's code,
+visuals or data. For each such course (`ft`, `mpc`; the list is `COURSES` in
+`apps/mathnim/tools/course_manifest.mjs` and `LAZY` in `course_manifest.ts`),
+`src/lessons/<course>/manifest.generated.ts` holds the course as data (units,
+cards, and per lesson its skills, languages, mode and step kinds) and one
+loader per lesson. A loader imports the lesson module and the visual packs it
+uses: a pack is `packages/visuals/src/<course>/index.ts` or
+`packages/visuals/src/<course>/<part>/index.ts`, which registers its visuals
+(the visuals index does not re-export them). A lesson loads its own part's
+pack, the packs whose visuals its source names, and a course's only pack. The
+lesson page awaits `ensure_lesson(cl)`; the review page loads only the lessons
+whose questions are due; the tools call `load_all_lessons()`.
 
-**After adding or changing a fine-tuning lesson or unit, run `npm run
-ft-manifest -w mathnim`** (it reads the parts' `unit.ts` files and the lessons
-themselves) and commit the regenerated file.
+The units come from the course's `unit.ts` files: the fine-tuning parts'
+`ft/<part>/unit.ts` (their order is in `LAZY`), and `mpc/unit.ts`, which
+exports `units: Unit[]` in course order. A lesson module exports its lesson
+(any export name). MPC lesson ids are `mpc-m<N>-<name>`, so that the outline
+and the lab cards can call them "M<N>" (`lesson_code`).
 
-**After changing a lab tutorial (`docs/lessons/llm-finetuning/labs/*.md`) or
-its code (`labs/code/`), run `npm run labs -w mathnim`**: it regenerates the
-lab modules in `apps/mathnim/src/labs/` (only `types.ts` there is written by
-hand). A lab is offered after one lesson: the `LAB_AFTER` table in
-`apps/mathnim/src/course.ts` (from labs.md, "对应交互").
+**After adding or changing a lesson or unit of these courses, run `npm run
+manifest -w mathnim`** (`npm run ft-manifest` is the same) and commit the
+regenerated files. A new lesson appears in the app only then.
+
+**After changing a lab tutorial (`docs/lessons/<course>/labs/*.md`) or its
+code (`labs/code/`), run `npm run labs -w mathnim`**: it regenerates
+`apps/mathnim/src/labs/<course>/` and `src/labs/index.ts` (only `types.ts`
+there is written by hand). The courses with labs, each lab's card text and its
+recommended setups are `LAB_COURSES` and the META tables in
+`apps/mathnim/tools/labs_build.ts`. A lab is offered after one lesson: the
+lesson codes passed to `course_labs()` in `apps/mathnim/src/course.ts` (for
+the fine-tuning course, from labs.md, "对应交互").
+
+A course being built has `hidden: true` in `course.ts`: home does not list it,
+but its pages open by their address. Remove the flag to publish it.
 
 ## Adding a syllabus entry (AI-generated lesson)
 

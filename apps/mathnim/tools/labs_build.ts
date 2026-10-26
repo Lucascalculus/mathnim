@@ -1,5 +1,6 @@
-// Converts the hands-on lab tutorials of the fine-tuning course into page modules:
-//   docs/lessons/llm-finetuning/labs/Lx-*.md + labs/code/*  ->  src/labs/<slug>.ts + src/labs/index.ts
+// Converts the hands-on lab tutorials of each course (LAB_COURSES) into page modules:
+//   docs/lessons/<course>/labs/Lx-*.md + labs/code/*  ->  src/labs/<dir>/<slug>.ts + src/labs/<dir>/index.ts
+// and src/labs/index.ts, which gives the app every course's labs.
 // npm run labs -w mathnim   (tools/labs_build.mjs bundles this file and calls main()).
 //
 // A tutorial has a title line "# Lx 中文标题 / Lx English title", a preamble
@@ -14,7 +15,12 @@
 //   ``` fenced code     -> code
 //   > quote             -> callout (note; the preamble's status banner -> a warning callout first in each language)
 // Inline Markdown is written back in the prose syntax the reader supports
-// (**bold**, *italic*, `code`, [text](url), [^key]). The one adjustment: the
+// (**bold**, *italic*, `code`, [text](url), [^key], $tex$). Math is TeX:
+// $...$ inline and $$...$$ displayed (a paragraph that is only $$...$$ becomes
+// a math block); it is set aside before Markdown parsing so that marked never
+// sees its backslashes, underscores or stars, and put back afterwards. "\$" is
+// a literal dollar (the reader's escape too); a "$" that opens no math stops
+// the build. Code spans and fenced code keep their dollars as they are. The one adjustment: the
 // reader cannot put `code` inside **bold**, so a bold run that contains code
 // is closed before the code and reopened after it (same words, the code just
 // is not bold). Anything else the contract cannot hold stops the build with
@@ -36,12 +42,19 @@ const LORA_SETUPS: LabConfig[] = [
   { label: COLAB_T4, gpu: T4, note: { en: 'Free; the script switches to fp16, the full lab runs', zh: '免费；脚本自动改用 fp16，能跑完整版' } },
 ];
 
+/** A lab's card text: a summary and the recommended setups (the tutorials have no such lines). */
+export interface LabCard {
+  summary: Bi;
+  configs: LabConfig[];
+  configs_summary: L10n;
+  minutes?: number;
+}
+
 /**
- * Card text for each lab: a summary and the recommended setups (the tutorials
- * have no such lines; these follow their "what this lab answers" and
- * "hardware" items).
+ * Card text for each fine-tuning lab (these follow the tutorials' "what this
+ * lab answers" and "hardware" items).
  */
-const META: Record<string, { summary: Bi; configs: LabConfig[]; configs_summary: L10n; minutes?: number }> = {
+const FT_META: Record<string, LabCard> = {
   L1: {
     summary: {
       en: 'Take a RAG pipeline apart: evaluate retrieval on its own first (BM25, dense, hybrid, reranked), then the end-to-end answers, and sort every error into a type.',
@@ -93,12 +106,66 @@ const META: Record<string, { summary: Bi; configs: LabConfig[]; configs_summary:
   },
 };
 
+/** MPC runs on any laptop: two setups, no GPU (nothing has been timed, so no run times). */
+const MPC_SETUPS: LabConfig[] = [
+  { label: { en: 'Your laptop (CPU)', zh: '自己的笔记本（CPU）' }, gpu: { en: 'No GPU', zh: '不需要 GPU' }, note: { en: 'Python 3.10+; install the packages from requirements.txt', zh: 'Python 3.10+；按 requirements.txt 安装依赖' }, recommended: true },
+  { label: { en: 'Google Colab (CPU)', zh: 'Google Colab（CPU）' }, gpu: { en: 'No GPU', zh: '不需要 GPU' }, note: { en: 'Nothing to install locally', zh: '本地什么都不用装' } },
+];
+const CPU_ENOUGH = { en: 'CPU is enough', zh: 'CPU 即可' };
+/**
+ * Card text for each MPC lab, from the course plan (docs/lessons/mpc/README.md);
+ * check the summaries against the tutorials when they land.
+ */
+const MPC_META: Record<string, LabCard> = {
+  L1: {
+    summary: {
+      en: 'Linear MPC for the cart with cvxpy and OSQP: write in the limits, tune Q and R, and see what the horizon changes.',
+      zh: '用 cvxpy 和 OSQP 给小车写线性 MPC：把限制写进去，调 Q 和 R，看预测时域改变了什么。',
+    },
+    configs: MPC_SETUPS,
+    configs_summary: CPU_ENOUGH,
+  },
+  L2: {
+    summary: {
+      en: 'Nonlinear MPC for car path tracking with CasADi and Ipopt: the bicycle model, the horizon, and what the solver has to do every step.',
+      zh: '用 CasADi（Ipopt）做汽车路径跟踪的非线性 MPC：自行车模型、预测时域，以及求解器每一步要做什么。',
+    },
+    configs: MPC_SETUPS,
+    configs_summary: CPU_ENOUGH,
+  },
+  L3: {
+    summary: {
+      en: 'Optional: offset-free MPC. Add a disturbance observer and watch the steady-state offset caused by an unknown slope disappear.',
+      zh: '（选做）无静差 MPC：加一个扰动观测器，看未知坡度造成的稳态误差怎样消失。',
+    },
+    configs: MPC_SETUPS,
+    configs_summary: CPU_ENOUGH,
+  },
+};
+
+/** A course with labs: where its tutorials are, where its modules go, and its card text. */
+export interface LabCourse {
+  /** The course's id in src/course.ts. */
+  course: string;
+  /** Its folder under src/labs/. */
+  dir: string;
+  /** Its tutorials, relative to the repository (with code/ inside). */
+  docs: string;
+  /** Its name, for the generated files' comments. */
+  name: string;
+  meta: Record<string, LabCard>;
+  /** What every status banner must say, when the course requires it (the fine-tuning code has not run on a GPU). */
+  not_run?: Record<Lang, string>;
+}
+export const LAB_COURSES: LabCourse[] = [
+  { course: 'llm-finetuning', dir: 'ft', docs: 'docs/lessons/llm-finetuning/labs', name: 'the fine-tuning course', meta: FT_META, not_run: { zh: '尚未在 GPU 上实跑', en: 'not yet run on a GPU' } },
+  // the MPC course has no labs section (the user's decision, 2026-10-26)
+];
+
 const GENERATED = 'Generated by apps/mathnim/tools/labs_build.ts (npm run labs -w mathnim)';
 const CJK = /[㐀-鿿]/;
 const FOOTNOTE = /^\[\^([\w.:-]+)\]:\s+(.+)$/;
 const SECTION: Record<string, Lang> = { 中文: 'zh', English: 'en' };
-/** The banner must say the code has not run on a GPU yet (a requirement of the lab pages). */
-const NOT_RUN: Record<Lang, string> = { zh: '尚未在 GPU 上实跑', en: 'not yet run on a GPU' };
 
 const fail = (where: string, msg: string): never => {
   throw new Error(`${where}: ${msg}`);
@@ -118,14 +185,18 @@ function inline(tokens: Token[] | undefined, where: string): string {
           break;
         }
         const s = (t as Tokens.Text).text;
-        if (s.includes('$')) fail(where, `"$" would start TeX in the reader: ${JSON.stringify(s)}`);
+        if (s.includes('$')) fail(where, `a "$" that opens no math (write \\$ for a literal dollar): ${JSON.stringify(s)}`);
         if (s.includes('*')) fail(where, `a literal "*" would become emphasis in the reader: ${JSON.stringify(s)}`);
         out += s.replace(/\n/g, ' '); // a soft line break is a space
         break;
       }
       case 'escape': {
         const c = (t as Tokens.Escape).text;
-        if (/[*`$[\]_\\]/.test(c)) fail(where, `the reader has no escapes for ${JSON.stringify(c)}`);
+        if (c === '$') {
+          out += '\\$'; // a literal dollar, escaped for the reader too
+          break;
+        }
+        if (/[*`[\]_\\]/.test(c)) fail(where, `the reader has no escapes for ${JSON.stringify(c)}`);
         out += c;
         break;
       }
@@ -323,9 +394,13 @@ export interface ParsedLab {
   files: Record<Lang, string[]>;
 }
 
-/** A tutorial's Markdown as blocks per language (the status banner first). `known_files` are the names in labs/code/. */
-export function parse_lab(md: string, file: string, known_files: readonly string[]): ParsedLab {
-  const tokens = new Lexer({ gfm: true }).lex(md.replace(/\r\n?/g, '\n'));
+/**
+ * A tutorial's Markdown as blocks per language (the status banner first). `known_files` are the names in labs/code/;
+ * `not_run`, when given, is what each language's banner must say.
+ */
+export function parse_lab(md: string, file: string, known_files: readonly string[], not_run?: Record<Lang, string>): ParsedLab {
+  const { text, math } = protect_math(md.replace(/\r\n?/g, '\n'));
+  const tokens = new Lexer({ gfm: true }).lex(text);
   const refs = Object.keys(tokens.links);
   if (refs.length) fail(file, `link reference definitions are not supported: ${refs.join(', ')}`);
 
@@ -373,9 +448,9 @@ export function parse_lab(md: string, file: string, known_files: readonly string
     if (!parts[lang].length) fail(file, `missing section "## ${lang === 'zh' ? '中文' : 'English'}"`);
     const b = banner[lang] ?? fail(file, `the status banner has no ${lang} paragraph`);
     const body = (b as Extract<Block, { type: 'callout' }>).body as string;
-    if (!body.includes(NOT_RUN[lang])) fail(where, `the status banner does not say "${NOT_RUN[lang]}"`);
+    if (not_run && !body.includes(not_run[lang])) fail(where, `the status banner does not say "${not_run[lang]}"`);
     const sec = section_blocks(parts[lang], where);
-    blocks[lang] = [b, ...sec.blocks];
+    blocks[lang] = restore_math([b, ...sec.blocks], math);
     if (sec.starts.some((n) => n !== 1)) list_starts[lang] = sec.starts;
 
     // footnote references must have a definition in the same language
@@ -389,7 +464,78 @@ export function parse_lab(md: string, file: string, known_files: readonly string
     if (!files[lang].length) fail(where, 'the "Files" item names no file from labs/code/');
   }
   if (files.zh.join() !== files.en.join()) fail(file, `the two languages list different files: ${files.zh.join(', ')} / ${files.en.join(', ')}`);
-  return { id, title: { en: en_title.trim(), zh: zh_title.trim() }, blocks, list_starts, files };
+  const put_back = (x: string) => restore_math([{ type: 'p', text: x.trim() }], math)[0] as { text: string };
+  return { id, title: { en: put_back(en_title).text, zh: put_back(zh_title).text }, blocks, list_starts, files };
+}
+
+// ---------------------------------------------------------------- math
+/** One formula set aside: its TeX and whether it was $$displayed$$. */
+export interface MathSpan {
+  tex: string;
+  display: boolean;
+}
+const MATH_AT = (i: number) => `\uE000${i}\uE001`;
+const MATH_REF = /\uE000(\d+)\uE001/g;
+const LITERAL_DOLLAR = '\uE002';
+
+/**
+ * Sets the math of some Markdown aside (outside fenced code and code spans): each $$...$$ and $...$ becomes a
+ * placeholder that Markdown parsing leaves alone. "\$" is a literal dollar and opens no math. An inline formula
+ * starts with a non-space after its "$" and ends with a non-space before its "$", not followed by a digit.
+ */
+export function protect_math(md: string): { text: string; math: MathSpan[] } {
+  const math: MathSpan[] = [];
+  const keep = (tex: string, display: boolean) => {
+    math.push({ tex: tex.replaceAll(LITERAL_DOLLAR, '\\$'), display });
+    return MATH_AT(math.length - 1);
+  };
+  const prose = (s: string) =>
+    s
+      .split(/(`[^`\n]*`)/g) // code spans stay as they are
+      .map((part, i) => (i % 2 ? part : part
+        .replace(/\\\$/g, LITERAL_DOLLAR)
+        .replace(/\$\$([\s\S]+?)\$\$/g, (_, tex: string) => keep(tex.trim(), true))
+        .replace(/\$(?=\S)([^$\n]*?\S)\$(?!\d)/g, (_, tex: string) => keep(tex, false))
+        .replaceAll(LITERAL_DOLLAR, '\\$')))
+      .join('');
+  // fenced code blocks (``` or ~~~, also indented inside list items) stay as they are
+  const out: string[] = [];
+  let buf: string[] = [];
+  let fence: string | null = null;
+  const flush = () => {
+    if (buf.length) out.push(prose(buf.join('\n')));
+    buf = [];
+  };
+  for (const line of md.split('\n')) {
+    const f = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
+    if (fence) {
+      out.push(line);
+      if (f && f[0] === fence[0] && f.length >= fence.length) fence = null;
+    } else if (f) {
+      flush();
+      fence = f;
+      out.push(line);
+    } else buf.push(line);
+  }
+  flush();
+  return { text: out.join('\n'), math };
+}
+
+/** Puts the math back into blocks: $tex$ / $$tex$$ in prose, and a paragraph that is one displayed formula becomes a math block. */
+export function restore_math(blocks: Block[], math: readonly MathSpan[]): Block[] {
+  if (!math.length) return blocks;
+  const put = (s: string) => s.replace(MATH_REF, (_, i: string) => (math[+i].display ? `$$${math[+i].tex}$$` : `$${math[+i].tex}$`));
+  const walk = (x: unknown): unknown => {
+    if (typeof x === 'string') return put(x);
+    if (Array.isArray(x)) return x.map(walk);
+    if (x && typeof x === 'object') return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, k === 'code' ? v : walk(v)]));
+    return x;
+  };
+  return blocks.map((b) => {
+    const only = b.type === 'p' && typeof b.text === 'string' ? /^\uE000(\d+)\uE001$/.exec(b.text.trim()) : null;
+    if (only && math[+only[1]].display) return { type: 'math', tex: math[+only[1]].tex } as Block;
+    return walk(b) as Block;
+  });
 }
 
 // ---------------------------------------------------------------- all labs -> sources
@@ -405,15 +551,15 @@ export interface LabSource {
 }
 const is_tutorial = (f: string) => /^L\d+-[\w-]+\.md$/.test(f);
 
-/** Converts every tutorial, in lab order. */
-export function convert_labs(inputs: LabInputs): LabSource[] {
+/** Converts every tutorial of a course, in lab order. */
+export function convert_labs(course: LabCourse, inputs: LabInputs): LabSource[] {
   const known = Object.keys(inputs.code).sort();
   const mds = Object.keys(inputs.mds).filter(is_tutorial).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
   return mds.map((md) => {
-    const parsed = parse_lab(inputs.mds[md], md, known);
+    const parsed = parse_lab(inputs.mds[md], md, known, course.not_run);
     const slug = md.replace(/\.md$/, '').toLowerCase();
     if (!slug.startsWith(parsed.id.toLowerCase() + '-')) fail(md, `file name and title disagree on the id (${parsed.id})`);
-    const meta = META[parsed.id] ?? fail(md, `no META entry for ${parsed.id} in tools/labs_build.ts (summary, configs)`);
+    const meta = course.meta[parsed.id] ?? fail(md, `no card entry for ${parsed.id} of ${course.course} in tools/labs_build.ts (summary, configs)`);
     if (meta.configs.length < 2 || meta.configs.length > 3) fail(md, `META.${parsed.id}: give two or three setups`);
     if (meta.configs.filter((c) => c.recommended).length !== 1) fail(md, `META.${parsed.id}: mark exactly one setup as recommended`);
     // the lab's own script first, then the others in the tutorial's order
@@ -424,23 +570,22 @@ export function convert_labs(inputs: LabInputs): LabSource[] {
   });
 }
 
-export function module_source(s: LabSource): string {
+export function module_source(course: LabCourse, s: LabSource): string {
   return `// ${GENERATED} from
-// docs/lessons/llm-finetuning/labs/${s.md} and labs/code/ - do not edit.
-import type { LabModule } from './types';
+// ${course.docs}/${s.md} and labs/code/ - do not edit.
+import type { LabModule } from '../types';
 
 export const lab: LabModule = ${JSON.stringify(s.lab, null, 1)};
 export default lab;
 `;
 }
 
-export function index_source(labs: LabSource[]): string {
+export function index_source(course: LabCourse, labs: LabSource[]): string {
   const meta: LabMeta[] = labs.map(({ lab: { id, slug, title, summary, configs, configs_summary, minutes } }) => ({ id, slug, title, summary, configs, configs_summary, ...(minutes ? { minutes } : {}) }));
   return `// ${GENERATED} - do not edit.
-// The labs of the fine-tuning course: their card data, and one loader per lab
+// The labs of ${course.name}: their card data, and one loader per lab
 // so a lab's tutorial and code arrive only when its page is opened.
-import type { LabMeta, LabModule } from './types';
-export type { Bi, LabConfig, LabFile, LabMeta, LabModule } from './types';
+import type { LabMeta, LabModule } from '../types';
 
 export const LABS: LabMeta[] = ${JSON.stringify(meta, null, 1)};
 
@@ -460,13 +605,38 @@ export async function load_lab(slug: string): Promise<LabModule> {
 `;
 }
 
-/** The generated files (name in src/labs/ -> source). */
-export function build_sources(inputs: LabInputs): Record<string, string> {
-  const labs = convert_labs(inputs);
+/** The generated files of a course (name in src/labs/<dir>/ -> source). */
+export function build_sources(course: LabCourse, inputs: LabInputs): Record<string, string> {
+  const labs = convert_labs(course, inputs);
   const out: Record<string, string> = {};
-  for (const s of labs) out[`${s.lab.slug}.ts`] = module_source(s);
-  out['index.ts'] = index_source(labs);
+  for (const s of labs) out[`${s.lab.slug}.ts`] = module_source(course, s);
+  out['index.ts'] = index_source(course, labs);
   return out;
+}
+
+/** src/labs/index.ts: every course's labs by course id. */
+export function labs_index_source(courses: LabCourse[] = LAB_COURSES): string {
+  return `// ${GENERATED} - do not edit.
+// The labs of every course, by course id (each course's card data, and its
+// loader that fetches a lab's tutorial and code when its page is opened).
+import type { LabMeta, LabModule } from './types';
+${courses.map((c) => `import * as ${c.dir} from './${c.dir}';`).join('\n')}
+export type { Bi, LabConfig, LabFile, LabMeta, LabModule } from './types';
+
+const BY_COURSE: Record<string, { LABS: LabMeta[]; load_lab: (slug: string) => Promise<LabModule> }> = {
+${courses.map((c) => ` ${JSON.stringify(c.course)}: ${c.dir},`).join('\n')}
+};
+
+/** The labs of a course, in order (none for a course without labs). */
+export const labs_of = (course: string): LabMeta[] => BY_COURSE[course]?.LABS ?? [];
+
+/** Loads a lab of a course (tutorial blocks in both languages, code files); rejects for an unknown course or slug. */
+export async function load_lab(course: string, slug: string): Promise<LabModule> {
+  const c = BY_COURSE[course];
+  if (!c) throw new Error(\`no labs for course "\${course}"\`);
+  return c.load_lab(slug);
+}
+`;
 }
 
 /** The parts of node:fs that main() uses. The launcher passes them in, so this file needs no Node types (the tests import it and are typechecked without them). */
@@ -480,25 +650,35 @@ export interface Fs {
   rmSync(file: string): void;
 }
 
-/** Reads the tutorials and code in `labs_dir`, writes the modules to `out_dir` (src/labs) and removes generated modules whose tutorial is gone. */
-export function main({ fs, labs_dir, out_dir }: { fs: Fs; labs_dir: string; out_dir: string }): void {
+/**
+ * For every course: reads the tutorials and code in <root>/<docs> (none yet: a course without labs), writes the modules
+ * to src/labs/<dir>/ and removes generated modules whose tutorial is gone; then writes src/labs/index.ts.
+ */
+export function main({ fs, root }: { fs: Fs; root: string }): void {
   const at = (dir: string, f: string) => `${dir.replace(/\/$/, '')}/${f}`;
-  const read_all = (dir: string, keep: (f: string) => boolean) =>
-    Object.fromEntries(fs.readdirSync(dir).filter((f) => keep(f) && fs.statSync(at(dir, f)).isFile()).map((f) => [f, fs.readFileSync(at(dir, f), 'utf8')]));
-  const sources = build_sources({ mds: read_all(labs_dir, is_tutorial), code: read_all(at(labs_dir, 'code'), (f) => !f.startsWith('.')) });
-  fs.mkdirSync(out_dir, { recursive: true });
-  for (const f of fs.readdirSync(out_dir)) {
-    if (!(f in sources) && f.endsWith('.ts') && fs.readFileSync(at(out_dir, f), 'utf8').includes(GENERATED)) {
-      fs.rmSync(at(out_dir, f));
-      console.log(`removed src/labs/${f}`);
+  const read_all = (dir: string, keep: (f: string) => boolean): Record<string, string> =>
+    fs.existsSync(dir) ? Object.fromEntries(fs.readdirSync(dir).filter((f) => keep(f) && fs.statSync(at(dir, f)).isFile()).map((f) => [f, fs.readFileSync(at(dir, f), 'utf8')])) : {};
+  const labs_root = at(root, 'apps/mathnim/src/labs');
+  const write = (file: string, src: string): number => {
+    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === src) return 0;
+    fs.writeFileSync(file, src);
+    return 1;
+  };
+  for (const course of LAB_COURSES) {
+    const labs_dir = at(root, course.docs);
+    const out_dir = at(labs_root, course.dir);
+    const sources = build_sources(course, { mds: read_all(labs_dir, is_tutorial), code: read_all(at(labs_dir, 'code'), (f) => !f.startsWith('.')) });
+    fs.mkdirSync(out_dir, { recursive: true });
+    for (const f of fs.readdirSync(out_dir)) {
+      if (!(f in sources) && f.endsWith('.ts') && fs.readFileSync(at(out_dir, f), 'utf8').includes(GENERATED)) {
+        fs.rmSync(at(out_dir, f));
+        console.log(`removed src/labs/${course.dir}/${f}`);
+      }
     }
+    let changed = 0;
+    for (const [f, src] of Object.entries(sources)) changed += write(at(out_dir, f), src);
+    const n = Object.keys(sources).length - 1;
+    console.log(`src/labs/${course.dir}: ${n} lab${n === 1 ? '' : 's'}, ${changed} file${changed === 1 ? '' : 's'} written`);
   }
-  let changed = 0;
-  for (const [f, src] of Object.entries(sources)) {
-    if (fs.existsSync(at(out_dir, f)) && fs.readFileSync(at(out_dir, f), 'utf8') === src) continue;
-    fs.writeFileSync(at(out_dir, f), src);
-    changed++;
-  }
-  const n = Object.keys(sources).length - 1;
-  console.log(`src/labs: ${n} labs, ${changed} file${changed === 1 ? '' : 's'} written`);
+  if (write(at(labs_root, 'index.ts'), labs_index_source())) console.log('src/labs/index.ts written');
 }

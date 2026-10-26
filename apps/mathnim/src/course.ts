@@ -9,11 +9,10 @@ import { lesson as pizza } from './lessons/pizza/lesson';
 import { lesson as pizzaGame } from './lessons/pizza-game/lesson';
 import { lesson as eigenPca } from './lessons/eigen-pca/lesson';
 import { lesson as textDemo } from './lessons/text-pages-demo/lesson';
-import { LABS, type LabMeta } from './labs';
-/** The lesson each lab follows (the latest lesson whose interactions it reproduces, per labs.md). */
-const LAB_AFTER: Record<string, string> = { L1: 'ft-a2', L2: 'ft-c2-lora', L3: 'ft-d3', L4: 'ft-e1-rlvr-grpo', L5: 'ft-e3-distill-merge' };
-// the fine-tuning course is data until a lesson is opened (npm run ft-manifest regenerates it)
-import { FT_LOADERS, FT_MANIFEST } from './lessons/ft/manifest.generated';
+import { labs_of, type LabMeta } from './labs';
+// the fine-tuning and MPC courses are data until a lesson is opened (npm run manifest -w mathnim regenerates them)
+import { LOADERS as FT_LOADERS, MANIFEST as FT_MANIFEST } from './lessons/ft/manifest.generated';
+import { LOADERS as MPC_LOADERS, MANIFEST as MPC_MANIFEST } from './lessons/mpc/manifest.generated';
 
 export interface CourseLesson {
   id: string;
@@ -32,7 +31,7 @@ export interface CourseLesson {
   /** What the course map, the learner model and the review page need before the lesson is loaded. */
   meta?: LessonMeta;
 }
-/** A lesson as data (made from the real lesson by tools/ft_manifest.ts). */
+/** A lesson as data (made from the real lesson by tools/course_manifest.ts). */
 export interface LessonMeta {
   title: L10n;
   mode: 'essay' | 'game';
@@ -42,8 +41,8 @@ export interface LessonMeta {
   skills: Skill[];
   checkpoints: number;
 }
-/** The fine-tuning course as data (src/lessons/ft/manifest.generated.ts). */
-export interface FtManifest {
+/** A course whose lessons load on demand, as data (src/lessons/<course>/manifest.generated.ts). */
+export interface CourseManifest {
   units: { id: string; title: L10n; lessons: Pick<CourseLesson, 'id' | 'title' | 'summary' | 'minutes' | 'level' | 'thumb'>[] }[];
   lessons: Record<string, LessonMeta>;
 }
@@ -96,7 +95,21 @@ export interface Course {
   suggestions?: L10n[];
   /** Hands-on tutorials ("动手实验"). */
   labs?: Lab[];
+  /** Not listed on the home page yet (being built); its pages still open by their address. */
+  hidden?: boolean;
   units: Unit[];
+}
+
+/** A lazily loaded course's units: the cards from its manifest, each lesson loaded when opened. */
+const lazy_units = (m: CourseManifest, loaders: Record<string, () => Promise<Lesson>>): Unit[] =>
+  m.units.map((u) => ({ id: u.id, title: u.title, lessons: u.lessons.map((cl) => ({ ...cl, meta: m.lessons[cl.id], load: loaders[cl.id] })) }));
+/**
+ * A course's labs, each with the lesson it follows. `after` maps a lab id to a lesson
+ * code ("C2", "M5", see lesson_code); the lesson is looked up in the course's units.
+ */
+function course_labs(course: string, units: Unit[], after: Record<string, string>): Lab[] {
+  const lessons = units.flatMap((u) => u.lessons);
+  return labs_of(course).map((l) => ({ ...l, after: lessons.find((cl) => lesson_code(cl.id) === after[l.id])?.id }));
 }
 
 export const MATH_COURSE: Course = {
@@ -169,6 +182,7 @@ export const MATH_COURSE: Course = {
   ],
 };
 
+const FT_UNITS = lazy_units(FT_MANIFEST, FT_LOADERS);
 /** Fine-tuning large language models: parts A-F (units are added as each part is finished). */
 export const FT_COURSE: Course = {
   id: 'llm-finetuning',
@@ -199,7 +213,7 @@ export const FT_COURSE: Course = {
   accent: '#7C3AED',
   featured: true,
   // a lab is suggested after the lesson whose interactions it reproduces (labs.md, "对应交互")
-  labs: LABS.map((l) => ({ ...l, after: LAB_AFTER[l.id] })),
+  labs: course_labs('llm-finetuning', FT_UNITS, { L1: 'A2', L2: 'C2', L3: 'D3', L4: 'E1', L5: 'E3' }),
   summary: { en: 'Prompting, RAG, SFT, LoRA, preference and RL training - what each one does and how to choose.', zh: '提示词、RAG、SFT、LoRA、偏好与强化学习：各自做什么，怎么选。' },
   suggestions: [
     { en: 'When should I fine-tune instead of using RAG?', zh: '什么时候该微调，而不是用 RAG？' },
@@ -207,14 +221,55 @@ export const FT_COURSE: Course = {
     { en: 'How is DPO different from RLHF?', zh: 'DPO 和 RLHF 有什么区别？' },
     { en: 'What does GRPO compare each answer against?', zh: 'GRPO 拿每个回答跟什么比？' },
   ],
-  // order and cards from the parts' unit.ts files (tools/ft_manifest.ts); lessons load when opened
-  units: FT_MANIFEST.units.map((u) => ({
-    id: u.id, title: u.title,
-    lessons: u.lessons.map((cl) => ({ ...cl, meta: FT_MANIFEST.lessons[cl.id], load: FT_LOADERS[cl.id] })),
-  })),
+  // order and cards from the parts' unit.ts files (tools/course_manifest.ts); lessons load when opened
+  units: FT_UNITS,
 };
 
-export const COURSES: Course[] = [MATH_COURSE, FT_COURSE];
+const MPC_UNITS = lazy_units(MPC_MANIFEST, MPC_LOADERS);
+/** Model predictive control (docs/lessons/mpc/README.md): eight lessons on one running example, a cart on a track. */
+export const MPC_COURSE: Course = {
+  id: 'mpc',
+  slug: 'mpc',
+  title: { en: 'Model Predictive Control', zh: '模型预测控制（MPC）' },
+  summary: {
+    en: 'Look ahead, then act: predict with a model, decide optimally under constraints.',
+    zh: '往前看再动手：用模型预测未来，带着约束做最优决策。',
+  },
+  audience: { en: 'University students and engineers who know linear algebra and calculus', zh: '懂线性代数和微积分的大学生与工程师' },
+  outcomes: [
+    { en: 'Say what MPC does: predict the future with a model, solve an optimization, apply only the first step, and start again at the next instant', zh: '说清 MPC 在做什么：用模型预测未来、解一个优化问题、只执行第一步、下一刻重来' },
+    { en: 'Write a constrained control problem as a quadratic program (QP) and solve it in code', zh: '把一个带约束的控制问题写成二次规划（QP），并用代码解出来' },
+    { en: 'Judge when to use MPC rather than PID or LQR, and weigh stability, feasibility and real-time limits', zh: '判断什么时候该用 MPC 而不是 PID / LQR，懂稳定性、可行性和实时性的取舍' },
+  ],
+  short: { en: 'MPC', zh: 'MPC' },
+  // (each link opened with curl on 2026-10-26: the playlist "Control Bootcamp", the two book pages with their free PDFs)
+  prerequisites: {
+    summary: {
+      en: 'Needs: linear algebra (matrices, eigenvalues) and calculus; least squares helps. No control theory is assumed.',
+      zh: '需要：线性代数（矩阵、特征值）和微积分；会一点最小二乘更好。不需要控制理论基础。',
+    },
+    links: [
+      { title: 'Steve Brunton: Control Bootcamp', url: 'https://www.youtube.com/playlist?list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m', note: { en: 'videos: state space, LQR, the Kalman filter', zh: '视频课（英文）：状态空间、LQR、卡尔曼滤波' } },
+      { title: { en: 'Boyd & Vandenberghe: Convex Optimization', zh: 'Boyd 与 Vandenberghe：《凸优化》' }, url: 'https://web.stanford.edu/~boyd/cvxbook/', note: { en: 'free PDF; chapter 4 covers quadratic programs', zh: '免费 PDF；第 4 章讲二次规划' } },
+      { title: { en: 'Rawlings, Mayne & Diehl: Model Predictive Control', zh: 'Rawlings、Mayne 与 Diehl：《模型预测控制》' }, url: 'https://sites.engineering.ucsb.edu/~jbraw/mpc/', note: { en: 'the standard textbook, free PDF from the authors', zh: 'MPC 的标准教材，作者网站提供免费 PDF' } },
+    ],
+  },
+  feature: '/courses/mpc/horizon.{lang}.webp',
+  accent: '#0F766E',
+  // listed on home once its lessons exist (remove this to publish)
+  hidden: true,
+  // no labs section for this course (the user's decision, 2026-10-26)
+  suggestions: [
+    { en: 'Why apply only the first step of the plan?', zh: '为什么只执行计划的第一步？' },
+    { en: 'How is MPC different from LQR?', zh: 'MPC 和 LQR 有什么区别？' },
+    { en: 'How do constraints turn into a quadratic program?', zh: '约束是怎么变成二次规划的？' },
+  ],
+  // order and cards from src/lessons/mpc/unit.ts (tools/course_manifest.ts); lessons load when opened
+  units: MPC_UNITS,
+};
+
+/** In this order on the home page (a first-time visitor's list starts at the featured course). */
+export const COURSES: Course[] = [MATH_COURSE, FT_COURSE, MPC_COURSE];
 /** The first course (kept for older callers). */
 export const COURSE = MATH_COURSE;
 /** The units and lessons a course page shows: hand-made lessons only (AI-generated syllabus entries and hidden units stay out for now). */
@@ -228,9 +283,12 @@ export function unit_title(c: Course, u: Unit, lang: Lang): string {
   if (!short || !title.startsWith(short + ' ')) return title;
   return title.slice(short.length).replace(/^\s+(·\s+)?/, '') || title;
 }
-/** A fine-tuning lesson's code from its id ("ft-c2-lora" → "C2", "ft-a2b" → "A2b"); other lessons have none. */
+/**
+ * A lesson's code from its id: fine-tuning "ft-c2-lora" → "C2", "ft-a2b" → "A2b";
+ * MPC "mpc-m5-solvers" (or "mpc-m5") → "M5". Other lessons have none.
+ */
 export function lesson_code(id: string): string {
-  const m = /^ft-([a-f])(\d+[a-z]?)\b/.exec(id);
+  const m = /^ft-([a-f])(\d+[a-z]?)\b/.exec(id) ?? /^mpc-(m)(\d+[a-z]?)\b/.exec(id);
   return m ? m[1].toUpperCase() + m[2] : '';
 }
 /** Every lesson of every course. */

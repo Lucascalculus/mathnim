@@ -1,0 +1,40 @@
+0 4.0000,0.0000 cold start:>add:a1+>add:a1++a2+>done:a1++a2+ 2 | warm 2 start:>add:a1+>add:a1++a2+>done:a1++a2+ | prevW lam  crossed a1+,a2-,v1+,v2+,p2 | tot 2 2
+1 4.0050,0.1000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 3 start:a1++a2+>swap:v2+>add:v2++a1+>done:v2++a1+ | prevW lam 100.91,12.25 crossed v2+ | tot 5 4
+2 4.0200,0.2000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 12.16,85.65 crossed  | tot 5 6
+3 4.0450,0.3000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 11.70,82.26 crossed  | tot 5 8
+4 4.0800,0.4000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 11.21,78.65 crossed  | tot 5 10
+5 4.1250,0.5000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 10.67,74.84 crossed  | tot 5 12
+6 4.1800,0.6000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 10.10,70.82 crossed  | tot 5 14
+7 4.2450,0.7000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 9.49,66.59 crossed  | tot 5 16
+8 4.3200,0.8000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 8.84,62.15 crossed  | tot 5 18
+9 4.4050,0.9000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 8.15,57.50 crossed  | tot 5 20
+10 4.5000,1.0000 cold start:>add:a1+>add:a1++v2+>done:a1++v2+ 2 | warm 0 start:v2++a1+>done:v2++a1+ | prevW lam 7.43,52.63 crossed  | tot 5 22
+11 4.6050,1.1000 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 3 start:v2++a1+>swap:v1+>add:v1++v2+>done:v1++v2+ | prevW lam 6.66,47.56 crossed v1+ | tot 8 24
+12 4.7195,1.1900 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 46.44,6.21 crossed  | tot 8 26
+13 4.8425,1.2710 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 43.18,5.58 crossed  | tot 8 28
+14 4.9733,1.3439 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 39.83,4.94 crossed  | tot 8 30
+15 5.1110,1.4095 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 36.39,4.28 crossed  | tot 8 32
+16 5.2549,1.4686 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 32.88,3.62 crossed  | tot 8 34
+17 5.4044,1.5217 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 29.29,2.94 crossed  | tot 8 36
+18 5.5589,1.5695 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 25.65,2.25 crossed  | tot 8 38
+19 5.7180,1.6126 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 21.95,1.56 crossed  | tot 8 40
+20 5.8812,1.6513 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 18.20,0.85 crossed  | tot 8 42
+21 6.0481,1.6862 cold start:>add:v1+>add:v1++v2+>done:v1++v2+ 2 | warm 0 start:v1++v2+>done:v1++v2+ | prevW lam 14.40,0.14 crossed  | tot 8 44
+22 6.2183,1.7176 cold start:>add:v1+>done:v1+ 1 | warm 1 start:v1++v2+>drop:v1+>done:v1+ | prevW lam 10.57,-0.57 crossed p2 | tot 9 45
+23 6.3915,1.7458 cold start:>add:v1+>add:v1++p2>done:v1++p2 2 | warm 1 start:v1+>add:v1++p2>done:v1++p2 | prevW lam 7.36 crossed p2 | tot 10 47
+24 6.5673,1.7712 cold start:>add:p2>add:p2+a2->swap:v1+>add:v1++p2>done:v1++p2 5 | warm 0 start:v1++p2>done:v1++p2 | prevW lam 2.44,1.88 crossed  | tot 10 52
+25 6.7456,1.7941 cold start:>add:p2>add:p2+a2->done:p2+a2- 2 | warm 2 start:v1++p2>drop:p2>add:p2+a2->done:p2+a2- | prevW lam -1.88,2.90 crossed a2- | tot 12 54
+26 6.9256,1.8052 cold start:>add:p2>done:p2 1 | warm 1 start:p2+a2->drop:p2>done:p2 | prevW lam 1.58,-0.10 crossed  | tot 13 55
+27 7.1059,1.8017 cold start:>add:p2>done:p2 1 | warm 0 start:p2>done:p2 | prevW lam 1.13 crossed  | tot 13 56
+28 7.2852,1.7832 cold start:>add:p2>done:p2 1 | warm 0 start:p2>done:p2 | prevW lam 0.61 crossed  | tot 13 57
+29 7.4619,1.7517 cold start:>add:p2>done:p2 1 | warm 0 start:p2>done:p2 | prevW lam 0.10 crossed  | tot 13 58
+30 7.6349,1.7092 cold start:>done: 0 | warm 1 start:p2>drop:>done: | prevW lam -0.39 crossed  | tot 14 58
+31 7.8032,1.6560 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+32 7.9657,1.5937 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+33 8.1216,1.5241 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+34 8.2702,1.4489 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+35 8.4111,1.3695 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+36 8.5440,1.2873 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+37 8.6685,1.2034 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+38 8.7846,1.1189 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58
+39 8.8923,1.0347 cold start:>done: 0 | warm 0 start:>done: | prevW lam  crossed  | tot 14 58

@@ -1,5 +1,5 @@
-// Bundles tools/labs_build.ts and runs it: converts the lab tutorials
-// (docs/lessons/llm-finetuning/labs/*.md and labs/code/) into src/labs/*.ts.
+// Bundles tools/labs_build.ts and runs it: converts every course's lab tutorials
+// (docs/lessons/<course>/labs/*.md and labs/code/) into src/labs/<course>/*.ts.
 //   npm run labs -w mathnim
 import { build } from 'esbuild';
 import fs from 'node:fs';
@@ -16,4 +16,4 @@ await build({
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
 });
 const { main } = await import(pathToFileURL(out).href);
-main({ fs, labs_dir: path.resolve(here, '../../../docs/lessons/llm-finetuning/labs'), out_dir: path.resolve(here, '../src/labs') });
+main({ fs, root: path.resolve(here, '../../..') });

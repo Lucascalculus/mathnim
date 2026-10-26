@@ -3,7 +3,8 @@
 // page shows images instead of running every lesson's first scene in the
 // browser. Lessons without a scene keep their drawn text thumbnail. Also the
 // course pages' feature pictures (public/courses/<course>/...).
-//   npm run thumbs -w mathnim [lesson ids...] [features]
+//   npm run thumbs -w mathnim [lesson or course ids...] [features]
+// (every lesson of every course, the lazily loaded ones included: `mpc` alone renders the MPC course's)
 import { createCanvas } from '@napi-rs/canvas';
 import { init_tex } from 'manim-web';
 import { ScenePlayer } from 'manim-web/ext/player';
@@ -13,7 +14,7 @@ import { LANGS, lesson_langs, type Lang } from '@mathnim/core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
-import { all_lessons, load_all_lessons } from '../src/course';
+import { all_lessons, course_of, load_all_lessons } from '../src/course';
 import { check_params, get_visual } from '@mathnim/visuals';
 
 // the fine-tuning lessons are loaded on demand in the app; the tools check them all
@@ -29,7 +30,8 @@ const only = process.argv.slice(2);
 let n = 0;
 for (const cl of all_lessons()) {
   const lesson = cl.lesson;
-  if (!lesson || (only.length && !only.includes(cl.id))) continue;
+  const course = course_of(cl.id);
+  if (!lesson || (only.length && !only.includes(cl.id) && !(course && (only.includes(course.id) || only.includes(course.slug))))) continue;
   const step: any = (cl.thumb && lesson.steps.find((s: any) => s.id === cl.thumb && s.scene)) || lesson.steps.find((s: any) => s.scene);
   if (!step) continue;
   const langs: Lang[] = lesson_langs(lesson).length > 1 ? [...LANGS] : ['en'];
@@ -52,12 +54,16 @@ for (const cl of all_lessons()) {
 }
 console.log(`${n} thumbnails in ${out}`);
 
-// the course pages' feature pictures: a visual at a given state, in each language
-const FEATURES = [
+// the course pages' feature pictures: a visual at a given state, in each language, at its final frame or at
+// scene time `t` (seconds); `pack` registers the visuals of a course whose lessons load on demand
+const FEATURES: { file: string; visual: string; params: Record<string, unknown>; t?: number; pack?: () => Promise<unknown> }[] = [
   { file: 'courses/llm-finetuning/map.{lang}.webp', visual: 'decision_map', params: { upto: 'F1', show_out_of_scope: false } },
+  // the receding-horizon loop mid-way: the plan, its first step applied, the window shifted
+  { file: 'courses/mpc/horizon.{lang}.webp', visual: 'mpc_receding_loop', params: { N: 20 }, t: 20.55, pack: () => import('@mathnim/visuals/mpc') },
 ];
 if (!only.length || only.includes('features')) {
   for (const f of FEATURES) {
+    await f.pack?.();
     const v = get_visual(f.visual);
     if (!v) {
       console.log(`no visual ${f.visual}`);
@@ -70,7 +76,8 @@ if (!only.length || only.includes('features')) {
         const player = new ScenePlayer(v.scene(check_params(v, { ...f.params, lang }).params), canvas as any, { audio: false });
         apply_theme(player);
         await player.load();
-        player.show_end();
+        if (f.t !== undefined) player.seek_time(Math.min(f.t, player.duration));
+        else player.show_end();
         const file = path.join(process.env.MATHNIM_PUBLIC!, f.file.replace('{lang}', lang));
         fs.mkdirSync(path.dirname(file), { recursive: true });
         fs.writeFileSync(file, await canvas.encode('webp', 86));

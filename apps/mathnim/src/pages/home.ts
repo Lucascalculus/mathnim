@@ -14,10 +14,10 @@ const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hour
 // only what the course page shows: no hidden units, no AI-generated syllabus entries (for now)
 const lessons_of = visible_lessons;
 const done_in = (c: Course) => lessons_of(c).filter((l) => lesson_status(l.id) === 'done').length;
-/** Has the learner begun this course? */
-const started = (c: Course) => !!last_in_course(c) || lessons_of(c).some((l) => lesson_status(l.id) !== 'new');
+/** Has the learner begun this course? (A course with no lessons yet has not been begun.) */
+const started = (c: Course) => lessons_of(c).length > 0 && (!!last_in_course(c) || lessons_of(c).some((l) => lesson_status(l.id) !== 'new'));
 /** The lesson to continue with: the one opened last in the course, else the first not finished. */
-function current_lesson(c: Course): CourseLesson {
+function current_lesson(c: Course): CourseLesson | undefined {
   const all = lessons_of(c);
   return all.find((l) => l.id === last_in_course(c)) ?? all.find((l) => lesson_status(l.id) !== 'done') ?? all[0];
 }
@@ -25,7 +25,8 @@ const thumb = (lesson_id: string, cls = 'thumb') => `<canvas class="${cls}" widt
 /** A course's cover: an image under public/, or a lesson's thumbnail. */
 function cover(c: Course): string {
   if (c.cover?.startsWith('/')) return `<img class="thumb" src="${esc(c.cover.replace('{lang}', ui_lang()))}" alt="" loading="lazy">`;
-  return thumb((lessons_of(c).find((l) => l.id === c.cover) ?? lessons_of(c)[0]).id);
+  const l = lessons_of(c).find((x) => x.id === c.cover) ?? lessons_of(c)[0];
+  return l ? thumb(l.id) : '<div class="thumb empty" aria-hidden="true"></div>'; // (a course still being written)
 }
 const progress_bar = (k: number, n: number) => `<div class="course-progress" aria-hidden="true"><i style="width:${Math.round((k / Math.max(1, n)) * 100)}%"></i></div>`;
 const accent = (c: Course) => (c.accent ? ` style="--course-accent:${esc(c.accent)}"` : '');
@@ -46,16 +47,15 @@ function course_card(c: Course): string {
 /** Home: continue learning (courses already begun, reviews due), then every course. */
 export function home(root: HTMLElement): void {
   const lang = ui_lang();
-  const begun = COURSES.filter(started);
+  // a course being built (hidden) is not listed yet; its pages open by their address
+  const shown = COURSES.filter((c) => !c.hidden);
+  const begun = shown.filter(started);
   const recent = course_of(last_lesson() ?? '');
   const first = recent && begun.includes(recent) ? recent : begun[0];
   const due = learner.due().length;
   let html = '';
-  if (!begun.length) {
-    // first visit: one line, then the courses with the featured one first
-    html += `<p class="home-intro">${esc(t('home_intro'))}</p>`;
-  } else {
-    const cl = current_lesson(first);
+  if (begun.length) {
+    const cl = current_lesson(first)!; // (a begun course has lessons)
     const all = lessons_of(first);
     const k = all.indexOf(cl) + 1;
     html += `<h2 class="section-title">${esc(t('continue_learning'))}</h2>
@@ -69,12 +69,14 @@ export function home(root: HTMLElement): void {
         </div>
       </a>
       ${begun.filter((c) => c !== first).map((c) => {
-        const l = current_lesson(c);
+        const l = current_lesson(c)!;
         return `<a class="card resume-row" href="${lesson_path(l.id)}"><span class="resume-row-text"><b>${math_html(tr(c.title, lang))}</b> · ${math_html(tr(l.title, lang))}</span><span class="mn-btn">${esc(t('continue'))}</span></a>`;
       }).join('')}
       ${due ? `<a class="card resume-row" href="/review"><span class="resume-row-text">${esc(t('reviews_due', { n: due }))}</span><span class="mn-btn">${esc(t('begin'))}</span></a>` : ''}`;
   }
-  const order = [...COURSES].sort((a, b) => (begun.length ? 0 : Number(!!b.featured) - Number(!!a.featured)));
+  // a first-time visitor's list starts at the featured course (the courses after it follow, then the ones before)
+  const f = shown.findIndex((c) => c.featured);
+  const order = begun.length || f < 0 ? shown : [...shown.slice(f), ...shown.slice(0, f)];
   html += `<h2 class="section-title">${esc(t('all_courses'))}</h2><div class="catalog">${order.map(course_card).join('')}</div>`;
   root.innerHTML = html;
   draw_thumbnails(root);
@@ -106,14 +108,14 @@ export function course_page(root: HTMLElement, route: Route): void {
         ${c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
         ${c.audience ? `<p class="muted hero-aud">${esc(t('audience', { a: tr(c.audience, lang) }))}</p>` : ''}
         ${c.prerequisites ? prerequisites(c, lang) : ''}
-        <p class="muted hero-size">${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))} · ${langs}</p>
-        <div class="row hero-go">
+        ${all.length ? `<p class="muted hero-size">${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))} · ${langs}</p>` : ''}
+        ${go ? `<div class="row hero-go">
           <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
           <span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>
         </div>
-        ${progress_bar(done, all.length)}
+        ${progress_bar(done, all.length)}` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}
       </div>
-      ${feature ? `<figure class="hero-feature"><img src="${esc(feature)}" alt="${esc(t('feature_alt'))}" onerror="this.closest('figure').remove()"></figure>` : ''}
+      ${feature ? `<figure class="hero-feature"><img src="${esc(feature)}" alt="${esc(t('feature_alt'))}" onerror="this.closest('header').classList.remove('with-feature');this.closest('figure').remove()"></figure>` : ''}
     </header>
     ${c.outcomes?.length ? `<section class="card outcomes"><h2 class="section-title">${esc(t('outcomes'))}</h2><ul>${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul></section>` : ''}
     <div class="units">${visible_units(c).map((u) => `

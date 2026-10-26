@@ -45,6 +45,9 @@ describe('light markup', () => {
     // bold that contains math is still bold (a tutor answer: "**冻结是为了不替 $W_0$ 存梯度**")
     expect(math_html('**rank of $BA$ is $r$** here')).toBe('<b>rank of <code>BA</code> is <code>r</code></b> here');
     expect(math_html('**plain** and $x$')).toBe('<b>plain</b> and <code>x</code>');
+    // "\$" is a literal dollar; inside math it is TeX's own
+    expect(math_html('costs \\$5 and \\$7, or $x$')).toBe('costs $5 and $7, or <code>x</code>');
+    expect(math_html('$a + \\$b$')).toBe('<code>a + \\$b</code>');
     expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap"><code>W_0</code>，</span>只学<span class="mn-nowrap">（<code>r</code>）。</span>');
   });
 });

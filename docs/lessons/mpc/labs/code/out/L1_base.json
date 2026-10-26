@@ -1,0 +1,19 @@
+{
+ "base": {
+  "N": 20,
+  "outcome": "docked",
+  "docked_t": 7.6000000000000005,
+  "crash_t": null,
+  "impact": 0.0,
+  "first_infeasible_t": 6.1000000000000005,
+  "max_abs_a": 1.000001257787312,
+  "max_v": 2.0000203233809635,
+  "max_p": 9.995251313667145,
+  "max_abs_da": 1.0226664966856518,
+  "saturated_share": 0.5131578947368421,
+  "solve_ms_median": 2.1486455007106997,
+  "solve_ms_max": 54.92450000019744,
+  "osqp_ms_median": 1.0283324999999999,
+  "osqp_iters_median": 375.0
+ }
+}

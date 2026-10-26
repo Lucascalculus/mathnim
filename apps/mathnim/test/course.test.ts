@@ -2,7 +2,7 @@
 // no hidden units, no AI-generated syllabus entries, unit titles without the
 // course's name, and every lab suggested after a lesson of its course.
 import { describe, expect, it } from 'vitest';
-import { COURSES, FT_COURSE, MATH_COURSE, lesson_code, unit_title, visible_lessons, visible_units } from '../src/course';
+import { COURSES, FT_COURSE, MATH_COURSE, MPC_COURSE, lesson_code, unit_title, visible_lessons, visible_units } from '../src/course';
 
 describe('course pages', () => {
   it('leave out hidden units and syllabus entries', () => {
@@ -29,12 +29,29 @@ describe('course pages', () => {
     expect(lesson_code('ft-c2-lora')).toBe('C2');
     expect(lesson_code('ft-a2b')).toBe('A2b');
     expect(lesson_code('ft-d2a')).toBe('D2a');
+    expect(lesson_code('mpc-m5-solvers')).toBe('M5');
+    expect(lesson_code('mpc-m1')).toBe('M1');
     expect(lesson_code('pizza')).toBe('');
   });
   it('suggest every lab after a lesson shown on the course page', () => {
-    const ids = visible_lessons(FT_COURSE).map((l) => l.id);
     expect(FT_COURSE.labs?.length).toBeGreaterThan(0);
-    for (const lab of FT_COURSE.labs!) expect(ids).toContain(lab.after);
+    for (const c of COURSES) {
+      const ids = visible_lessons(c).map((l) => l.id);
+      // (a course still being written may have labs before the lessons they follow)
+      if (!ids.length) continue;
+      for (const lab of c.labs ?? []) expect(ids, `${c.id} ${lab.id}`).toContain(lab.after);
+    }
+  });
+  it('load the lessons of the fine-tuning and MPC courses on demand', () => {
+    for (const c of [FT_COURSE, MPC_COURSE]) for (const l of c.units.flatMap((u) => u.lessons)) {
+      expect(l.lesson, l.id).toBeUndefined();
+      expect(typeof l.load, l.id).toBe('function');
+      expect(l.meta, l.id).toBeDefined();
+    }
+  });
+  it('keep a course without lessons off the home page', () => {
+    if (!visible_lessons(MPC_COURSE).length) expect(MPC_COURSE.hidden).toBe(true);
+    expect(COURSES.map((c) => c.id)).toEqual(['math', 'llm-finetuning', 'mpc']);
   });
   it('give every prerequisite link a URL in both languages', () => {
     for (const c of COURSES) {

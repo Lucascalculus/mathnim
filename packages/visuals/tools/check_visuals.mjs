@@ -28,23 +28,28 @@ const stub_missing = {
   },
 };
 
-// The fine-tuning visuals live in src/ft/<part>/index.ts and register themselves
-// on import; this virtual module imports the parts that exist (missing relative
-// imports inside them, i.e. files still being written, are stubbed too).
+// The visuals of the courses that load on demand live in src/<course>/index.ts
+// or src/<course>/<part>/index.ts (fine-tuning: src/ft/<part>, MPC: src/mpc) and
+// register themselves on import; this virtual module imports the packs that
+// exist (missing relative imports inside them, i.e. files still being written,
+// are stubbed too).
 const visuals_src = pk('visuals/src');
-const ft_parts = fs.existsSync(path.join(visuals_src, 'ft'))
-  ? fs.readdirSync(path.join(visuals_src, 'ft')).filter((d) => fs.existsSync(path.join(visuals_src, 'ft', d, 'index.ts'))).sort()
-  : [];
+const LAZY_COURSES = ['ft', 'mpc'];
+const packs = LAZY_COURSES.flatMap((c) => {
+  const dir = path.join(visuals_src, c);
+  if (!fs.existsSync(dir)) return [];
+  return ['', ...fs.readdirSync(dir).filter((d) => fs.statSync(path.join(dir, d)).isDirectory()).sort()].map((d) => path.join(dir, d, 'index.ts')).filter((f) => fs.existsSync(f));
+});
 const ft_visuals = {
   name: 'ft-visuals',
   setup(b) {
     b.onResolve({ filter: /^mathnim:ft-visuals$/ }, () => ({ path: 'ft-visuals', namespace: 'ft-visuals' }));
     b.onLoad({ filter: /.*/, namespace: 'ft-visuals' }, () => ({
-      contents: ft_parts.map((d) => `import ${JSON.stringify(path.join(visuals_src, 'ft', d, 'index.ts'))};`).join('\n'),
+      contents: packs.map((f) => `import ${JSON.stringify(f)};`).join('\n'),
       loader: 'ts', resolveDir: visuals_src,
     }));
     b.onResolve({ filter: /^\.\.?\// }, (a) => {
-      if (!a.importer.startsWith(path.join(visuals_src, 'ft'))) return undefined;
+      if (!LAZY_COURSES.some((c) => a.importer.startsWith(path.join(visuals_src, c) + path.sep))) return undefined;
       const base = path.resolve(path.dirname(a.importer), a.path);
       const found = ['', '.ts', '.js', '/index.ts'].some((ext) => fs.existsSync(base + ext) && fs.statSync(base + ext).isFile());
       if (found) return undefined;

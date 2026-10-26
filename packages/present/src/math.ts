@@ -58,12 +58,15 @@ const B_OPEN = '\u0001', B_CLOSE = '\u0002';
 const mark_bold_math = (chunk: string): string =>
   chunk.includes('**') && chunk.includes('$') ? chunk.replace(/\*\*(?=\S)([^*]*?\$[^*]*?\S)\*\*/g, `${B_OPEN}$1${B_CLOSE}`) : chunk;
 
+/** "\$" is a literal dollar in prose (it starts no math); inside math it stays TeX's own \$. */
+const DOLLAR = '\u0004';
+
 export function math_html(text: string, o: MarkupOptions = {}): string {
   return text
     .split(/(`[^`\n]+`)/g)
     .map((chunk) => {
       if (/^`[^`\n]+`$/.test(chunk)) return `<code>${esc(chunk.slice(1, -1))}</code>`;
-      const parts = mark_bold_math(chunk).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+      const parts = mark_bold_math(chunk.replaceAll('\\$', DOLLAR)).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
       const out: string[] = [];
       for (let i = 0; i < parts.length; i++) {
         const m = /^\$\$([^$]+)\$\$$|^\$([^$]+)\$$/.exec(parts[i]);
@@ -71,7 +74,7 @@ export function math_html(text: string, o: MarkupOptions = {}): string {
           out.push(prose_html(parts[i], o));
           continue;
         }
-        let html = tex_html(m[1] ?? m[2], !!m[1]);
+        let html = tex_html((m[1] ?? m[2]).replaceAll(DOLLAR, '\\$'), !!m[1]);
         if (!m[1]) {
           // inline math: glue the punctuation around it so the line cannot break between them
           const before = CJK_OPEN.exec(parts[i - 1] ?? '')?.[0] ?? '';
@@ -84,7 +87,7 @@ export function math_html(text: string, o: MarkupOptions = {}): string {
         }
         out.push(html);
       }
-      return out.join('').replaceAll(B_OPEN, '<b>').replaceAll(B_CLOSE, '</b>');
+      return out.join('').replaceAll(B_OPEN, '<b>').replaceAll(B_CLOSE, '</b>').replaceAll(DOLLAR, '$');
     })
     .join('');
 }

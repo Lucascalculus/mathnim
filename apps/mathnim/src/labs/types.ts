@@ -1,5 +1,5 @@
-// The hands-on labs of the fine-tuning course as data. The modules next to
-// this file are generated from docs/lessons/llm-finetuning/labs/*.md and
+// The hands-on labs of the courses as data. The modules in src/labs/<course>/
+// and src/labs/index.ts are generated from docs/lessons/<course>/labs/*.md and
 // labs/code/ by tools/labs_build.ts (npm run labs -w mathnim); only this file
 // is written by hand. Each lab module is loaded on demand (index.ts).
 import type { Block, L10n, Lang } from '@mathnim/core';
