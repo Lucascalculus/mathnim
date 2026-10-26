@@ -42,7 +42,7 @@ body{margin:0;background:#fbfbfa}
 .course-card:hover{transform:translateY(-2px)}
 .course-card .thumb{width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#f3f4f8,#e9ebf2);border:1px solid var(--mn-border);display:block;object-fit:cover}
 .course-name{font-weight:700;font-size:19px;letter-spacing:-.01em}
-.course-sum{font-size:14px}
+.course-sum{font-size:14px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .course-card .meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mn-muted)}
 .course-progress{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
 .course-progress i{display:block;height:100%;background:var(--mn-good)}
@@ -62,9 +62,16 @@ body{margin:0;background:#fbfbfa}
 .hero-text .course-progress{max-width:420px}
 .hero-feature{margin:0}
 .hero-feature img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--mn-border);background:#fff}
-.outcomes{margin-top:18px}
-.outcomes .section-title{margin-top:0}
-.outcomes ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.hero-kicker{font-size:13px;color:var(--course-accent,var(--mn-accent));font-weight:600;margin:0 0 2px}
+.about-course{margin-top:14px;padding:14px 18px}
+.about-course>summary{cursor:pointer;font-size:14px;color:var(--mn-muted);list-style:none;display:flex;align-items:center;gap:8px}
+.about-course>summary::before{content:'›';font-size:18px;line-height:1;transition:transform .15s}
+.about-course[open]>summary::before{transform:rotate(90deg)}
+.about-course>summary::-webkit-details-marker{display:none}
+.about-body{display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:14px}
+.about-body p{margin:0}
+.outcomes h3{font-size:13px;color:var(--mn-muted);margin:4px 0 6px;font-weight:600}
+.outcomes ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
 .lesson-title{font-weight:600;font-size:16px;display:flex;gap:8px;align-items:baseline}
 .lesson-title .status{flex:none;font-size:13px;width:16px;text-align:center;color:var(--mn-muted)}
 .status-done .lesson-title .status{color:var(--mn-good)}

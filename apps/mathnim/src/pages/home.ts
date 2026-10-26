@@ -38,7 +38,7 @@ function course_card(c: Course): string {
     <a class="card course-card" href="${course_path(c)}"${accent(c)}>
       ${cover(c)}
       <div class="course-name">${math_html(tr(c.title, lang))}</div>
-      ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
+      ${c.summary ? `<div class="muted course-sum" title="${esc(tr(c.summary, lang))}">${math_html(tr(c.summary, lang))}</div>` : ''}
       <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
       ${done ? progress_bar(done, all.length) : ''}
     </a>`;
@@ -77,16 +77,23 @@ export function home(root: HTMLElement): void {
   // a first-time visitor's list starts at the featured course (the courses after it follow, then the ones before)
   const f = shown.findIndex((c) => c.featured);
   const order = begun.length || f < 0 ? shown : [...shown.slice(f), ...shown.slice(0, f)];
-  html += `<h2 class="section-title">${esc(t('all_courses'))}</h2><div class="catalog">${order.map(course_card).join('')}</div>`;
+  // courses are listed by category ("大学与工程", "中学数学"), each group in that order
+  const groups: { name: string; courses: Course[] }[] = [];
+  for (const c of order) {
+    const name = c.category ? tr(c.category, lang) : t('all_courses');
+    const g = groups.find((x) => x.name === name) ?? (groups.push({ name, courses: [] }), groups[groups.length - 1]);
+    g.courses.push(c);
+  }
+  html += groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('');
   root.innerHTML = html;
   draw_thumbnails(root);
 }
 
 /** What a lesson is made of, in words ("动画 · 交互 · 推导 · 代码"); reading and questions go without saying. */
 const KIND_WORD: [string, string][] = [['scene', 'kw_scene'], ['explore', 'kw_explore'], ['derive', 'kw_derive'], ['code', 'kw_code']];
-function kinds_html(l: CourseLesson): string {
+function kinds_text(l: CourseLesson): string {
   const kinds = lesson_info(l)?.kinds ?? [];
-  return `<span class="kinds">${esc(KIND_WORD.filter(([k]) => kinds.includes(k)).map(([, key]) => t(key)).join(' · '))}</span>`;
+  return KIND_WORD.filter(([k]) => kinds.includes(k)).map(([, key]) => t(key)).join(' · ');
 }
 const STATUS: Record<string, [string, string]> = { done: ['✓', 'status_done'], started: ['●', 'status_started'], new: ['○', 'status_new'] };
 
@@ -104,10 +111,9 @@ export function course_page(root: HTMLElement, route: Route): void {
     <a class="backlink" href="/">‹ ${esc(t('all_courses'))}</a>
     <header class="card course-hero${feature ? ' with-feature' : ''}"${accent(c)}>
       <div class="hero-text">
+        ${c.category ? `<p class="hero-kicker">${esc(tr(c.category, lang))}</p>` : ''}
         <h1>${math_html(tr(c.title, lang))}</h1>
         ${c.summary ? `<p class="hero-sum">${math_html(tr(c.summary, lang))}</p>` : ''}
-        ${c.audience ? `<p class="muted hero-aud">${esc(t('audience', { a: tr(c.audience, lang) }))}</p>` : ''}
-        ${c.prerequisites ? prerequisites(c, lang) : ''}
         ${all.length ? `<p class="muted hero-size">${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))} · ${langs}</p>` : ''}
         ${go ? `<div class="row hero-go">
           <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
@@ -117,20 +123,33 @@ export function course_page(root: HTMLElement, route: Route): void {
       </div>
       ${feature ? `<figure class="hero-feature"><img src="${esc(feature)}" alt="${esc(t('feature_alt'))}" onerror="this.closest('header').classList.remove('with-feature');this.closest('figure').remove()"></figure>` : ''}
     </header>
-    ${c.outcomes?.length ? `<section class="card outcomes"><h2 class="section-title">${esc(t('outcomes'))}</h2><ul>${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul></section>` : ''}
+    ${about(c, lang)}
     <div class="units">${visible_units(c).map((u) => `
       <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => {
         const st = lesson_status(l.id);
         return `
-        <a class="card lesson-card status-${st}" href="${lesson_path(l.id)}">
+        <a class="card lesson-card status-${st}" href="${lesson_path(l.id)}" title="${esc(kinds_text(l))}">
           ${thumb(l.id)}
           <div class="lesson-title"><span class="status" role="img" aria-label="${esc(t(STATUS[st][1]))}">${STATUS[st][0]}</span>${math_html(tr(l.title, lang))}</div>
-          <div class="meta">${kinds_html(l)}<span>${esc(t('minutes', { n: l.minutes }))}</span></div>
+          <div class="meta"><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
         </a>`;
       }).join('')}</div></section>`).join('')}
       ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
     </div>`;
   draw_thumbnails(root);
+}
+
+/** Who it is for, what to know first, what you will be able to do: one disclosure, closed by default (the page leads with the lessons). */
+function about(c: Course, lang: Lang): string {
+  if (!c.audience && !c.prerequisites && !c.outcomes?.length) return '';
+  return `<details class="card about-course">
+    <summary>${esc(t('about_course'))}</summary>
+    <div class="about-body">
+      ${c.audience ? `<p>${esc(t('audience', { a: tr(c.audience, lang) }))}</p>` : ''}
+      ${c.prerequisites ? prerequisites(c, lang) : ''}
+      ${c.outcomes?.length ? `<div class="outcomes"><h3>${esc(t('outcomes'))}</h3><ul>${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul></div>` : ''}
+    </div>
+  </details>`;
 }
 
 /** What to know first: a line or two, and starter material behind a disclosure. */

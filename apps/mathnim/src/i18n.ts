@@ -40,6 +40,7 @@ define_ui({
   begin: { en: 'Start', zh: '开始' },
   audience: { en: 'For: {a}', zh: '适合：{a}' },
   outcomes: { en: 'After this course you can', zh: '学完你能' },
+  about_course: { en: 'Course details', zh: '课程详情' },
   feature_alt: { en: 'The course at a glance', zh: '课程一览' },
   labs: { en: 'Hands-on labs', zh: '动手实验' },
   labs_soon: { en: 'Lab tutorials are coming soon.', zh: '实验教程即将上线。' },

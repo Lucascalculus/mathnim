@@ -83,6 +83,8 @@ export interface Course {
   short?: L10n;
   /** What to know first, with starter links (shown under the audience line). */
   prerequisites?: Prerequisites;
+  /** Where the course sits on the home page ("中学数学", "大学与工程"); courses with the same category are listed together. */
+  category?: L10n;
   /** When set, only these lessons are shown (a course published in batches); the rest stay reachable by address and checked by the tools. */
   published?: string[];
   /** The cover: a lesson id (its thumbnail) or an image under public/ ('{lang}' replaced by en / zh; default: the first lesson's thumbnail). */
@@ -116,6 +118,7 @@ function course_labs(course: string, units: Unit[], after: Record<string, string
 
 export const MATH_COURSE: Course = {
   id: 'math',
+  category: { en: 'Secondary-school math', zh: '中学数学' },
   slug: 'geometry',
   title: { en: 'Geometry through motion', zh: '在运动中学几何' },
   audience: { en: 'Secondary school, and a first-year linear algebra chapter', zh: '中学生；另有一章大学一年级线性代数' },
@@ -133,7 +136,7 @@ export const MATH_COURSE: Course = {
       { title: { en: 'Khan Academy: Geometry', zh: '可汗学院：几何' }, url: 'https://www.khanacademy.org/math/geometry' },
     ],
   },
-  summary: { en: 'Learn math by watching it move - and moving it yourself.', zh: '看着数学动起来，再亲手让它动起来。' },
+  summary: { en: 'Circle area, angles in circles, eigenvectors', zh: '圆的面积、圆与角、特征向量' },
   units: [
     {
       id: 'area', title: { en: 'Circles and area', zh: '圆与面积' },
@@ -188,6 +191,7 @@ const FT_UNITS = lazy_units(FT_MANIFEST, FT_LOADERS);
 /** Fine-tuning large language models: parts A-F (units are added as each part is finished). */
 export const FT_COURSE: Course = {
   id: 'llm-finetuning',
+  category: { en: 'AI', zh: 'AI' },
   slug: 'llm-finetuning',
   title: { en: 'Fine-tuning large language models', zh: '大模型微调' },
   audience: { en: 'University students and practitioners who know neural networks', zh: '懂神经网络的大学生与工程师' },
@@ -216,7 +220,7 @@ export const FT_COURSE: Course = {
   featured: true,
   // a lab is suggested after the lesson whose interactions it reproduces (labs.md, "对应交互")
   labs: course_labs('llm-finetuning', FT_UNITS, { L1: 'A2', L2: 'C2', L3: 'D3', L4: 'E1', L5: 'E3' }),
-  summary: { en: 'Prompting, RAG, SFT, LoRA, preference and RL training - what each one does and how to choose.', zh: '提示词、RAG、SFT、LoRA、偏好与强化学习：各自做什么，怎么选。' },
+  summary: { en: 'Prompting, RAG, SFT, LoRA, preference and RL', zh: '提示词、RAG、SFT、LoRA、偏好与强化学习' },
   suggestions: [
     { en: 'When should I fine-tune instead of using RAG?', zh: '什么时候该微调，而不是用 RAG？' },
     { en: 'Why does LoRA save so much memory?', zh: 'LoRA 为什么能省这么多显存？' },
@@ -231,11 +235,12 @@ const MPC_UNITS = lazy_units(MPC_MANIFEST, MPC_LOADERS);
 /** Model predictive control (docs/lessons/mpc/README.md): eight lessons on one running example, a cart on a track. */
 export const MPC_COURSE: Course = {
   id: 'mpc',
+  category: { en: 'AI', zh: 'AI' },
   slug: 'mpc',
   title: { en: 'Model Predictive Control', zh: '模型预测控制（MPC）' },
   summary: {
-    en: 'Look ahead, then act: predict with a model, decide optimally under constraints.',
-    zh: '往前看再动手：用模型预测未来，带着约束做最优决策。',
+    en: 'Prediction, cost, constraints, QP, stability, nonlinear MPC',
+    zh: '预测、代价、约束、二次规划、稳定性、非线性 MPC',
   },
   audience: { en: 'University students and engineers who know linear algebra and calculus', zh: '懂线性代数和微积分的大学生与工程师' },
   outcomes: [
