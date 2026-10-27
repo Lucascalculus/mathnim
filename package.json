@@ -23,7 +23,8 @@
     "regress": "npm run regress -w manim-web",
     "doctor": "npm run doctor -w mathnim",
     "narration": "npm run narration -w mathnim",
-    "deploy": "npm run build && cd apps/mathnim && wrangler pages deploy dist --project-name mathnim --branch main --commit-dirty=true"
+    "deploy": "npm run build && cd apps/mathnim && wrangler pages deploy dist --project-name mathnim --branch main --commit-dirty=true",
+    "catalog": "npm run catalog -w mathnim --"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.9",

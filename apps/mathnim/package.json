@@ -16,7 +16,8 @@
     "thumbs": "node tools/thumbnails.mjs",
     "manifest": "node tools/course_manifest.mjs",
     "ft-manifest": "node tools/course_manifest.mjs",
-    "labs": "node tools/labs_build.mjs"
+    "labs": "node tools/labs_build.mjs",
+    "catalog": "node tools/catalog.mjs"
   },
   "dependencies": {
     "@mathnim/ai": "*",
