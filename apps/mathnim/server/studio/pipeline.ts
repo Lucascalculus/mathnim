@@ -171,7 +171,13 @@ async function ask<T>(req: StudioRequest, d: RunDeps, check: (data: unknown) => 
 const obj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text_of = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 const strings = (v: unknown) => (Array.isArray(v) ? v.map(text_of).filter(Boolean) : []);
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'point';
+/** A point's key: lower-case words joined by hyphens, cut at a word (models complete a word cut in half). */
+function slug(s: string): string {
+  const full = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (full.length <= 40) return full || 'point';
+  const cut = full.slice(0, 41);
+  return cut.slice(0, cut.lastIndexOf('-') > 10 ? cut.lastIndexOf('-') : 40);
+}
 
 export function check_map(data: unknown, f: FileRow): { value: DeckMap | null; errors: string[] } {
   if (!obj(data) || !Array.isArray(data.points) || !data.points.length) return { value: null, errors: ['"points": a non-empty array is required'] };
@@ -220,11 +226,17 @@ export function check_plan(data: unknown, s: State): { value: Plan | null; error
   const lessons: PlanLesson[] = [];
   const owner = new Map<string, string>();
   const renamed = new Map<string, string>();
+  // an id the model completed or shortened still names its point when it can name only one
+  const resolve = (p: string): string | undefined => {
+    if (point_ids.has(p)) return p;
+    const near = [...point_ids].filter((k) => p.startsWith(k) || k.startsWith(p));
+    return near.length === 1 ? near[0] : undefined;
+  };
   data.lessons.forEach((l, i) => {
     if (!obj(l) || !text_of(l.title)) return void errors.push(`lessons[${i}]: a title is required`);
     const id = `l${i + 1}`; // numbered by the server: the model's ids only have to be consistent within its reply
     renamed.set(text_of(l.id) || id, id);
-    const points = strings(l.points).filter((p) => point_ids.has(p));
+    const points = strings(l.points).map(resolve).filter((p): p is string => !!p);
     for (const p of points) if (!owner.has(p)) owner.set(p, id);
     lessons.push({
       id,

@@ -15,12 +15,13 @@ binding = "FEEDBACK"
 id = "701c54a91a744109b914e948b4cfd511"
 
 # Accounts and courses made from uploads (/api/auth, /api/me, /api/studio):
-# create them first (docs/DEPLOY.md, "Accounts and uploaded courses"), then
-# uncomment with the database id.
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "mathnim"
-# database_id = "<from npx wrangler d1 create mathnim>"
+# docs/DEPLOY.md, "Accounts and uploaded courses". The tables are created on
+# first use (server/db.ts).
+[[d1_databases]]
+binding = "DB"
+database_name = "mathnim"
+database_id = "bfc1aa8e-021d-4a85-abdc-0d4141a4e2f6"
+# The uploaded files (create with: npx wrangler r2 bucket create mathnim-files, then uncomment).
 # [[r2_buckets]]
 # binding = "FILES"
 # bucket_name = "mathnim-files"

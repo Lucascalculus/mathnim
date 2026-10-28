@@ -37,8 +37,9 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<{ ok: bool
 /** Who is signed in (once, at start). */
 export async function load_me(): Promise<Me | null> {
   try {
-    const r = await call<{ user: Me | null }>('auth/me', { signal: AbortSignal.timeout(4000) });
-    available = r.ok && 'user' in r.data;
+    const r = await call<{ user: Me | null; mail?: boolean }>('auth/me', { signal: AbortSignal.timeout(4000) });
+    // sign-in is offered once the server can mail codes (a signed-in learner keeps their account regardless)
+    available = r.ok && 'user' in r.data && (r.data.mail !== false || !!r.data.user);
     me = r.ok ? r.data.user ?? null : null;
   } catch {
     available = false;
