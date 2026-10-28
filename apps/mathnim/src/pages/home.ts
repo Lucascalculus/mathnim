@@ -41,7 +41,7 @@ function course_card(c: Course): string {
   // a course already begun says where to pick up, right on its card (no separate "continue" section)
   const go = started(c) ? current_lesson(c) : undefined;
   return `
-    <article class="card course-card${c.generated ? ' gen' : ''}"${accent(c)}>
+    <article class="card course-card${c.generated ? ' gen' : ''}"${accent(c)}>${c.generated ? '<i></i><i></i><i></i><i></i>' : ''}
       <a class="course-link" href="${course_path(c)}">
         ${c.generated ? `<span class="gen-label">${esc(t('gen_label', { d: c.generated.decks, n: c.generated.lessons }))}</span>` : ''}
         ${cover(c)}
