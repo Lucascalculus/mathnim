@@ -48,6 +48,10 @@ const CSS = `
 .ask-note.folded .ask-sum{display:block}
 .ask-note.folded .note-head{display:flex;-webkit-line-clamp:unset}
 .ask-note .mn-card:not(.past)>.mn-q{cursor:pointer}
+/* an asked note's own line is quieter than the line at the top: no rule until it is pointed at or written on */
+.ask-note .mn-ask form::after{opacity:0;transition:opacity .2s}
+.ask-note:hover .mn-ask form::after,.ask-note .mn-ask form:focus-within::after,.ask-note.busy .mn-ask form::after{opacity:1}
+.ask-note .mn-ask form .mn-input{font-size:14px}
 /* a conversation: each question under a stroke of highlighter, the answer in ink */
 :is(.mn-rail,.rail-note) .mn-ask{gap:12px}
 :is(.mn-rail,.rail-note) .mn-card{border:0;box-shadow:none;background:none;border-radius:0;overflow:visible}
@@ -80,7 +84,7 @@ const CSS = `
 :is(.mn-rail,.rail-note) .mn-ask form .mn-btn{display:none}
 /* a note: the sentence it is about (a fold), the conversation, the line to go on */
 .rail-note{position:absolute;left:0;right:0;padding:2px 0 2px 14px;border-left:1px solid var(--mn-border);transition:top .35s cubic-bezier(.3,0,.2,1),border-color .2s;animation:rail-in .4s ease-out both}
-.rail-note.inline{position:relative;top:auto!important;margin:6px 0 18px}
+.rail-note.inline{position:relative;top:auto!important;margin:6px 0 18px;scroll-margin:72px 0 96px}
 .rail-note.lit,.rail-note:focus-within{border-left-color:var(--note-ink)}
 .note-head{display:block;width:100%;border:0;background:none;padding:2px 0 8px;text-align:left;cursor:pointer;font:italic 14px/1.6 ${SERIF};color:var(--mn-fg)}
 .rail-note.folded .note-head{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
@@ -281,7 +285,7 @@ class Note {
     this.turns_shown = saved?.turns.length ?? 0;
     this.panel = new AskPanel(el.querySelector<HTMLElement>('.note-panel')!, {
       provider, validate: worker_validator(), log, lesson: rail.lesson.id, thread: true, read_aloud: false,
-      placeholder: t('ask_short'), history: saved?.turns,
+      placeholder: phrase ? t('ask_short') : t('ask_more'), history: saved?.turns,
       context: (): AskContext => rail.context(),
       // a note's sentence goes with every question asked in it
       extra: () => {
@@ -494,6 +498,8 @@ export class AskRail {
     n.quote = this.quote;
     this.quote = '';
     void n.panel.ask(q);
+    // (on phones the note opens in the text, which may be off screen)
+    if (!wide()) requestAnimationFrame(() => n.el.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
     for (const b of this.qs.querySelectorAll('.rail-q')) if (b.textContent === q) b.remove();
     this.number();
   }

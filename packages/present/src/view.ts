@@ -338,6 +338,7 @@ export class LessonView {
         b.textContent = t('export_mp4');
       }
     };
+    document.addEventListener('keydown', this.on_arrow);
     this.root.addEventListener('keydown', (e) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'TEXTAREA') {
@@ -365,6 +366,26 @@ export class LessonView {
       }
     });
   }
+  /** ← and → step through the lesson (→ only where continuing is open; never while typing or moving a slider). */
+  private on_arrow = (e: KeyboardEvent): void => {
+    if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return;
+    const target = e.target as HTMLElement;
+    if (target.closest?.('input,textarea,select,[contenteditable],[role=slider],[role=tab],canvas')) return;
+    if (!this.root.isConnected) return;
+    if (e.key === 'ArrowRight') {
+      const next = this.root.querySelector<HTMLButtonElement>('[data-next]:not(:disabled)');
+      if (!next) return;
+      e.preventDefault();
+      next.click();
+      return;
+    }
+    const steps = this.lesson.steps;
+    const before = steps.slice(0, this.runtime.index).filter((s) => !s.branch_only);
+    const prev = before[before.length - 1];
+    if (!prev) return;
+    e.preventDefault();
+    void this.runtime.goto(prev.id);
+  };
   private primary(): HTMLButtonElement | null {
     return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)');
   }
@@ -413,6 +434,7 @@ export class LessonView {
         if (s.kind === 'scene') {
           const replay = this.button(t('replay'), () => this.replay());
           const cont = this.button(t('continue'), () => this.runtime.next(), true);
+          cont.dataset.next = '';
           this.el.actions.append(replay, cont);
           if (s.narration) set_math(this.el.prompt, this.runtime.text(s.narration));
         }
@@ -437,6 +459,7 @@ export class LessonView {
         // one main button at a time: the task's own action while the world is unsolved, then "continue"
         const cont = this.button(t('continue'), () => this.runtime.next(), !(e.step.actions ?? []).some((a) => a.primary));
         cont.dataset.role = 'continue';
+        cont.dataset.next = '';
         cont.disabled = !this.runtime.can_continue();
         this.el.actions.append(cont);
         for (const a of e.step.actions ?? []) {
@@ -591,6 +614,7 @@ export class LessonView {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    document.removeEventListener('keydown', this.on_arrow);
     clearTimeout(this.auto_timer);
     // keep the place: the furthest step reached so far is where the lesson resumes
     if (this.o.remember) {
@@ -652,6 +676,7 @@ export class LessonView {
     // Continue is always allowed; it becomes the main action once a derivation is fully shown
     const cont = this.button(t('continue'), () => this.runtime.next(), true);
     cont.dataset.role = 'continue';
+    cont.dataset.next = '';
     let page: PageController | null = null;
     const sync = () => cont.classList.toggle('primary', !page || page.complete());
     page = text_page(step, this.chapter_of(this.runtime.index), {
@@ -1055,7 +1080,9 @@ export class LessonView {
     this.final = true;
     this.el.actions.querySelectorAll<HTMLButtonElement>('[data-role]').forEach((b) => (b.disabled = true));
     const label = step.reveal ? t('watch') : t('continue');
-    this.el.actions.prepend(this.button(label, () => this.runtime.next(), true));
+    const next = this.button(label, () => this.runtime.next(), true);
+    next.dataset.next = '';
+    this.el.actions.prepend(next);
     this.el.actions.querySelector<HTMLButtonElement>('[data-role=check]')?.remove();
     const ta = this.el.answer.querySelector<HTMLTextAreaElement>('textarea');
     if (ta) ta.disabled = true;

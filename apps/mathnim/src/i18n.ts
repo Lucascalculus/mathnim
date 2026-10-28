@@ -62,6 +62,7 @@ define_ui({
   explain_passage: { en: 'What does this passage mean?', zh: '这段话是什么意思？' },
   ask_ai: { en: 'Ask the tutor', zh: '问 AI' },
   ask_short: { en: 'Ask', zh: '提问' },
+  ask_more: { en: 'Ask more', zh: '追问' },
   ask_para: { en: 'Ask about this paragraph', zh: '问这段' },
   got_it: { en: 'Got it', zh: '懂了' },
   ask_new: { en: 'A new question', zh: '另起一问' },

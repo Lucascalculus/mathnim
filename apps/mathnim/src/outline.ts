@@ -41,6 +41,11 @@ const CSS = `
 .ol-step.done .ol-dot{background:color-mix(in srgb,var(--mn-accent) 45%,transparent);box-shadow:none}
 .ol-step.now{color:var(--mn-accent);font-weight:650}
 .ol-step.now .ol-dot{background:var(--mn-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--mn-accent) 22%,transparent)}
+/* steps where the learner acts: a world is a small diamond, code a pair of chevrons */
+.ol-step .ol-dot.world{border-radius:1px;width:6.5px;height:6.5px;transform:translateY(-1px) rotate(45deg)}
+.ol-step .ol-dot.code{width:10px;height:8px;border-radius:0;background:none!important;box-shadow:none!important}
+.ol-dot.code svg{display:block;width:10px;height:8px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ol-step.done .ol-dot.code{color:color-mix(in srgb,var(--mn-accent) 60%,transparent)}
 .ol-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;color:var(--mn-muted);background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
 .ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
 .ol-toggle svg{flex:none}
@@ -116,6 +121,10 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     }).join('')}</div>`).join('')}`;
   const steps = panel.querySelector<HTMLUListElement>('.ol-steps');
 
+  const dot = (s: Step) =>
+    s.kind === 'explore' ? '<span class="ol-dot world" aria-hidden="true"></span>'
+    : s.kind === 'code' ? '<span class="ol-dot code" aria-hidden="true"><svg viewBox="0 0 10 8"><path d="M3.2 1 1 4l2.2 3M6.8 1 9 4 6.8 7"/></svg></span>'
+    : '<span class="ol-dot" aria-hidden="true"></span>';
   const render_steps = () => {
     if (!steps) return;
     const cur = o.view.runtime.index;
@@ -131,7 +140,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
       }
       // (a step without a title is never shown by its id: it is the n-th practice)
       const title = tr(s.title, lang) || t('practice_n', { n: ++untitled });
-      items.push(`<li><button type="button" class="ol-step${i < cur ? ' done' : i === cur ? ' now' : ''}" data-step="${esc(s.id)}"${i === cur ? ' aria-current="step"' : ''}><span class="ol-dot" aria-hidden="true"></span><span>${math_html(title)}</span></button></li>`);
+      items.push(`<li><button type="button" class="ol-step${i < cur ? ' done' : i === cur ? ' now' : ''}" data-step="${esc(s.id)}"${i === cur ? ' aria-current="step"' : ''}>${dot(s)}<span>${math_html(title)}</span></button></li>`);
     });
     steps.innerHTML = items.join('');
     // keep the current step in view inside the outline (never scrolls the page)
