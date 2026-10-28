@@ -84,6 +84,10 @@ The tutorials in `docs/lessons/llm-finetuning/labs/*.md` each have `## 中文` a
   - the top bar is the logo, the language and a gear; settings drop from the gear and apply at once; there is no tab bar on phones;
   - 学习记录 (the dashboard) is gone: progress shows on each course page's map. 复习 left the top bar: a course page shows "待复习 n 题 →" under the map when questions of that course are due;
   - no dark interface and no browser voice (one light theme; recorded narration only).
+- **2026-10-29, accounts and the top bar:**
+  - the top bar is the logo and two tools held by faint crop marks: the account and the settings. The language moved into the settings (a first visit is in English);
+  - signed out, the account is a blank sheet (a 3x3 dot grid); signed in, the initial in the tutor's serif. Its card is a lab pass on the engineering sheet: email, then a six-digit code; signing in stamps it ADMITTED;
+  - courses made from uploaded slides live at `/studio` (home has a quiet link under the courses). Until a model is connected the page says it is in testing and the button to make a course is off.
 - **Course page prerequisites:** one or two lines of prerequisites, which expand to a short list of starter links. No self-test.
 - **Not now:** splitting the math course into geometry and linear algebra.
 - **Learner-facing cleanup:**
