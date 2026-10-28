@@ -240,6 +240,10 @@ export function check_plan(data: unknown, s: State): { value: Plan | null; error
   });
   const missing = maps.flatMap((m) => m.points.filter((p) => p.weight === 'core' && !owner.has(p.id)).map((p) => `${p.id} (${p.name})`));
   if (missing.length) errors.push(`these core points are in no lesson's "points": ${missing.join(', ')}`);
+  // one deck, one lesson (decks may be merged, never split)
+  const deck_lessons = new Map<string, string[]>();
+  for (const l of lessons) for (const dk of l.decks) deck_lessons.set(dk, [...(deck_lessons.get(dk) ?? []), l.title]);
+  for (const [dk, ls] of deck_lessons) if (ls.length > 1) errors.push(`deck ${dk} is split across lessons (${ls.join(' / ')}): a deck belongs to one lesson`);
   for (const l of lessons) {
     if (!l.decks.length) errors.push(`lesson "${l.title}": "decks" must name at least one deck file id (${[...deck_ids].join(', ')})`);
     if (!l.arc.length) errors.push(`lesson "${l.title}": an "arc" is required`);

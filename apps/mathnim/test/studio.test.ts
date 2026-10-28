@@ -225,6 +225,19 @@ describe('studio', () => {
   });
 });
 
+describe('plan checks', () => {
+  it('refuses a plan that splits a deck across lessons', async () => {
+    const { check_plan } = await import('../server/studio/pipeline');
+    const f = { id: 'd1', course_id: 'c', kind: 'slides' as const, name: 'a.pdf', type: 'application/pdf', size: 1, blob: 'b', remote: null, created: 0 };
+    const map = { file: 'd1', name: 'a.pdf', title: 'A', summary: '', points: [{ id: 'd1.x', name: 'X', pages: '1', gist: '', weight: 'core' as const }, { id: 'd1.y', name: 'Y', pages: '2', gist: '', weight: 'core' as const }] };
+    const s = { course: { id: 'c', owner: 'u', lang: 'zh' as const, title: '', public: 0, created: 0, updated: 0 }, files: [f], parts: new Map<string, unknown>([['map.d1', map]]) };
+    const plan = (lessons: unknown[]) => ({ course: { title: 'T', summary: '', audience: '', outcomes: [] }, units: [{ title: 'U', lessons: ['l1', 'l2'] }], lessons, practice: null });
+    const l = (id: string, points: string[]) => ({ id, title: id, question: '?', decks: ['d1'], points, arc: ['a'], minutes: 20 });
+    expect(check_plan(plan([l('l1', ['d1.x']), l('l2', ['d1.y'])]), s).errors.join()).toMatch(/split across lessons/);
+    expect(check_plan(plan([l('l1', ['d1.x', 'd1.y'])]), s).errors).toEqual([]);
+  });
+});
+
 describe('lesson format', () => {
   it('accepts a good lesson and names what is wrong with a bad one', () => {
     expect(check_lesson(lesson_json(['p1']), { id: 'x', skills: ['p1'] }).errors).toEqual([]);

@@ -42,7 +42,7 @@ export function map_prompt(o: { lang: CourseLang; deck: string }): string {
 
 Map it, so a course can be designed from the maps of all the decks:
 - "points": its major knowledge points, at the grain of "backpropagation" or "decision trees", "TCP congestion control" or "sliding window": what a student must be able to explain or do after this lecture. Usually 3-10 per deck; not every bullet. Mark each "core" (central, likely examined) or "minor" (a side remark, an aside, a historical note).
-- for each point, the slide pages it is on, and a one-sentence gist of what the slides actually say about it (including any formula or number they give).
+- for each point, the slides it is on, and a one-sentence gist of what the slides actually say about it (including any formula or number they give). Give the slide numbers printed on the slides (what a student sees when they open their deck); only when the slides carry no numbers, give the page positions in the PDF.
 - "assumes": what the deck takes for granted.
 - "weak_spots": where the slides are thin, confusing, or skip a "why": the places a better lesson should do better.
 - "examples": the concrete examples, numbers and figures the slides use.
@@ -50,7 +50,7 @@ Map it, so a course can be designed from the maps of all the decks:
 ${lang_rules(o.lang)} (Names of points in that language, with the original term in parentheses.)
 
 Reply as:
-{"title": string, "summary": string, "points": [{"key": string (short, lowercase, hyphens), "name": string, "pages": string (e.g. "4-9, 12"), "gist": string, "weight": "core" | "minor"}], "assumes": [string], "weak_spots": [string], "examples": [string]}`;
+{"title": string, "summary": string, "points": [{"key": string (short, lowercase, hyphens), "name": string, "pages": string (slide numbers, e.g. "4-9, 12"), "gist": string, "weight": "core" | "minor"}], "assumes": [string], "weak_spots": [string], "examples": [string]}`;
 }
 
 // ---------------------------------------------------------------- exam: every practice exam
@@ -90,7 +90,7 @@ export function plan_prompt(o: { lang: CourseLang; decks: DeckMap[]; questions: 
 ${d.summary}
 Points:
 ${d.points.map((p) => `- ${p.id} [${p.weight}] ${p.name} (pages ${p.pages}): ${p.gist}`).join('\n')}${d.weak_spots?.length ? `\nWeak spots: ${d.weak_spots.join(' / ')}` : ''}${d.examples?.length ? `\nExamples used: ${d.examples.join(' / ')}` : ''}`).join('\n\n');
-  const qs = o.questions.length ? o.questions.map((q) => `- ${q.id} (${q.kind ?? 'question'}; tests: ${(q.points ?? []).join(', ')}): ${q.text.slice(0, 300)}`).join('\n') : '(no practice exams were uploaded)';
+  const qs = o.questions.length ? o.questions.map((q) => `- ${q.id} (${q.kind ?? 'question'}; tests: ${(q.points ?? []).join(', ')}): ${q.text}`).join('\n') : '(no practice exams were uploaded)';
   return `Design a Mathnim course from these lecture decks (in the order the lecturer gave them) and practice-exam questions.
 
 ${decks}
@@ -99,7 +99,8 @@ ${decks}
 ${qs}
 
 Rules:
-- By default each deck becomes one lesson. Two or more decks become ONE lesson when they are tightly related (one topic split across lectures, a deck that only continues the previous one). A deck that only reviews earlier decks does not get a lesson of its own: its points are already taught; use it for the practice lesson.
+- Each deck becomes one lesson. Two or more decks become ONE lesson when they are tightly related (one topic split across lectures, a deck that only continues the previous one). Never split a deck across lessons: a large deck makes a longer lesson, not two.
+- A deck that reviews the course (a revision lecture) gets no lesson of its own. Its points repeat topics taught elsewhere: list each of its core point ids in the lesson that teaches that topic (that lesson's "decks" need not name the review deck). Anything only the review deck has (a worked example, a protocol walk-through) is taught in the lesson of its topic.
 - Every "core" point is taught in exactly one lesson (list its id in that lesson's "points"). "minor" points are taught where they help, or left out if they add nothing. A point may be revisited later, but it belongs to one lesson.
 - Order the lessons so each builds on the ones before (usually the lecture order; change it when a prerequisite comes later in the slides).
 - Teach better than the slides: for each lesson, write the arc you would use to make it 讲明白 (start from a question or a concrete problem, purpose and intuition before mechanism, a worked example, where a diagram helps, where a learner asks "why not X?"), fixing the weak spots. Add "extras" beyond the slides where they deepen understanding (a connection between lectures, the reason behind a design, a better example).
@@ -112,7 +113,7 @@ Reply as:
 {"course": {"title": string, "summary": string (one line: the topics), "audience": string (who it is for, what they should know first), "outcomes": [string, string, string] (what the learner can do afterwards)},
  "running_example": string,
  "units": [{"title": string, "lessons": [lesson id, ...]}],
- "lessons": [{"id": "l1" | "l2" | ..., "title": string, "question": string (the question this lesson answers, as a learner would ask it), "decks": [file, ...], "points": [point id, ...], "extras": [string], "arc": [string, ...] (5-12 lines, one per page or question, in teaching order), "exam": [question id, ...], "minutes": number}],
+ "lessons": [{"id": "l1" | "l2" | ..., "title": string, "question": string (the question this lesson answers, as a learner would ask it), "decks": [file, ...], "points": [point id, ...], "extras": [string], "arc": [string, ...] (5-16 lines, one per page or question, in teaching order), "exam": [question id, ...], "minutes": number}],
  "practice": null | {"title": string, "exam": [question id, ...], "minutes": number}}`;
 }
 
