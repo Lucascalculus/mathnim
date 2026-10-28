@@ -6,7 +6,6 @@ import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
 import { load_settings } from './settings';
 import { settings_panel } from './pages/settings';
-import { lang_switch } from './lang_switch';
 import { accounts_available, current_user, sign_out, studio_available } from './account';
 import { login_form } from './login';
 import { SHEET } from './sheet';
@@ -23,26 +22,31 @@ body{margin:0;background:#fbfbfa}
 .nav .count{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--mn-accent);color:#fff;font-size:11px;text-align:center;margin-left:4px}
 .nav .langs{margin-left:auto}
 .nav{position:sticky}
-.gear{flex:none;display:grid;place-items:center;width:32px;height:32px;margin-left:-10px;border:0;border-radius:50%;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s,background-color .15s,transform .4s}
-.gear:hover,.gear[aria-expanded=true]{color:var(--mn-fg);background:var(--mn-faint)}
-.gear[aria-expanded=true]{transform:rotate(60deg)}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
-/* the account, beside the gear: the words (or, signed in, the initial in the tutor's serif) held by four crop marks,
-   which close in on hover. Its card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
-.acct{flex:none;position:relative;display:grid;place-items:center;height:30px;min-width:30px;margin-left:-6px;padding:0 11px;border:0;background:none;color:var(--mn-fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.acct>i{position:absolute;width:6px;height:6px;border:0 solid currentColor;transition:inset .3s cubic-bezier(.3,1.5,.5,1)}
-.acct>i:nth-child(1){left:0;top:0;border-left-width:1.4px;border-top-width:1.4px}
-.acct>i:nth-child(2){right:0;top:0;border-right-width:1.4px;border-top-width:1.4px}
-.acct>i:nth-child(3){left:0;bottom:0;border-left-width:1.4px;border-bottom-width:1.4px}
-.acct>i:nth-child(4){right:0;bottom:0;border-right-width:1.4px;border-bottom-width:1.4px}
-.acct:hover>i:nth-child(1),.acct[aria-expanded=true]>i:nth-child(1){left:3px;top:3px}
-.acct:hover>i:nth-child(2),.acct[aria-expanded=true]>i:nth-child(2){right:3px;top:3px}
-.acct:hover>i:nth-child(3),.acct[aria-expanded=true]>i:nth-child(3){left:3px;bottom:3px}
-.acct:hover>i:nth-child(4),.acct[aria-expanded=true]>i:nth-child(4){right:3px;bottom:3px}
-.acct.me{width:30px;padding:0;font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
-@media (prefers-reduced-motion:reduce){.acct>i{transition:none}}
+/* the top bar's tools, one set: the account and the settings, each held by four faint crop marks that close in on
+   hover. Signed out the account is a blank sheet (a 3x3 dot grid); signed in, the initial in the tutor's serif.
+   The account's card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
+.nav-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-ic{flex:none;position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s}
+.nav-ic:hover,.nav-ic[aria-expanded=true]{color:var(--mn-fg)}
+.nav-ic>i{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:.45;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .15s}
+.nav-ic>i:nth-child(1){left:0;top:0;border-left-width:1.3px;border-top-width:1.3px}
+.nav-ic>i:nth-child(2){right:0;top:0;border-right-width:1.3px;border-top-width:1.3px}
+.nav-ic>i:nth-child(3){left:0;bottom:0;border-left-width:1.3px;border-bottom-width:1.3px}
+.nav-ic>i:nth-child(4){right:0;bottom:0;border-right-width:1.3px;border-bottom-width:1.3px}
+.nav-ic:hover>i,.nav-ic[aria-expanded=true]>i{opacity:1}
+.nav-ic:hover>i:nth-child(1),.nav-ic[aria-expanded=true]>i:nth-child(1){left:3px;top:3px}
+.nav-ic:hover>i:nth-child(2),.nav-ic[aria-expanded=true]>i:nth-child(2){right:3px;top:3px}
+.nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3){left:3px;bottom:3px}
+.nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4){right:3px;bottom:3px}
+.nav-ic svg{display:block;transition:transform .4s}
+.gear[aria-expanded=true] svg{transform:rotate(60deg)}
+.acct .dots circle{transition:opacity .25s}
+.acct:hover .dots circle:not(.mid),.acct[aria-expanded=true] .dots circle:not(.mid){opacity:.25}
+.acct.me{font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){.nav-ic>i,.nav-ic svg{transition:none}}
 .acct-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;z-index:30;display:flex;flex-direction:column;gap:12px;${SHEET};padding:16px 20px 18px;box-shadow:0 18px 50px -12px rgba(0,0,0,.25),0 0 0 1px var(--mn-border)}
 .acct-pop[hidden]{display:none}
 .pass-head{display:flex;justify-content:space-between;padding-bottom:10px;margin-bottom:2px;border-bottom:1px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
@@ -240,7 +244,12 @@ let relocalizing = false;
 export const is_relocalizing = () => relocalizing;
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
 // (a symmetric gear, centred on the middle of its box)
-const GEAR = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
+const GEAR = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/** The four crop marks that hold each tool of the top bar. */
+const CORNERS = '<i></i><i></i><i></i><i></i>';
+/** Signed out, the account is a blank sheet: the margin's dot grid, three by three. */
+const SHEET_ICON = `<svg class="dots" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${[2.5, 8, 13.5].flatMap((y) => [2.5, 8, 13.5].map((x) => `<circle${x === 8 && y === 8 ? ' class="mid" r="1.6"' : ' r="1.15"'} cx="${x}" cy="${y}"/>`)).join('')}</svg>`;
 
 export function mount_shell(pages: Record<Route['page'], Page>): void {
   inject_styles();
@@ -315,12 +324,10 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const acct = !accounts_available()
       ? ''
       : me
-        ? `<button type="button" class="acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false"><i></i><i></i><i></i><i></i>${esc(me.email.slice(0, 1))}</button>`
-        : `<button type="button" class="acct" aria-expanded="false"><i></i><i></i><i></i><i></i>${esc(t('sign_in'))}</button>`;
+        ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}</button>`
+        : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <span class="langs-slot"></span>
-      ${acct}
-      <button type="button" class="gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button>`;
+      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
     nav.append(pop, acct_pop);
     const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');
     if (acct_btn)
@@ -332,7 +339,6 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
         acct_btn.setAttribute('aria-expanded', 'true');
         acct_pop.querySelector('input')?.focus();
       };
-    nav.querySelector('.langs-slot')!.replaceWith(lang_switch());
     const gear = nav.querySelector<HTMLButtonElement>('.gear')!;
     gear.onclick = () => {
       if (!pop.hidden) return close_settings();
