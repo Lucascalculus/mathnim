@@ -29,13 +29,20 @@ body{margin:0;background:#fbfbfa}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
-/* the account, beside the gear: a lab pass. Signed out, a tag with a punched hole; signed in, a badge with the initial
-   in the tutor's serif. The pass drops from it, drawn on the engineering sheet (sheet.ts); signing in stamps it. */
-.acct{flex:none;position:relative;display:flex;align-items:center;gap:7px;height:30px;margin-left:-6px;padding:0 12px 0 10px;border:1px solid var(--mn-border);border-radius:7px;background:var(--mn-panel);color:var(--mn-fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s,transform .15s}
-.acct::before{content:'';width:6px;height:6px;border-radius:50%;border:1.5px solid var(--mn-muted);box-sizing:border-box}
-.acct:hover,.acct[aria-expanded=true]{border-color:var(--mn-fg)}
-.acct.me{width:30px;padding:0;justify-content:center;border-radius:50%;font:600 14px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
-.acct.me::before{position:absolute;top:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-width:1px}
+/* the account, beside the gear: the words (or, signed in, the initial in the tutor's serif) held by four crop marks,
+   which close in on hover. Its card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
+.acct{flex:none;position:relative;display:grid;place-items:center;height:30px;min-width:30px;margin-left:-6px;padding:0 11px;border:0;background:none;color:var(--mn-fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.acct>i{position:absolute;width:6px;height:6px;border:0 solid currentColor;transition:inset .3s cubic-bezier(.3,1.5,.5,1)}
+.acct>i:nth-child(1){left:0;top:0;border-left-width:1.4px;border-top-width:1.4px}
+.acct>i:nth-child(2){right:0;top:0;border-right-width:1.4px;border-top-width:1.4px}
+.acct>i:nth-child(3){left:0;bottom:0;border-left-width:1.4px;border-bottom-width:1.4px}
+.acct>i:nth-child(4){right:0;bottom:0;border-right-width:1.4px;border-bottom-width:1.4px}
+.acct:hover>i:nth-child(1),.acct[aria-expanded=true]>i:nth-child(1){left:3px;top:3px}
+.acct:hover>i:nth-child(2),.acct[aria-expanded=true]>i:nth-child(2){right:3px;top:3px}
+.acct:hover>i:nth-child(3),.acct[aria-expanded=true]>i:nth-child(3){left:3px;bottom:3px}
+.acct:hover>i:nth-child(4),.acct[aria-expanded=true]>i:nth-child(4){right:3px;bottom:3px}
+.acct.me{width:30px;padding:0;font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){.acct>i{transition:none}}
 .acct-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;z-index:30;display:flex;flex-direction:column;gap:12px;${SHEET};padding:16px 20px 18px;box-shadow:0 18px 50px -12px rgba(0,0,0,.25),0 0 0 1px var(--mn-border)}
 .acct-pop[hidden]{display:none}
 .pass-head{display:flex;justify-content:space-between;padding-bottom:10px;margin-bottom:2px;border-bottom:1px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
@@ -308,8 +315,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const acct = !accounts_available()
       ? ''
       : me
-        ? `<button type="button" class="acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${esc(me.email.slice(0, 1))}</button>`
-        : `<button type="button" class="acct" aria-expanded="false">${esc(t('sign_in'))}</button>`;
+        ? `<button type="button" class="acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false"><i></i><i></i><i></i><i></i>${esc(me.email.slice(0, 1))}</button>`
+        : `<button type="button" class="acct" aria-expanded="false"><i></i><i></i><i></i><i></i>${esc(t('sign_in'))}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
       <span class="langs-slot"></span>
       ${acct}
