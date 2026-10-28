@@ -122,7 +122,7 @@ async function upload(request: Request, env: AuthEnv, db: SqlDb, s: State, user:
   const type = head === '%PDF-' ? 'application/pdf' : /\.(txt|md)$/i.test(name) ? 'text/plain' : '';
   if (!type) return error(415, 'Upload a PDF (export slides and Word files as PDF first).');
   const id = new_id(6);
-  const blob = `studio/${s.course.id}/${id}`;
+  const blob = `studio/${s.course.id}/${id}.${type === 'application/pdf' ? 'pdf' : 'txt'}`; // (an extension: dev keeps blobs as files that tools open by type)
   await env.FILES!.put(blob, buf, { httpMetadata: { contentType: type } });
   const row: FileRow = { id, course_id: s.course.id, kind, name, type, size: buf.byteLength, blob, remote: null, created: Date.now() };
   await db.prepare('INSERT INTO studio_files (id, course_id, kind, name, type, size, blob, remote, created) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)').bind(id, row.course_id, kind, name, type, row.size, blob, row.created).run();
