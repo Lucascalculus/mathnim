@@ -57,7 +57,7 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   // where am I: the outline button and "<course> /" above the lesson, back to the course page
   const top = document.createElement('div');
   top.className = 'lesson-top';
-  if (course) top.innerHTML = `<nav class="crumb"><a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a> /</nav>`;
+  if (course) top.innerHTML = `<nav class="crumb"><a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a></nav>`;
   root.prepend(top);
   const at = in_course.findIndex((l) => l.id === cl.id);
   const after = at >= 0 ? in_course[at + 1] : undefined;
@@ -155,7 +155,7 @@ export async function lab_page(root: HTMLElement, route: Route): Promise<() => v
   if (route.page !== 'lab') return () => {};
   const c = route.course;
   const meta = c.labs?.find((l) => l.slug === route.lab);
-  const crumb = `<nav class="crumb"><a href="${course_path(c)}">${math_html(tr(c.title, ui_lang()))}</a> / <a href="${course_path(c)}#labs">${esc(t('labs'))}</a> /</nav>`;
+  const crumb = `<nav class="crumb"><a href="${course_path(c)}">${math_html(tr(c.title, ui_lang()))}</a> / <a href="${course_path(c)}#labs">${esc(t('labs'))}</a></nav>`;
   if (!meta) {
     root.innerHTML = `${crumb}<div class="card">${esc(t('not_found'))} <a href="${course_path(c)}">${esc(t('back'))}</a></div>`;
     return () => {};

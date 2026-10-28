@@ -144,7 +144,8 @@ export class LessonView {
     const app = (this.app = h('div', 'mn-app' + (o.dark ? ' mn-dark' : '') + (this.game ? ' mn-game' : '')));
     app.lang = this.lang === 'zh' ? 'zh-CN' : 'en';
     const head = h('div', 'mn-head');
-    head.append(h('div', 'mn-title', math_html(this.tr(lesson.title))), (this.el.sub = h('div', 'mn-sub')));
+    // only the lesson's title: the chapter is on the page itself, in the progress line and the outline
+    head.append(h('div', 'mn-title', math_html(this.tr(lesson.title))));
     // a Chinese learner opening a lesson that exists only in English is told so, once, at the top
     if (this.lang !== 'en' && !lesson_langs(lesson).includes(this.lang)) head.append(h('span', 'mn-lang-note', esc(t('only_english'))));
     const stage = h('div', 'mn-stage');
@@ -425,7 +426,6 @@ export class LessonView {
           this.save_progress({ furthest: Math.max(e.index, p.done ? 0 : p.furthest), done: false });
         }
         this.el.levelup?.classList.remove('show');
-        this.el.sub.textContent = chapter;
         // narration is for "videos": scenes and worlds are spoken, and in a game the character speaks the questions too;
         // text pages are read silently, and so are questions in the essay view
         if (s.narration && is_voiced(s, this.game ? 'game' : 'essay')) void this.narrator.say(this.runtime.text(s.narration));
@@ -759,22 +759,12 @@ export class LessonView {
       /* no storage */
     }
   }
-  /** Open at the furthest step reached last time (a finished lesson opens at the start), with a "Start over" link. */
+  /** Open at the furthest step reached last time (a finished lesson opens at the start); the outline marks where that is. */
   async resume(): Promise<void> {
     const p = this.read_progress();
     const step = !p.done && p.furthest > 0 ? this.lesson.steps[p.furthest] : undefined;
     if (!step || step.branch_only) return this.start();
     await this.start(step.id);
-    const note = h('span', 'mn-resumed', `${esc(t('resumed'))} `);
-    const again = h('button', 'mn-linkbtn', esc(t('start_over')));
-    again.type = 'button';
-    again.onclick = () => {
-      note.remove();
-      this.save_progress({ furthest: 0, done: false });
-      void this.runtime.goto(this.lesson.steps[0].id);
-    };
-    note.append(again);
-    this.app.querySelector('.mn-head')?.append(note);
   }
 
   // ---------------------------------------------------------------- scrubbable numbers

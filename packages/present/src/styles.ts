@@ -11,7 +11,6 @@ export const CSS = `
 .mn-app.mn-dark{--mn-code-bg:#161a20;--mn-purple:#b69cff;--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-good:#5fd3a2;--mn-bad:#ff8a73;--mn-shadow:none}
 .mn-head{grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .mn-title{font-size:20px;font-weight:600;letter-spacing:-.01em}
-.mn-sub{color:var(--mn-muted);font-size:13px}
 .mn-stage{position:relative;aspect-ratio:16/9;border-radius:var(--mn-radius);overflow:hidden;box-shadow:var(--mn-shadow);background:linear-gradient(#fff,#f5f5f7)}
 .mn-app.mn-dark .mn-stage{background:#101318}
 .mn-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -326,8 +325,6 @@ export const CSS = `
 .mn-more>summary::-webkit-details-marker{display:none}
 .mn-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
 .mn-more-menu .mn-btn{border:0;width:100%;text-align:left}
-.mn-resumed{font-size:13px;color:var(--mn-muted)}
-.mn-resumed .mn-linkbtn{font-size:13px}
 /* "explain this": a quiet button under the step's actions; on phones it floats in the corner */
 .mn-helpbtn{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13.5px;color:var(--mn-muted);background:transparent;border:1px dashed var(--mn-border);border-radius:999px;padding:5px 12px 5px 6px;cursor:pointer}
 .mn-helpbtn:hover,.mn-helpbtn:focus-visible{color:var(--mn-accent);border-color:var(--mn-accent);border-style:solid;outline:none}
