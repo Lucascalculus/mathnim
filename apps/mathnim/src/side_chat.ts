@@ -24,6 +24,9 @@ const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5
 /** Highlighter inks: one per question, in turn. */
 const INKS = ['#ffe27a', '#ffbfd2', '#b9ecc8', '#bcd9ff', '#d8c7ff', '#ffd2a3'];
 
+/** The engineering sheet (a dot grid, crop marks at the corners): the ask box, and an open asked note. */
+const SHEET = `--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:12px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)`;
+
 const CSS = `
 .mn-rail{position:relative;font-family:inherit}
 .mn-app.mn-textstep .mn-side.mn-railed{position:relative;top:auto;align-self:stretch}
@@ -40,13 +43,15 @@ const CSS = `
 .rail-talk.waiting{display:none!important}
 /* the line's label ("ASK · 03": the number the next question will have), and an asked note's head (its first question when folded) */
 .ask-head{margin:0 0 8px}
-.ask-n,.ask-note .note-head{font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
-.ask-n{white-space:nowrap}
-.ask-note .note-head{display:flex;gap:10px;align-items:baseline;padding:2px 0 6px}
-.ask-note .note-head:hover{color:var(--mn-accent)}
-.ask-sum{display:none;flex:1;min-width:0;font:italic 13px/1.5 ${SERIF};letter-spacing:0;color:var(--mn-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ask-n{display:block;font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent);white-space:nowrap}
+.ask-note .note-head{display:block;padding:0 0 6px}
+.ask-note .note-head:hover .ask-n{color:var(--mn-accent)}
+/* folded: the question as it reads when open (its highlighter, the tutor's serif), on one line */
+.ask-sum{display:none;margin-top:6px;font:italic 15px/1.6 ${SERIF};color:var(--mn-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ask-note.folded .ask-sum{display:block}
-.ask-note.folded .note-head{display:flex;-webkit-line-clamp:unset}
+.rail-note.ask-note.folded .note-head{display:block;-webkit-line-clamp:unset;overflow:visible;padding-bottom:2px}
+/* open: drawn on the same sheet as the ask box */
+.ask-note:not(.folded){border-left:0;${SHEET}}
 .ask-note .mn-card:not(.past)>.mn-q{cursor:pointer}
 /* an asked note's own line is quieter than the line at the top: no rule until it is pointed at or written on */
 .ask-note .mn-ask form::after{opacity:0;transition:opacity .2s}
@@ -99,7 +104,7 @@ const CSS = `
 @media (min-width:901px){
 .rail-talk{margin-top:0;top:calc(var(--mn-sticky-top,58px) + 10px);max-height:calc(100vh - var(--mn-sticky-top,58px) - 20px);box-shadow:0 -10px 0 var(--mn-bg)}
 .rail-talk::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px;background:var(--mn-bg)}
-.rail-talk{--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:12px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)}
+.rail-talk{${SHEET}}
 
 .rail-talk .rail-q{font:500 14px/1.55 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;font-style:normal;color:var(--mn-fg);padding-left:18px;position:relative}
 .rail-talk .rail-q::before{content:'→';position:absolute;left:0;font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mn-accent)}
@@ -365,8 +370,10 @@ class Note {
   /** An asked note's head shows its first question (seen when folded). */
   private label(): void {
     const sum = this.el.querySelector('.ask-sum');
-    const first = this.el.querySelector<HTMLElement>('.mn-card .mn-q');
-    if (sum && first) sum.textContent = text_of(first);
+    const first = this.el.querySelector<HTMLElement>('.mn-card .mn-q .ink-q');
+    if (!sum || !first) return;
+    sum.innerHTML = `<span class="ink-q">${first.innerHTML}</span>`;
+    sum.querySelector<HTMLElement>('.ink-q')!.style.setProperty('--ink', INKS[this.ink]);
   }
   get folded(): boolean {
     return this.el.classList.contains('folded');
