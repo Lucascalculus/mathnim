@@ -30,8 +30,7 @@ export interface Settings {
 }
 const KEY = 'mathnim.settings';
 /** A browser set to Chinese starts in Chinese; everyone else in English. */
-const browser_lang = (): Lang => (typeof navigator !== 'undefined' && /^zh\b/i.test(navigator.language ?? '') ? 'zh' : 'en');
-const DEFAULTS: Settings = { provider: 'gift', deepseek_model: 'deepseek-flash', api_key: '', model: 'claude-opus-5-5', base_url: '', openai_key: '', openai_model: 'gpt-5', custom_url: '', custom_key: '', custom_model: '', dark: false, lang: browser_lang() };
+const DEFAULTS: Settings = { provider: 'gift', deepseek_model: 'deepseek-flash', api_key: '', model: 'claude-opus-5-5', base_url: '', openai_key: '', openai_model: 'gpt-5', custom_url: '', custom_key: '', custom_model: '', dark: false, lang: 'en' }; // a first visit opens in English, whatever the browser's language; the switch in the top bar is remembered
 
 export function load_settings(): Settings {
   try {
