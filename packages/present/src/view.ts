@@ -344,6 +344,8 @@ export class LessonView {
     document.addEventListener('keydown', this.on_arrow);
     this.root.addEventListener('keydown', (e) => {
       const target = e.target as HTMLElement;
+      // a line that is not an answer (the tutor's, a widget on a page) keeps its keys to itself
+      if ((target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') && !this.el.answer.contains(target)) return;
       if (target.tagName === 'TEXTAREA') {
         // a free-text answer: Enter is a new line, Ctrl/Cmd+Enter checks
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
