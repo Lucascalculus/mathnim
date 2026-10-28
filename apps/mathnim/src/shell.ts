@@ -25,8 +25,8 @@ body{margin:0;background:#fbfbfa}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
-/* the top bar's tools, one set: the account and the settings, each held by four faint crop marks that close in on
-   hover. Signed out the account is a blank sheet (a 3x3 dot grid); signed in, the initial in the tutor's serif.
+/* the top bar's tools: the account, held by four faint crop marks that close in on hover (signed out a blank sheet,
+   a 3x3 dot grid; signed in, the initial in the tutor's serif), and the settings gear, which turns on hover.
    The account's card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
 .nav-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
 .nav-ic{flex:none;position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s}
@@ -42,7 +42,8 @@ body{margin:0;background:#fbfbfa}
 .nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3){left:3px;bottom:3px}
 .nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4){right:3px;bottom:3px}
 .nav-ic svg{display:block;transition:transform .4s}
-.gear[aria-expanded=true] svg{transform:rotate(60deg)}
+.gear svg{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.gear:hover svg,.gear[aria-expanded=true] svg{transform:rotate(60deg)}
 .acct .dots circle{transition:opacity .25s}
 .acct:hover .dots circle:not(.mid),.acct[aria-expanded=true] .dots circle:not(.mid){opacity:.25}
 .acct.me{font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
@@ -327,7 +328,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
         ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}</button>`
         : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
+      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button></span>`;
     nav.append(pop, acct_pop);
     const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');
     if (acct_btn)
