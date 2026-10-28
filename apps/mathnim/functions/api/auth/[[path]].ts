@@ -7,4 +7,4 @@ import { limiter, pages } from '../../../server/workers';
 const path = (p: string | string[] | undefined) => (Array.isArray(p) ? p.join('/') : p ?? '');
 
 export const onRequest = pages<AuthEnv>((c) => `auth/${path(c.params.path)}`, ['GET', 'POST'], ({ request, env, params }, note) =>
-  auth(request, env, path(params.path), { limiter: limiter('auth', env) }, note));
+  auth(request, env, path(params.path), { limiter: limiter('auth', env), studio: false /* no model for /api/studio yet */ }, note));

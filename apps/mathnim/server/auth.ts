@@ -1,7 +1,7 @@
 // /api/auth/*: sign in with a code sent by email, no passwords.
 //   POST start  {email, lang?}  -> 200 {ok} (and {dev_code} on the dev server without a mail key)
 //   POST verify {email, code}   -> 200 {user} + the session cookie
-//   GET  me                     -> 200 {user | null, mail}  (mail: codes can be sent)
+//   GET  me                     -> 200 {user | null, mail, studio}  (codes can be sent; courses can be made from uploads)
 //   POST logout                 -> 200 {ok}, cookie cleared
 // Codes are six digits, live 10 minutes, allow 5 tries, and are stored hashed;
 // sessions are a random token in an HttpOnly cookie, stored hashed. Mail goes
@@ -20,6 +20,8 @@ export interface AuthDeps {
   limiter: RateLimiter | null;
   /** The dev server: without a mail key, the code is logged and returned instead of sent. */
   dev?: boolean;
+  /** Can courses be made from uploads here (a model is connected)? Told to the site, which offers the studio only then. */
+  studio?: boolean;
   /** Sends mail (tests replace it); default: Resend. */
   send?: (env: AuthEnv, mail: Mail) => Promise<void>;
 }
@@ -99,7 +101,7 @@ export async function auth(request: Request, env: AuthEnv, path: string, deps: A
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');
   const db = await with_schema(env.DB);
   // `mail`: whether codes can be sent (the dev server prints them instead), so the site offers sign-in only then
-  if (path === 'me' && request.method === 'GET') return json(200, { user: await session_user(request, env), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM) || !!deps.dev });
+  if (path === 'me' && request.method === 'GET') return json(200, { user: await session_user(request, env), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM) || !!deps.dev, studio: !!deps.studio && !!env.FILES });
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
   if (path === 'logout') {
     const t = read_cookie(request);

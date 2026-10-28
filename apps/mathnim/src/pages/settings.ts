@@ -3,7 +3,7 @@
 // the top bar itself; the model choice and keys are under "Advanced"; clearing
 // this browser's records asks first.
 import { esc, t } from '@mathnim/present';
-import { accounts_available, current_user, sign_out } from '../account';
+import { accounts_available, current_user, sign_out, studio_available } from '../account';
 import { lang_switch } from '../lang_switch';
 import { login_form } from '../login';
 import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
@@ -59,7 +59,7 @@ function account_row(): string {
   if (!accounts_available()) return '';
   const me = current_user();
   if (!me) return `<div class="set-row set-acct"><div class="set-what"><b>${esc(t('account'))}</b><small>${esc(t('account_help'))}</small></div><button type="button" class="mn-btn set-btn" id="set-signin">${esc(t('sign_in'))}</button></div>`;
-  return `<div class="set-row set-acct"><div class="set-what"><b class="set-email">${esc(me.email)}</b><small><a href="/studio">${esc(t('my_studio'))}</a></small></div><button type="button" class="set-out" id="set-signout">${esc(t('sign_out'))}</button></div>`;
+  return `<div class="set-row set-acct"><div class="set-what"><b class="set-email">${esc(me.email)}</b>${studio_available() ? `<small><a href="/studio">${esc(t('my_studio'))}</a></small>` : ''}</div><button type="button" class="set-out" id="set-signout">${esc(t('sign_out'))}</button></div>`;
 }
 
 /** The panel: the account, narration, the AI in use (the rest under Advanced), clearing this browser's records. */

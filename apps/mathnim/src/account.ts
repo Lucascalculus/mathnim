@@ -13,9 +13,12 @@ export interface Me {
 let me: Me | null = null;
 /** False when this server has no accounts (the sign-in entry is not shown). */
 let available = false;
+/** Whether courses can be made from uploads on this server (a model is connected). */
+let studio = false;
 const listeners = new Set<() => void>();
 export const current_user = () => me;
 export const accounts_available = () => available;
+export const studio_available = () => available && studio;
 /** Called when the learner signs in or out. */
 export function on_user(f: () => void): () => void {
   listeners.add(f);
@@ -37,7 +40,8 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<{ ok: bool
 /** Who is signed in (once, at start). */
 export async function load_me(): Promise<Me | null> {
   try {
-    const r = await call<{ user: Me | null; mail?: boolean }>('auth/me', { signal: AbortSignal.timeout(4000) });
+    const r = await call<{ user: Me | null; mail?: boolean; studio?: boolean }>('auth/me', { signal: AbortSignal.timeout(4000) });
+    studio = r.ok && !!r.data.studio;
     // sign-in is offered once the server can mail codes (a signed-in learner keeps their account regardless)
     available = r.ok && 'user' in r.data && (r.data.mail !== false || !!r.data.user);
     me = r.ok ? r.data.user ?? null : null;

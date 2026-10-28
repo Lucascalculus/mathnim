@@ -4,7 +4,7 @@
 // The steps run on the server one at a time (server/studio/pipeline.ts); this
 // page asks which can run and keeps up to three going until none is left.
 import { esc, t, ui_lang } from '@mathnim/present';
-import { accounts_available, current_user } from '../account';
+import { accounts_available, current_user, studio_available } from '../account';
 import { lesson_path } from '../course';
 import { login_form } from '../login';
 import { navigate, type Route } from '../router';
@@ -112,8 +112,8 @@ const mb = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024)
 export async function studio_page(root: HTMLElement, route: Route): Promise<() => void> {
   inject();
   const id = route.page === 'studio' ? route.id : undefined;
-  if (!accounts_available()) {
-    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(t('accounts_off'))}</p></div></div>`;
+  if (!accounts_available() || !studio_available()) {
+    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(t(accounts_available() ? 'model_missing' : 'accounts_off'))}</p></div></div>`;
     return () => {};
   }
   if (!current_user()) {

@@ -280,7 +280,7 @@ export function dev_api(o: DevOptions): Middleware {
     [/^\/api\/tts\/?$/, 'tts', (req, _m, note) => tts(req, env as TtsHandlerEnv, { connect: node_connect, cache: tts_cache, limiter: limits.tts }, note)],
     [/^\/api\/feedback\/?$/, 'feedback', (req, _m, note) => feedback(req, fb_env, { limiter: limits.feedback, answers }, note)],
     [/^\/api\/deepseek\/(.*)$/, 'deepseek', (req, m, note) => deepseek(req, ds_env, m[1].replace(/\/$/, ''), { limiter: limits.deepseek, answers }, note)],
-    [/^\/api\/auth\/(.*)$/, 'auth', async (req, m, note) => auth(req, await data_env(), m[1].replace(/\/$/, ''), { limiter: limiter('auth'), dev: true }, note)],
+    [/^\/api\/auth\/(.*)$/, 'auth', async (req, m, note) => auth(req, await data_env(), m[1].replace(/\/$/, ''), { limiter: limiter('auth'), dev: true, studio: true }, note)],
     [/^\/api\/me\/state\/?$/, 'me/state', async (req) => state(req, await data_env())],
     [/^\/api\/studio\/(.*)$/, 'studio', async (req, m, note) => studio(req, await data_env(), m[1].replace(/\/$/, ''), studio_deps, note)],
   ];

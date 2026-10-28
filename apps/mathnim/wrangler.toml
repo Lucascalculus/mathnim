@@ -21,10 +21,10 @@ id = "701c54a91a744109b914e948b4cfd511"
 binding = "DB"
 database_name = "mathnim"
 database_id = "bfc1aa8e-021d-4a85-abdc-0d4141a4e2f6"
-# The uploaded files (create with: npx wrangler r2 bucket create mathnim-files, then uncomment).
-# [[r2_buckets]]
-# binding = "FILES"
-# bucket_name = "mathnim-files"
+# The uploaded files.
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "mathnim-files"
 
 [vars]
 # Models the DeepSeek proxy forwards (comma-separated; "*" = any).
@@ -36,7 +36,7 @@ RATE_LIMITS = "deepseek=40/300,tts=80/600,feedback=20/100"
 # Seconds an opted-in answer stays in the edge cache (0 = off).
 ANSWER_CACHE_TTL = "86400"
 # Sign-in mail (with the secret RESEND_API_KEY): a sender on a domain verified in Resend.
-# MAIL_FROM = "Mathnim <login@penghaolun.com>"
+MAIL_FROM = "Mathnim <login@penghaolun.com>"
 # Who may publish an uploaded course to everyone (comma-separated addresses).
 # ADMIN_EMAILS = ""
 # Live narration: "" = Azure when AZURE_SPEECH_KEY/AZURE_SPEECH_REGION are set,
