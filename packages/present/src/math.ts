@@ -39,7 +39,8 @@ function prose_html(text: string, o: MarkupOptions): string {
 function tex_html(tex: string, display: boolean): string {
   if (renderer) {
     try {
-      return `<span class="mn-math"${display ? ' style="display:block;text-align:center"' : ''}>${renderer(tex, display)}</span>`;
+      // (the source stays on the formula: a passage asked about reads it as TeX, since the picture has no text)
+      return `<span class="mn-math" data-tex="${esc(tex)}"${display ? ' data-display="" style="display:block;text-align:center"' : ''}>${renderer(tex, display)}</span>`;
     } catch {
       /* fall through */
     }
@@ -97,4 +98,38 @@ export function display_math_html(tex: string): string {
 }
 export function set_math(el: HTMLElement, text: string): void {
   el.innerHTML = math_html(text);
+}
+
+/** A formula as it is read: its TeX between dollars. */
+export const formula_text = (el: HTMLElement) => (el.dataset.display !== undefined ? `$$${el.dataset.tex}$$` : `$${el.dataset.tex}$`);
+
+/** Text as it is read, formulas as their TeX (whitespace collapsed), and where each character comes from: a text node
+ *  and its offset, or a formula (offset -1). */
+export function reading(root: Node): { text: string; at: { node: Node; off: number }[] } {
+  let text = '';
+  const at: { node: Node; off: number }[] = [];
+  const add = (ch: string, node: Node, off: number) => {
+    if (/\s/.test(ch)) {
+      if (!text || text.endsWith(' ')) return;
+      ch = ' ';
+    }
+    text += ch;
+    at.push({ node, off });
+  };
+  const walk = (n: Node) => {
+    for (const c of [...n.childNodes]) {
+      if (c instanceof HTMLElement && c.classList.contains('mn-math') && c.dataset.tex !== undefined) for (const ch of formula_text(c)) add(ch, c, -1);
+      else if (c.nodeType === 3) {
+        const d = (c as Text).data; // (offsets in UTF-16 units, as ranges count them)
+        for (let i = 0; i < d.length; i++) add(d[i], c, i);
+      }
+      else if (c instanceof Element && c.namespaceURI === 'http://www.w3.org/1999/xhtml' && !c.matches('script,style')) walk(c);
+    }
+  };
+  walk(root);
+  while (text.endsWith(' ')) {
+    text = text.slice(0, -1);
+    at.pop();
+  }
+  return { text, at };
 }

@@ -99,6 +99,9 @@ export const CSS = `
 .mn-dev{grid-column:1/-1;font:12px/1.5 ui-monospace,monospace;background:var(--mn-panel);border:1px dashed var(--mn-border);border-radius:10px;padding:10px;white-space:pre-wrap;max-height:260px;overflow:auto}
 .mn-dev .error{color:var(--mn-bad)}.mn-dev .warning{color:var(--mn-warn)}
 .mn-math svg{vertical-align:middle}
+/* a formula on a page can be clicked to ask about it */
+.mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
+.mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
 @media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */

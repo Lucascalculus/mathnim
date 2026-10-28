@@ -18,7 +18,7 @@ import {
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
 import { drag_hint, plural_s, t, ui_lang } from './i18n';
-import { esc, math_html, set_math, set_tex_renderer, type TexRenderer } from './math';
+import { esc, math_html, reading, set_math, set_tex_renderer, type TexRenderer } from './math';
 import { Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
 import { inject_styles } from './styles';
@@ -1218,10 +1218,18 @@ export class LessonView {
     btn.hidden = true;
     document.body.append(btn);
     let passage = '';
+    const formula = (n: Node) => (n instanceof Element ? n : n.parentElement)?.closest<HTMLElement>('.mn-math');
     const place = () => {
       const sel = document.getSelection();
-      const text = sel && !sel.isCollapsed ? sel.toString().replace(/\s+/g, ' ').trim() : '';
-      const range = text && sel!.rangeCount ? sel!.getRangeAt(0) : null;
+      let range = sel && !sel.isCollapsed && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+      // a formula is one piece (half of one is all of it), read as its TeX: the picture has no text of its own
+      if (range) {
+        const a = formula(range.startContainer), b = formula(range.endContainer);
+        if (a) range.setStartBefore(a);
+        if (b) range.setEndAfter(b);
+      }
+      const text = range ? reading(range.cloneContents()).text : '';
+      if (!text) range = null;
       // only text read on a page of this lesson (not the panel, not a code editor's input)
       const inside = range && this.el.page.contains(range.commonAncestorContainer) && !(range.commonAncestorContainer as Element).closest?.('textarea,input');
       if (!inside || text.length < 2) {
@@ -1245,6 +1253,16 @@ export class LessonView {
     };
     // the click must not clear the selection before it is read
     btn.addEventListener('pointerdown', (e) => e.preventDefault());
+    // a click on a formula of a page selects it whole (a picture is hard to select by dragging, on a phone almost impossible)
+    this.el.page.addEventListener('click', (e) => {
+      const f = formula(e.target as Node);
+      const sel = document.getSelection();
+      if (!f || !f.closest('.mn-pagehost') || f.closest('a,button,label') || !sel?.isCollapsed) return;
+      const r = document.createRange();
+      r.selectNode(f);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    });
     btn.onclick = () => {
       btn.hidden = true;
       this.o.help?.({ selected: passage });

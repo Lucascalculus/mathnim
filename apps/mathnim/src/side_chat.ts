@@ -13,7 +13,7 @@
 // selected sentence and the learner's recent mistakes; answers stream.
 import { AskPanel, RECORDED, RECORDED_TEXT, recorded_question, worker_validator, type AskContext } from '@mathnim/ai';
 import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
-import { esc, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
+import { esc, math_html, reading, t, ui_lang, type LessonView } from '@mathnim/present';
 import type { CourseLesson } from './course';
 import { has_model, provider } from './settings';
 import { log } from './store';
@@ -92,12 +92,17 @@ const CSS = `
 .rail-note.inline{position:relative;top:auto!important;margin:6px 0 18px;scroll-margin:72px 0 96px}
 .rail-note.lit,.rail-note:focus-within{border-left-color:var(--note-ink)}
 .note-head{display:block;width:100%;border:0;background:none;padding:2px 0 8px;text-align:left;cursor:pointer;font:italic 14px/1.6 ${SERIF};color:var(--mn-fg)}
+.note-head .mn-math{display:inline-block;max-width:100%;vertical-align:middle}
+.note-head .mn-math svg{max-width:100%;height:auto}
 .rail-note.folded .note-head{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .rail-note.folded .note-body{display:none}
 .rail-note .note-body .mn-card:first-child .mn-q.asked-default{display:none}
 .mn-echo{background-image:linear-gradient(transparent 52%,var(--ink) 52%,var(--ink) 90%,transparent 90%);background-repeat:no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone;color:inherit;background-color:transparent;padding:0 1px;border-radius:2px;transition:filter .2s}
 .mn-echo.draw{animation:ink-draw .8s cubic-bezier(.4,0,.2,1) both}
 .mn-echo.lit{filter:saturate(1.6) brightness(.97)}
+/* a formula's highlighter runs under its foot; a displayed one is marked only as wide as it is */
+.mn-echo.formula{display:inline-block;background-image:linear-gradient(transparent 74%,var(--ink) 74%,var(--ink) 96%,transparent 96%)}
+.mn-echo.formula:has(> .mn-math[data-display]){display:table;margin:0 auto}
 .mn-para{transition:background-color .25s,box-shadow .25s;border-radius:5px}
 .mn-para.lit{background-color:color-mix(in srgb,var(--mn-accent) 5%,transparent);box-shadow:0 0 0 6px color-mix(in srgb,var(--mn-accent) 5%,transparent)}
 /* the conversation block on wide screens: an engineering drawing (a dot grid, crop marks at the corners, a small label) */
@@ -211,8 +216,10 @@ function next_ink(lesson_id: string): number {
 const ask_number = (key: string) => Number(/#talk\.(\d+)$/.exec(key)?.[1] ?? 1);
 
 /** The paragraphs of a text page a sentence can be selected in. */
-const PARAS = ['.mn-prose > p', '.mn-prose > ul > li', '.mn-prose > ol > li'].map((s) => `.mn-pagehost ${s}`).join(',');
+const PARAS = ['.mn-prose > p', '.mn-prose > ul > li', '.mn-prose > ol > li', '.mn-prose > .mn-dmath'].map((s) => `.mn-pagehost ${s}`).join(',');
 const text_of = (el: Element) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+/** A paragraph as read, formulas as their TeX (what a passage selected in it says). */
+const read_of = (el: Element) => reading(el).text;
 const wide = () => matchMedia('(min-width: 901px)').matches;
 
 /** Mark a question with a stroke of highlighter (the question element's words move into the mark). */
@@ -225,25 +232,44 @@ function ink_question(q: HTMLElement, ink: number, draw: boolean): void {
   q.append(mark);
 }
 
-/** Highlight a sentence in its paragraph (the text node holding its start; never inside formulas). */
-function echo(p: HTMLElement, phrase: string, ink: number, draw: boolean): HTMLElement | null {
-  const head = phrase.slice(0, 16);
-  const walk = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, {
-    acceptNode: (n) => ((n.parentElement?.closest('.katex,.mn-echo') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT)),
-  });
-  for (let n = walk.nextNode() as Text | null; n; n = walk.nextNode() as Text | null) {
-    const at = n.data.indexOf(head);
-    if (at < 0) continue;
-    const range = document.createRange();
-    range.setStart(n, at);
-    range.setEnd(n, Math.min(n.data.length, at + phrase.length));
-    const mark = document.createElement('mark');
-    mark.className = `mn-echo${draw ? ' draw' : ''}`;
-    mark.style.setProperty('--ink', INKS[ink % INKS.length]);
-    range.surroundContents(mark);
-    return mark;
+/** Highlight a passage in its paragraph: each piece of text it covers, and each formula whole (marks on each). */
+function echo(p: HTMLElement, phrase: string, ink: number, draw: boolean): HTMLElement[] {
+  const { text, at } = reading(p);
+  let start = text.indexOf(phrase), len = phrase.length;
+  if (start < 0) {
+    start = text.indexOf(phrase.slice(0, 16));
+    len = Math.min(phrase.length, text.length - start);
   }
-  return null;
+  if (start < 0) return [];
+  // the pieces it covers, in order: a text node and the span in it, or a formula
+  const pieces: { node: Node; from: number; to: number }[] = [];
+  for (const c of at.slice(start, start + len)) {
+    const last = pieces[pieces.length - 1];
+    if (last?.node === c.node) last.to = c.off + 1;
+    else pieces.push({ node: c.node, from: c.off, to: c.off + 1 });
+  }
+  const mark = () => {
+    const m = document.createElement('mark');
+    m.className = `mn-echo${draw ? ' draw' : ''}`;
+    m.style.setProperty('--ink', INKS[ink % INKS.length]);
+    return m;
+  };
+  const marks: HTMLElement[] = [];
+  for (const piece of pieces) {
+    const m = mark();
+    if (piece.from < 0) {
+      (piece.node as Element).before(m);
+      m.append(piece.node);
+      m.classList.add('formula');
+    } else {
+      const range = document.createRange();
+      range.setStart(piece.node, piece.from);
+      range.setEnd(piece.node, piece.to);
+      range.surroundContents(m);
+    }
+    marks.push(m);
+  }
+  return marks;
 }
 
 /** One conversation: the step's own (at the top of the margin), or a note on a selected sentence. */
@@ -251,7 +277,7 @@ class Note {
   readonly el: HTMLElement;
   readonly panel: AskPanel;
   private head: HTMLButtonElement | null = null;
-  private mark: HTMLElement | null = null;
+  private marks: HTMLElement[] = [];
   /** A selected sentence attached to the next question. */
   quote = '';
   busy = false;
@@ -271,7 +297,8 @@ class Note {
     el.innerHTML = `<button type="button" class="note-head"></button><div class="note-body"><div class="note-past"></div><div class="note-panel"></div></div>`;
     this.head = el.querySelector('.note-head')!;
     if (phrase) {
-      this.head.innerHTML = `<span class="ink-q">${esc(phrase)}</span>`;
+      // (a displayed formula is set in line here, narrowed to the margin if it is wide)
+      this.head.innerHTML = `<span class="ink-q">${math_html(phrase.replace(/\$\$/g, '$'))}</span>`;
       this.head.querySelector<HTMLElement>('.ink-q')!.style.setProperty('--ink', INKS[this.ink]);
     } else {
       this.head.innerHTML = `<span class="ask-n">ASK · ${String(ask_number(key)).padStart(2, '0')}</span><span class="ask-sum"></span>`;
@@ -333,19 +360,22 @@ class Note {
       } else this.fold(true);
     });
     if (para && phrase) {
-      this.mark = para.querySelector<HTMLElement>(`.mn-echo[data-note="${window.CSS.escape(key)}"]`) ?? echo(para, phrase, this.ink, !saved);
-      this.mark?.setAttribute('data-note', key);
+      const kept = [...para.querySelectorAll<HTMLElement>(`.mn-echo[data-note="${window.CSS.escape(key)}"]`)];
+      this.marks = kept.length ? kept : echo(para, phrase, this.ink, !saved);
+      for (const m of this.marks) m.setAttribute('data-note', key);
       // the note and its sentence light up together
       const lit = (on: boolean) => {
         el.classList.toggle('lit', on);
         para.classList.toggle('lit', on);
-        this.mark?.classList.toggle('lit', on);
+        for (const m of this.marks) m.classList.toggle('lit', on);
       };
       el.addEventListener('mouseenter', () => lit(true));
       el.addEventListener('mouseleave', () => lit(false));
-      this.mark?.addEventListener('mouseenter', () => lit(true));
-      this.mark?.addEventListener('mouseleave', () => lit(false));
-      this.mark?.addEventListener('click', () => this.fold(false, true));
+      for (const m of this.marks) {
+        m.addEventListener('mouseenter', () => lit(true));
+        m.addEventListener('mouseleave', () => lit(false));
+        m.addEventListener('click', () => this.fold(false, true));
+      }
     }
   }
   /** A card left without an answer gets one short line; `done` checks at once, else only if nothing has come yet. */
@@ -394,7 +424,7 @@ class Note {
   destroy(): void {
     this.panel.clear();
     this.el.remove();
-    if (this.mark) this.mark.replaceWith(...this.mark.childNodes);
+    for (const m of this.marks) m.replaceWith(...m.childNodes);
     this.para?.classList.remove('lit');
   }
 }
@@ -467,7 +497,7 @@ export class AskRail {
   open(ask: { selected?: string }): void {
     const phrase = (ask.selected ?? '').trim();
     const head = phrase.slice(0, 16);
-    const para = head ? this.paras().find((p) => text_of(p).includes(head)) : undefined;
+    const para = head ? this.paras().find((p) => read_of(p).includes(head)) : undefined;
     if (!para) {
       // not on a paragraph (a scene, a question): the line, with the passage attached
       this.quote = phrase;
@@ -584,7 +614,10 @@ export class AskRail {
       if (this.notes.has(key)) continue;
       const m = /^(.*)#(\d+):/.exec(key);
       if (m && m[1] === s.id && kept.phrase) {
-        const para = this.paras()[Number(m[2])];
+        // (by its place on the page; by its words if the page's paragraphs were counted differently then)
+        const head = kept.phrase.slice(0, 16);
+        let para: HTMLElement | undefined = this.paras()[Number(m[2])];
+        if (!para || !read_of(para).includes(head)) para = this.paras().find((p) => read_of(p).includes(head));
         if (para) this.add(new Note(key, para, kept.phrase, kept, this));
       } else if ((key === `${s.id}#talk` || key.startsWith(`${s.id}#talk.`)) && kept.at !== undefined) {
         const para = this.paras()[kept.at];
