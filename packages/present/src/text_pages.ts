@@ -130,6 +130,12 @@ export class BlockRenderer {
         const cap = [b.caption ? this.prose(b.caption) : '', b.credit ? `<span class="mn-credit">${esc(t('source_credit', { c: b.credit }, this.lang))}</span>` : ''].filter(Boolean).join(' ');
         return `<figure class="mn-fig"><img src="${esc(src)}" alt="${esc(tr(b.alt, this.lang))}" loading="lazy" decoding="async">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
       }
+      case 'svg': {
+        this.figures++;
+        // an image, not inline markup: a drawing from a generated course runs no script and loads nothing
+        const cap = b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : '';
+        return `<figure class="mn-fig mn-svg"><img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(b.svg)}" alt="${esc(tr(b.alt, this.lang))}" decoding="async">${cap}</figure>`;
+      }
       case 'visual': {
         const k = this.visuals.push(b) - 1;
         return `<figure class="mn-vis" data-vis="${k}"><div class="mn-vis-stage"><canvas width="1280" height="720" role="img" aria-label="${esc(tr(b.caption, this.lang) || b.name)}"></canvas></div><div class="mn-vis-bar"></div>${b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : ''}</figure>`;

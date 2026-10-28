@@ -10,6 +10,7 @@ import { apply_theme } from '../lessons/best-angle/theme';
 import type { Route } from '../router';
 import { ready_visuals } from '../cjk_font';
 import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '../store';
+import { accounts_available } from '../account';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -62,7 +63,8 @@ export function home(root: HTMLElement): void {
     const g = groups.find((x) => x.name === name) ?? (groups.push({ name, courses: [] }), groups[groups.length - 1]);
     g.courses.push(c);
   }
-  root.innerHTML = groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('');
+  root.innerHTML = groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('')
+    + (accounts_available() ? `<a class="studio-entry" href="/studio">＋ ${esc(t('studio_entry'))}</a>` : '');
   draw_thumbnails(root);
 }
 

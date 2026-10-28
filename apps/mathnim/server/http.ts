@@ -114,6 +114,7 @@ export const LIMITS: Record<string, Limit> = {
   deepseek: { per_window: 40, per_day: 300 }, // a question uses 2-4 requests, a generated lesson 10-30
   tts: { per_window: 80, per_day: 600 }, // uncached sentences only
   feedback: { per_window: 20, per_day: 100 },
+  auth: { per_window: 10, per_day: 40 }, // sign-in codes asked for
 };
 export function limit_for(route: string, spec?: string): Limit {
   const base = LIMITS[route] ?? { per_window: 60, per_day: 600 };

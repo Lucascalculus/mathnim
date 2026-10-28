@@ -61,6 +61,9 @@ body{margin:0;background:#fbfbfa}
 .course-card .meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mn-muted)}
 .course-progress{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
 .course-progress i{display:block;height:100%;background:var(--mn-good)}
+/* home: the way to the courses made from one's own slides (pages/studio.ts) */
+.studio-entry{display:inline-block;margin-top:26px;font-size:14px;color:var(--mn-muted);text-decoration:none}
+.studio-entry:hover{color:var(--mn-accent)}
 /* a course page */
 .backlink{display:inline-block;font-size:14px;color:var(--mn-muted);text-decoration:none;margin:0 0 12px}
 .backlink:hover{color:var(--mn-accent)}

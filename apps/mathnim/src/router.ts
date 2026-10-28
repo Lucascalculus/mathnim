@@ -4,6 +4,7 @@
 //   /<course-slug>/<lesson>   a lesson
 //   /<course-slug>/labs/<lab> a lab tutorial
 //   /review /dashboard /settings
+//   /studio /studio/<id>      courses made from uploaded slides: my uploads, one upload
 // Old hash links (#/, #/lesson/<id>, #/course/<id>, #/review ...) are redirected.
 // Links inside the app are plain <a href="/..."> elements: a click is turned
 // into a pushState navigation (no reload); the server answers every path with
@@ -15,7 +16,8 @@ export type Route =
   | { page: 'course'; course: Course }
   | { page: 'lesson'; course: Course; lesson: string }
   | { page: 'lab'; course: Course; lab: string }
-  | { page: 'review' | 'settings' };
+  | { page: 'review' | 'settings' }
+  | { page: 'studio'; id?: string };
 
 const OTHER = new Set(['review', 'settings']);
 
@@ -24,6 +26,7 @@ export function parse(pathname: string): Route {
   const parts = pathname.split('/').filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return { page: 'home' };
   if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' };
+  if (parts[0] === 'studio' && parts.length <= 2) return { page: 'studio', id: parts[1] };
   const course = course_by_slug(parts[0]);
   if (course && parts.length === 1) return { page: 'course', course };
   if (course && parts[1] === 'labs' && parts[2]) return { page: 'lab', course, lab: parts[2] };

@@ -142,6 +142,11 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           if (!b.credit) warn(where, 'figure without credit (say what it was redrawn from, or "original")');
           break;
         }
+        case 'svg': {
+          if (!/^\s*<svg[\s>]/i.test(b.svg)) err(where, 'svg block without <svg> markup');
+          if (!tr(b.alt, 'en').trim()) err(where, 'drawing without alt text');
+          break;
+        }
         case 'visual': {
           const r = deps.check_visual?.(b.name, b.params);
           if (r === null) err(where, `no visual named '${b.name}' is registered`);

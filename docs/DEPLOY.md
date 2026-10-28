@@ -86,12 +86,43 @@ structured log line per call.
 | `POST /api/tts` `{text}` | `{key, text, voice, provider, duration, words: [[start, end, word], ...], audio, audio_duration, timing}`: the pre-generated narration's JSON shape plus the MP3 as base64 (`TtsReply` in `packages/core/src/narration.ts`). `text` ≤ 600 characters. Cached per text (SHA-256) for 30 days |
 | `POST /api/feedback` `{question, answer_id, helpful, note?}` | `201 {ok, id}`. Kept in KV for 180 days. `helpful: false` also drops the cached answer with that id |
 | `GET /api/feedback?limit=50&cursor=…` | `{items: [{id, t, client, question, answer_id, helpful, note?}], cursor?}`, newest first; needs `Authorization: Bearer <ADMIN_TOKEN>` |
+| `POST /api/auth/start` `{email, lang?}` | Mails a six-digit code (Resend). 10 minutes, 5 tries, one per 45 s and 10 a day per address |
+| `POST /api/auth/verify` `{email, code}` | `{user}` and the session cookie `mn_sid` (HttpOnly, 60 days); creates the account on first sign-in |
+| `GET /api/auth/me`, `POST /api/auth/logout` | `{user \| null}`; sign out |
+| `GET`/`PUT /api/me/state` | The signed-in learner's records (`mathnim.*` in localStorage except settings), newest value per record wins |
+| `/api/studio/*` | Courses made from uploaded slides and practice exams: courses, files (PDF ≤ 32 MB), steps (NDJSON while a step runs), `catalog`, `lessons/<course>/<lesson>`. Contract at the top of `server/studio/routes.ts`; the steps in `server/studio/pipeline.ts` |
 
 The teacher view, from a terminal:
 
 ```bash
 curl -H "Authorization: Bearer $ADMIN_TOKEN" "https://mathnim.pages.dev/api/feedback?limit=50"
 ```
+
+### Accounts and uploaded courses
+
+Accounts, progress sync and the courses made from uploaded slides need three
+things that do not exist yet in the Cloudflare account (Lucas sets them up):
+
+```bash
+npx wrangler d1 create mathnim                 # then add to wrangler.toml: [[d1_databases]] binding = "DB", database_name = "mathnim", database_id = "<id>"
+npx wrangler r2 bucket create mathnim-files    # then: [[r2_buckets]] binding = "FILES", bucket_name = "mathnim-files"
+npx wrangler pages secret put RESEND_API_KEY --project-name mathnim
+```
+
+and two variables in `wrangler.toml`: `MAIL_FROM` (an address on a domain
+verified in Resend, e.g. `Mathnim <login@penghaolun.com>`) and `ADMIN_EMAILS`
+(who may publish an uploaded course to everyone). The tables are created on
+first use (`server/db.ts`). Until these exist the routes answer 503 and the
+site hides the sign-in entry.
+
+**Course generation has no model connected yet.** Every step goes through
+`StudioModel` (`server/studio/model.ts`): instructions plus the PDFs to read,
+reply text back. A model that reads PDFs directly is needed (no text
+extraction in the app). In production the routes use `NO_MODEL`, which
+answers "not configured"; the dev server uses `ReplayModel`, which writes each
+step's prompt to `node_modules/.cache/mathnim/studio/<course>/<step>.prompt.md`
+and waits for `<step>.reply.md` (how the prompts were tried with Claude Code
+agents, see `docs/lessons/studio/`).
 
 ### Live narration
 

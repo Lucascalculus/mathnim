@@ -3,12 +3,16 @@ import type { Lang } from '@mathnim/core';
 import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
 import { cjk_ready } from './cjk_font';
 import './i18n';
+import { load_me, on_user } from './account';
 import { course_page, home } from './pages/home';
 import { lab_page, lesson_page } from './pages/lesson';
 import { review } from './pages/review';
 import { settings_page } from './pages/settings';
+import { studio_page } from './pages/studio';
+import { navigate } from './router';
 import { detect_server_providers, load_settings } from './settings';
 import { mount_shell } from './shell';
+import { load_studio_courses } from './studio_courses';
 import { enable_dom_tex } from './tex_dom';
 
 // Visuals draw their labels in the learner's language (lang 'auto'): Chinese once a Chinese font is loaded
@@ -18,8 +22,12 @@ const visual_lang = (l: Lang) => set_ft_lang(l === 'zh' && !cjk_ready() ? 'en' :
 on_ui_lang(visual_lang);
 const start_lang = load_settings().lang;
 // (the Chinese font for the visuals is not waited for here: a page loads it when it draws one, see ready_visuals)
-Promise.allSettled([enable_dom_tex(), detect_server_providers()]).finally(() => {
+// the account (and its progress) and the courses made from uploads come first: routes and the learner model need them
+const account = load_me().catch(() => null).then(load_studio_courses);
+Promise.allSettled([enable_dom_tex(), detect_server_providers(), account]).finally(() => {
   visual_lang(start_lang);
   set_ui_lang(start_lang);
-  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, settings: settings_page });
+  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, settings: settings_page, studio: studio_page });
+  // signing in or out changes which courses exist: list them again and show the page anew
+  on_user(() => void load_studio_courses().then(() => navigate(location.pathname + location.search, true)));
 });

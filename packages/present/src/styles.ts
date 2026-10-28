@@ -206,6 +206,7 @@ export const CSS = `
 .mn-fig{margin:1.5em 0}
 .mn-fig img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:10px;background:#fff;border:1px solid var(--mn-border)}
 .mn-fig figcaption,.mn-vis figcaption{margin-top:8px}
+.mn-svg img{width:100%;max-width:720px;padding:12px;box-sizing:border-box}
 .mn-credit{font-style:italic;opacity:.9}
 .mn-fig-missing,.mn-vis-missing{padding:24px;border:1px dashed var(--mn-border);border-radius:10px;color:var(--mn-muted);font-size:14px;text-align:center}
 .mn-vis{margin:1.5em 0}

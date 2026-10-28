@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv, type Plugin, type ProxyOptions } from 'vite';
 import fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { dev_api } from './server/dev';
 
@@ -7,7 +8,8 @@ import { dev_api } from './server/dev';
 // read here, on the dev server, so a key never reaches the browser. The /api
 // routes are the production Pages Functions' handlers (server/, see
 // docs/DEPLOY.md) mounted as middleware: /api/providers, /api/deepseek/*,
-// /api/tts, /api/feedback. Only the Anthropic proxy is dev-only.
+// /api/tts, /api/feedback, /api/auth/*, /api/me/state, /api/studio/*. Only
+// the Anthropic proxy is dev-only.
 const root = path.resolve(__dirname, '../..');
 
 function keyed(target: string, header: (key: string) => [string, string], key: string): ProxyOptions {
@@ -23,7 +25,9 @@ export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, root, ''), ...process.env };
   const proxy: Record<string, ProxyOptions> = {};
   if (env.ANTHROPIC_API_KEY) proxy['/api/anthropic'] = keyed('https://api.anthropic.com', (k) => ['x-api-key', k], env.ANTHROPIC_API_KEY);
-  const api_options = { env, fs, cache_dir: path.resolve(__dirname, 'node_modules/.cache/mathnim') };
+  // accounts and uploaded courses in dev: Node's built-in SQLite (Node 22+), loaded only when a route needs it
+  const sqlite = (file: string) => new (createRequire(import.meta.url)('node:sqlite').DatabaseSync)(file);
+  const api_options = { env, fs, cache_dir: path.resolve(__dirname, 'node_modules/.cache/mathnim'), sqlite, bin_fs: fs };
   const api: Plugin = {
     name: 'mathnim-api',
     configureServer: (server) => void server.middlewares.use(dev_api(api_options)),
