@@ -56,8 +56,8 @@ export type Block =
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
   | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: string }
-  /** A drawing given as SVG markup (generated courses draw their own diagrams); shown as an image, so it runs no code. */
-  | { type: 'svg'; svg: string; alt: L10n; caption?: L10n }
+  /** A drawing given as SVG markup (generated courses draw their own diagrams; one per language when it has words); shown as an image, so it runs no code. */
+  | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }

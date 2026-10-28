@@ -19,6 +19,8 @@ export interface CourseRow {
   owner: string;
   lang: CourseLang;
   title: string;
+  /** The owner named it (the plan's title does not replace theirs). */
+  named: number;
   public: number;
   created: number;
   updated: number;
@@ -323,8 +325,10 @@ export async function run_step(db: SqlDb, s: State, key: string, d: RunDeps): Pr
   const questions = (s.parts.get('exam') as { questions: ExamQuestion[] } | undefined)?.questions ?? [];
   if (kind === 'plan') {
     const plan = await ask({ ...base, step: key, docs: [], prompt: plan_prompt({ lang, decks: maps, questions }), effort: 'high', max_tokens: 32_000 }, d, (x) => check_plan(x, s));
-    await db.prepare('UPDATE studio_courses SET title = ? WHERE id = ?').bind(plan.course.title, s.course.id).run();
-    s.course.title = plan.course.title;
+    if (!s.course.named) {
+      await db.prepare('UPDATE studio_courses SET title = ? WHERE id = ?').bind(plan.course.title, s.course.id).run();
+      s.course.title = plan.course.title;
+    }
     return save_part(db, s, key, plan);
   }
   const plan = plan_of(s)!;
@@ -396,12 +400,15 @@ export function coverage(s: State) {
   });
 }
 
-/** A course as the site lists it: its finished lessons, as data for the course page and the learner model. */
-export function catalog_entry(s: State, me: string | null) {
+/**
+ * A course as the site lists it: its finished lessons, as data for the course page and the learner model.
+ * `all`: every lesson written so far, finished or not (a demo shown while revisions are still under way).
+ */
+export function catalog_entry(s: State, me: string | null, o: { all?: boolean } = {}) {
   const plan = plan_of(s);
   if (!plan) return null;
   const ids = [...plan.lessons.map((l) => l.id), ...(plan.practice ? ['practice'] : [])];
-  const lessons = ids.filter((lid) => lesson_final(s, lid)).map((lid) => {
+  const lessons = ids.filter((lid) => (o.all ? s.parts.has(`lesson.${lid}`) : lesson_final(s, lid))).map((lid) => {
     const l = lesson_of(s, lid)!.lesson;
     const pl = plan.lessons.find((x) => x.id === lid);
     return {
@@ -419,7 +426,7 @@ export function catalog_entry(s: State, me: string | null) {
   ].filter((u) => u.lessons.length);
   return {
     id: s.course.id,
-    title: plan.course.title,
+    title: (s.course.named && s.course.title) || plan.course.title,
     summary: plan.course.summary,
     audience: plan.course.audience,
     outcomes: plan.course.outcomes,

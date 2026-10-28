@@ -11,6 +11,7 @@ import type { Route } from '../router';
 import { ready_visuals } from '../cjk_font';
 import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '../store';
 import { studio_available } from '../account';
+import { backlink } from '../backlink';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -84,7 +85,9 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   const all = lessons_of(c), done = done_in(c);
   const go = current_lesson(c);
   const resumed = started(c);
-  const langs = all.some((l) => (lesson_info(l)?.langs.length ?? 0) > 1) ? '中 / EN' : 'EN';
+  // the languages its lessons are written in (a course made from slides may be in Chinese only)
+  const written = new Set(all.flatMap((l) => lesson_info(l)?.langs ?? []));
+  const langs = written.has('zh') && written.has('en') ? '中 / EN' : written.has('zh') ? '中文' : 'EN';
   const still = c.feature?.replace('{lang}', lang);
   const cover_box = c.cover_motion || still;
   // one quiet line above the title: category · size · languages
@@ -94,7 +97,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     all.length ? langs : '',
   ].filter(Boolean).join(' · ');
   root.innerHTML = `
-    <a class="backlink" href="/">‹ ${esc(t('all_courses'))}</a>
+    ${backlink('/', t('all_courses'))}
     <header class="card course-hero"${accent(c)}>
       <div class="hero-top">
         <div class="hero-text">

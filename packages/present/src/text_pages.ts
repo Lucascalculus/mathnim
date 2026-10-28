@@ -134,7 +134,7 @@ export class BlockRenderer {
         this.figures++;
         // an image, not inline markup: a drawing from a generated course runs no script and loads nothing
         const cap = b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : '';
-        return `<figure class="mn-fig mn-svg"><img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(b.svg)}" alt="${esc(tr(b.alt, this.lang))}" decoding="async">${cap}</figure>`;
+        return `<figure class="mn-fig mn-svg"><img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(tr(b.svg, this.lang))}" alt="${esc(tr(b.alt, this.lang))}" decoding="async">${cap}</figure>`;
       }
       case 'visual': {
         const k = this.visuals.push(b) - 1;

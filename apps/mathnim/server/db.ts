@@ -37,19 +37,22 @@ CREATE TABLE IF NOT EXISTS login_codes (email TEXT PRIMARY KEY, hash TEXT NOT NU
 CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
 CREATE TABLE IF NOT EXISTS user_state (user_id TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (user_id, key));
-CREATE TABLE IF NOT EXISTS studio_courses (id TEXT PRIMARY KEY, owner TEXT NOT NULL, lang TEXT NOT NULL, title TEXT NOT NULL DEFAULT '', public INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL, updated INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS studio_courses (id TEXT PRIMARY KEY, owner TEXT NOT NULL, lang TEXT NOT NULL, title TEXT NOT NULL DEFAULT '', named INTEGER NOT NULL DEFAULT 0, public INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL, updated INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS studio_courses_owner ON studio_courses (owner);
 CREATE TABLE IF NOT EXISTS studio_files (id TEXT PRIMARY KEY, course_id TEXT NOT NULL, kind TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, size INTEGER NOT NULL, blob TEXT NOT NULL, remote TEXT, created INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS studio_files_course ON studio_files (course_id);
 CREATE TABLE IF NOT EXISTS studio_parts (course_id TEXT NOT NULL, key TEXT NOT NULL, json TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (course_id, key));
 `;
 
+/** Columns added after a table was first made: added where missing (an error means it is there already). */
+const LATER = ['ALTER TABLE studio_courses ADD COLUMN named INTEGER NOT NULL DEFAULT 0'];
+
 const ready = new WeakMap<SqlDb, Promise<unknown>>();
 /** Create the tables once per database and isolate (CREATE ... IF NOT EXISTS, so it is safe to repeat). */
 export function with_schema(db: SqlDb): Promise<SqlDb> {
   let p = ready.get(db);
   if (!p) {
-    p = db.exec(SCHEMA.trim());
+    p = db.exec(SCHEMA.trim()).then(() => Promise.all(LATER.map((sql) => Promise.resolve().then(() => db.prepare(sql).run()).catch(() => undefined))));
     p.catch(() => ready.delete(db));
     ready.set(db, p);
   }

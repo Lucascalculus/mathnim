@@ -1,0 +1,2079 @@
+[
+ {
+  "id": "5hujdkdkkm",
+  "title": {
+   "en": "Internet Technology: The Whole Journey of a Web Visit",
+   "zh": "互联网技术：一次网页访问走过的全程"
+  },
+  "summary": {
+   "en": "Layering and reference models, the physical layer, the data link layer and Ethernet, IP and routing, UDP/TCP and congestion control, DNS/HTTP/email/streaming, network security",
+   "zh": "分层与参考模型、物理层、数据链路层与以太网、IP 与路由、UDP/TCP 与拥塞控制、DNS/HTTP/邮件/流媒体、网络安全"
+  },
+  "audience": {
+   "en": "University students who have studied basic computer principles and can use a browser, matching COMP90007 Internet Technologies. No prior networking is needed; a little binary and log2 helps.",
+   "zh": "学过基本计算机原理、会用浏览器的大学生，对应 COMP90007 互联网技术；不需要先学过网络，会一点二进制和 log2 更好。"
+  },
+  "outcomes": [
+   {
+    "en": "Follow one web visit and say what each layer does, what header it adds, and why the work is divided this way",
+    "zh": "能顺着一次网页访问，说出每一层做了什么、加了什么头、为什么这样分工"
+   },
+   {
+    "en": "Do the calculations that come up in exams: delay, channel capacity, CRC and Hamming codes, subnets and longest prefix matching, Dijkstra, the congestion window",
+    "zh": "能做考试里的计算：延迟、信道容量、CRC 与汉明码、子网与最长前缀匹配、Dijkstra、拥塞窗口"
+   },
+   {
+    "en": "Explain why each protocol is designed the way it is, and give reasons for the trade-offs between UDP and TCP, error detection and correction, symmetric and public-key cryptography",
+    "zh": "能解释每个协议为什么这样设计，并在 UDP 与 TCP、检错与纠错、对称与公钥等取舍里说出理由"
+   }
+  ],
+  "lang": "zh",
+  "mine": false,
+  "public": true,
+  "ready": false,
+  "units": [
+   {
+    "title": {
+     "en": "Networks and layering",
+     "zh": "网络与分层"
+    },
+    "lessons": [
+     "5hujdkdkkm-l1",
+     "5hujdkdkkm-l2"
+    ]
+   },
+   {
+    "title": {
+     "en": "Bits, frames and the shared channel",
+     "zh": "比特、帧与共享信道"
+    },
+    "lessons": [
+     "5hujdkdkkm-l3",
+     "5hujdkdkkm-l4",
+     "5hujdkdkkm-l5",
+     "5hujdkdkkm-l6",
+     "5hujdkdkkm-l7"
+    ]
+   },
+   {
+    "title": {
+     "en": "Delivering packets across networks",
+     "zh": "跨网络送包"
+    },
+    "lessons": [
+     "5hujdkdkkm-l8",
+     "5hujdkdkkm-l9",
+     "5hujdkdkkm-l10"
+    ]
+   },
+   {
+    "title": {
+     "en": "Reliable end-to-end transport",
+     "zh": "端到端的可靠传输"
+    },
+    "lessons": [
+     "5hujdkdkkm-l11",
+     "5hujdkdkkm-l12",
+     "5hujdkdkkm-l13"
+    ]
+   },
+   {
+    "title": {
+     "en": "The application layer",
+     "zh": "应用层"
+    },
+    "lessons": [
+     "5hujdkdkkm-l14",
+     "5hujdkdkkm-l15",
+     "5hujdkdkkm-l16"
+    ]
+   },
+   {
+    "title": {
+     "en": "Network security",
+     "zh": "网络安全"
+    },
+    "lessons": [
+     "5hujdkdkkm-l17",
+     "5hujdkdkkm-l18",
+     "5hujdkdkkm-l19"
+    ]
+   },
+   {
+    "title": {
+     "en": "Final exam practice: from the shared channel to DNS to cryptography",
+     "zh": "期末模拟：从共用信道到 DNS 到密码"
+    },
+    "lessons": [
+     "5hujdkdkkm-practice"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "5hujdkdkkm-l1",
+    "title": {
+     "en": "What a network is, and why we layer it",
+     "zh": "网络是什么，为什么要分层"
+    },
+    "summary": {
+     "en": "How does one computer get a message into another's hands? Why split the job into layers?",
+     "zh": "两台电脑怎样把一条消息送到对方手里？为什么要把这件事拆成一层一层来做？"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "What a network is, and why we layer it",
+      "zh": "网络是什么，为什么要分层"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "qhs3te.basic-terms",
+       "name": {
+        "en": "Basic terminology",
+        "zh": "基本术语 (basic terminology)"
+       }
+      },
+      {
+       "id": "qhs3te.internet-structure",
+       "name": {
+        "en": "Internet architecture; the Internet vs. the WWW",
+        "zh": "互联网的结构，以及互联网与万维网的区别 (Internet architecture; Internet vs. WWW)"
+       }
+      },
+      {
+       "id": "qhs3te.client-server",
+       "name": {
+        "en": "The client-server model",
+        "zh": "客户端-服务器模型 (client-server model)"
+       }
+      },
+      {
+       "id": "qhs3te.transmission-types",
+       "name": {
+        "en": "Transmission technology: broadcast vs. point-to-point",
+        "zh": "传输技术：广播与点对点 (broadcast vs. point-to-point)"
+       }
+      },
+      {
+       "id": "qhs3te.network-scale",
+       "name": {
+        "en": "Networks by scale",
+        "zh": "按规模分类的网络 (networks by scale)"
+       }
+      },
+      {
+       "id": "qhs3te.topology",
+       "name": {
+        "en": "Network topologies: mesh, bus, star, ring",
+        "zh": "网络拓扑：网状、总线、星型、环型 (mesh, bus, star, ring)"
+       }
+      },
+      {
+       "id": "qhs3te.protocol-layers",
+       "name": {
+        "en": "Protocol layering: layers, protocols, interfaces, services",
+        "zh": "协议分层：层、协议、接口、服务 (layers, protocols, interfaces, services)"
+       }
+      },
+      {
+       "id": "qhs3te.encapsulation",
+       "name": {
+        "en": "Encapsulation and decapsulation",
+        "zh": "封装与解封装 (encapsulation and decapsulation)"
+       }
+      },
+      {
+       "id": "qhs3te.connection-types",
+       "name": {
+        "en": "Connection-oriented vs. connectionless service",
+        "zh": "面向连接与无连接服务 (connection-oriented vs. connectionless)"
+       }
+      },
+      {
+       "id": "qhs3te.service-primitives",
+       "name": {
+        "en": "Service primitives",
+        "zh": "服务原语 (service primitives)"
+       }
+      },
+      {
+       "id": "qhs3te.service-vs-protocol",
+       "name": {
+        "en": "How services and protocols relate",
+        "zh": "服务与协议的关系 (relationship of services and protocols)"
+       }
+      }
+     ],
+     "checkpoints": 11
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l2",
+    "title": {
+     "en": "Reference models: OSI, TCP/IP and the five layers we use",
+     "zh": "参考模型：OSI、TCP/IP 与我们用的五层"
+    },
+    "summary": {
+     "en": "Why agree on a standard layering first? Why did OSI lose to TCP/IP? Which one does this course use?",
+     "zh": "为什么要先约定一个标准的分层？OSI 为什么输给了 TCP/IP？这门课用哪一个？"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "Reference models: OSI, TCP/IP and the five layers we use",
+      "zh": "参考模型：OSI、TCP/IP 与我们用的五层"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "5a9htw.why-reference-model",
+       "name": {
+        "en": "Why we need a reference model",
+        "zh": "为什么需要参考模型 (why we need a reference model)"
+       }
+      },
+      {
+       "id": "5a9htw.osi-model",
+       "name": {
+        "en": "The OSI reference model",
+        "zh": "OSI 参考模型 (OSI reference model)"
+       }
+      },
+      {
+       "id": "5a9htw.layer-division-principles",
+       "name": {
+        "en": "OSI layer division principles",
+        "zh": "OSI 的分层原则 (OSI layer division principles)"
+       }
+      },
+      {
+       "id": "5a9htw.tcpip-model",
+       "name": {
+        "en": "The TCP/IP reference model",
+        "zh": "TCP/IP 参考模型 (TCP/IP reference model)"
+       }
+      },
+      {
+       "id": "5a9htw.osi-vs-tcpip",
+       "name": {
+        "en": "Comparing OSI and TCP/IP",
+        "zh": "OSI 与 TCP/IP 的对比 (comparing OSI and TCP/IP)"
+       }
+      },
+      {
+       "id": "5a9htw.model-critiques",
+       "name": {
+        "en": "Critiques of OSI and TCP/IP",
+        "zh": "对 OSI 和 TCP/IP 的批评 (critiques of OSI and TCP/IP)"
+       }
+      },
+      {
+       "id": "5a9htw.hybrid-model",
+       "name": {
+        "en": "The five-layer hybrid model used in this course",
+        "zh": "本课程使用的五层混合模型 (hybrid reference model)"
+       }
+      },
+      {
+       "id": "5a9htw.internet-origins",
+       "name": {
+        "en": "Origins of the Internet: the telephone system, Baran, ARPANET",
+        "zh": "互联网的起源 (origins of the Internet: telephone system, Baran, ARPANET)"
+       }
+      },
+      {
+       "id": "8zg9fk.layering-encapsulation",
+       "name": {
+        "en": "Layers, protocols and encapsulation",
+        "zh": "分层、协议与封装 (layers, protocols, encapsulation)"
+       }
+      }
+     ],
+     "checkpoints": 9
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l3",
+    "title": {
+     "en": "The physical layer: how bits travel on a wire",
+     "zh": "物理层：比特怎样在线上走"
+    },
+    "summary": {
+     "en": "What is a bit sent by the browser, really, in a cable or in the air? How fast and how far does it go, and what carries it?",
+     "zh": "浏览器发出的比特，在线缆和空气里到底是什么？走多快、多远、靠什么载体？"
+    },
+    "minutes": 65,
+    "meta": {
+     "title": {
+      "en": "The physical layer: how bits travel on a wire",
+      "zh": "物理层：比特怎样在线上走"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "amu2b9.physical-layer-role",
+       "name": {
+        "en": "What the physical layer does: the link model",
+        "zh": "物理层管什么：链路模型 (what the physical layer does; the link model)"
+       }
+      },
+      {
+       "id": "amu2b9.bandwidth-latency",
+       "name": {
+        "en": "Bandwidth and delay: transmission delay, propagation delay, latency",
+        "zh": "带宽与延迟：传输延迟和传播延迟 (bandwidth, transmission delay, propagation delay, latency)"
+       }
+      },
+      {
+       "id": "amu2b9.bandwidth-growth",
+       "name": {
+        "en": "The growth of bandwidth",
+        "zh": "带宽的增长 (growth of bandwidth)"
+       }
+      },
+      {
+       "id": "amu2b9.copper-attenuation",
+       "name": {
+        "en": "Wired copper cable and signal attenuation: twisted pair, coaxial cable",
+        "zh": "有线铜缆与信号衰减 (twisted pair, coaxial cable, signal attenuation)"
+       }
+      },
+      {
+       "id": "amu2b9.fibre-optics",
+       "name": {
+        "en": "Fibre optics",
+        "zh": "光纤 (fibre optics)"
+       }
+      },
+      {
+       "id": "amu2b9.wireless-em",
+       "name": {
+        "en": "Wireless transmission and electromagnetic waves: EM waves, spectrum",
+        "zh": "无线传输与电磁波 (wireless transmission, EM waves, spectrum)"
+       }
+      },
+      {
+       "id": "amu2b9.satellites",
+       "name": {
+        "en": "Communication satellites: GEO, MEO, LEO",
+        "zh": "通信卫星：GEO、MEO、LEO (communication satellites)"
+       }
+      },
+      {
+       "id": "amu2b9.signal-basics",
+       "name": {
+        "en": "Carrying data with signals: the three parameters of a sine wave",
+        "zh": "用信号传数据：正弦波的三个参数 (data communication using signals)"
+       }
+      },
+      {
+       "id": "amu2b9.digital-modulation",
+       "name": {
+        "en": "Digital modulation: baseband vs. passband",
+        "zh": "数字调制：基带与通带 (digital modulation, baseband vs passband)"
+       }
+      },
+      {
+       "id": "amu2b9.sampling-nyquist",
+       "name": {
+        "en": "Sampling and reconstruction: sample at least twice the highest frequency",
+        "zh": "采样与重建：采样率至少两倍最高频率 (sampling and reconstruction)"
+       }
+      },
+      {
+       "id": "amu2b9.symbol-rate",
+       "name": {
+        "en": "Symbol rate and data rate",
+        "zh": "码元速率与数据速率 (symbol rate and data rate)"
+       }
+      }
+     ],
+     "checkpoints": 10
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l4",
+    "title": {
+     "en": "Channel capacity and multiplexing: how fast one line can go, and how many people share it",
+     "zh": "信道容量与多路复用：一条线最多传多快，很多人怎么分"
+    },
+    "summary": {
+     "en": "How fast can a channel go at most? How do many people share it?",
+     "zh": "一条信道最多能传多快？很多人共用它时怎么分？"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Channel capacity and multiplexing: how fast one line can go, and how many people share it",
+      "zh": "信道容量与多路复用：一条线最多传多快，很多人怎么分"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "d39vec.nyquist-max-rate",
+       "name": {
+        "en": "Maximum data rate of a noiseless channel: Nyquist's theorem",
+        "zh": "无噪声信道的最大数据速率：奈奎斯特定理 (Nyquist's theorem, noiseless channel)"
+       }
+      },
+      {
+       "id": "d39vec.shannon-capacity",
+       "name": {
+        "en": "Maximum data rate of a noisy channel: Shannon's theorem and signal-to-noise ratio",
+        "zh": "有噪声信道的最大数据速率：香农定理与信噪比 (Shannon's theorem, signal-to-noise ratio)"
+       }
+      },
+      {
+       "id": "d39vec.capacity-examples",
+       "name": {
+        "en": "Using the two formulas: take the smaller of the two limits",
+        "zh": "用两个公式做题：取两个上限里较小的那个 (applying Nyquist and Shannon)"
+       }
+      },
+      {
+       "id": "d39vec.link-directions",
+       "name": {
+        "en": "Three link directions: full-duplex, half-duplex, simplex",
+        "zh": "链路的三种方向：全双工、半双工、单工 (full-duplex, half-duplex, simplex)"
+       }
+      },
+      {
+       "id": "d39vec.multiplexing",
+       "name": {
+        "en": "Multiplexing: TDM and FDM",
+        "zh": "多路复用：时分与频分 (multiplexing: TDM and FDM)"
+       }
+      },
+      {
+       "id": "d39vec.nyquist-shannon-people",
+       "name": {
+        "en": "Nyquist and Shannon: the people",
+        "zh": "奈奎斯特与香农其人 (Nyquist and Shannon: background)"
+       }
+      },
+      {
+       "id": "8zg9fk.capacity-latency",
+       "name": {
+        "en": "Maximum channel data rate and message latency: Nyquist, Shannon, latency",
+        "zh": "信道最大数据率与消息延迟 (Nyquist, Shannon, latency)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l5",
+    "title": {
+     "en": "The data link layer: making two neighbouring machines reliable",
+     "zh": "数据链路层：相邻两台机器之间怎样可靠"
+    },
+    "summary": {
+     "en": "A frame goes from a network card to the machine next door. It may be lost, damaged, or sent too fast. What then?",
+     "zh": "一帧数据从网卡送到隔壁那台机器，丢了、坏了、发太快了，怎么办？"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "The data link layer: making two neighbouring machines reliable",
+      "zh": "数据链路层：相邻两台机器之间怎样可靠"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "xk6umn.dll-role",
+       "name": {
+        "en": "The place and role of the data link layer",
+        "zh": "数据链路层的位置与作用 (role of the data link layer)"
+       }
+      },
+      {
+       "id": "xk6umn.frames-encapsulation",
+       "name": {
+        "en": "Packets and frames: encapsulation and decapsulation",
+        "zh": "分组与帧：封装与解封装 (packets, frames, encapsulation)"
+       }
+      },
+      {
+       "id": "xk6umn.service-types",
+       "name": {
+        "en": "Two dimensions of link-layer service and three combinations",
+        "zh": "链路层服务的两个维度与三种组合 (types of link services)"
+       }
+      },
+      {
+       "id": "xk6umn.link-service-examples",
+       "name": {
+        "en": "The three link-layer services and where they are used",
+        "zh": "三种链路层服务及其应用 (the three services and where they are used)"
+       }
+      },
+      {
+       "id": "8zg9fk.stop-and-wait-arq",
+       "name": {
+        "en": "Flow control, stop and wait, ARQ",
+        "zh": "流量控制与停等协议 (flow control, stop and wait, ARQ)"
+       }
+      },
+      {
+       "id": "8zg9fk.sliding-window",
+       "name": {
+        "en": "Sliding window: go-back-N and selective repeat",
+        "zh": "滑动窗口：回退 N 与选择重传 (go-back-N, selective repeat)"
+       }
+      }
+     ],
+     "checkpoints": 6
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l6",
+    "title": {
+     "en": "Framing and error control: find a frame, detect errors, even fix them",
+     "zh": "成帧与差错控制：找到一帧，发现错误，甚至改回来"
+    },
+    "summary": {
+     "en": "The receiver gets a long string of bits. How does it know where a frame starts and ends, and whether any bit was flipped?",
+     "zh": "接收方拿到一长串比特，怎么知道一帧从哪开始、到哪结束，又怎么知道有没有比特被翻转？"
+    },
+    "minutes": 75,
+    "meta": {
+     "title": {
+      "en": "Framing and error control: find a frame, detect errors, even fix them",
+      "zh": "成帧与差错控制：找到一帧，发现错误，甚至改回来"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "hm4t5u.framing",
+       "name": {
+        "en": "Framing and character count",
+        "zh": "成帧与字符计数 (framing, character count)"
+       }
+      },
+      {
+       "id": "hm4t5u.byte-stuffing",
+       "name": {
+        "en": "Flag bytes and byte stuffing",
+        "zh": "标志字节与字节填充 (flag bytes, byte stuffing)"
+       }
+      },
+      {
+       "id": "hm4t5u.bit-stuffing",
+       "name": {
+        "en": "Start/end flags and bit stuffing",
+        "zh": "起止标志与比特填充 (start/end flags, bit stuffing)"
+       }
+      },
+      {
+       "id": "hm4t5u.error-control",
+       "name": {
+        "en": "Error control: error types, and the ideas of detection and correction",
+        "zh": "差错控制:错误类型与检错/纠错思路 (error control, detection vs correction)"
+       }
+      },
+      {
+       "id": "hm4t5u.hamming-distance",
+       "name": {
+        "en": "Hamming distance and the limits of detection and correction",
+        "zh": "汉明距离与检错纠错的界限 (Hamming distance, error bounds)"
+       }
+      },
+      {
+       "id": "hm4t5u.parity-bit",
+       "name": {
+        "en": "Parity bit",
+        "zh": "奇偶校验位 (parity bit)"
+       }
+      },
+      {
+       "id": "hm4t5u.internet-checksum",
+       "name": {
+        "en": "The Internet checksum",
+        "zh": "互联网校验和 (Internet checksum)"
+       }
+      },
+      {
+       "id": "hm4t5u.crc",
+       "name": {
+        "en": "Cyclic redundancy check (CRC)",
+        "zh": "循环冗余校验 (cyclic redundancy check, CRC)"
+       }
+      },
+      {
+       "id": "hm4t5u.hamming-code",
+       "name": {
+        "en": "Hamming code: error correction",
+        "zh": "汉明码:纠错 (Hamming code)"
+       }
+      },
+      {
+       "id": "hm4t5u.detection-vs-correction",
+       "name": {
+        "en": "Comparing error-detecting codes, and choosing between detection and correction",
+        "zh": "检错码的比较与检错/纠错怎么选 (comparing codes, detection vs correction)"
+       }
+      },
+      {
+       "id": "8zg9fk.framing",
+       "name": {
+        "en": "The data link layer and framing",
+        "zh": "数据链路层与成帧 (data link layer, framing)"
+       }
+      },
+      {
+       "id": "8zg9fk.error-control-hamming",
+       "name": {
+        "en": "Error control and Hamming distance",
+        "zh": "差错控制与汉明距离 (error control, Hamming distance)"
+       }
+      }
+     ],
+     "checkpoints": 12
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l7",
+    "title": {
+     "en": "Sharing one channel: medium access control and Ethernet",
+     "zh": "共用一条信道：介质访问控制与以太网"
+    },
+    "summary": {
+     "en": "Many machines share one wire or the same air. Who speaks first? What happens on a collision?",
+     "zh": "很多台机器共用一条线或同一片空气，谁先说话？冲突了怎么办？"
+    },
+    "minutes": 75,
+    "meta": {
+     "title": {
+      "en": "Sharing one channel: medium access control and Ethernet",
+      "zh": "共用一条信道：介质访问控制与以太网"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "8zg9fk.mac-families",
+       "name": {
+        "en": "The main families of medium access control (MAC)",
+        "zh": "介质访问控制的几大类 (medium access control, MAC)"
+       }
+      },
+      {
+       "id": "karx4s.limited-contention",
+       "name": {
+        "en": "Limited contention protocols",
+        "zh": "受限竞争协议 (limited contention protocols)"
+       }
+      },
+      {
+       "id": "karx4s.adaptive-tree-walk",
+       "name": {
+        "en": "The adaptive tree walk protocol",
+        "zh": "自适应树遍历协议 (adaptive tree walk protocol)"
+       }
+      },
+      {
+       "id": "8zg9fk.adaptive-tree-walk",
+       "name": {
+        "en": "The adaptive tree walk",
+        "zh": "自适应树遍历协议 (adaptive tree walk)"
+       }
+      },
+      {
+       "id": "karx4s.hidden-exposed-terminals",
+       "name": {
+        "en": "Trouble on wireless LANs: hidden and exposed terminals",
+        "zh": "无线局域网的麻烦:隐藏终端与暴露终端 (hidden and exposed terminals)"
+       }
+      },
+      {
+       "id": "karx4s.maca",
+       "name": {
+        "en": "MACA and RTS/CTS (Multiple Access with Collision Avoidance)",
+        "zh": "MACA 与 RTS/CTS (Multiple Access with Collision Avoidance)"
+       }
+      },
+      {
+       "id": "8zg9fk.maca-wireless",
+       "name": {
+        "en": "MACA (RTS/CTS) on wireless LANs",
+        "zh": "无线局域网的 MACA (RTS/CTS)"
+       }
+      },
+      {
+       "id": "karx4s.ethernet-overview",
+       "name": {
+        "en": "Ethernet overview: classic and switched Ethernet",
+        "zh": "以太网概览:经典以太网与交换式以太网 (classic and switched Ethernet)"
+       }
+      },
+      {
+       "id": "karx4s.ethernet-frame",
+       "name": {
+        "en": "Ethernet frame format and MAC protocol: CSMA/CD, BEB",
+        "zh": "以太网帧格式与 MAC 协议 (Ethernet frame, CSMA/CD, BEB)"
+       }
+      },
+      {
+       "id": "karx4s.mac-address",
+       "name": {
+        "en": "MAC addressing",
+        "zh": "MAC 地址 (MAC addressing)"
+       }
+      },
+      {
+       "id": "karx4s.min-frame-size",
+       "name": {
+        "en": "Minimum frame size of classic Ethernet",
+        "zh": "经典以太网的最小帧长 (classic Ethernet minimum frame size)"
+       }
+      },
+      {
+       "id": "karx4s.ethernet-performance",
+       "name": {
+        "en": "Ethernet channel efficiency",
+        "zh": "以太网的信道效率 (channel efficiency)"
+       }
+      },
+      {
+       "id": "karx4s.switched-ethernet",
+       "name": {
+        "en": "Hubs vs. switches, switched Ethernet",
+        "zh": "集线器与交换机 (hubs vs switches, switched Ethernet)"
+       }
+      }
+     ],
+     "checkpoints": 13
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l8",
+    "title": {
+     "en": "The network layer: carrying packets across different networks",
+     "zh": "网络层：把包送过一个个不同的网络"
+    },
+    "summary": {
+     "en": "Two hosts are separated by many different networks. How does a packet get all the way? How smart should the network layer be?",
+     "zh": "两台主机隔着许多互不相同的网络，包怎样一路到达？网络层该多聪明？"
+    },
+    "minutes": 70,
+    "meta": {
+     "title": {
+      "en": "The network layer: carrying packets across different networks",
+      "zh": "网络层：把包送过一个个不同的网络"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "4jmwbh.network-layer-internet",
+       "name": {
+        "en": "The network layer on the Internet: IP, the hourglass model and best effort",
+        "zh": "互联网上的网络层:IP、沙漏模型与尽力而为 (the network layer on the Internet, IP, best effort)"
+       }
+      },
+      {
+       "id": "4jmwbh.store-and-forward",
+       "name": {
+        "en": "Store-and-forward packet switching",
+        "zh": "存储转发分组交换 (store-and-forward packet switching)"
+       }
+      },
+      {
+       "id": "4jmwbh.datagram-subnet",
+       "name": {
+        "en": "Connectionless service and datagram subnets",
+        "zh": "无连接服务与数据报子网 (connectionless service, datagram subnet)"
+       }
+      },
+      {
+       "id": "4jmwbh.virtual-circuit-subnet",
+       "name": {
+        "en": "Connection-oriented service and virtual-circuit subnets",
+        "zh": "面向连接服务与虚电路子网 (connection-oriented service, virtual-circuit subnet)"
+       }
+      },
+      {
+       "id": "4jmwbh.datagram-vs-vc",
+       "name": {
+        "en": "Datagram vs. virtual-circuit subnets",
+        "zh": "数据报与虚电路的比较 (datagram vs virtual-circuit subnets)"
+       }
+      },
+      {
+       "id": "4jmwbh.internetworking",
+       "name": {
+        "en": "Internetworking: why a common network-layer protocol",
+        "zh": "互联:为什么要有共同的网络层协议 (internetworking)"
+       }
+      },
+      {
+       "id": "4jmwbh.tunneling",
+       "name": {
+        "en": "Tunneling",
+        "zh": "隧道 (tunneling)"
+       }
+      },
+      {
+       "id": "4jmwbh.fragmentation",
+       "name": {
+        "en": "MTU, fragmentation and reassembly",
+        "zh": "最大传输单元与分片重组 (MTU, fragmentation and reassembly)"
+       }
+      },
+      {
+       "id": "4jmwbh.path-mtu-discovery",
+       "name": {
+        "en": "Path MTU discovery",
+        "zh": "路径 MTU 发现 (path MTU discovery)"
+       }
+      },
+      {
+       "id": "8zg9fk.internet-tunneling",
+       "name": {
+        "en": "Internetworking and tunneling",
+        "zh": "互联网与隧道 (internetworking, tunneling)"
+       }
+      },
+      {
+       "id": "8zg9fk.fragmentation-path-mtu",
+       "name": {
+        "en": "Fragmentation and path MTU discovery",
+        "zh": "分片与路径 MTU 发现 (fragmentation, path MTU discovery)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l9",
+    "title": {
+     "en": "IP addresses, subnets and CIDR",
+     "zh": "IP 地址、子网与 CIDR"
+    },
+    "summary": {
+     "en": "How can a router remember one network instead of billions of hosts? How are address blocks split and merged?",
+     "zh": "路由器怎么只记『一个网络』而不是几十亿台主机？地址块怎么切、怎么合？"
+    },
+    "minutes": 65,
+    "meta": {
+     "title": {
+      "en": "IP addresses, subnets and CIDR",
+      "zh": "IP 地址、子网与 CIDR"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "ra9r8e.ip-address-prefix",
+       "name": {
+        "en": "IPv4 addresses and prefixes",
+        "zh": "IPv4 地址与前缀 (IPv4 addresses, prefixes)"
+       }
+      },
+      {
+       "id": "ra9r8e.subnet-mask-routing-table",
+       "name": {
+        "en": "Subnet masks and routing tables",
+        "zh": "子网掩码与路由表 (subnet mask, routing tables)"
+       }
+      },
+      {
+       "id": "ra9r8e.classful-addressing",
+       "name": {
+        "en": "Classful addressing",
+        "zh": "分类编址 (classful addressing)"
+       }
+      },
+      {
+       "id": "ra9r8e.subnetting",
+       "name": {
+        "en": "Subnetting",
+        "zh": "子网划分 (subnetting)"
+       }
+      },
+      {
+       "id": "ra9r8e.cidr-aggregation",
+       "name": {
+        "en": "CIDR and route aggregation",
+        "zh": "无类别域间路由与路由聚合 (CIDR, aggregation)"
+       }
+      },
+      {
+       "id": "ra9r8e.longest-prefix-match",
+       "name": {
+        "en": "Longest matching prefix",
+        "zh": "最长前缀匹配 (longest matching prefix)"
+       }
+      },
+      {
+       "id": "ra9r8e.ipv4-datagram",
+       "name": {
+        "en": "IPv4 datagram structure",
+        "zh": "IPv4 数据报格式 (IPv4 datagram structure)"
+       }
+      },
+      {
+       "id": "8zg9fk.ip-subnetting",
+       "name": {
+        "en": "IP addresses, prefixes and subnetting",
+        "zh": "IP 地址、前缀与子网划分 (IP prefix, subnetting)"
+       }
+      }
+     ],
+     "checkpoints": 8
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l10",
+    "title": {
+     "en": "Running out of addresses, and how to choose a route",
+     "zh": "地址不够用与怎么选路"
+    },
+    "summary": {
+     "en": "What do we do when addresses run out? How does a router know which way is best?",
+     "zh": "地址不够怎么办？路由器是怎么知道往哪走最好的？"
+    },
+    "minutes": 85,
+    "meta": {
+     "title": {
+      "en": "Running out of addresses, and how to choose a route",
+      "zh": "地址不够用与怎么选路"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "xnze5w.private-ip-nat",
+       "name": {
+        "en": "Private IP addresses and NAT (network address translation)",
+        "zh": "私有 IP 地址与 NAT (private IP addresses, network address translation)"
+       }
+      },
+      {
+       "id": "xnze5w.ipv6",
+       "name": {
+        "en": "IPv6 addresses and header",
+        "zh": "IPv6 地址与头部 (IPv6 addresses and header)"
+       }
+      },
+      {
+       "id": "xnze5w.icmp-arp-dhcp",
+       "name": {
+        "en": "Internet control protocols: ICMP, ARP, DHCP",
+        "zh": "互联网控制协议:ICMP、ARP、DHCP (Internet control protocols)"
+       }
+      },
+      {
+       "id": "xnze5w.routing-basics",
+       "name": {
+        "en": "The routing problem and types of algorithm: adaptive vs. non-adaptive",
+        "zh": "路由问题与算法分类 (routing, adaptive vs non-adaptive algorithms)"
+       }
+      },
+      {
+       "id": "xnze5w.optimality-sink-tree",
+       "name": {
+        "en": "The optimality principle and the sink tree",
+        "zh": "最优性原理与汇集树 (optimality principle, sink tree)"
+       }
+      },
+      {
+       "id": "xnze5w.shortest-path-dijkstra",
+       "name": {
+        "en": "Shortest path routing and Dijkstra's algorithm",
+        "zh": "最短路径路由与 Dijkstra 算法 (shortest path routing, Dijkstra's algorithm)"
+       }
+      },
+      {
+       "id": "xnze5w.distance-vector",
+       "name": {
+        "en": "Distance vector routing",
+        "zh": "距离向量路由 (distance vector routing)"
+       }
+      },
+      {
+       "id": "xnze5w.link-state",
+       "name": {
+        "en": "Link state routing",
+        "zh": "链路状态路由 (link state routing)"
+       }
+      },
+      {
+       "id": "xnze5w.hierarchical-routing",
+       "name": {
+        "en": "Hierarchical routing",
+        "zh": "层次路由 (hierarchical routing)"
+       }
+      },
+      {
+       "id": "xnze5w.flooding-broadcast",
+       "name": {
+        "en": "Flooding and broadcast routing, reverse path forwarding",
+        "zh": "泛洪与广播路由 (flooding, broadcast routing, reverse path forwarding)"
+       }
+      },
+      {
+       "id": "8zg9fk.shortest-path-dijkstra",
+       "name": {
+        "en": "Shortest path routing and Dijkstra's algorithm",
+        "zh": "最短路径路由与 Dijkstra 算法 (shortest path routing)"
+       }
+      },
+      {
+       "id": "8zg9fk.dv-ls-routing",
+       "name": {
+        "en": "Distance vector and link state routing",
+        "zh": "距离向量与链路状态路由 (distance vector, link state)"
+       }
+      }
+     ],
+     "checkpoints": 12
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l11",
+    "title": {
+     "en": "The transport layer: building a reliable connection on an unreliable network",
+     "zh": "传输层：在不可靠的网络上搭一条可靠的连接"
+    },
+    "summary": {
+     "en": "The network layer only does its best. Why can an application send and receive with confidence?",
+     "zh": "网络层只管尽力送，应用凭什么放心地收发数据？"
+    },
+    "minutes": 70,
+    "meta": {
+     "title": {
+      "en": "The transport layer: building a reliable connection on an unreliable network",
+      "zh": "传输层：在不可靠的网络上搭一条可靠的连接"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "uk72ey.transport-role",
+       "name": {
+        "en": "The role and services of the transport layer",
+        "zh": "传输层的角色与服务 (role and services of the transport layer)"
+       }
+      },
+      {
+       "id": "uk72ey.segment-encapsulation",
+       "name": {
+        "en": "Segments and encapsulation",
+        "zh": "报文段与封装 (segment and encapsulation)"
+       }
+      },
+      {
+       "id": "uk72ey.transport-primitives",
+       "name": {
+        "en": "Simple transport primitives and the connection state diagram",
+        "zh": "简单的传输层原语与连接状态图 (simple transport primitives and connection state diagram)"
+       }
+      },
+      {
+       "id": "uk72ey.reliability-seq",
+       "name": {
+        "en": "Reliable transfer on an unreliable network: sequence numbers, acknowledgements and checksums",
+        "zh": "在不可靠网络上做可靠传输：序号、确认与校验和 (reliability and sequence numbers)"
+       }
+      },
+      {
+       "id": "uk72ey.three-way-handshake",
+       "name": {
+        "en": "Three-way handshake to set up a connection",
+        "zh": "三次握手建立连接 (three-way handshake)"
+       }
+      },
+      {
+       "id": "uk72ey.connection-release",
+       "name": {
+        "en": "Asymmetric vs. symmetric release",
+        "zh": "非对称释放与对称释放 (asymmetric vs symmetric release)"
+       }
+      },
+      {
+       "id": "uk72ey.release-handshake-two-army",
+       "name": {
+        "en": "The two-army problem and release handshakes with timers",
+        "zh": "两军问题与带计时器的释放握手 (two-army problem and release with timers)"
+       }
+      },
+      {
+       "id": "uk72ey.addressing",
+       "name": {
+        "en": "Transport-layer addressing: TSAP, NSAP and ports",
+        "zh": "传输层寻址：TSAP、NSAP 与端口 (addressing: TSAP, NSAP, port)"
+       }
+      },
+      {
+       "id": "uk72ey.multiplexing",
+       "name": {
+        "en": "Multiplexing and demultiplexing",
+        "zh": "多路复用与多路分解 (multiplexing and demultiplexing)"
+       }
+      },
+      {
+       "id": "uk72ey.sockets",
+       "name": {
+        "en": "Socket programming and Berkeley sockets",
+        "zh": "套接字编程与 Berkeley 套接字 (socket programming)"
+       }
+      }
+     ],
+     "checkpoints": 6
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l12",
+    "title": {
+     "en": "UDP and TCP: the light one and the steady one",
+     "zh": "UDP 与 TCP：轻的和稳的"
+    },
+    "summary": {
+     "en": "When should you use UDP, and when TCP? How does TCP achieve reliability?",
+     "zh": "什么时候该用 UDP，什么时候该用 TCP？TCP 是怎样做到可靠的？"
+    },
+    "minutes": 70,
+    "meta": {
+     "title": {
+      "en": "UDP and TCP: the light one and the steady one",
+      "zh": "UDP 与 TCP：轻的和稳的"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "4952m9.udp",
+       "name": {
+        "en": "UDP (User Datagram Protocol)",
+        "zh": "用户数据报协议 (UDP, User Datagram Protocol)"
+       }
+      },
+      {
+       "id": "4952m9.port-numbers",
+       "name": {
+        "en": "Port numbers",
+        "zh": "端口号 (port numbers)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-service-model",
+       "name": {
+        "en": "TCP's service model and connection features",
+        "zh": "TCP 的服务模型与连接特性 (TCP service model and connection features)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-segment-size",
+       "name": {
+        "en": "TCP segment size and fragmentation",
+        "zh": "TCP 报文段大小与分片 (segment size and fragmentation)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-seq-ack",
+       "name": {
+        "en": "Byte sequence numbers, cumulative ACK and reliable transfer",
+        "zh": "字节序号、累计确认与可靠传输 (sequence numbers, cumulative ACK, reliability)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-header",
+       "name": {
+        "en": "The TCP segment header",
+        "zh": "TCP 报文段头部 (TCP segment header)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-establishment",
+       "name": {
+        "en": "TCP connection setup: the three-way handshake and state machine",
+        "zh": "TCP 连接建立：三次握手与状态机 (TCP three-way handshake and state machine)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-release",
+       "name": {
+        "en": "TCP connection release: symmetric release, timers and the state machine",
+        "zh": "TCP 连接释放：对称释放、计时器与状态机 (TCP connection release)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-window",
+       "name": {
+        "en": "TCP window management and flow control",
+        "zh": "TCP 窗口管理与流量控制 (TCP window management, flow control)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-timers",
+       "name": {
+        "en": "The retransmission timer: TCP timer management, SRTT",
+        "zh": "重传计时器 (TCP timer management, SRTT)"
+       }
+      }
+     ],
+     "checkpoints": 6
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l13",
+    "title": {
+     "en": "Congestion control: what happens when everyone wants to send fast",
+     "zh": "拥塞控制：大家都想发得快，网络会怎样"
+    },
+    "summary": {
+     "en": "Every sender wants to go fast, so why does the network collapse? How does TCP brake by itself using only packet loss?",
+     "zh": "每个发送方都想发得快，网络为什么会崩？TCP 只靠丢包怎样自己踩刹车？"
+    },
+    "minutes": 60,
+    "meta": {
+     "title": {
+      "en": "Congestion control: what happens when everyone wants to send fast",
+      "zh": "拥塞控制：大家都想发得快，网络会怎样"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "fvccxy.qos-metrics",
+       "name": {
+        "en": "Four quality-of-service metrics: bandwidth, loss, delay, jitter",
+        "zh": "服务质量的四个指标 (quality of service: bandwidth, loss, delay, jitter)"
+       }
+      },
+      {
+       "id": "fvccxy.congestion-goodput",
+       "name": {
+        "en": "Network congestion and goodput",
+        "zh": "网络拥塞与有效吞吐量 (network congestion and goodput)"
+       }
+      },
+      {
+       "id": "fvccxy.flow-vs-congestion",
+       "name": {
+        "en": "Flow control vs. congestion control",
+        "zh": "流量控制与拥塞控制的区别 (flow control vs congestion control)"
+       }
+      },
+      {
+       "id": "fvccxy.congestion-principle",
+       "name": {
+        "en": "The idea of congestion control and TCP's signal: loss as a signal, AIMD",
+        "zh": "拥塞控制的思路与 TCP 的信号 (congestion control principle, loss as signal, AIMD)"
+       }
+      },
+      {
+       "id": "fvccxy.tcp-two-windows",
+       "name": {
+        "en": "TCP's sending rate: the flow control window and the congestion window",
+        "zh": "TCP 发送速率：流量控制窗口与拥塞窗口 (flow control window and congestion window)"
+       }
+      },
+      {
+       "id": "fvccxy.slow-start",
+       "name": {
+        "en": "Slow start",
+        "zh": "慢启动 (slow start)"
+       }
+      },
+      {
+       "id": "fvccxy.additive-increase",
+       "name": {
+        "en": "Additive increase",
+        "zh": "加法增 (additive increase)"
+       }
+      },
+      {
+       "id": "fvccxy.tahoe-reno",
+       "name": {
+        "en": "TCP Tahoe and TCP Reno",
+        "zh": "TCP Tahoe 与 TCP Reno (TCP Tahoe and TCP Reno)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l14",
+    "title": {
+     "en": "DNS: turning names into addresses",
+     "zh": "DNS：把名字变成地址"
+    },
+    "summary": {
+     "en": "You type www.google.com. How does the machine know which IP to look for? Why isn't this phone book kept on one machine?",
+     "zh": "你输入 www.google.com，机器怎么知道该找哪个 IP？为什么这本『电话簿』不放在一台机器里？"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "DNS: turning names into addresses",
+      "zh": "DNS：把名字变成地址"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "bsjyg8.dns-purpose",
+       "name": {
+        "en": "What DNS is for: translating domain names to IP addresses (name resolution)",
+        "zh": "DNS 的作用：把域名翻译成 IP 地址 (name resolution)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-other-services",
+       "name": {
+        "en": "Other DNS services: host aliasing, mail server registry, load distribution",
+        "zh": "DNS 的其他服务：别名、邮件服务器登记、负载分担 (host aliasing, mail server registry, load distribution)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-namespace",
+       "name": {
+        "en": "The DNS namespace and how domain names are written",
+        "zh": "DNS 名字空间与域名的写法 (DNS namespace and domain names)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-resource-records",
+       "name": {
+        "en": "Resource records (RR) and record types",
+        "zh": "资源记录 (resource records, RR) 与记录类型"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-zones",
+       "name": {
+        "en": "Zones and zone name servers, and why not centralise",
+        "zh": "区与区名字服务器，为什么不集中 (zones, zone name servers, why not centralise)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-name-server-types",
+       "name": {
+        "en": "Four kinds of name server: root, TLD, authoritative, local",
+        "zh": "四类名字服务器：根、顶级域、权威、本地 (root, TLD, authoritative, local name servers)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-resolution",
+       "name": {
+        "en": "The DNS name resolution process and caching",
+        "zh": "DNS 解析过程与缓存 (DNS name resolution process and caching)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-recursive-iterative",
+       "name": {
+        "en": "Recursive vs. iterative queries",
+        "zh": "递归查询与迭代查询 (recursive vs iterative query)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-dig-example",
+       "name": {
+        "en": "Reading the result of a DNS query with dig",
+        "zh": "用 dig 看一次 DNS 查询的结果 (reading a dig answer)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l15",
+    "title": {
+     "en": "The Web and HTTP: how many round trips does a page take",
+     "zh": "万维网与 HTTP：一个页面要多少个往返"
+    },
+    "summary": {
+     "en": "How many round trips does a page with 11 objects take to open? How does HTTP remember who you are?",
+     "zh": "打开一个有 11 个对象的页面要等几个往返？HTTP 怎样记住你是谁？"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "The Web and HTTP: how many round trips does a page take",
+      "zh": "万维网与 HTTP：一个页面要多少个往返"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "r96uqr.web-objects-urls",
+       "name": {
+        "en": "Web pages, objects, URLs and HTTP's request-response model (web objects, URL, HTTP client/server)",
+        "zh": "网页、对象、URL 与 HTTP 的请求—响应模型 (web objects, URL, HTTP client/server)"
+       }
+      },
+      {
+       "id": "r96uqr.non-persistent-http",
+       "name": {
+        "en": "Non-persistent HTTP and round-trip time (RTT)",
+        "zh": "非持久 HTTP 与往返时间 (non-persistent HTTP, RTT)"
+       }
+      },
+      {
+       "id": "r96uqr.persistent-http-pipelining",
+       "name": {
+        "en": "Persistent HTTP and pipelining",
+        "zh": "持久 HTTP 与流水线 (persistent HTTP, pipelining)"
+       }
+      },
+      {
+       "id": "r96uqr.http-request",
+       "name": {
+        "en": "HTTP request messages and methods",
+        "zh": "HTTP 请求报文与方法 (request message, request methods)"
+       }
+      },
+      {
+       "id": "r96uqr.http-response",
+       "name": {
+        "en": "HTTP response messages and status codes",
+        "zh": "HTTP 响应报文与状态码 (response message, status codes)"
+       }
+      },
+      {
+       "id": "r96uqr.cookies",
+       "name": {
+        "en": "Cookies and stateless HTTP",
+        "zh": "Cookie 与无状态的 HTTP (cookies, stateless protocol)"
+       }
+      },
+      {
+       "id": "r96uqr.web-caching",
+       "name": {
+        "en": "Web caching and proxy servers",
+        "zh": "网页缓存与代理服务器 (web caching, proxy server)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l16",
+    "title": {
+     "en": "Email and streaming media",
+     "zh": "电子邮件与流媒体"
+    },
+    "summary": {
+     "en": "How does a letter cross two servers to reach its recipient? How does a video play while it downloads without stalling?",
+     "zh": "一封信怎样跨过两台服务器到达收信人？一段视频怎样边下边播还不卡？"
+    },
+    "minutes": 70,
+    "meta": {
+     "title": {
+      "en": "Email and streaming media",
+      "zh": "电子邮件与流媒体"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "4ndan6.email-architecture",
+       "name": {
+        "en": "Email architecture: user agents and mail transfer agents (MTA)",
+        "zh": "电子邮件的架构：用户代理与邮件传输代理 (email architecture, user agent, MTA)"
+       }
+      },
+      {
+       "id": "4ndan6.message-format-mime",
+       "name": {
+        "en": "Message format and MIME",
+        "zh": "邮件格式与 MIME (message format, MIME)"
+       }
+      },
+      {
+       "id": "4ndan6.smtp-transfer",
+       "name": {
+        "en": "SMTP: mail submission and transfer",
+        "zh": "SMTP 邮件提交与传输 (SMTP)"
+       }
+      },
+      {
+       "id": "4ndan6.final-delivery-webmail",
+       "name": {
+        "en": "Final delivery: POP3, IMAP and webmail",
+        "zh": "最终投递：POP3、IMAP 与网页邮件 (POP3, IMAP, webmail)"
+       }
+      },
+      {
+       "id": "4ndan6.streaming-multimedia-models",
+       "name": {
+        "en": "Kinds of streaming media, their requirements and playback models (RTSP, RTP)",
+        "zh": "流媒体的种类、要求与播放模型 (streaming media, RTSP, RTP)"
+       }
+      },
+      {
+       "id": "4ndan6.jitter-buffer",
+       "name": {
+        "en": "Jitter and client-side buffering (playout buffer)",
+        "zh": "抖动与客户端缓冲 (jitter, playout buffer)"
+       }
+      },
+      {
+       "id": "4ndan6.error-handling-fec",
+       "name": {
+        "en": "Dealing with packet loss: forward error correction and error concealment",
+        "zh": "丢包处理：前向纠错与差错掩盖 (forward error correction, error concealment)"
+       }
+      },
+      {
+       "id": "4ndan6.multimedia-compression",
+       "name": {
+        "en": "Multimedia compression: lossless vs. lossy",
+        "zh": "多媒体压缩：无损与有损 (compression, lossless vs lossy)"
+       }
+      },
+      {
+       "id": "4ndan6.live-and-realtime",
+       "name": {
+        "en": "Live streaming and real-time conferencing (SIP)",
+        "zh": "直播与实时会议 (live streaming, real-time conferencing, SIP)"
+       }
+      }
+     ],
+     "checkpoints": 13
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l17",
+    "title": {
+     "en": "Network security basics: what to protect, and the fundamentals of cryptography",
+     "zh": "网络安全入门：要保护什么，密码学基础"
+    },
+    "summary": {
+     "en": "What exactly does security protect? Why can't others read an encrypted message?",
+     "zh": "安全到底要保护什么？一条加密的消息凭什么别人读不懂？"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "Network security basics: what to protect, and the fundamentals of cryptography",
+      "zh": "网络安全入门：要保护什么，密码学基础"
+     },
+     "mode": "essay",
+     "langs": [
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "9ehkyb.security-properties",
+       "name": {
+        "en": "The five basic properties of network security",
+        "zh": "网络安全的五个基本性质 (security properties)"
+       }
+      },
+      {
+       "id": "9ehkyb.attacks-incidents",
+       "name": {
+        "en": "Man-in-the-middle attacks and DDoS: two incidents",
+        "zh": "中间人攻击与 DDoS：两个事件 (man-in-the-middle attack, DDoS)"
+       }
+      },
+      {
+       "id": "9ehkyb.security-layers",
+       "name": {
+        "en": "Security measures at every layer",
+        "zh": "各层协议里的安全措施 (security at every layer)"
+       }
+      },
+      {
+       "id": "9ehkyb.encryption-model",
+       "name": {
+        "en": "The encryption model: plaintext, ciphertext and key",
+        "zh": "加密模型：明文、密文与密钥 (plaintext, ciphertext, key)"
+       }
+      },
+      {
+       "id": "9ehkyb.kerckhoff-key-space",
+       "name": {
+        "en": "Kerckhoffs's principle and the key space",
+        "zh": "柯克霍夫原则与密钥空间 (Kerckhoff's principle, key space)"
+       }
+      },
+      {
+       "id": "9ehkyb.classical-ciphers",
+       "name": {
+        "en": "Three classical ideas: shifting, substitution and transposition",
+        "zh": "三种经典思路：移位、替换与换位 (substitution and transposition ciphers)"
+       }
+      },
+      {
+       "id": "9ehkyb.one-time-pad-xor",
+       "name": {
+        "en": "The one-time pad and XOR",
+        "zh": "一次性密码本与异或 (one-time pad, XOR)"
+       }
+      }
+     ],
+     "checkpoints": 9
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l18",
+    "title": {
+     "en": "Symmetric and public-key cryptography, digital signatures and authentication",
+     "zh": "对称与公钥密码、数字签名和认证"
+    },
+    "summary": {
+     "en": "Two people who have never met: how do they agree on a key safely, confirm who the other is, and prove who a message came from?",
+     "zh": "两个没见过面的人，怎样安全地约定密钥、确认对方、证明消息出自谁？"
+    },
+    "minutes": 85,
+    "meta": {
+     "title": {
+      "en": "Symmetric and public-key cryptography, digital signatures and authentication",
+      "zh": "对称与公钥密码、数字签名和认证"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "3kgkap.symmetric-des-aes",
+       "name": {
+        "en": "Symmetric-key algorithms: DES and AES",
+        "zh": "对称密钥算法：DES 与 AES (symmetric-key algorithms, DES, AES)"
+       }
+      },
+      {
+       "id": "3kgkap.cipher-modes",
+       "name": {
+        "en": "Block cipher modes: ECB, CBC, CFB, stream cipher and counter modes",
+        "zh": "分组密码的工作模式：ECB、CBC、CFB、流密码与计数器 (cipher modes)"
+       }
+      },
+      {
+       "id": "3kgkap.keystream-reuse",
+       "name": {
+        "en": "Keystream reuse attack",
+        "zh": "密钥流重用攻击 (keystream reuse attack)"
+       }
+      },
+      {
+       "id": "3kgkap.public-key-basics",
+       "name": {
+        "en": "The idea of public-key cryptography: public and private keys (asymmetric keys)",
+        "zh": "公钥密码的思路：公钥与私钥 (public-key cryptography, asymmetric keys)"
+       }
+      },
+      {
+       "id": "3kgkap.rsa",
+       "name": {
+        "en": "The RSA algorithm",
+        "zh": "RSA 算法 (RSA)"
+       }
+      },
+      {
+       "id": "3kgkap.certificates-pki",
+       "name": {
+        "en": "Public key management: certificates, CA, PKI",
+        "zh": "公钥管理：证书与公钥基础设施 (certificates, CA, PKI)"
+       }
+      },
+      {
+       "id": "3kgkap.digital-signatures",
+       "name": {
+        "en": "Requirements and methods of digital signatures",
+        "zh": "数字签名的要求与做法 (digital signatures)"
+       }
+      },
+      {
+       "id": "3kgkap.message-digests",
+       "name": {
+        "en": "Message digests and hash functions",
+        "zh": "消息摘要与哈希 (message digest, hash function)"
+       }
+      },
+      {
+       "id": "3kgkap.authentication-protocols",
+       "name": {
+        "en": "Authentication protocols: challenge-response and public-key authentication",
+        "zh": "认证协议：质询—应答与公钥认证 (authentication, challenge-response)"
+       }
+      },
+      {
+       "id": "3kgkap.diffie-hellman-mitm",
+       "name": {
+        "en": "Diffie-Hellman key exchange and man-in-the-middle attacks",
+        "zh": "Diffie-Hellman 密钥交换与中间人攻击 (Diffie-Hellman key exchange)"
+       }
+      },
+      {
+       "id": "8zg9fk.symmetric-public-key-modes",
+       "name": {
+        "en": "Symmetric-key and public-key algorithms and cipher modes",
+        "zh": "对称密钥、公钥算法与密码模式 (symmetric-key, public-key, cipher modes)"
+       }
+      },
+      {
+       "id": "8zg9fk.signatures-authentication-atta",
+       "name": {
+        "en": "Digital signatures, authentication and attacks",
+        "zh": "数字签名、身份认证与攻击 (digital signatures, authentication, attacks)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-l19",
+    "title": {
+     "en": "Putting cryptography into the network: IPsec, firewalls, VPNs and HTTPS",
+     "zh": "把密码学放进网络：IPsec、防火墙、VPN 和 HTTPS"
+    },
+    "summary": {
+     "en": "Where in the protocol stack should security measures go? Which properties does each one cover?",
+     "zh": "安全措施该放在协议栈的哪一层？各管哪几条性质？"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "Putting cryptography into the network: IPsec, firewalls, VPNs and HTTPS",
+      "zh": "把密码学放进网络：IPsec、防火墙、VPN 和 HTTPS"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read",
+      "derive"
+     ],
+     "skills": [
+      {
+       "id": "8t335x.comm-security-goals",
+       "name": {
+        "en": "The five goals of communication security and four kinds of scheme",
+        "zh": "通信安全的五个目标与四类方案 (communication security)"
+       }
+      },
+      {
+       "id": "8t335x.ipsec-sa",
+       "name": {
+        "en": "IPsec and the Security Association",
+        "zh": "IPsec 与安全关联 (IPsec, Security Association)"
+       }
+      },
+      {
+       "id": "8t335x.ipsec-modes",
+       "name": {
+        "en": "Transport mode and tunnel mode",
+        "zh": "传输模式与隧道模式 (transport mode, tunnel mode)"
+       }
+      },
+      {
+       "id": "8t335x.firewall",
+       "name": {
+        "en": "Where a firewall sits and what it does",
+        "zh": "防火墙的位置与作用 (firewall)"
+       }
+      },
+      {
+       "id": "8t335x.firewall-limits",
+       "name": {
+        "en": "The limits of firewalls",
+        "zh": "防火墙的局限"
+       }
+      },
+      {
+       "id": "8t335x.vpn",
+       "name": {
+        "en": "Virtual private networks (VPN)",
+        "zh": "虚拟专用网 (VPN)"
+       }
+      },
+      {
+       "id": "8t335x.https-tls-handshake",
+       "name": {
+        "en": "HTTPS and the TLS handshake",
+        "zh": "HTTPS 与 TLS 握手 (TLS handshake)"
+       }
+      }
+     ],
+     "checkpoints": 7
+    }
+   },
+   {
+    "id": "5hujdkdkkm-practice",
+    "title": {
+     "en": "Final exam practice: from the shared channel to DNS to cryptography",
+     "zh": "期末模拟：从共用信道到 DNS 到密码"
+    },
+    "summary": {
+     "en": "Fifteen exam-style questions to check whether you can connect the whole course: the shared channel, TCP and congestion control, DNS, HTTP, email, and finally cryptography and authentication.",
+     "zh": "用十五道考试风格的题，检查你能不能把整门课连起来：共用信道、TCP 与拥塞控制、DNS、HTTP、邮件，最后到密码与认证。"
+    },
+    "minutes": 60,
+    "meta": {
+     "title": {
+      "en": "Final exam practice: from the shared channel to DNS to cryptography",
+      "zh": "期末模拟：从共用信道到 DNS 到密码"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read",
+      "checkpoint"
+     ],
+     "skills": [
+      {
+       "id": "8zg9fk.mac-families",
+       "name": {
+        "en": "The main families of medium access control (MAC)",
+        "zh": "介质访问控制的几大类 (medium access control, MAC)"
+       }
+      },
+      {
+       "id": "uk72ey.addressing",
+       "name": {
+        "en": "Transport-layer addressing: TSAP, NSAP and ports",
+        "zh": "传输层寻址：TSAP、NSAP 与端口 (addressing: TSAP, NSAP, port)"
+       }
+      },
+      {
+       "id": "4952m9.udp",
+       "name": {
+        "en": "UDP (User Datagram Protocol)",
+        "zh": "用户数据报协议 (UDP, User Datagram Protocol)"
+       }
+      },
+      {
+       "id": "4952m9.tcp-service-model",
+       "name": {
+        "en": "TCP's service model and connection features",
+        "zh": "TCP 的服务模型与连接特性 (TCP service model and connection features)"
+       }
+      },
+      {
+       "id": "fvccxy.tahoe-reno",
+       "name": {
+        "en": "TCP Tahoe and TCP Reno",
+        "zh": "TCP Tahoe 与 TCP Reno (TCP Tahoe and TCP Reno)"
+       }
+      },
+      {
+       "id": "fvccxy.slow-start",
+       "name": {
+        "en": "Slow start",
+        "zh": "慢启动 (slow start)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-purpose",
+       "name": {
+        "en": "What DNS is for: translating domain names to IP addresses (name resolution)",
+        "zh": "DNS 的作用：把域名翻译成 IP 地址 (name resolution)"
+       }
+      },
+      {
+       "id": "r96uqr.persistent-http-pipelining",
+       "name": {
+        "en": "Persistent HTTP and pipelining",
+        "zh": "持久 HTTP 与流水线 (persistent HTTP, pipelining)"
+       }
+      },
+      {
+       "id": "4ndan6.smtp-transfer",
+       "name": {
+        "en": "SMTP: mail submission and transfer",
+        "zh": "SMTP 邮件提交与传输 (SMTP)"
+       }
+      },
+      {
+       "id": "4ndan6.multimedia-compression",
+       "name": {
+        "en": "Multimedia compression: lossless vs. lossy",
+        "zh": "多媒体压缩：无损与有损 (compression, lossless vs lossy)"
+       }
+      },
+      {
+       "id": "3kgkap.cipher-modes",
+       "name": {
+        "en": "Block cipher modes: ECB, CBC, CFB, stream cipher and counter modes",
+        "zh": "分组密码的工作模式：ECB、CBC、CFB、流密码与计数器 (cipher modes)"
+       }
+      },
+      {
+       "id": "3kgkap.authentication-protocols",
+       "name": {
+        "en": "Authentication protocols: challenge-response and public-key authentication",
+        "zh": "认证协议：质询—应答与公钥认证 (authentication, challenge-response)"
+       }
+      }
+     ],
+     "checkpoints": 15
+    }
+   }
+  ],
+  "demo": true
+ }
+]

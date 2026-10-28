@@ -2,10 +2,12 @@
 //   GET    courses                      my courses
 //   POST   courses {lang}               a new, empty course -> {id}
 //   GET    courses/<id>                 files, plan, progress, coverage, the steps that can run
-//   PATCH  courses/<id> {public}        publish to everyone (admins only)
+//   PATCH  courses/<id> {title?, lang?, public?}   rename; the language (before anything is made); publish (admins)
 //   DELETE courses/<id>
 //   POST   courses/<id>/files?kind=slides|exam&name=<file name>   body: the PDF (or plain text)
+//   PATCH  courses/<id>/files/<file> {kind}   slides <-> practice exam (what was made from it is made again)
 //   DELETE courses/<id>/files/<file>
+//   GET    courses/<id>/export          the course as static files for a demo (tools/studio_export.mjs): {entry, lessons}
 //   POST   courses/<id>/steps/<step>    run one step; answers NDJSON lines while it works:
 //          {t:'progress', chars} ... then {t:'done'} | {t:'pending', prompt} | {t:'error', message}
 //   GET    catalog                      the courses this visitor may take (own, and public finished ones)
@@ -61,14 +63,11 @@ export async function studio(request: Request, env: AuthEnv, path: string, deps:
     if (m === 'POST') {
       const n = (await db.prepare('SELECT COUNT(*) AS n FROM studio_courses WHERE owner = ?').bind(user.id).first<{ n: number }>())?.n ?? 0;
       if (n >= MAX_COURSES) return error(429, `At most ${MAX_COURSES} courses per account.`);
-      let lang: 'zh' | 'en' = 'zh';
-      try {
-        if ((await request.json() as { lang?: string }).lang === 'en') lang = 'en';
-      } catch {
-        /* default language */
-      }
+      const d = (await request.json().catch(() => ({}))) as { lang?: string; title?: string };
+      const lang = d.lang === 'en' ? 'en' : 'zh';
+      const title = typeof d.title === 'string' ? d.title.trim().slice(0, 120) : '';
       const id = new_id(10), now = Date.now();
-      await db.prepare('INSERT INTO studio_courses (id, owner, lang, title, public, created, updated) VALUES (?, ?, ?, ?, 0, ?, ?)').bind(id, user.id, lang, '', now, now).run();
+      await db.prepare('INSERT INTO studio_courses (id, owner, lang, title, named, public, created, updated) VALUES (?, ?, ?, ?, ?, 0, ?, ?)').bind(id, user.id, lang, title, title ? 1 : 0, now, now).run();
       return json(201, { id });
     }
     return error(405, 'Use GET or POST.');
@@ -80,7 +79,17 @@ export async function studio(request: Request, env: AuthEnv, path: string, deps:
   if (!rest.length) {
     if (m === 'GET') return json(200, detail(s, user));
     if (m === 'PATCH') {
-      const d = (await request.json().catch(() => ({}))) as { public?: unknown };
+      const d = (await request.json().catch(() => ({}))) as { public?: unknown; title?: unknown; lang?: unknown };
+      if (typeof d.title === 'string') {
+        const title = d.title.trim().slice(0, 120);
+        await db.prepare('UPDATE studio_courses SET title = ?, named = 1 WHERE id = ?').bind(title, s.course.id).run();
+        s.course.title = title;
+      }
+      // the language is chosen before anything is made (everything is written in it)
+      if ((d.lang === 'zh' || d.lang === 'en') && !s.parts.size) {
+        await db.prepare('UPDATE studio_courses SET lang = ? WHERE id = ?').bind(d.lang, s.course.id).run();
+        s.course.lang = d.lang;
+      }
       if (typeof d.public === 'boolean') {
         if (!user.admin) return error(403, 'Only an admin can publish a course to everyone.');
         await db.prepare('UPDATE studio_courses SET public = ? WHERE id = ?').bind(d.public ? 1 : 0, s.course.id).run();
@@ -97,6 +106,17 @@ export async function studio(request: Request, env: AuthEnv, path: string, deps:
     return error(405, 'Use GET, PATCH or DELETE.');
   }
   if (rest[0] === 'files' && rest.length === 1 && m === 'POST') return upload(request, env, db, s, user);
+  if (rest[0] === 'files' && rest.length === 2 && m === 'PATCH') {
+    const f = s.files.find((x) => x.id === rest[1]);
+    if (!f) return error(404, 'No such file.');
+    const kind = ((await request.json().catch(() => ({}))) as { kind?: unknown }).kind;
+    if (kind !== 'slides' && kind !== 'exam') return error(400, 'kind: slides or exam.');
+    if (kind !== f.kind) {
+      await db.prepare('UPDATE studio_files SET kind = ? WHERE id = ?').bind(kind, f.id).run();
+      await drop_derived(db, s.course.id, { exam: true, file: f.id });
+    }
+    return json(200, detail((await load_state(db, s.course.id))!, user));
+  }
   if (rest[0] === 'files' && rest.length === 2 && m === 'DELETE') {
     const f = s.files.find((x) => x.id === rest[1]);
     if (!f) return error(404, 'No such file.');
@@ -106,6 +126,12 @@ export async function studio(request: Request, env: AuthEnv, path: string, deps:
     return json(200, detail((await load_state(db, s.course.id))!, user));
   }
   if (rest[0] === 'steps' && rest.length === 2 && m === 'POST') return step(db, env, s, rest[1], deps, note, request.signal);
+  if (rest[0] === 'export' && m === 'GET') {
+    const entry = catalog_entry(s, null, { all: true });
+    if (!entry) return error(409, 'The course has no plan yet.');
+    const lessons = Object.fromEntries([...s.parts].filter(([k]) => k.startsWith('lesson.')).map(([, v]) => [(v as LessonPart).lesson.id, (v as LessonPart).lesson]));
+    return json(200, { entry: { ...entry, mine: false, public: true, demo: true }, lessons });
+  }
   return error(404, 'No such route.');
 }
 
@@ -198,7 +224,14 @@ function detail(s: State, user: User) {
     course: { id: s.course.id, title: s.course.title, lang: s.course.lang, public: !!s.course.public },
     admin: user.admin,
     files: [...slides_of(s), ...exams_of(s)].map((f) => ({ id: f.id, kind: f.kind, name: f.name, size: f.size })),
-    plan: plan ? { course: plan.course, lessons: plan.lessons.map((l) => ({ id: l.id, title: l.title, decks: l.decks, final: lesson_final(s, l.id) })), practice: plan.practice ? { title: plan.practice.title, final: lesson_final(s, 'practice') } : null } : null,
+    plan: plan
+      ? {
+          course: plan.course,
+          units: plan.units,
+          lessons: plan.lessons.map((l) => ({ id: l.id, title: l.title, question: l.question, decks: l.decks, minutes: l.minutes, final: lesson_final(s, l.id) })),
+          practice: plan.practice ? { title: plan.practice.title, final: lesson_final(s, 'practice') } : null,
+        }
+      : null,
     steps,
     next: next_steps(s),
     coverage: coverage(s),

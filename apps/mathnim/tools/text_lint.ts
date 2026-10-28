@@ -143,7 +143,7 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           break;
         }
         case 'svg': {
-          if (!/^\s*<svg[\s>]/i.test(b.svg)) err(where, 'svg block without <svg> markup');
+          if (!/^\s*<svg[\s>]/i.test(tr(b.svg, 'en'))) err(where, 'svg block without <svg> markup');
           if (!tr(b.alt, 'en').trim()) err(where, 'drawing without alt text');
           break;
         }

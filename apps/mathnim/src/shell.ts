@@ -25,22 +25,22 @@ body{margin:0;background:#fbfbfa}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
-/* the top bar's tools: the account, held by four faint crop marks that close in on hover (signed out a blank sheet,
-   a 3x3 dot grid; signed in, the initial in the tutor's serif), and the settings gear, which turns on hover.
+/* the top bar's tools, bare at rest: the account (signed out a blank sheet, a 3x3 dot grid; signed in, the initial
+   in the tutor's serif), which four crop marks close in on when pointed at, and the settings gear, which turns.
    The account's card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
 .nav-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
 .nav-ic{flex:none;position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s}
 .nav-ic:hover,.nav-ic[aria-expanded=true]{color:var(--mn-fg)}
-.nav-ic>i{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:.45;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .15s}
-.nav-ic>i:nth-child(1){left:0;top:0;border-left-width:1.3px;border-top-width:1.3px}
-.nav-ic>i:nth-child(2){right:0;top:0;border-right-width:1.3px;border-top-width:1.3px}
-.nav-ic>i:nth-child(3){left:0;bottom:0;border-left-width:1.3px;border-bottom-width:1.3px}
-.nav-ic>i:nth-child(4){right:0;bottom:0;border-right-width:1.3px;border-bottom-width:1.3px}
-.nav-ic:hover>i,.nav-ic[aria-expanded=true]>i{opacity:1}
-.nav-ic:hover>i:nth-child(1),.nav-ic[aria-expanded=true]>i:nth-child(1){left:3px;top:3px}
-.nav-ic:hover>i:nth-child(2),.nav-ic[aria-expanded=true]>i:nth-child(2){right:3px;top:3px}
-.nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3){left:3px;bottom:3px}
-.nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4){right:3px;bottom:3px}
+.nav-ic>i{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:0;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .2s}
+.nav-ic>i:nth-child(1){left:-4px;top:-4px;border-left-width:1.3px;border-top-width:1.3px}
+.nav-ic>i:nth-child(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
+.nav-ic>i:nth-child(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
+.nav-ic>i:nth-child(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
+.nav-ic:hover>i,.nav-ic[aria-expanded=true]>i,.nav-ic:focus-visible>i{opacity:1}
+.nav-ic:hover>i:nth-child(1),.nav-ic[aria-expanded=true]>i:nth-child(1),.nav-ic:focus-visible>i:nth-child(1){left:2px;top:2px}
+.nav-ic:hover>i:nth-child(2),.nav-ic[aria-expanded=true]>i:nth-child(2),.nav-ic:focus-visible>i:nth-child(2){right:2px;top:2px}
+.nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3),.nav-ic:focus-visible>i:nth-child(3){left:2px;bottom:2px}
+.nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4),.nav-ic:focus-visible>i:nth-child(4){right:2px;bottom:2px}
 .nav-ic svg{display:block;transition:transform .4s}
 .gear svg{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
 .gear:hover svg,.gear[aria-expanded=true] svg{transform:rotate(60deg)}
@@ -100,9 +100,32 @@ body{margin:0;background:#fbfbfa}
 /* home: the way to the courses made from one's own slides (pages/studio.ts) */
 .studio-entry{display:inline-block;margin-top:26px;font-size:14px;color:var(--mn-muted);text-decoration:none}
 .studio-entry:hover{color:var(--mn-accent)}
+/* the way back (backlink.ts): three arrows, then the words. Pointed at, crop marks close in around the words (the
+   engineering sheet) and a light runs leftwards through the arrows outside them, one dark among grey ones. */
+.backlink{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;margin:0 0 12px;font-size:14px;color:var(--mn-muted);text-decoration:none;transition:color .15s}
+.bk-label{position:relative;padding:5px 10px}
+.backlink:hover,.backlink:focus-visible{color:var(--mn-fg)}
+.bk-arrows{display:inline-flex;gap:1px}
+.bk-arrows i{display:block;width:6px;height:10px;font-style:normal;color:color-mix(in srgb,var(--mn-fg) 22%,transparent)}
+.bk-arrows i svg{display:block;width:6px;height:10px}
+.bk-arrows i:first-child{color:var(--mn-fg)}
+.backlink:hover .bk-arrows i,.backlink:focus-visible .bk-arrows i{color:color-mix(in srgb,var(--mn-fg) 22%,transparent);animation:bk-run 1.5s ease-out infinite}
+.backlink:hover .bk-arrows i:nth-child(3),.backlink:focus-visible .bk-arrows i:nth-child(3){animation-delay:0s}
+.backlink:hover .bk-arrows i:nth-child(2),.backlink:focus-visible .bk-arrows i:nth-child(2){animation-delay:.5s}
+.backlink:hover .bk-arrows i:nth-child(1),.backlink:focus-visible .bk-arrows i:nth-child(1){animation-delay:1s}
+@keyframes bk-run{0%{color:var(--mn-fg);transform:translateX(0)}24%{color:var(--mn-fg);transform:translateX(-2px)}33%,100%{color:color-mix(in srgb,var(--mn-fg) 22%,transparent);transform:translateX(0)}}
+.bk-label>b{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:0;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .2s}
+.bk-label>b:nth-of-type(1){left:-4px;top:-4px;border-left-width:1.3px;border-top-width:1.3px}
+.bk-label>b:nth-of-type(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
+.bk-label>b:nth-of-type(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
+.bk-label>b:nth-of-type(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
+.backlink:hover .bk-label>b,.backlink:focus-visible .bk-label>b{opacity:1}
+.backlink:hover .bk-label>b:nth-of-type(1),.backlink:focus-visible .bk-label>b:nth-of-type(1){left:0;top:0}
+.backlink:hover .bk-label>b:nth-of-type(2),.backlink:focus-visible .bk-label>b:nth-of-type(2){right:0;top:0}
+.backlink:hover .bk-label>b:nth-of-type(3),.backlink:focus-visible .bk-label>b:nth-of-type(3){left:0;bottom:0}
+.backlink:hover .bk-label>b:nth-of-type(4),.backlink:focus-visible .bk-label>b:nth-of-type(4){right:0;bottom:0}
+@media (prefers-reduced-motion:reduce){.backlink .bk-arrows i{animation:none!important}.bk-label>b{transition:none}}
 /* a course page */
-.backlink{display:inline-block;font-size:14px;color:var(--mn-muted);text-decoration:none;margin:0 0 12px}
-.backlink:hover{color:var(--mn-accent)}
 /* a course page's header: what the course is and how to begin, its moving cover in a plain frame, and the route along the bottom */
 .course-hero{padding:26px 28px 22px}
 .hero-top{display:flex;align-items:center;gap:32px}
