@@ -13,6 +13,13 @@ interface Take {
   src: string;
 }
 
+/** Every narrator alive on the page (lessons, the tutor's read-aloud), so a new page or step can silence them all. */
+const alive = new Set<Narrator>();
+/** Stop every narrator but `keep`: nothing goes on speaking over a page or step it does not belong to. */
+export function hush_all(keep?: Narrator): void {
+  for (const n of alive) if (n !== keep) n.stop(false);
+}
+
 export class Narrator {
   /** Play recorded narration. */
   enabled: boolean;
@@ -46,6 +53,7 @@ export class Narrator {
     }
     this.enabled = saved.on ?? true;
     this.system_voice = saved.system ?? false;
+    alive.add(this);
   }
   lang: string;
   private persist(): void {
@@ -100,6 +108,7 @@ export class Narrator {
     const cues = caption_cues(text, rec);
     const a = new Audio(take.src);
     a.playbackRate = this.rate;
+    this.audio?.pause(); // (never two lines at once)
     this.audio = a;
     let shown = -1;
     const tick = () => {
@@ -156,6 +165,7 @@ export class Narrator {
   dispose(): void {
     this.dead = true;
     this.stop();
+    alive.delete(this);
   }
   private dead = false;
   stop(clear = true): void {

@@ -19,7 +19,7 @@ import {
 } from '@mathnim/core';
 import { drag_hint, plural_s, t, ui_lang } from './i18n';
 import { esc, math_html, reading, set_math, set_tex_renderer, type TexRenderer } from './math';
-import { Narrator } from './narrator';
+import { hush_all, Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
 import { inject_styles } from './styles';
 import { CueGuide } from './cue';
@@ -428,6 +428,7 @@ export class LessonView {
         this.el.levelup?.classList.remove('show');
         // narration is for "videos": scenes and worlds are spoken, and in a game the character speaks the questions too;
         // text pages are read silently, and so are questions in the essay view
+        hush_all(this.narrator); // (a tutor's answer read aloud on the last step stops with it)
         if (s.narration && is_voiced(s, this.game ? 'game' : 'essay')) void this.narrator.say(this.runtime.text(s.narration));
         else {
           this.narrator.stop();

@@ -41,20 +41,20 @@ const CSS = `
 /* the lesson as a metro line: the stretch travelled is lit; a step is a station, drawn by what it asks of the learner:
    a stop to read or watch, a diamond for a question, an interchange (a double ring) for a world, a capsule for code.
    The station the learner is at is held by crop marks (the engineering sheet). */
-.ol-steps::before,.ol-steps::after{content:'';position:absolute;z-index:0;left:41px;width:3px;border-radius:2px}
-.ol-steps::before{top:var(--l-top,0);height:var(--l-len,0);background:color-mix(in srgb,var(--mn-fg) 13%,transparent)}
-.ol-steps::after{top:var(--l-top,0);height:var(--l-done,0);background:color-mix(in srgb,var(--mn-accent) 65%,transparent);transition:height .45s cubic-bezier(.2,.8,.2,1)}
-.ol-sta{position:relative;flex:none;display:grid;place-items:center;width:14px;height:14px;margin-top:2px}
-.ol-sta>s{box-sizing:border-box;display:block;width:11px;height:11px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--mn-fg) 30%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
-.ol-sta.ask>s{width:10px;height:10px;border-radius:1.5px;transform:rotate(45deg)}
-.ol-sta.code>s{width:14px;height:9px;border-radius:5px}
-.ol-sta.world>s{width:7px;height:7px;border-width:2px}
-.ol-sta.world>u{position:absolute;inset:0;border-radius:50%;border:1.6px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);background:var(--mn-panel);z-index:-1;transition:transform .6s cubic-bezier(.3,1.4,.5,1),border-color .2s}
+.ol-steps::before,.ol-steps::after{content:'';position:absolute;z-index:0;left:41px;width:2px;border-radius:1px}
+.ol-steps::before{top:var(--l-top,0);height:var(--l-len,0);background:color-mix(in srgb,var(--mn-fg) 11%,transparent)}
+.ol-steps::after{top:var(--l-top,0);height:var(--l-done,0);background:color-mix(in srgb,var(--mn-accent) 60%,transparent);transition:height .45s cubic-bezier(.2,.8,.2,1)}
+.ol-sta{position:relative;flex:none;display:grid;place-items:center;width:12px;height:12px;margin-top:3px}
+.ol-sta>s{box-sizing:border-box;display:block;width:9px;height:9px;border-radius:50%;border:1.75px solid color-mix(in srgb,var(--mn-fg) 28%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
+.ol-sta.ask>s{width:7.5px;height:7.5px;border-radius:1px;transform:rotate(45deg)}
+.ol-sta.code>s{width:12px;height:7px;border-radius:4px}
+.ol-sta.world>s{width:5px;height:5px;border-width:1.5px}
+.ol-sta.world>u{position:absolute;inset:0;border-radius:50%;border:1.2px dashed color-mix(in srgb,var(--mn-fg) 32%,transparent);background:var(--mn-panel);z-index:-1;transition:transform .6s cubic-bezier(.3,1.4,.5,1),border-color .2s}
 .ol-step:hover .ol-sta.world>u{transform:rotate(90deg)}
-.ol-step.done .ol-sta>s,.ol-step.done .ol-sta>u{border-color:color-mix(in srgb,var(--mn-accent) 70%,transparent)}
+.ol-step.done .ol-sta>s,.ol-step.done .ol-sta>u{border-color:color-mix(in srgb,var(--mn-accent) 72%,transparent)}
 .ol-step.now .ol-sta>s{border-color:var(--mn-accent);background:var(--mn-accent)}
 .ol-step.now .ol-sta>u{border-color:var(--mn-accent)}
-.ol-step.now .ol-sta::after{content:'';position:absolute;inset:-4px;--c:var(--mn-accent);background:linear-gradient(var(--c),var(--c)) 0 0/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1.3px 5px no-repeat}
+.ol-step.now .ol-sta::after{content:'';position:absolute;inset:-4px;--c:color-mix(in srgb,var(--mn-accent) 85%,transparent);background:linear-gradient(var(--c),var(--c)) 0 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1px 4px no-repeat}
 @media (prefers-reduced-motion:reduce){.ol-steps::after,.ol-sta.world>u{transition:none}}
 .ol-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;color:var(--mn-muted);background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
 .ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}

@@ -1,6 +1,6 @@
 // App chrome: navigation bar (with the language switch) + hash router.
 import { LANGS, type Lang } from '@mathnim/core';
-import { esc, inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
+import { esc, hush_all, inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
 import './i18n';
 import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
@@ -396,6 +396,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const mine = ++routing;
     if (typeof cleanup === 'function') cleanup();
     cleanup = undefined;
+    hush_all(); // whatever was speaking belonged to the page being left
     current = parse(location.pathname);
     // one address per lesson: a lesson reached under another course's slug moves to its own
     if (current.page === 'lesson') {
