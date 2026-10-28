@@ -1,14 +1,14 @@
 [
  {
   "id": "5hujdkdkkm",
-  "title": "Internet Technologies (COMP90007)",
+  "title": "Internet Technologies",
   "summary": {
    "en": "Layering and reference models, the physical layer, the data link layer and Ethernet, IP and routing, UDP/TCP and congestion control, DNS/HTTP/email/streaming, network security",
    "zh": "分层与参考模型、物理层、数据链路层与以太网、IP 与路由、UDP/TCP 与拥塞控制、DNS/HTTP/邮件/流媒体、网络安全"
   },
   "audience": {
-   "en": "University students who have studied basic computer principles and can use a browser, matching COMP90007 Internet Technologies. No prior networking is needed; a little binary and log2 helps.",
-   "zh": "学过基本计算机原理、会用浏览器的大学生，对应 COMP90007 互联网技术；不需要先学过网络，会一点二进制和 log2 更好。"
+   "en": "University students who have studied basic computer principles and can use a browser. No prior networking is needed; a little binary and log2 helps.",
+   "zh": "学过基本计算机原理、会用浏览器的大学生；不需要先学过网络，会一点二进制和 log2 更好。"
   },
   "outcomes": [
    {
