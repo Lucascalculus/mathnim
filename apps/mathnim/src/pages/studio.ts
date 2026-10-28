@@ -4,7 +4,7 @@
 // The steps run on the server one at a time (server/studio/pipeline.ts); this
 // page asks which can run and keeps up to three going until none is left.
 import { esc, t, ui_lang } from '@mathnim/present';
-import { accounts_available, current_user, studio_available } from '../account';
+import { accounts_available, current_user, generate_available, studio_available } from '../account';
 import { lesson_path } from '../course';
 import { login_form } from '../login';
 import { navigate, type Route } from '../router';
@@ -113,19 +113,22 @@ export async function studio_page(root: HTMLElement, route: Route): Promise<() =
   inject();
   const id = route.page === 'studio' ? route.id : undefined;
   if (!accounts_available() || !studio_available()) {
-    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(t(accounts_available() ? 'model_missing' : 'accounts_off'))}</p></div></div>`;
+    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(t('accounts_off'))}</p></div></div>`;
     return () => {};
   }
   if (!current_user()) {
-    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(t('studio_lead'))}</p></div></div>`;
+    root.innerHTML = `<div class="studio"><div class="card studio-gate"><h1>${esc(t('studio_title'))}</h1><p class="studio-lead">${esc(lead())}</p></div></div>`;
     root.querySelector('.studio-gate')!.append(login_form());
     return () => {};
   }
   return id ? course_view(root, id) : list_view(root);
 }
 
+/** The page's one line: what it does, or, while no model is connected, that it is still being tested. */
+const lead = () => t(generate_available() ? 'studio_lead' : 'studio_testing');
+
 async function list_view(root: HTMLElement): Promise<() => void> {
-  root.innerHTML = `<div class="studio"><header class="studio-head"><h1>${esc(t('my_studio'))}</h1><button type="button" class="mn-btn primary">${esc(t('studio_new'))}</button></header><p class="studio-lead">${esc(t('studio_lead'))}</p><div class="studio-list"></div></div>`;
+  root.innerHTML = `<div class="studio"><header class="studio-head"><h1>${esc(t('my_studio'))}</h1><button type="button" class="mn-btn primary">${esc(t('studio_new'))}</button></header><p class="studio-lead">${esc(lead())}</p><div class="studio-list"></div></div>`;
   root.querySelector<HTMLButtonElement>('.studio-head button')!.onclick = async (e) => {
     (e.currentTarget as HTMLButtonElement).disabled = true;
     const { id } = await api<{ id: string }>('courses', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lang: ui_lang() }) });
@@ -184,15 +187,15 @@ async function course_view(root: HTMLElement, id: string): Promise<() => void> {
         .map((f) => `<li><span title="${esc(f.name)}">${esc(f.name)}</span><small>${mb(f.size)}</small><button type="button" data-rm="${esc(f.id)}" aria-label="${esc(t('remove'))}" title="${esc(t('remove'))}">×</button></li>`)
         .join('');
     }
-    $('.studio-run').hidden = !d.files.some((f) => f.kind === 'slides');
+    $('.studio-run').hidden = !d.files.some((f) => f.kind === 'slides') && generate_available();
     const go = $<HTMLButtonElement>('.go');
     const working = active.size > 0;
     const has_slides = d.files.some((f) => f.kind === 'slides');
     go.textContent = Object.keys(d.steps).length ? t('generate_more') : t('generate');
     go.hidden = !d.next.length && !working;
-    go.disabled = working || !has_slides;
+    go.disabled = working || !has_slides || !generate_available();
     const msg = $('.run-msg');
-    msg.textContent = model_missing ? t('model_missing') : note;
+    msg.textContent = !generate_available() ? t('studio_testing') : model_missing ? t('model_missing') : note;
     msg.classList.toggle('bad', model_missing || note_bad);
     $('.steps').innerHTML = step_rows().join('');
     draw_coverage();

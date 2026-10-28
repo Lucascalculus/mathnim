@@ -1,12 +1,15 @@
 // App chrome: navigation bar (with the language switch) + hash router.
 import { LANGS, type Lang } from '@mathnim/core';
-import { inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
+import { esc, inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
 import './i18n';
 import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
 import { load_settings } from './settings';
 import { settings_panel } from './pages/settings';
 import { lang_switch } from './lang_switch';
+import { accounts_available, current_user, sign_out, studio_available } from './account';
+import { login_form } from './login';
+import { SHEET } from './sheet';
 
 const CSS = `
 body{margin:0;background:#fbfbfa}
@@ -26,6 +29,27 @@ body{margin:0;background:#fbfbfa}
 .set-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(360px,calc(100vw - 24px));padding:4px 20px;z-index:30;box-shadow:0 18px 50px -12px rgba(0,0,0,.22)}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
+/* the account, beside the gear: a lab pass. Signed out, a tag with a punched hole; signed in, a badge with the initial
+   in the tutor's serif. The pass drops from it, drawn on the engineering sheet (sheet.ts); signing in stamps it. */
+.acct{flex:none;position:relative;display:flex;align-items:center;gap:7px;height:30px;margin-left:-6px;padding:0 12px 0 10px;border:1px solid var(--mn-border);border-radius:7px;background:var(--mn-panel);color:var(--mn-fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s,transform .15s}
+.acct::before{content:'';width:6px;height:6px;border-radius:50%;border:1.5px solid var(--mn-muted);box-sizing:border-box}
+.acct:hover,.acct[aria-expanded=true]{border-color:var(--mn-fg)}
+.acct.me{width:30px;padding:0;justify-content:center;border-radius:50%;font:600 14px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
+.acct.me::before{position:absolute;top:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-width:1px}
+.acct-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;z-index:30;display:flex;flex-direction:column;gap:12px;${SHEET};padding:16px 20px 18px;box-shadow:0 18px 50px -12px rgba(0,0,0,.25),0 0 0 1px var(--mn-border)}
+.acct-pop[hidden]{display:none}
+.pass-head{display:flex;justify-content:space-between;padding-bottom:10px;margin-bottom:2px;border-bottom:1px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
+.pass-who{font:italic 17px/1.4 Georgia,'Times New Roman',serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pass-note{margin:0;font-size:12.5px;line-height:1.45;color:var(--mn-muted)}
+.pass-links{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13.5px}
+.pass-links a{color:var(--mn-accent);text-decoration:none}
+.pass-links a:hover{text-decoration:underline}
+.pass-out{border:0;background:none;padding:0;margin-left:auto;font:inherit;font-size:13.5px;color:var(--mn-muted);cursor:pointer}
+.pass-out:hover{color:var(--mn-fg);text-decoration:underline}
+.pass-stamp{position:absolute;right:18px;bottom:16px;padding:5px 10px;border:2px solid var(--mn-accent);outline:1px solid var(--mn-accent);outline-offset:2px;border-radius:4px;color:var(--mn-accent);font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;transform:rotate(-8deg);opacity:.88;pointer-events:none;animation:pass-stamp .38s cubic-bezier(.3,1.6,.5,1) both;background:color-mix(in srgb,var(--mn-bg) 70%,transparent)}
+@keyframes pass-stamp{from{transform:rotate(-8deg) scale(1.9);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:.88}}
+@media (prefers-reduced-motion:reduce){.pass-stamp{animation:none}}
+@media (max-width:640px){.acct-pop{left:10px;right:10px;width:auto}}
 .langs{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--mn-border);border-radius:999px;padding:2px;background:var(--mn-panel);flex:none;isolation:isolate}
 .langs::before{content:'';position:absolute;z-index:-1;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);border-radius:999px;background:var(--mn-fg);transition:transform .42s cubic-bezier(.3,1.35,.45,1)}
 .langs[data-on="1"]::before{transform:translateX(100%)}
@@ -231,21 +255,81 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     pop.hidden = true;
     nav.querySelector('.gear')?.setAttribute('aria-expanded', 'false');
   };
+  // the account card drops from its button the same way
+  const acct_pop = document.createElement('div');
+  acct_pop.className = 'acct-pop card';
+  acct_pop.hidden = true;
+  const close_account = () => {
+    acct_pop.hidden = true;
+    nav.querySelector('.acct')?.setAttribute('aria-expanded', 'false');
+  };
   document.addEventListener('pointerdown', (e) => {
     if (!pop.hidden && !pop.contains(e.target as Node) && !(e.target as Element).closest?.('.gear')) close_settings();
+    if (!acct_pop.hidden && !acct_pop.contains(e.target as Node) && !(e.target as Element).closest?.('.acct')) close_account();
   });
-  document.addEventListener('keydown', (e) => e.key === 'Escape' && close_settings());
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    close_settings();
+    close_account();
+  });
+  // the pass: its number (from the account id) once there is an account, the sign-in form until then
+  const pass_head = (n: string) => `<div class="pass-head"><span>LAB PASS</span><span>№ ${esc(n)}</span></div>`;
+  let stamping = false;
+  const account_card = () => {
+    const me = current_user();
+    if (!me) {
+      acct_pop.innerHTML = `${pass_head('— — — —')}<p class="pass-note">${esc(t(studio_available() ? 'account_help' : 'account_help_progress'))}</p>`;
+      acct_pop.append(
+        login_form(() => {
+          // admitted: the pass is stamped, then it puts itself away (the top bar already shows the badge)
+          stamping = true;
+          const id = current_user()?.id ?? '';
+          acct_pop.querySelector('.pass-head span:last-child')!.textContent = `№ ${id.slice(0, 4).toUpperCase()}`;
+          acct_pop.insertAdjacentHTML('beforeend', `<div class="pass-stamp">${esc(t('admitted'))}</div>`);
+          setTimeout(() => {
+            stamping = false;
+            close_account();
+          }, 1100);
+        }),
+      );
+      return;
+    }
+    acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase())}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
+      <div class="pass-links">${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
+    acct_pop.querySelector<HTMLButtonElement>('.pass-out')!.onclick = () => {
+      close_account();
+      void sign_out();
+    };
+  };
   let current: Route = parse(location.pathname);
   const render_nav = () => {
     const lang = ui_lang();
+    const me = current_user();
+    const acct = !accounts_available()
+      ? ''
+      : me
+        ? `<button type="button" class="acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${esc(me.email.slice(0, 1))}</button>`
+        : `<button type="button" class="acct" aria-expanded="false">${esc(t('sign_in'))}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
       <span class="langs-slot"></span>
+      ${acct}
       <button type="button" class="gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button>`;
-    nav.append(pop);
+    nav.append(pop, acct_pop);
+    const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');
+    if (acct_btn)
+      acct_btn.onclick = () => {
+        if (!acct_pop.hidden) return close_account();
+        close_settings();
+        account_card();
+        acct_pop.hidden = false;
+        acct_btn.setAttribute('aria-expanded', 'true');
+        acct_pop.querySelector('input')?.focus();
+      };
     nav.querySelector('.langs-slot')!.replaceWith(lang_switch());
     const gear = nav.querySelector<HTMLButtonElement>('.gear')!;
     gear.onclick = () => {
       if (!pop.hidden) return close_settings();
+      close_account();
       pop.replaceChildren(settings_panel());
       pop.hidden = false;
       gear.setAttribute('aria-expanded', 'true');
@@ -267,6 +351,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     // (a new language keeps the settings open, re-set in it; any other page closes them)
     if (!relocalizing) close_settings();
     else if (!pop.hidden) pop.replaceChildren(settings_panel());
+    if (!stamping) close_account();
     render_nav();
     if (!pop.hidden) nav.querySelector('.gear')?.setAttribute('aria-expanded', 'true');
     page.innerHTML = '';

@@ -3,9 +3,7 @@
 // the top bar itself; the model choice and keys are under "Advanced"; clearing
 // this browser's records asks first.
 import { esc, t } from '@mathnim/present';
-import { accounts_available, current_user, sign_out, studio_available } from '../account';
 import { lang_switch } from '../lang_switch';
-import { login_form } from '../login';
 import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
 
 // the lesson narrator keeps its own switches under this key (see Narrator)
@@ -45,24 +43,10 @@ const CSS = `
 .set-panel input.mn-input{font:inherit;font-size:14px}
 .set-clear{border:0;background:none;padding:0;font:inherit;font-size:14px;font-weight:600;color:var(--mn-bad);cursor:pointer;text-align:left}
 .set-clear:hover{text-decoration:underline}
-.set-btn{flex:none;height:34px;padding:0 14px;font-size:14px}
-.set-email{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.set-acct small a{color:var(--mn-accent);text-decoration:none}
-.set-acct small a:hover{text-decoration:underline}
-.set-out{flex:none;border:0;background:none;padding:0;font:inherit;font-size:13.5px;color:var(--mn-muted);cursor:pointer}
-.set-out:hover{color:var(--mn-fg);text-decoration:underline}
-.set-panel>.set-login{border-top:0;padding:0 0 14px}
 `;
 let injected = false;
 
-function account_row(): string {
-  if (!accounts_available()) return '';
-  const me = current_user();
-  if (!me) return `<div class="set-row set-acct"><div class="set-what"><b>${esc(t('account'))}</b><small>${esc(t('account_help'))}</small></div><button type="button" class="mn-btn set-btn" id="set-signin">${esc(t('sign_in'))}</button></div>`;
-  return `<div class="set-row set-acct"><div class="set-what"><b class="set-email">${esc(me.email)}</b>${studio_available() ? `<small><a href="/studio">${esc(t('my_studio'))}</a></small>` : ''}</div><button type="button" class="set-out" id="set-signout">${esc(t('sign_out'))}</button></div>`;
-}
-
-/** The panel: the account, narration, the AI in use (the rest under Advanced), clearing this browser's records. */
+/** The panel: narration, the AI in use (the rest under Advanced), clearing this browser's records. */
 export function settings_panel(): HTMLElement {
   if (!injected) {
     injected = true;
@@ -76,7 +60,7 @@ export function settings_panel(): HTMLElement {
   const el = document.createElement('div');
   el.className = 'set-panel';
   const chev = '<svg class="set-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  el.innerHTML = `${account_row()}
+  el.innerHTML = `
     <div class="set-row"><div class="set-what"><b>${esc(t('language'))}</b><small>${esc(t('language_help_short'))}</small></div><span class="set-lang"></span></div>
     <div class="set-row"><div class="set-what"><b>${esc(t('narration'))}</b><small>${esc(t('narration_help'))}</small></div>
       <button type="button" class="set-switch" role="switch" id="set-voice" aria-checked="${narration_on()}" aria-label="${esc(t('narration'))}"></button></div>
@@ -107,17 +91,6 @@ export function settings_panel(): HTMLElement {
     </details>
     <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>`;
   el.querySelector('.set-lang')!.replaceWith(lang_switch());
-  // the account: sign in right here (the form takes the row's place), or the address, my courses and sign out
-  el.querySelector<HTMLButtonElement>('#set-signin')?.addEventListener('click', () => {
-    const row = el.querySelector('.set-acct')!;
-    const box = document.createElement('div');
-    box.className = 'set-login';
-    box.append(login_form());
-    row.after(box);
-    el.querySelector<HTMLButtonElement>('#set-signin')!.hidden = true;
-    box.querySelector('input')?.focus();
-  });
-  el.querySelector<HTMLButtonElement>('#set-signout')?.addEventListener('click', () => void sign_out());
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => el.querySelector<T>('#set-' + id)!;
   const read = (): Settings => ({
     ...load_settings(),

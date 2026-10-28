@@ -178,6 +178,8 @@ define_ui({
   // ---- account (login.ts, the settings panel)
   account: { en: 'Account', zh: '账号' },
   account_help: { en: 'Your progress and the courses you make follow you to other devices', zh: '登录后，进度和你生成的课程会跟着你到其它设备' },
+  admitted: { en: 'ADMITTED', zh: '已登记' },
+  account_help_progress: { en: 'Your progress follows you to other devices', zh: '登录后，学习进度会跟着你到其它设备' },
   email: { en: 'Email', zh: '邮箱' },
   send_code: { en: 'Send code', zh: '发送验证码' },
   code_sent: { en: 'Code sent to {email}', zh: '验证码已发到 {email}' },
@@ -195,6 +197,7 @@ define_ui({
   my_studio: { en: 'My uploaded courses', zh: '我的课件课程' },
   studio_title: { en: 'Turn your slides into a course', zh: '用课件生成一门课' },
   studio_lead: { en: 'Lecture slides and practice exams in, a course that explains them better out.', zh: '放进课件和模拟题，得到一门比课件讲得更明白的课。' },
+  studio_testing: { en: "Drop all your class slides here, and generate a lesson just for you! This function is still in testing (and because I don't have enough token 😜)", zh: '把你的课件都放进来，生成一门只属于你的课！这个功能还在测试（也因为我的 token 不太够 😜）' },
   studio_entry: { en: 'Turn your own slides into a course', zh: '用你的课件生成一门课' },
   studio_new: { en: 'New course', zh: '新建课程' },
   untitled: { en: 'Untitled course', zh: '未命名课程' },

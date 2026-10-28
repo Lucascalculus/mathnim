@@ -16,6 +16,7 @@ import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathni
 import { esc, math_html, reading, t, ui_lang, type LessonView } from '@mathnim/present';
 import type { CourseLesson } from './course';
 import { has_model, provider } from './settings';
+import { SHEET } from './sheet';
 import { log } from './store';
 import { lesson_context } from './student';
 
@@ -25,7 +26,7 @@ const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5
 const INKS = ['#ffe27a', '#ffbfd2', '#b9ecc8', '#bcd9ff', '#d8c7ff', '#ffd2a3'];
 
 /** The engineering sheet (a dot grid, crop marks at the corners): the ask box, and an open asked note. */
-const SHEET = `--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:12px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)`;
+
 
 const CSS = `
 .mn-rail{position:relative;font-family:inherit}

@@ -1,0 +1,4 @@
+// The engineering sheet: a dot grid with crop marks at the corners. The margin
+// tutor's ask box and open notes are drawn on it (side_chat.ts), and so is the
+// lab pass that signs a learner in (shell.ts). CSS declarations, to put inside a rule.
+export const SHEET = `--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);--m:color-mix(in srgb,var(--mn-fg) 55%,transparent);padding:12px 18px 14px;background:linear-gradient(var(--m),var(--m)) 0 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 0/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 0 100%/1px 12px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/12px 1px no-repeat,linear-gradient(var(--m),var(--m)) 100% 100%/1px 12px no-repeat,radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg)`;
