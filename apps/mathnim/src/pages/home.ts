@@ -41,8 +41,9 @@ function course_card(c: Course): string {
   // a course already begun says where to pick up, right on its card (no separate "continue" section)
   const go = started(c) ? current_lesson(c) : undefined;
   return `
-    <article class="card course-card"${accent(c)}>
+    <article class="card course-card${c.generated ? ' gen' : ''}"${accent(c)}>
       <a class="course-link" href="${course_path(c)}">
+        ${c.generated ? `<span class="gen-label">${esc(t('gen_label', { d: c.generated.decks, n: c.generated.lessons }))}</span>` : ''}
         ${cover(c)}
         <div class="course-name">${math_html(tr(c.title, lang))}</div>
         ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
@@ -58,14 +59,20 @@ export function home(root: HTMLElement): void {
   const lang = ui_lang();
   // a course being built (hidden) is not listed yet; its pages open by their address
   const shown = COURSES.filter((c) => !c.hidden);
+  // courses the model made from slides are a section of their own, after the ones people made
+  const generated = shown.filter((c) => c.generated);
   const groups: { name: string; courses: Course[] }[] = [];
-  for (const c of shown) {
+  for (const c of shown.filter((x) => !x.generated)) {
     const name = c.category ? tr(c.category, lang) : t('all_courses');
     const g = groups.find((x) => x.name === name) ?? (groups.push({ name, courses: [] }), groups[groups.length - 1]);
     g.courses.push(c);
   }
   root.innerHTML = groups.map((g) => `<h2 class="section-title">${esc(g.name)}</h2><div class="catalog">${g.courses.map(course_card).join('')}</div>`).join('')
-    + (studio_available() ? `<a class="studio-entry" href="/studio">＋ ${esc(t('studio_entry'))}</a>` : '');
+    + (generated.length || studio_available()
+      ? `<section class="gen-section"><h2 class="section-title">${esc(t('gen_section'))}</h2><p class="gen-lead">${esc(t('gen_lead'))}</p>
+        ${generated.length ? `<div class="catalog">${generated.map(course_card).join('')}</div>` : ''}
+        ${studio_available() ? `<a class="studio-entry" href="/studio">＋ ${esc(t('studio_entry'))}</a>` : ''}</section>`
+      : '');
   draw_thumbnails(root);
 }
 
@@ -103,6 +110,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         <div class="hero-text">
           ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
           <h1>${math_html(tr(c.title, lang))}</h1>
+          ${c.generated ? `<p class="gen-tag">${esc(t('gen_tag', { d: c.generated.decks, e: c.generated.exams }))}</p>` : ''}
           
           ${go ? `<div class="row hero-go">
             <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>

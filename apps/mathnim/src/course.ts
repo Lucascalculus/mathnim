@@ -107,6 +107,8 @@ export interface Course {
   labs?: Lab[];
   /** Not listed on the home page yet (being built); its pages still open by their address. */
   hidden?: boolean;
+  /** Made by the model from uploaded slides in one pass, with no person editing it (pages/studio.ts): what from. */
+  generated?: { decks: number; exams: number; lessons: number };
   units: Unit[];
 }
 

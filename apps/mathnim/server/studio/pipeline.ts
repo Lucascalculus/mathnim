@@ -434,6 +434,8 @@ export function catalog_entry(s: State, me: string | null, o: { all?: boolean } 
     mine: s.course.owner === me,
     public: !!s.course.public,
     ready: course_ready(s),
+    // what it was made from (made in one pass by the model, no person editing it: "zero-shot")
+    origin: { decks: slides_of(s).length, exams: exams_of(s).length },
     units,
     lessons,
   };

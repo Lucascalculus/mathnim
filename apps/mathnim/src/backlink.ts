@@ -1,4 +1,4 @@
-// The way back to the page above: three arrows, then the words, which crop marks frame when pointed at
+// The way back to the page above: "‹" and the words; pointed at, more arrows and a frame of crop marks
 // (styles in shell.ts, .backlink).
 import { esc } from '@mathnim/present';
 
@@ -6,4 +6,4 @@ const ARROW = '<svg viewBox="0 0 6 10" aria-hidden="true"><path d="M5 1 1 5l4 4"
 
 /** A back link to `href` named `label` (plain text). */
 export const backlink = (href: string, label: string, cls = '') =>
-  `<a class="backlink${cls ? ` ${cls}` : ''}" href="${esc(href)}"><span class="bk-arrows" aria-hidden="true"><i>${ARROW}</i><i>${ARROW}</i><i>${ARROW}</i></span><span class="bk-label">${esc(label)}<b></b><b></b><b></b><b></b></span></a>`;
+  `<a class="backlink${cls ? ` ${cls}` : ''}" href="${esc(href)}"><span class="bk-arrows" aria-hidden="true"><i>${ARROW}</i><i>${ARROW}</i><i>${ARROW}</i></span><span>${esc(label)}</span><b></b><b></b><b></b><b></b></a>`;

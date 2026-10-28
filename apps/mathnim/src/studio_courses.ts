@@ -4,25 +4,27 @@
 // COURSES at start, so the home page, course pages, lessons, the learner model
 // and review treat them like the hand-made courses; each lesson's data is
 // fetched when opened.
-import type { Lang, Lesson, Skill } from '@mathnim/core';
+import type { L10n, Lang, Lesson, Skill } from '@mathnim/core';
 import { COURSES, type Course, type LessonMeta } from './course';
 import { learner } from './store';
 
 /** What /api/studio/catalog lists for a course (server/studio/pipeline.ts catalog_entry). */
 export interface StudioEntry {
   id: string;
-  title: string;
-  summary: string;
-  audience: string;
-  outcomes: string[];
+  title: L10n;
+  summary: L10n;
+  audience: L10n;
+  outcomes: L10n[];
   lang: Lang;
   mine: boolean;
   public: boolean;
   ready: boolean;
   /** Published as static files (public/demo/<id>/): its lessons load from there. */
   demo?: boolean;
-  units: { title: string; lessons: string[] }[];
-  lessons: { id: string; title: string; summary: string; minutes: number; meta: LessonMeta }[];
+  /** What it was made from. */
+  origin?: { decks: number; exams: number };
+  units: { title: L10n; lessons: string[] }[];
+  lessons: { id: string; title: L10n; summary: L10n; minutes: number; meta: LessonMeta }[];
 }
 
 export const studio_slug = (id: string) => `course-${id}`;
@@ -43,6 +45,7 @@ export function course_of_entry(e: StudioEntry): Course {
     outcomes: e.outcomes.length ? e.outcomes : undefined,
     category: e.mine ? MINE : e.demo ? DEMO : SHARED,
     accent: '#0F766E',
+    generated: { decks: e.origin?.decks ?? 0, exams: e.origin?.exams ?? 0, lessons: e.lessons.length },
     units: e.units.map((u, i) => ({
       id: `u${i + 1}`,
       title: u.title,

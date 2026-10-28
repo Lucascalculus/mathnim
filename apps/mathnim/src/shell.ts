@@ -26,7 +26,8 @@ body{margin:0;background:#fbfbfa}
 .set-pop[hidden]{display:none}
 @media (max-width:640px){.set-pop{left:10px;right:10px;width:auto}}
 /* the top bar's tools, bare at rest: the account (signed out a blank sheet, a 3x3 dot grid; signed in, the initial
-   in the tutor's serif), which four crop marks close in on when pointed at, and the settings gear, which turns.
+   in the tutor's serif), which four crop marks close in on when pointed at, and the settings gear, which turns when
+   pointed at and is held by the crop marks while its panel is open.
    The account's card drops from it as a lab pass on the engineering sheet (sheet.ts); signing in stamps it. */
 .nav-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
 .nav-ic{flex:none;position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--mn-muted);cursor:pointer;transition:color .15s}
@@ -36,11 +37,11 @@ body{margin:0;background:#fbfbfa}
 .nav-ic>i:nth-child(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
 .nav-ic>i:nth-child(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
 .nav-ic>i:nth-child(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
-.nav-ic:hover>i,.nav-ic[aria-expanded=true]>i,.nav-ic:focus-visible>i{opacity:1}
-.nav-ic:hover>i:nth-child(1),.nav-ic[aria-expanded=true]>i:nth-child(1),.nav-ic:focus-visible>i:nth-child(1){left:2px;top:2px}
-.nav-ic:hover>i:nth-child(2),.nav-ic[aria-expanded=true]>i:nth-child(2),.nav-ic:focus-visible>i:nth-child(2){right:2px;top:2px}
-.nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3),.nav-ic:focus-visible>i:nth-child(3){left:2px;bottom:2px}
-.nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4),.nav-ic:focus-visible>i:nth-child(4){right:2px;bottom:2px}
+.nav-ic:not(.gear):hover>i,.nav-ic[aria-expanded=true]>i,.nav-ic:focus-visible>i{opacity:1}
+.nav-ic:not(.gear):hover>i:nth-child(1),.nav-ic[aria-expanded=true]>i:nth-child(1),.nav-ic:focus-visible>i:nth-child(1){left:2px;top:2px}
+.nav-ic:not(.gear):hover>i:nth-child(2),.nav-ic[aria-expanded=true]>i:nth-child(2),.nav-ic:focus-visible>i:nth-child(2){right:2px;top:2px}
+.nav-ic:not(.gear):hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3),.nav-ic:focus-visible>i:nth-child(3){left:2px;bottom:2px}
+.nav-ic:not(.gear):hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4),.nav-ic:focus-visible>i:nth-child(4){right:2px;bottom:2px}
 .nav-ic svg{display:block;transition:transform .4s}
 .gear svg{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
 .gear:hover svg,.gear[aria-expanded=true] svg{transform:rotate(60deg)}
@@ -97,34 +98,40 @@ body{margin:0;background:#fbfbfa}
 .course-card .meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mn-muted)}
 .course-progress{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
 .course-progress i{display:block;height:100%;background:var(--mn-good)}
-/* home: the way to the courses made from one's own slides (pages/studio.ts) */
+/* home: courses the model made from slides, a section of their own drawn on the engineering sheet (zero-shot: one pass, no person editing) */
+.gen-section{margin-top:34px;padding-top:6px;border-top:1px dashed var(--mn-border)}
+.gen-lead{margin:-4px 0 14px;max-width:640px;font-size:14px;line-height:1.55;color:var(--mn-muted)}
+.course-card.gen{${SHEET};padding:18px;border-radius:4px;border:0;box-shadow:0 0 0 1px var(--mn-border);border-top:0}
+.course-card.gen:hover{box-shadow:0 0 0 1px var(--mn-accent)}
+.gen-label{align-self:flex-start;font:500 10.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--course-accent,var(--mn-accent))}
+.gen-tag{margin:2px 0 0;font:500 11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:var(--course-accent,var(--mn-accent))}
+/* the way to the courses made from one's own slides (pages/studio.ts) */
 .studio-entry{display:inline-block;margin-top:26px;font-size:14px;color:var(--mn-muted);text-decoration:none}
 .studio-entry:hover{color:var(--mn-accent)}
-/* the way back (backlink.ts): three arrows, then the words. Pointed at, crop marks close in around the words (the
-   engineering sheet) and a light runs leftwards through the arrows outside them, one dark among grey ones. */
-.backlink{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;margin:0 0 12px;font-size:14px;color:var(--mn-muted);text-decoration:none;transition:color .15s}
-.bk-label{position:relative;padding:5px 10px}
+/* the way back (backlink.ts): "‹" and the words. Pointed at, two more arrows come in on the left (their room is kept,
+   so nothing moves), a light runs leftwards through them, one dark among grey, and crop marks close in around it all. */
+.backlink{position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:7px;margin:0 0 12px -20px;padding:5px 12px 5px 6px;font-size:14px;color:var(--mn-muted);text-decoration:none;transition:color .15s}
 .backlink:hover,.backlink:focus-visible{color:var(--mn-fg)}
 .bk-arrows{display:inline-flex;gap:1px}
-.bk-arrows i{display:block;width:6px;height:10px;font-style:normal;color:color-mix(in srgb,var(--mn-fg) 22%,transparent)}
+.bk-arrows i{display:block;width:6px;height:10px;font-style:normal;color:color-mix(in srgb,var(--mn-fg) 22%,transparent);transition:opacity .25s}
 .bk-arrows i svg{display:block;width:6px;height:10px}
-.bk-arrows i:first-child{color:var(--mn-fg)}
-.backlink:hover .bk-arrows i,.backlink:focus-visible .bk-arrows i{color:color-mix(in srgb,var(--mn-fg) 22%,transparent);animation:bk-run 1.5s ease-out infinite}
-.backlink:hover .bk-arrows i:nth-child(3),.backlink:focus-visible .bk-arrows i:nth-child(3){animation-delay:0s}
+.bk-arrows i:nth-child(1),.bk-arrows i:nth-child(2){opacity:0}
+.bk-arrows i:nth-child(3){color:currentColor}
+.backlink:hover .bk-arrows i,.backlink:focus-visible .bk-arrows i{opacity:1;color:color-mix(in srgb,var(--mn-fg) 22%,transparent);animation:bk-run 1.5s ease-out infinite}
 .backlink:hover .bk-arrows i:nth-child(2),.backlink:focus-visible .bk-arrows i:nth-child(2){animation-delay:.5s}
 .backlink:hover .bk-arrows i:nth-child(1),.backlink:focus-visible .bk-arrows i:nth-child(1){animation-delay:1s}
 @keyframes bk-run{0%{color:var(--mn-fg);transform:translateX(0)}24%{color:var(--mn-fg);transform:translateX(-2px)}33%,100%{color:color-mix(in srgb,var(--mn-fg) 22%,transparent);transform:translateX(0)}}
-.bk-label>b{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:0;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .2s}
-.bk-label>b:nth-of-type(1){left:-4px;top:-4px;border-left-width:1.3px;border-top-width:1.3px}
-.bk-label>b:nth-of-type(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
-.bk-label>b:nth-of-type(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
-.bk-label>b:nth-of-type(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
-.backlink:hover .bk-label>b,.backlink:focus-visible .bk-label>b{opacity:1}
-.backlink:hover .bk-label>b:nth-of-type(1),.backlink:focus-visible .bk-label>b:nth-of-type(1){left:0;top:0}
-.backlink:hover .bk-label>b:nth-of-type(2),.backlink:focus-visible .bk-label>b:nth-of-type(2){right:0;top:0}
-.backlink:hover .bk-label>b:nth-of-type(3),.backlink:focus-visible .bk-label>b:nth-of-type(3){left:0;bottom:0}
-.backlink:hover .bk-label>b:nth-of-type(4),.backlink:focus-visible .bk-label>b:nth-of-type(4){right:0;bottom:0}
-@media (prefers-reduced-motion:reduce){.backlink .bk-arrows i{animation:none!important}.bk-label>b{transition:none}}
+.backlink>b{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:0;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .2s}
+.backlink>b:nth-of-type(1){left:-4px;top:-4px;border-left-width:1.3px;border-top-width:1.3px}
+.backlink>b:nth-of-type(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
+.backlink>b:nth-of-type(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
+.backlink>b:nth-of-type(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
+.backlink:hover>b,.backlink:focus-visible>b{opacity:1}
+.backlink:hover>b:nth-of-type(1),.backlink:focus-visible>b:nth-of-type(1){left:0;top:0}
+.backlink:hover>b:nth-of-type(2),.backlink:focus-visible>b:nth-of-type(2){right:0;top:0}
+.backlink:hover>b:nth-of-type(3),.backlink:focus-visible>b:nth-of-type(3){left:0;bottom:0}
+.backlink:hover>b:nth-of-type(4),.backlink:focus-visible>b:nth-of-type(4){right:0;bottom:0}
+@media (prefers-reduced-motion:reduce){.backlink .bk-arrows i{animation:none!important}.backlink>b{transition:none}}
 /* a course page */
 /* a course page's header: what the course is and how to begin, its moving cover in a plain frame, and the route along the bottom */
 .course-hero{padding:26px 28px 22px}
@@ -351,7 +358,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
         ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}</button>`
         : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${GEAR}</button></span>`;
+      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
     nav.append(pop, acct_pop);
     const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');
     if (acct_btn)

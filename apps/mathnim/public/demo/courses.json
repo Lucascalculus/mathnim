@@ -1,10 +1,7 @@
 [
  {
   "id": "5hujdkdkkm",
-  "title": {
-   "en": "Internet Technology: The Whole Journey of a Web Visit",
-   "zh": "互联网技术：一次网页访问走过的全程"
-  },
+  "title": "Internet Technologies (COMP90007)",
   "summary": {
    "en": "Layering and reference models, the physical layer, the data link layer and Ethernet, IP and routing, UDP/TCP and congestion control, DNS/HTTP/email/streaming, network security",
    "zh": "分层与参考模型、物理层、数据链路层与以太网、IP 与路由、UDP/TCP 与拥塞控制、DNS/HTTP/邮件/流媒体、网络安全"
@@ -31,6 +28,10 @@
   "mine": false,
   "public": true,
   "ready": false,
+  "origin": {
+   "decks": 20,
+   "exams": 2
+  },
   "units": [
    {
     "title": {
@@ -594,6 +595,7 @@
      },
      "mode": "essay",
      "langs": [
+      "en",
       "zh"
      ],
      "has_scene": false,
@@ -1026,6 +1028,7 @@
      },
      "mode": "essay",
      "langs": [
+      "en",
       "zh"
      ],
      "has_scene": false,
@@ -1221,7 +1224,7 @@
        }
       }
      ],
-     "checkpoints": 6
+     "checkpoints": 9
     }
    },
    {
@@ -1322,7 +1325,7 @@
        }
       }
      ],
-     "checkpoints": 6
+     "checkpoints": 13
     }
    },
    {
@@ -1606,6 +1609,7 @@
      },
      "mode": "essay",
      "langs": [
+      "en",
       "zh"
      ],
      "has_scene": false,
@@ -1700,6 +1704,7 @@
      },
      "mode": "essay",
      "langs": [
+      "en",
       "zh"
      ],
      "has_scene": false,

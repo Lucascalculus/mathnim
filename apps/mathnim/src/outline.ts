@@ -32,20 +32,30 @@ const CSS = `
 .ol-st{flex:none;width:14px;text-align:center;font-size:11px;color:var(--mn-muted)}
 .ol-lesson.done .ol-st{color:var(--mn-good)}
 .ol-lesson.started .ol-st{color:var(--mn-accent)}
-.ol-steps{list-style:none;margin:2px 0 6px;padding:0 0 0 20px;border-left:3px solid var(--mn-accent);background:color-mix(in srgb,var(--mn-accent) 4%,transparent)}
-.ol-chapter{padding:7px 10px 2px 16px;font-size:11.5px;color:var(--mn-muted);font-weight:600}
-.ol-step{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;font:inherit;font-size:13px;line-height:1.35;color:var(--mn-muted);background:transparent;border:0;padding:4px 10px 4px 16px;cursor:pointer}
+.ol-steps{position:relative;list-style:none;margin:2px 0 6px;padding:0 0 0 20px;background:color-mix(in srgb,var(--mn-accent) 4%,transparent)}
+.ol-chapter{position:relative;z-index:1;padding:9px 10px 3px 39px;font-size:11.5px;color:var(--mn-muted);font-weight:600}
+.ol-step{position:relative;z-index:1;display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;font:inherit;font-size:13px;line-height:1.35;color:var(--mn-muted);background:transparent;border:0;padding:4px 10px 4px 16px;cursor:pointer}
 .ol-step:hover{color:var(--mn-fg)}
-.ol-step .ol-dot{flex:none;width:7px;height:7px;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;transform:translateY(-1px)}
 .ol-step.done{color:var(--mn-fg)}
-.ol-step.done .ol-dot{background:color-mix(in srgb,var(--mn-accent) 45%,transparent);box-shadow:none}
 .ol-step.now{color:var(--mn-accent);font-weight:650}
-.ol-step.now .ol-dot{background:var(--mn-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--mn-accent) 22%,transparent)}
-/* steps where the learner acts: a world is a small diamond, code a pair of chevrons */
-.ol-step .ol-dot.world{border-radius:1px;width:6.5px;height:6.5px;transform:translateY(-1px) rotate(45deg)}
-.ol-step .ol-dot.code{width:10px;height:8px;border-radius:0;background:none!important;box-shadow:none!important}
-.ol-dot.code svg{display:block;width:10px;height:8px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.ol-step.done .ol-dot.code{color:color-mix(in srgb,var(--mn-accent) 60%,transparent)}
+/* the lesson as a metro line: the stretch travelled is lit; a step is a station, drawn by what it asks of the learner:
+   a stop to read or watch, a diamond for a question, an interchange (a double ring) for a world, a capsule for code.
+   The station the learner is at is held by crop marks (the engineering sheet). */
+.ol-steps::before,.ol-steps::after{content:'';position:absolute;z-index:0;left:41px;width:3px;border-radius:2px}
+.ol-steps::before{top:var(--l-top,0);height:var(--l-len,0);background:color-mix(in srgb,var(--mn-fg) 13%,transparent)}
+.ol-steps::after{top:var(--l-top,0);height:var(--l-done,0);background:color-mix(in srgb,var(--mn-accent) 65%,transparent);transition:height .45s cubic-bezier(.2,.8,.2,1)}
+.ol-sta{position:relative;flex:none;display:grid;place-items:center;width:14px;height:14px;margin-top:2px}
+.ol-sta>s{box-sizing:border-box;display:block;width:11px;height:11px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--mn-fg) 30%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
+.ol-sta.ask>s{width:10px;height:10px;border-radius:1.5px;transform:rotate(45deg)}
+.ol-sta.code>s{width:14px;height:9px;border-radius:5px}
+.ol-sta.world>s{width:7px;height:7px;border-width:2px}
+.ol-sta.world>u{position:absolute;inset:0;border-radius:50%;border:1.6px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);background:var(--mn-panel);z-index:-1;transition:transform .6s cubic-bezier(.3,1.4,.5,1),border-color .2s}
+.ol-step:hover .ol-sta.world>u{transform:rotate(90deg)}
+.ol-step.done .ol-sta>s,.ol-step.done .ol-sta>u{border-color:color-mix(in srgb,var(--mn-accent) 70%,transparent)}
+.ol-step.now .ol-sta>s{border-color:var(--mn-accent);background:var(--mn-accent)}
+.ol-step.now .ol-sta>u{border-color:var(--mn-accent)}
+.ol-step.now .ol-sta::after{content:'';position:absolute;inset:-4px;--c:var(--mn-accent);background:linear-gradient(var(--c),var(--c)) 0 0/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1.3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/5px 1.3px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1.3px 5px no-repeat}
+@media (prefers-reduced-motion:reduce){.ol-steps::after,.ol-sta.world>u{transition:none}}
 .ol-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;color:var(--mn-muted);background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
 .ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
 .ol-toggle svg{flex:none}
@@ -121,10 +131,25 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     }).join('')}</div>`).join('')}`;
   const steps = panel.querySelector<HTMLUListElement>('.ol-steps');
 
+  // a station by what the step asks of the learner (CSS above)
   const dot = (s: Step) =>
-    s.kind === 'explore' ? '<span class="ol-dot world" aria-hidden="true"></span>'
-    : s.kind === 'code' ? '<span class="ol-dot code" aria-hidden="true"><svg viewBox="0 0 10 8"><path d="M3.2 1 1 4l2.2 3M6.8 1 9 4 6.8 7"/></svg></span>'
-    : '<span class="ol-dot" aria-hidden="true"></span>';
+    s.kind === 'explore' ? '<span class="ol-sta world" aria-hidden="true"><u></u><s></s></span>'
+    : s.kind === 'checkpoint' ? '<span class="ol-sta ask" aria-hidden="true"><s></s></span>'
+    : s.kind === 'code' ? '<span class="ol-sta code" aria-hidden="true"><s></s></span>'
+    : '<span class="ol-sta" aria-hidden="true"><s></s></span>';
+  /** The line runs from the first station to the last; it is lit as far as the station the learner is at. */
+  const draw_line = () => {
+    if (!steps) return;
+    const stations = [...steps.querySelectorAll<HTMLElement>('.ol-sta')];
+    if (!stations.length) return;
+    const top = steps.getBoundingClientRect().top;
+    const y = (el: HTMLElement) => el.getBoundingClientRect().top - top + el.offsetHeight / 2;
+    const first = y(stations[0]), last = y(stations[stations.length - 1]);
+    const now = steps.querySelector<HTMLElement>('.ol-step.now .ol-sta');
+    steps.style.setProperty('--l-top', `${first}px`);
+    steps.style.setProperty('--l-len', `${last - first}px`);
+    steps.style.setProperty('--l-done', `${now ? y(now) - first : 0}px`);
+  };
   const render_steps = () => {
     if (!steps) return;
     const cur = o.view.runtime.index;
@@ -143,6 +168,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
       items.push(`<li><button type="button" class="ol-step${i < cur ? ' done' : i === cur ? ' now' : ''}" data-step="${esc(s.id)}"${i === cur ? ' aria-current="step"' : ''}>${dot(s)}<span>${math_html(title)}</span></button></li>`);
     });
     steps.innerHTML = items.join('');
+    draw_line();
     // keep the current step in view inside the outline (never scrolls the page)
     const now = steps.querySelector<HTMLElement>('.ol-step.now');
     if (now && !panel.hidden) {
