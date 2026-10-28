@@ -347,8 +347,10 @@ export async function run_step(db: SqlDb, s: State, key: string, d: RunDeps): Pr
   if (kind === 'lesson') {
     const prev = lesson_of(s, pl.id), review = review_of(s, pl.id);
     const rev = prev ? prev.rev + 1 : 1;
-    const decks = maps.filter((m) => pl.decks.includes(m.file));
-    const files = s.files.filter((f) => pl.decks.includes(f.id)).sort(by_name);
+    // its decks, and the deck of any point it teaches from elsewhere (a review deck's walk-through): the source goes with the point
+    const sources = new Set([...pl.decks, ...mine.map((p) => p.id.split('.')[0])]);
+    const decks = maps.filter((m) => sources.has(m.file));
+    const files = s.files.filter((f) => sources.has(f.id)).sort(by_name);
     const revise = prev && review ? { previous: JSON.stringify(prev.lesson), review: JSON.stringify({ points: review.points, issues: review.issues }) } : undefined;
     const lesson = await ask(
       {

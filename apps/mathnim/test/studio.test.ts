@@ -241,6 +241,9 @@ describe('plan checks', () => {
 describe('lesson format', () => {
   it('accepts a good lesson and names what is wrong with a bad one', () => {
     expect(check_lesson(lesson_json(['p1']), { id: 'x', skills: ['p1'] }).errors).toEqual([]);
+    const table = lesson_json(['p1']);
+    (table.steps[1] as { blocks: unknown[] }).blocks.push({ type: 'table', head: ['', 'TCP', 'UDP'], rows: [['order', 'yes', ''], ['cost', '$O(n)$', 'low']] });
+    expect(check_lesson(table, { id: 'x', skills: ['p1'] }).errors).toEqual([]);
     const bad = lesson_json(['p1']);
     (bad.steps[1] as { blocks: unknown[] }).blocks.push({ type: 'p', text: 'costs $5' }, { type: 'svg', svg: '<svg viewBox="0 0 1 1"><script>x</script></svg>', alt: 'x' });
     (bad.steps[3] as { skill: string }).skill = 'nope';

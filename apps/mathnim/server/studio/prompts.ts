@@ -184,9 +184,9 @@ What the lesson must do:
 - Teach every point above so a learner could explain it; a "core" point gets real teaching (intuition, mechanism, an example, a question), not a mention. The slides are the minimum: go deeper where it helps understanding, and do not copy their bullets.
 - Open with a concrete question, problem or surprise, often a "predict" checkpoint (choice, "auto_advance": true) that the next pages answer.
 - Purpose and intuition before mechanism; derivations and calculations as "derive" steps when the steps matter; diagrams as "svg" blocks where a picture explains better than words.
-- 3-6 practice/check questions spread through the lesson (not all at the end), including the adapted exam questions; each with "explain"; wrong options' feedback names the misconception.
+- Practice/check questions spread through the lesson (not all at the end): every core point is touched by at least one, usually 4-8 in all (a prediction does not count), including the adapted exam questions; each with "explain"; wrong options' feedback names the misconception.
 - Refer back to earlier lessons by name where this one builds on them; do not re-teach them.
-- 10-24 steps; step ids short and readable (e.g. "why-window", "check-rtt").
+- 10-30 steps; step ids short and readable (e.g. "why-window", "check-rtt").
 - ${lang_rules(o.lang)} Exam-style questions may keep technical terms in the original language.
 
 ${LESSON_FORMAT}${revise}`;

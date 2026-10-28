@@ -91,6 +91,10 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
     if (required || v !== undefined) err(where, 'a non-empty string is required');
     return false;
   };
+  const cell = (v: unknown, where: string) => {
+    if (typeof v !== 'string') return err(where, 'a string');
+    if (v.trim()) str(v, where);
+  };
   const obj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
   if (!obj(data)) return { lesson: null, errors: ['the reply is not a JSON object'], size };
   if (size > MAX_LESSON) err('lesson', `too long (${size} characters of JSON; at most ${MAX_LESSON})`);
@@ -133,12 +137,13 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
           if (/^\s*\$|\$\s*$/.test(b.tex)) err(at, 'a math block has no $ signs');
           return;
         case 'table':
+          // (a cell may be empty: the corner of a table with row labels, a blank in a comparison)
           if (!Array.isArray(b.head) || !b.head.length) return err(at, 'head: a non-empty array');
-          (b.head as unknown[]).forEach((x, k) => str(x, `${at}.head[${k}]`));
+          (b.head as unknown[]).forEach((x, k) => cell(x, `${at}.head[${k}]`));
           if (!Array.isArray(b.rows) || !b.rows.length) return err(at, 'rows: a non-empty array');
           return (b.rows as unknown[]).forEach((r, k) => {
             if (!Array.isArray(r) || r.length !== (b.head as unknown[]).length) return err(`${at}.rows[${k}]`, 'one cell per column');
-            r.forEach((x, j) => typeof x === 'string' ? str(x, `${at}.rows[${k}][${j}]`, false) : err(`${at}.rows[${k}][${j}]`, 'a string'));
+            r.forEach((x, j) => cell(x, `${at}.rows[${k}][${j}]`));
           });
         case 'code':
           if (typeof b.code !== 'string' || !b.code.trim()) err(at, 'code is required');
