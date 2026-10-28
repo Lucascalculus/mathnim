@@ -307,7 +307,10 @@ export class LessonView {
     (this.el.seek as HTMLInputElement).oninput = () => {
       const p = this.runtime.player;
       if (!p || this.runtime.step?.kind !== 'scene') return;
-      p.seek_time((+(this.el.seek as HTMLInputElement).value / 1000) * p.duration);
+      const t = (+(this.el.seek as HTMLInputElement).value / 1000) * p.duration;
+      p.seek_time(t);
+      // the voice goes with the picture (both start together and run at the same rate)
+      this.narrator.seek(t, p.playing);
     };
     (this.el.seek as HTMLInputElement).onchange = () => this.runtime.log.emit({ verb: 'seeked', lesson: this.lesson.id, step: this.runtime.step?.id });
     this.el.speed.onchange = () => {

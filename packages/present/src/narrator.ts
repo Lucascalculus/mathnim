@@ -26,6 +26,8 @@ export class Narrator {
   /** Live narration endpoint (POST {text} -> TtsReply), or null to never use it. */
   live: string | null;
   private audio: HTMLAudioElement | null = null;
+  /** The caption clock of the line playing (restarted when a seek brings back an ended line). */
+  private tick: (() => void) | null = null;
   private raf = 0;
   private token = 0;
   private key = 'mathnim.narration';
@@ -112,6 +114,7 @@ export class Narrator {
       }
       this.raf = requestAnimationFrame(tick);
     };
+    this.tick = tick;
     return new Promise((resolve) => {
       a.onended = () => {
         cancelAnimationFrame(this.raf);
@@ -125,6 +128,21 @@ export class Narrator {
         resolve();
       });
     });
+  }
+  /** Move the line to `t` seconds (the scene it goes with was seeked); past its end it stays quiet. */
+  seek(t: number, playing: boolean): void {
+    const a = this.audio;
+    if (!a || !Number.isFinite(a.duration)) return;
+    if (t >= a.duration) {
+      a.pause();
+      a.currentTime = a.duration;
+      return;
+    }
+    a.currentTime = Math.max(0, t);
+    if (playing && a.paused) {
+      cancelAnimationFrame(this.raf);
+      void a.play().then(() => this.tick?.(), () => {});
+    } else if (!playing) a.pause();
   }
   pause(): void {
     this.audio?.pause();
