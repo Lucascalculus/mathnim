@@ -32,7 +32,7 @@ const CSS = `
 .ol-st{flex:none;width:14px;text-align:center;font-size:11px;color:var(--mn-muted)}
 .ol-lesson.done .ol-st{color:var(--mn-good)}
 .ol-lesson.started .ol-st{color:var(--mn-accent)}
-.ol-steps{position:relative;list-style:none;margin:2px 0 6px;padding:0 0 0 20px;background:color-mix(in srgb,var(--mn-accent) 4%,transparent)}
+.ol-steps{position:relative;list-style:none;margin:2px 0 6px;padding:0 0 0 20px;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel))}
 .ol-chapter{position:relative;z-index:1;padding:9px 10px 3px 39px;font-size:11.5px;color:var(--mn-muted);font-weight:600}
 .ol-step{position:relative;z-index:1;display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;font:inherit;font-size:13px;line-height:1.35;color:var(--mn-muted);background:transparent;border:0;padding:4px 10px 4px 16px;cursor:pointer}
 .ol-step:hover{color:var(--mn-fg)}
@@ -48,7 +48,7 @@ const CSS = `
 .ol-sta>s{box-sizing:border-box;display:block;width:9px;height:9px;border-radius:50%;border:1.75px solid color-mix(in srgb,var(--mn-fg) 28%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
 .ol-sta.ask>s{width:7.5px;height:7.5px;border-radius:1px;transform:rotate(45deg)}
 .ol-sta.code>s{display:none}
-.ol-sta.code>svg{position:relative;display:block;width:12px;height:9px;padding:1px 0;background:var(--mn-panel);fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.ol-sta.code>svg{position:relative;display:block;width:12px;height:11px;padding:2px 0;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel));fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
 .ol-step.done .ol-sta.code>svg{stroke:color-mix(in srgb,var(--mn-accent) 80%,transparent)}
 .ol-step.now .ol-sta.code>svg{stroke:var(--mn-accent);stroke-width:2}
 .ol-sta.world>s{width:7px;height:7px;border-width:1.75px}
