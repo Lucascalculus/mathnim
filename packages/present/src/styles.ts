@@ -20,10 +20,15 @@ export const CSS = `
 .mn-caption{min-height:46px;margin:-2px 0 -4px;padding:0 8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;line-height:1.4;color:var(--mn-fg);transition:opacity .25s}
 .mn-caption:empty{opacity:0}
 .mn-caption.offstage{display:none}
-/* two columns: the panel shows the narration, so the subtitle strip is only for narrow screens */
-@media (min-width:901px){.mn-caption{display:none}}
-/* one column: the subtitle under the figure says it in step, so the panel below does not say it again */
-@media (max-width:900px){.mn-app.mn-scenestep:not(.mn-game) .mn-side :is(.mn-prompt,.mn-side>:empty){display:none}}
+/* a scene ("video") is said by the subtitle under it, near the picture, and nowhere else: the side holds only the way on
+   and the tutor; once it has ended its whole narration is under the figure to read again. Other steps keep their panel
+   (on wide screens the subtitle is only for scenes) */
+@media (min-width:901px){.mn-app:not(.mn-scenestep) .mn-caption{display:none}}
+.mn-app.mn-scenestep:not(.mn-game) .mn-side{background:none;border:0;box-shadow:none;padding:0;overflow:visible}
+.mn-app.mn-scenestep:not(.mn-game) .mn-side :is(.mn-kicker,.mn-prompt,.mn-side>:empty){display:none}
+.mn-transcript{display:none;padding:0 8px;font-size:15.5px;line-height:1.6;color:var(--mn-fg)}
+.mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-transcript{display:block}
+.mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-caption{display:none}
 .mn-cue{transition:color .3s}.mn-cue.next{color:var(--mn-muted)}
 .mn-finding{margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--mn-warn) 12%,transparent);color:var(--mn-fg);font-size:14px}
 .mn-stars{margin-left:6px;color:var(--mn-warn);letter-spacing:1px}

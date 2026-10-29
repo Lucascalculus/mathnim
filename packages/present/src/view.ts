@@ -153,6 +153,8 @@ export class LessonView {
     stage.append(this.canvas, sk, (this.el.toast = h('div', 'mn-toast')));
     this.el.caption = h('div', 'mn-caption');
     this.el.caption.setAttribute('aria-live', 'polite');
+    // a scene's whole narration, under the figure once the scene has ended (while it plays, the subtitle says it a phrase at a time)
+    this.el.transcript = h('div', 'mn-transcript');
     this.el.page = h('div', 'mn-pagehost');
     const side = h('aside', 'mn-side');
     side.append(
@@ -230,7 +232,7 @@ export class LessonView {
     } else {
       // where am I: "step 5 of 17 · chapter" and a thin bar above the step dots
       this.el.where = h('div', 'mn-where');
-      left.append(stage, this.el.caption, bar, this.el.page, this.el.where);
+      left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page, this.el.where);
       app.append(head, left, side);
     }
     if (o.dev) app.append((this.el.dev = h('div', 'mn-dev', 'dev: linter + scene description')));
@@ -288,9 +290,17 @@ export class LessonView {
       seek.value = String(Math.round((t / p.duration) * 1000));
       this.el.time.textContent = `${fmt(t)} / ${fmt(p.duration)}`;
       this.show_playing(p.playing);
+      if (p.playing) this.show_ended(false);
     };
     p.set_rate(this.rate);
     if (this.o.dev) queueMicrotask(() => this.dev_report(p));
+  }
+  private shown_ended = false;
+  /** A scene that has ended shows its whole narration under the figure in place of the subtitle. */
+  private show_ended(ended: boolean): void {
+    if (ended === this.shown_ended) return;
+    this.shown_ended = ended;
+    this.app.classList.toggle('mn-ended', ended);
   }
   private show_voice(): void {
     this.el.voice.innerHTML = CORNERS + icon(this.narrator.enabled ? 'volume' : 'volume_off');
@@ -442,6 +452,8 @@ export class LessonView {
         // on interactive steps the instructions are in the panel: speak them, but keep the figure clear
         this.scene_step = s.kind === 'scene';
         this.app.classList.toggle('mn-scenestep', this.scene_step);
+        this.show_ended(false);
+        set_math(this.el.transcript, this.scene_step && s.narration ? this.runtime.text(s.narration) : '');
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
@@ -464,10 +476,11 @@ export class LessonView {
         const hasFigure = !!(s as { scene?: unknown }).scene;
         for (const k of ['play', 'seek', 'speed', 'export']) (this.el[k] as HTMLButtonElement).disabled = !hasFigure || (s.kind !== 'scene' && k !== 'export');
         if (s.kind === 'scene') {
-          const replay = this.button(t('replay'), () => this.replay());
           const cont = this.button(t('continue'), () => this.runtime.next(), true);
           cont.dataset.next = '';
-          this.el.actions.append(replay, cont);
+          // (in the essay view the play button replays an ended scene; the game keeps its Replay)
+          if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()));
+          this.el.actions.append(cont);
           if (s.narration) set_math(this.el.prompt, this.runtime.text(s.narration));
         }
         break;
@@ -481,6 +494,7 @@ export class LessonView {
         break;
       case 'scene-end':
         this.show_playing(false);
+        this.show_ended(true);
         break;
       case 'explore': {
         const scrubs = e.step.scrub ?? {};
