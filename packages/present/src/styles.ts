@@ -8,9 +8,13 @@ export const CSS = `
  font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--mn-fg);background:var(--mn-bg);
  --mn-main:minmax(0,1fr);
  display:grid;grid-template-columns:var(--mn-main) 360px;justify-content:start;grid-template-rows:auto auto 1fr;gap:16px;padding:16px;box-sizing:border-box;min-height:100%}
-/* a figure, its subtitle and the player fit above the lesson bar without scrolling: the figure's column is as wide as
-   the screen's height allows (16:9), and the side column follows it (the lesson bar's row shares --mn-main) */
-@media (min-width:901px){.mn-app.mn-has-lessonbar:not(.mn-game):not(.mn-nostage){--mn-main:minmax(0,calc((100vh - 310px) * 16 / 9))}}
+/* a figure, its subtitle and the player fit above the lesson bar without scrolling, in the same columns as a page:
+   the stage keeps the column's width and is as tall as the screen allows; the figure stays 16:9, centred in it */
+@media (min-width:901px){
+.mn-app.mn-has-lessonbar:not(.mn-game)>.mn-left{container-type:inline-size}
+.mn-app.mn-has-lessonbar:not(.mn-game) .mn-stage{aspect-ratio:auto;height:min(calc(100cqw * 9 / 16),calc(100vh - 310px));min-height:240px}
+.mn-app.mn-has-lessonbar:not(.mn-game) .mn-stage canvas{margin:auto;width:auto;height:100%;aspect-ratio:16/9}
+}
 .mn-app *{box-sizing:border-box}
 .mn-app.mn-dark{--mn-code-bg:#161a20;--mn-purple:#b69cff;--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-good:#5fd3a2;--mn-bad:#ff8a73;--mn-shadow:none}
 .mn-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:32px}
