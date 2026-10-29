@@ -48,7 +48,7 @@ const CSS = `
 .ol-sta>s{box-sizing:border-box;display:block;width:9px;height:9px;border-radius:50%;border:1.75px solid color-mix(in srgb,var(--mn-fg) 28%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
 .ol-sta.ask>s{width:7.5px;height:7.5px;border-radius:1px;transform:rotate(45deg)}
 .ol-sta.code>s{display:none}
-.ol-sta.code>svg{position:relative;display:block;width:12px;height:11px;padding:2px 0;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel));fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.ol-sta.code>svg{position:relative;display:block;width:15px;height:11px;padding:2px 0;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel));fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
 .ol-step.done .ol-sta.code>svg{stroke:color-mix(in srgb,var(--mn-accent) 80%,transparent)}
 .ol-step.now .ol-sta.code>svg{stroke:var(--mn-accent);stroke-width:2}
 .ol-sta.world>s{width:7px;height:7px;border-width:1.75px}
@@ -138,7 +138,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
   const dot = (s: Step) =>
     s.kind === 'explore' ? '<span class="ol-sta world" aria-hidden="true"><u></u><s></s></span>'
     : s.kind === 'checkpoint' ? '<span class="ol-sta ask" aria-hidden="true"><s></s></span>'
-    : s.kind === 'code' ? '<span class="ol-sta code" aria-hidden="true"><svg viewBox="0 0 12 9"><path d="M4 1 1 4.5 4 8M8 1l3 3.5L8 8"/></svg></span>'
+    : s.kind === 'code' ? '<span class="ol-sta code" aria-hidden="true"><svg viewBox="0 0 15 9"><path d="M4 1 1 4.5 4 8M11 1l3 3.5L11 8"/></svg></span>'
     : '<span class="ol-sta" aria-hidden="true"><s></s></span>';
   /** The line runs from the first station to the last; it is lit as far as the station the learner is at. */
   const draw_line = () => {
