@@ -13,6 +13,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { box, fit, label } from '../f/kit';
 import { LANG_SPEC, choice, idx, pick, resolve_lang, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface PadEosTrapParams extends Record<string, unknown> {
   pad_is_eos: boolean;
@@ -242,7 +243,7 @@ export class PadEosTrapScene extends Scene {
     upd_verdict();
     verdict.add_updater(upd_verdict);
     verdict.name = 'verdict';
-    const note = fit(label(pick(lang, 'labels and the count are exact (the collator rules); the generation is an illustration', 'labels 和计数是精确的（collator 的规则）；生成结果是示意'), 18, c.muted), 13.7, 0.32);
+    const note = aside(this, fit(label(pick(lang, 'labels and the count are exact (the collator rules); the generation is an illustration', 'labels 和计数是精确的（collator 的规则）；生成结果是示意'), 18, c.muted), 13.7, 0.32));
     note.move_to([0, -3.7, 0]);
 
     // ---- story

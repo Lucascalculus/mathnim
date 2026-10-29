@@ -47,8 +47,9 @@ browser and send back the ones that fall short.
    - Feedback (a snap, a success cue) only where it tells the learner
      something happened. Respect reduced motion.
 10. **Honest:**
-    - simulations and toy models are labelled on the canvas ("示意 / toy
-      model");
+    - simulations and toy models say so beside the figure, in a faint line
+      under it ("示意 / toy model", through `aside()` in @mathnim/visuals),
+      never as a sentence inside the picture;
     - real numbers come with their source;
     - illustrative transforms say so.
 

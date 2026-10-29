@@ -14,6 +14,7 @@ import { MAP, free_a1, map_regions, region_family, slice_law, type Poly } from '
 import { LANG_SPEC, Plot, clamp, fill_poly, hatch, live_label, live_vm, pick, poly_points, polys_points, resolve_lang, stroke, tex, words, type P3, type XY } from './kit';
 import { live_tex } from './qp_plane';
 import { mixed } from '../ft/d/kit';
+import { aside } from '../aside';
 
 export interface ExplicitMapParams extends Record<string, unknown> {
   story: string;
@@ -146,7 +147,7 @@ export const mpc_explicit_map = define_visual<ExplicitMapParams>({
         const law_title = mixed(lang === 'zh' ? ['沿这条线，第一步的', { tex: 'a_1' }] : ['first move', { tex: 'a_1' }, 'along the slice'], lbox.x0, 3.05, 22, c.purple);
         const free_word = words(L('dashed: no limits (one straight line)', '虚线：不管限制（一条直线）'), 20, c.muted, lbox.x0, -3.62, { max_w: 5.4 });
         const formula = tex('a_1 = K_r\\, x_0 + k_r', 28, c.ink).move_to([mbox.x0 + 1.15, 3.05, 0]);
-        const note = words(L('toy cart, exact', '玩具小车，精确计算'), 20, c.muted, 6.9, 3.62, { align: 'right' });
+        const note = aside(this, words(L('toy cart, exact', '玩具小车，精确计算'), 20, c.muted, 6.9, 3.62, { align: 'right' }));
         note.name = 'note';
 
         // ---- story

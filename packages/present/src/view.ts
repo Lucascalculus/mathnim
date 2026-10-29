@@ -24,7 +24,7 @@ import { hush_all, Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
 import { inject_styles } from './styles';
 import { CueGuide } from './cue';
-import { BlockRenderer, blocks_html, text_page, type PageController, type VisualResolver } from './text_pages';
+import { asides, BlockRenderer, blocks_html, text_page, type PageController, type VisualResolver } from './text_pages';
 
 const { parse, to_latex } = expr;
 
@@ -157,6 +157,8 @@ export class LessonView {
     this.el.caption.setAttribute('aria-live', 'polite');
     // a scene's whole narration, under the figure once the scene has ended (while it plays, the subtitle says it a phrase at a time)
     this.el.transcript = h('div', 'mn-transcript');
+    // what the figure is (a simulation, a toy model, real data and its source): a faint line under it, never in it
+    this.el.aside = h('div', 'mn-aside');
     this.el.page = h('div', 'mn-pagehost');
     const side = h('aside', 'mn-side');
     side.append(
@@ -227,7 +229,7 @@ export class LessonView {
       hud.append(speaker, tools);
       this.el.levelup = h('div', 'mn-levelup');
       stage.append(this.el.levelup);
-      left.append(hud, stage, this.el.page, this.el.steps);
+      left.append(hud, stage, this.el.aside, this.el.page, this.el.steps);
       app.append(head, left, side);
       try {
         this.stars = JSON.parse(localStorage.getItem(`mathnim.stars.${lesson.id}`) ?? '{}');
@@ -235,7 +237,7 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page);
+      left.append(stage, this.el.aside, this.el.caption, this.el.transcript, bar, this.el.page);
       // the way through the lesson, in one place on every step: a bar at the foot of the screen with (the app's
       // outline button,) the progress, back, and one button that is always the way on (sync_go)
       // laid out by reach: the rare ways (outline, back) at the left, the progress between, the way on alone at the
@@ -317,7 +319,13 @@ export class LessonView {
   private bind_player(p: ScenePlayer): void {
     this.o.on_player?.(p);
     const seek = this.el.seek as HTMLInputElement;
+    // (the figure's notes are known once it is built: its first frame)
+    let noted = false;
     p.opts.on_frame = (t) => {
+      if (!noted) {
+        noted = true;
+        this.el.aside.textContent = asides(p);
+      }
       if (!p.duration) return;
       seek.value = String(Math.round((t / p.duration) * 1000));
       this.el.time.textContent = `${fmt(t)} / ${fmt(p.duration)}`;
@@ -530,6 +538,7 @@ export class LessonView {
         // a text page has its own header: the panel keeps the outline and the way on
         this.el.kicker.textContent = text ? '' : [chapter, this.tr(s.title)].filter(Boolean).join(' · ');
         // on interactive steps the instructions are in the panel: speak them, but keep the figure clear
+        this.el.aside.textContent = ''; // (the step's own figure says its own, when it loads)
         this.scene_step = s.kind === 'scene';
         this.app.classList.toggle('mn-scenestep', this.scene_step);
         this.show_ended(false);

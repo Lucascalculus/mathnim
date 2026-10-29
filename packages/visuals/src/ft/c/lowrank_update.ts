@@ -17,6 +17,7 @@ import { tex } from '../../linalg/kit';
 import { at_left, at_right, caption, Choice, clamp, diverging, emit, heatmap, line, listen, live_label, rect, txt, type Listener, type P3, type UiLike } from './kit';
 import { energy_kept, lora_params, rank_for, reconstruct, rel_error } from './lowrank';
 import { LOWRANK_SOURCES, type LowrankSource } from './lowrank_data';
+import { aside } from '../../aside';
 
 export interface LowrankUpdateParams extends Record<string, unknown> {
   source: string;
@@ -336,7 +337,7 @@ export const lowrank_update = define_visual<LowrankUpdateParams>({
           }, 24, c.ink, (t) => at_left(t, PX, -3.05), { max_width: PX1 - PX }),
         );
         prm.name = 'params_readout';
-        const note = txt(L('energy and error: whole matrix', '能量和误差按整个矩阵计算'), 24, c.muted);
+        const note = aside(this, txt(L('energy and error: whole matrix', '能量和误差按整个矩阵计算'), 24, c.muted));
         at_left(fit(note, PX1 - PX), PX, -2.05);
 
         // ---- the story

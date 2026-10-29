@@ -16,6 +16,7 @@ import { tex } from '../../linalg/kit';
 import { Dot } from 'manim-web';
 import { HSlider, LANG_SPEC, clamp, dashed_poly, label, label_at, live_number, pick, polyline, rect, resolve_lang, seg, tag, type Lang, type P3 } from './kit';
 import { crossing_k, pass_at_k, question_set, sharpen } from './math';
+import { aside } from '../../aside';
 
 export interface PassKSharpenParams extends Record<string, unknown> {
   n_questions: number;
@@ -185,7 +186,7 @@ function world_scene(p: PassKSharpenParams): Scene {
       const illus = tag(pick(lang, 'illustrative transform', '示意变换'), BARS.x0 + 4.4, -3.55, 18);
       const tl = label_at(pick(lang, 'questions you lifted:', '你抬高的题：'), CH.x0, -3.2, 20, c.ink);
       const taught = VGroup(tl, live_number(() => this.taught(), [tl.get_right()[0] + 0.18, -3.2], { decimals: 0, size: 24, color: c.gold }));
-      const exact = tag(pick(lang, 'pass@k: exact formula', 'pass@k：按公式精确计算'), 6.9, -3.6, 18, 'right');
+      const exact = aside(this, tag(pick(lang, 'pass@k: exact formula', 'pass@k：按公式精确计算'), 6.9, -3.6, 18, 'right'));
 
       // ---- story
       s.set_value(0);

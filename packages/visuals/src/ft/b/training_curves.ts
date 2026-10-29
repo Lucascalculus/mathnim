@@ -8,6 +8,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { fit, label } from '../f/kit';
 import { LANG_SPEC, pick, resolve_lang, seg, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface TrainingCurvesParams extends Record<string, unknown> {
   preset: string;
@@ -130,7 +131,7 @@ export const training_curves = define_visual<TrainingCurvesParams>({
         loss_panel.name = 'loss_panel';
         metric_panel.name = 'metric_panel';
         legend.name = 'legend';
-        const note = fit(label(p.preset === 'custom' ? pick(lang, 'your numbers', '你的数据') : pick(lang, 'illustration: typical shapes, not a real run', '示意：典型形状，不是某次真实训练'), 20, c.muted), 6, 0.36);
+        const note = aside(this, fit(label(p.preset === 'custom' ? pick(lang, 'your numbers', '你的数据') : pick(lang, 'illustration: typical shapes, not a real run', '示意：典型形状，不是某次真实训练'), 20, c.muted), 6, 0.36));
         note.move_to([6.7 - note.width / 2, -3.65, 0]);
         note.name = 'note';
         const answers: Record<string, [string, string]> = {

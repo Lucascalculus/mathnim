@@ -11,6 +11,7 @@ import { define_visual } from '../../visual';
 import { arrow, dashed, tex } from '../../linalg/kit';
 import { best_baseline, pg_estimates, plane3 } from './math';
 import { LANG_SPEC, clamp, label, label_at, live_number, mixed, pick, polyline, rect, resolve_lang, seg, x_ticks, type Lang, type P3 } from './kit';
+import { aside } from '../../aside';
 
 export interface PgBaselineParams extends Record<string, unknown> {
   story: string;
@@ -148,7 +149,7 @@ export const pg_baseline = define_visual<PgBaselineParams>({
           return g;
         });
         trace.name = 'trace';
-        const exact = label(pick(lang, 'toy policy, exact', '玩具策略，精确计算'), 22, c.muted);
+        const exact = aside(this, label(pick(lang, 'toy policy, exact', '玩具策略，精确计算'), 22, c.muted));
         exact.move_to([-6.9 + exact.width / 2, -3.65, 0]);
 
         // ---- story

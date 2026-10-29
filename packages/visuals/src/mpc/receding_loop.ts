@@ -11,6 +11,7 @@ import { define_visual } from '../visual';
 import { CART } from './math';
 import { dock_run } from './dock';
 import { HorizonStrip, LANG_SPEC, Plot, Track, live_label, pick, resolve_lang, tex, visible_when, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface RecedingLoopParams extends Record<string, unknown> {
   N: number;
@@ -116,7 +117,7 @@ export const mpc_receding_loop = define_visual<RecedingLoopParams>({
         // ---- readouts and the honest label
         const clock = live_label(() => `t = ${(Math.min(kf.get_value(), end_k) * CART.dt).toFixed(1)} s`, 24, c.ink, (m) => m.move_to([6.6 - m.width / 2, 3.62, 0]));
         clock.name = 'clock';
-        const note = words(L('simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s', '玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s'), 20, c.muted, -6.9, 3.62);
+        const note = aside(this, words(L('simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s', '玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s'), 20, c.muted, -6.9, 3.62));
         note.name = 'note';
         const outcome_text = run.crash_k >= 0
           ? L(`hits the wall at ${run.impact.toFixed(2)} m/s`, `以 ${run.impact.toFixed(2)} m/s 撞上墙`)

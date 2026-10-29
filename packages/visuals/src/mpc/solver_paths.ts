@@ -17,6 +17,7 @@ import { live_number } from '../ft/d/kit';
 import { PlanPlane, qp_view, type QpView } from './qp_plane';
 import { active_set_path, admm_path, ip_path } from './solvers2d';
 import { LANG_SPEC, live_vm, pick, polys_points, resolve_lang, stroke, tex, visible_when, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface SolverPathsParams extends Record<string, unknown> {
   story: string;
@@ -122,8 +123,8 @@ export const mpc_solver_paths = define_visual<SolverPathsParams>({
             L('a step: the same matrix every time (factored once), then a clip', '一步：每次都是同一个矩阵（只分解一次），再截断一下'), 'count_admm'),
         );
         rows.name = 'panel';
-        const note = words(L('toy two-move cart QP, exact; ADMM with fixed ρ = 3, no scaling',
-          '玩具小车的两步 QP，精确计算；ADMM 取固定 ρ = 3，不缩放'), 20, c.muted, RX, -2.4, { max_w: 6.5 });
+        const note = aside(this, words(L('toy two-move cart QP, exact; ADMM with fixed ρ = 3, no scaling',
+          '玩具小车的两步 QP，精确计算；ADMM 取固定 ρ = 3，不缩放'), 20, c.muted, RX, -2.4, { max_w: 6.5 }));
         const note2 = words(L('the counts are for this little QP; real ones: next pages', '步数只对这个小 QP 成立；真实的数字见后面几页'), 20, c.muted, RX, -3.0, { max_w: 6.5 });
         note.name = 'note';
 

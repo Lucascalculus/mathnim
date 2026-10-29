@@ -16,6 +16,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { LANG_SPEC, Plot, StepSlider, Track, emit, fit, label, listen, live_label, pick, resolve_lang, tex, words, type Listener, type XY } from './kit';
 import { W3, meets_fast, meets_gentle, weights_run, type WeightsRun } from './weights_math';
+import { aside } from '../aside';
 
 export interface WeightsParams extends Record<string, unknown> {
   q_v: number;
@@ -103,7 +104,7 @@ export const mpc_weights = define_visual<WeightsParams>({
         };
 
         // ---- honest label
-        const note = words(L('simulation of a toy cart; nothing in the controller limits |a|', '玩具小车的模拟；控制器里没有任何对 |a| 的限制'), 20, c.muted, -6.9, 3.62, { max_w: LEFT.x1 + 6.9 - 0.1 });
+        const note = aside(this, words(L('simulation of a toy cart; nothing in the controller limits |a|', '玩具小车的模拟；控制器里没有任何对 |a| 的限制'), 20, c.muted, -6.9, 3.62, { max_w: LEFT.x1 + 6.9 - 0.1 }));
         note.name = 'note';
 
         // ---- the track: start at 0, the flag at 6

@@ -10,6 +10,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { fit, label } from '../f/kit';
 import { LANG_SPEC, choice, clamp, idx, pick, readout, rect, resolve_lang, seg, slider, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface EvalNoiseParams extends Record<string, unknown> {
   n: number;
@@ -242,7 +243,7 @@ export class EvalNoiseScene extends Scene {
     d_ctl.group.add_updater((m: any) => m.set_opacity(this.is_paired() ? 1 : 0.35));
     const controls = VGroup(n_ctl.group, pair_ctl.group, d_ctl.group);
     controls.name = 'controls';
-    const note = fit(label(pick(lang, `p_A = ${this.p.p_a}, p_B = ${this.pb().toFixed(2)}; curve: normal approximation; re-runs: seeded simulation`, `p_A = ${this.p.p_a}，p_B = ${this.pb().toFixed(2)}；曲线：正态近似；重新评测：固定种子的模拟`), 18, c.muted), 7.5, 0.32);
+    const note = aside(this, fit(label(pick(lang, `p_A = ${this.p.p_a}, p_B = ${this.pb().toFixed(2)}; curve: normal approximation; re-runs: seeded simulation`, `p_A = ${this.p.p_a}，p_B = ${this.pb().toFixed(2)}；曲线：正态近似；重新评测：固定种子的模拟`), 18, c.muted), 7.5, 0.32));
     note.move_to([6.85 - note.width / 2, 3.72, 0]);
     note.name = 'note';
 

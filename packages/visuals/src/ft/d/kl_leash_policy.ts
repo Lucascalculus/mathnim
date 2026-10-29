@@ -13,6 +13,7 @@ import { define_visual } from '../../visual';
 import { tex } from '../../linalg/kit';
 import { LEASH, expect, kl, tilt } from './math';
 import { HSlider, LANG_SPEC, Switch, clamp, label, label_at, live_number, mixed, pick, polyline, rect, resolve_lang, seg, x_ticks, y_ticks, type Lang, type P3 } from './kit';
+import { aside } from '../../aside';
 
 export interface KlLeashParams extends Record<string, unknown> {
   story: string;
@@ -223,7 +224,7 @@ export const kl_leash_policy = define_visual<KlLeashParams>({
           m.set_opacity(k);
         });
         const legend = VGroup(la, lg);
-        const toy = label(pick(lang, 'made-up numbers; π* exact', '示意数值；π* 是精确解'), 20, c.muted);
+        const toy = aside(this, label(pick(lang, 'made-up numbers; π* exact', '示意数值；π* 是精确解'), 20, c.muted));
         toy.move_to([-6.9 + toy.width / 2, -3.7, 0]);
         toy.name = 'toy_label';
 

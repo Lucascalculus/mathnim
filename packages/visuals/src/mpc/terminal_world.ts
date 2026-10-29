@@ -21,6 +21,7 @@ import {
   Choice, LANG_SPEC, Plot, dash_polys, StepSlider, Track, emit, fill_box, fill_poly, hatch, listen, live_label, live_vm, pick, polyline, polys_points, resolve_lang, stroke, tex, visible_when, words,
   type Listener, type XY,
 } from './kit';
+import { aside } from '../aside';
 
 export interface TerminalWorldParams extends Record<string, unknown> {
   N: number;
@@ -275,10 +276,10 @@ export const mpc_terminal_world = define_visual<TerminalWorldParams>({
           visible_when(sw(ly[6], polyline([[RX, ly[6]], [RX + 0.16, ly[6]]], c.good, 4), L('edge of the terminal set', '终端集的边界')), () => this.mode() === 'set'),
         );
         legend.name = 'legend';
-        const note = VGroup(
+        const note = aside(this, VGroup(
           words(L('simulation of a toy cart:', '玩具小车的模拟：'), 18, c.muted, RX, -1.75, { max_w: 3.9 }),
           words(L('|a| up to 1 m/s², |v| up to 2 m/s, Δt = 0.1 s', '|a| 不超过 1 m/s²，|v| 不超过 2 m/s，Δt = 0.1 秒'), 18, c.muted, RX, -2.05, { max_w: 3.9 }),
-        );
+        ));
         note.name = 'note';
 
         // ---- controls

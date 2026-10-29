@@ -15,6 +15,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { fit, label } from '../f/kit';
 import { LANG_SPEC, choice, clamp, idx, pick, readout, resolve_lang, seg, slider, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface TwoValleysParams extends Record<string, unknown> {
   lr: number;
@@ -262,7 +263,7 @@ export class TwoValleysScene extends Scene {
     this.ctls = [lr_ctl, rho_ctl, preset_ctl];
     const controls = VGroup(lr_ctl.group, rho_ctl.group, preset_ctl.group);
     controls.name = 'controls';
-    const note = fit(label(pick(lang, 'toy model: 2 parameters, exact gradient steps', '示意模型：2 个参数，精确的梯度下降'), 20, c.muted), 6, 0.36);
+    const note = aside(this, fit(label(pick(lang, 'toy model: 2 parameters, exact gradient steps', '示意模型：2 个参数，精确的梯度下降'), 20, c.muted), 6, 0.36));
     note.move_to([6.7 - note.width / 2, 3.65, 0]);
     note.name = 'toy_note';
 

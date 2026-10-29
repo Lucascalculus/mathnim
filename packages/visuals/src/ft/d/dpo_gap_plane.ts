@@ -15,6 +15,7 @@ import { define_visual } from '../../visual';
 import { arrow, dashed, tex } from '../../linalg/kit';
 import { DPO_TOY, dpo_run, log_sigmoid, toy_ches, type DpoState } from './math';
 import { LANG_SPEC, Switch, clamp, label, label_at, live_number, mixed, pick, polyline, rect, resolve_lang, seg, type Lang, type P3 } from './kit';
+import { aside } from '../../aside';
 
 export interface DpoGapParams extends Record<string, unknown> {
   story: string;
@@ -229,7 +230,7 @@ export const dpo_gap_plane = define_visual<DpoGapParams>({
         pw.add_updater((m: any) => m.move_to([Math.min(Pb(this.state().p[0]) + 0.12 + m.width / 2, 6.9 - m.width / 2), ROWS[0], 0]));
         const p3 = live_number(() => this.state().p[2], { decimals: 2, size: 22, color: c.coral });
         p3.add_updater((m: any) => m.move_to([Math.min(Pb(this.state().p[2]) + 0.12 + m.width / 2, 6.9 - m.width / 2), ROWS[2], 0]));
-        const toy = label(pick(lang, 'toy model, made-up numbers; exact gradient descent', '玩具模型，示意数值；梯度下降是精确计算'), 20, c.muted);
+        const toy = aside(this, label(pick(lang, 'toy model, made-up numbers; exact gradient descent', '玩具模型，示意数值；梯度下降是精确计算'), 20, c.muted));
         toy.move_to([6.9 - toy.width / 2, -3.45, 0]);
         toy.name = 'toy_label';
 

@@ -15,6 +15,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { BARS, DOCK_PLAN, bars_status, end_state, free_response, path, predict, snap_u, type BarsStatus } from './bars_math';
 import { LANG_SPEC, Plot, clamp, emit, fit, hatch, listen, live_label, pick, resolve_lang, tex, words, type Listener, type P3, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface BarsParams extends Record<string, unknown> {
   plan: string;
@@ -83,7 +84,7 @@ export const mpc_bars = define_visual<BarsParams>({
         const pth = () => path(this.plan());
         const st = () => this.status();
 
-        const note = words(L('simulation of a toy cart: |a| up to 1 m/s², each bar held for 0.1 s', '玩具小车的模拟：|a| 不超过 1 m/s²，每根柱子保持 0.1 秒'), 20, c.muted, -6.9, 3.68, { max_w: 9.6 });
+        const note = aside(this, words(L('simulation of a toy cart: |a| up to 1 m/s², each bar held for 0.1 s', '玩具小车的模拟：|a| 不超过 1 m/s²，每根柱子保持 0.1 秒'), 20, c.muted, -6.9, 3.68, { max_w: 9.6 }));
         note.name = 'note';
 
         // ---- a: the bars

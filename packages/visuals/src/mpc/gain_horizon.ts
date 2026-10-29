@@ -11,6 +11,7 @@ import { define_visual } from '../visual';
 import { dlqr, double_integrator } from './math';
 import { LANG_SPEC, Plot, pick, polyline, resolve_lang, tex, words, type XY } from './kit';
 import { gains_by_horizon } from './weights_math';
+import { aside } from '../aside';
 
 export interface GainHorizonParams extends Record<string, unknown> {
   q_v: number;
@@ -55,7 +56,7 @@ export const mpc_gain_horizon = define_visual<GainHorizonParams>({
         title.submobjects[1].move_to([-6.9 + (title.submobjects[0] as any).width + 0.3 + (title.submobjects[1] as any).width / 2, 3.45, 0]);
         title.name = 'title';
         const qv = +p.q_v.toPrecision(3), rr = +p.r.toPrecision(3);
-        const note = words(L(`the cart: Q = diag(1, ${qv}), R = ${rr}, Δt = 0.1 s · computed by the Riccati recursion`, `小车：Q = diag(1, ${qv})，R = ${rr}，Δt = 0.1 秒 · 用 Riccati 递推算出`), 20, c.muted, -6.9, 2.95, { max_w: 13.6 });
+        const note = aside(this, words(L(`the cart: Q = diag(1, ${qv}), R = ${rr}, Δt = 0.1 s · computed by the Riccati recursion`, `小车：Q = diag(1, ${qv})，R = ${rr}，Δt = 0.1 秒 · 用 Riccati 递推算出`), 20, c.muted, -6.9, 2.95, { max_w: 13.6 }));
         note.name = 'note';
         const panel = (j: 0 | 1, x0: number, x1: number, name: string) => {
           const hi = Math.max(lqr.K[0][j], ...by_q.map((k) => k[j]), ...by_inf.map((k) => k[j])) * 1.18;

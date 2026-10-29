@@ -12,6 +12,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { fit, label } from '../f/kit';
 import { LANG_SPEC, choice, clamp, idx, pick, readout, rect, resolve_lang, seg, slider, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface RejectionSamplingYieldParams extends Record<string, unknown> {
   n: number;
@@ -177,7 +178,7 @@ export class RejectionScene extends Scene {
     });
     const kinds = VGroup(titles, draws);
     kinds.name = 'kinds';
-    const note = fit(label(pick(lang, 'illustration: assumed pass rates; bars = answers kept for 10 example problems (one seeded draw)', '示意：通过率是假设的；柱子 = 10 道示例题各保留的答案数（一次固定种子的抽样）'), 20, c.muted), 13.6, 0.34);
+    const note = aside(this, fit(label(pick(lang, 'illustration: assumed pass rates; bars = answers kept for 10 example problems (one seeded draw)', '示意：通过率是假设的；柱子 = 10 道示例题各保留的答案数（一次固定种子的抽样）'), 20, c.muted), 13.6, 0.34));
     note.move_to([BLK.x0 + note.width / 2, -3.68, 0]);
     note.name = 'illustration_note';
     const cap_note = fit(label(pick(lang, 'dashed line = cap c', '虚线 = 每题上限 c'), 18, c.muted), 3, 0.3);

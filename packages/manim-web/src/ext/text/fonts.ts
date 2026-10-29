@@ -54,6 +54,8 @@ export interface RegisterFontOptions {
   index?: number;
   /** Override vertical metrics (in em): { ascender, descender }. */
   metrics?: { ascender?: number; descender?: number };
+  /** Draw the face this much larger or smaller than its size (CSS's size-adjust), e.g. to match another face's widths. */
+  size_adjust?: number;
 }
 
 const families = new Map<string, FontFace[]>();
@@ -162,7 +164,8 @@ function make_face(bytes: Uint8Array, source: string, o: RegisterFontOptions): F
   const os2 = font.tables.os2;
   const head = font.tables.head;
   const hhea = font.tables.hhea;
-  const upem = font.unitsPerEm;
+  // (a size adjustment scales everything measured in font units: outlines, advances, kerning, vertical metrics)
+  const upem = font.unitsPerEm / (o.size_adjust ?? 1);
   const sub = (font.names.fontSubfamily?.en ?? '').toLowerCase();
   const mac = head?.macStyle ?? 0;
   const weight = o.weight ?? (os2?.usWeightClass || ((mac & 1) || /bold/.test(sub) ? 700 : 400));
@@ -246,7 +249,7 @@ export function list_fonts(): string[] {
 
 // ------------------------------------------------------------------ bundled / system fonts
 
-interface Bundled { file: string; family: string; weight: number; style: FontStyleName; metrics?: { ascender: number; descender: number } }
+interface Bundled { file: string; family: string; weight: number; style: FontStyleName; metrics?: { ascender: number; descender: number }; size_adjust?: number }
 const TIMES_V = { ascender: 1536 / 2048, descender: -512 / 2048 };
 const HELVETICA_V = { ascender: 1577 / 2048, descender: -471 / 2048 };
 const BUNDLED: Bundled[] = [
@@ -260,6 +263,13 @@ const BUNDLED: Bundled[] = [
   }),
   { file: 'dejavu-sans-mono-latin-400-normal.woff', family: 'DejaVu Sans Mono', weight: 400, style: 'normal' },
   { file: 'dejavu-sans-mono-latin-700-normal.woff', family: 'DejaVu Sans Mono', weight: 700, style: 'normal' },
+  // Inter (OFL): Mathnim's face for words in a figure (set_generic_family in @mathnim/visuals), not a manim default.
+  // Sized so its capitals and figures stand as tall as a formula's at the same font_size (MathTex: Text set at full
+  // size stood a third taller), so words and formulas in a figure read as one size
+  ...['latin-400-normal', 'latin-400-italic', 'latin-700-normal', 'latin-700-italic', 'greek-400-normal', 'greek-700-normal'].map((v): Bundled => {
+    const [, w, st] = v.split('-');
+    return { file: `inter-${v}.woff`, family: 'Inter', weight: +w, style: st as FontStyleName, size_adjust: w === '700' ? 0.73 : 0.70 };
+  }),
 ];
 
 /** macOS fonts Pango/CoreText uses for manim's defaults. */
@@ -298,7 +308,7 @@ async function do_load(o: LoadFontsOptions): Promise<void> {
   await Promise.all(BUNDLED.map(async (b) => {
     try {
       const bytes = await read_source(url_of(b.file));
-      register_font_bytes(bytes, { family: b.family, weight: b.weight, style: b.style, metrics: b.metrics }, b.file);
+      register_font_bytes(bytes, { family: b.family, weight: b.weight, style: b.style, metrics: b.metrics, size_adjust: b.size_adjust }, b.file);
     } catch (e: any) {
       if (!(o.system_fonts && fs)) console.warn(`manim-web: could not load bundled font ${b.file}: ${e?.message ?? e}`);
     }

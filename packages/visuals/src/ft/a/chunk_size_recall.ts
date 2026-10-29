@@ -16,6 +16,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { box, fit, label, LANG_SPEC, live, pick, resolve_lang, seg, type Lang } from '../f/kit';
 import { CHUNK_DATA } from './data/chunk_recall';
+import { aside } from '../../aside';
 
 export const SIZES = [64, 128, 256, 512, 1024];
 export const BUDGETS = [512, 1024, 2048, 4096];
@@ -203,10 +204,10 @@ export const chunk_size_recall = define_visual<ChunkSizeParams>({
           return VGroup(...ms);
         });
         chart.name = 'chart';
-        const honest = fit(label(L(
+        const honest = aside(this, fit(label(L(
           'real runs: multilingual-e5-small over 16 Wikipedia articles (CC BY-SA 4.0), computed offline; "answered" = the whole answer sentence is in a chunk that fits',
           '真实数据：multilingual-e5-small 检索 16 篇维基百科天体条目（CC BY-SA 4.0），离线算好；"答到" = 完整的答案句落在放得进提示的块里',
-        ), 22, c.muted), 13.6).move_to([0, -3.72, 0]);
+        ), 22, c.muted), 13.6).move_to([0, -3.72, 0]));
 
         // ---- the story: what each part of the screen is
         this.play(FadeIn(head), FadeIn(strip), { run_time: 1.4 });

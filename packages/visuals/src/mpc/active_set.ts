@@ -18,6 +18,7 @@ import { ROWS, feasible_polygon, ids_of, radius, slack_of, unconstrained, workin
 import { active_set_path, changes_of, loop_states } from './solvers2d';
 import { LANG_SPEC, emit, listen, live_label, live_vm, pick, polys_points, resolve_lang, tex, visible_when, words, type Listener, type P3, type XY } from './kit';
 import { row_segment } from './qp2d';
+import { aside } from '../aside';
 
 export interface ActiveSetParams extends Record<string, unknown> {
   start: number;
@@ -279,7 +280,7 @@ export const mpc_active_set = define_visual<ActiveSetParams>({
           return here + L(`   since sample ${this.start}: ${w} (from scratch: ${cc})`, `   自第 ${this.start} 个采样起：${w} 次（每次从零开始：${cc} 次）`);
         }, 20, c.ink, (m) => m.move_to([TX + m.width / 2, -2.92, 0]), { max_width: 6.5 });
         counters.name = 'counters';
-        const note = words(L('toy two-move cart QP, exact', '玩具小车的两步 QP，精确计算'), 20, c.muted, TX, -3.72, { max_w: 6.5 });
+        const note = aside(this, words(L('toy two-move cart QP, exact', '玩具小车的两步 QP，精确计算'), 20, c.muted, TX, -3.72, { max_w: 6.5 }));
         note.name = 'note';
 
         this.add(P.poly, P.contours, P.best_contour, broken_lines, P.limit_lines, P.center, cand);

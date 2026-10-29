@@ -12,6 +12,7 @@ import {
   transformed_grid, type P3, type Plane,
 } from './kit';
 import { apply2, eig2, fmt, from_angle, from_cols, lerp_polar, mat2, norm2, type Mat2, type Vec2 } from './math';
+import { aside } from '../aside';
 
 export interface MatrixPowerParams extends Record<string, unknown> {
   A: number[][];
@@ -147,7 +148,7 @@ export const matrix_power = define_visual<MatrixPowerParams>({
         mat.update(0);
         const pw = at(VGroup(tex('A^n \\vec v', 40), readout('n =', () => Math.round(n.get_value()), { decimals: 0, font_size: 40 })).arrange(RIGHT, { buff: 0.5 }), 1.65);
         pw.name = 'power_readout';
-        const note = rescale ? at(tex('\\text{(lengths rescaled: only directions)}', 26, c.muted), 1.1) : null;
+        const note = rescale ? aside(this, 'lengths rescaled: only directions') : null;
         const slider: any = new Slider(n, { x_range: [0, steps], length: 2.8, color: c.accent, track_color: c.faint, stroke_width: 7, knob_radius: 0.14, label: 'n', decimals: 0, font_size: 34 });
         const ts = slider.track.get_start();
         slider.shift([PANEL.x0 + 0.85 - ts[0], -3.4 - ts[1], 0]);

@@ -35,6 +35,9 @@ export const CSS = `
 @media (min-width:901px){.mn-app:not(.mn-scenestep) .mn-caption{display:none}}
 .mn-app.mn-scenestep:not(.mn-game) .mn-side{background:none;border:0;box-shadow:none;padding:0;overflow:visible}
 .mn-app.mn-scenestep:not(.mn-game) .mn-side :is(.mn-kicker,.mn-prompt,.mn-side>:empty){display:none}
+/* what a figure is (a simulation, a toy model, real data and its source): one faint line under it, never in it */
+.mn-aside{font-size:12px;line-height:1.45;color:var(--mn-muted);opacity:.85;padding:0 4px;margin-top:-4px}.mn-aside:empty{display:none}
+.mn-vis .mn-aside{margin:6px 0 0}
 .mn-transcript{display:none;padding:0 8px;font-size:15.5px;line-height:1.6;color:var(--mn-fg)}
 .mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-transcript{display:block}
 .mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-caption{display:none}

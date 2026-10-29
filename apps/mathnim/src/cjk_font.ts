@@ -7,6 +7,7 @@
 // than draw empty boxes.
 import { ui_lang } from '@mathnim/present';
 import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
+import { CJK_SIZE_ADJUST } from '@mathnim/visuals';
 import { register_font } from 'manim-web/ext/text/fonts';
 
 const FILE = 'noto-sans-sc-chinese-simplified-400-normal.woff';
@@ -26,7 +27,7 @@ export function ensure_cjk_font(): Promise<boolean> {
         // a static host may answer a missing file with the app's HTML: only accept a font
         const r = await fetch(src);
         if (!r.ok || /text\/html/.test(r.headers.get('content-type') ?? '')) continue;
-        await register_font('Noto Sans SC', await r.arrayBuffer());
+        await register_font('Noto Sans SC', await r.arrayBuffer(), { size_adjust: CJK_SIZE_ADJUST });
         ready = true;
         return true;
       } catch {

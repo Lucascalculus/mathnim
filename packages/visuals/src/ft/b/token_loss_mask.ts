@@ -14,6 +14,7 @@ import { define_visual } from '../../visual';
 import { box, fit, label } from '../f/kit';
 import { LANG_SPEC, clamp, pick, resolve_lang, slider, type Lang } from './kit';
 import { TOKEN_SAMPLES, type TokenRow } from './token_data';
+import { aside } from '../../aside';
 
 export interface TokenLossMaskParams extends Record<string, unknown> {
   sample: string;
@@ -347,7 +348,7 @@ export class TokenLossMaskScene extends Scene {
     legend.move_to([-6.85 + legend.width / 2, -3.62, 0]);
     this.slider_ctl = slider(this.lam, { x: 2.3, y: -3.0, width: 3.0, min: 0.001, max: 1, log: true, zero: true, title: pick(lang, 'λ', 'λ'), label: pick(lang, 'the prompt-loss weight λ', '提示损失权重 λ'), decimals: 3, color: c.gold });
     this.slider_ctl.group.name = 'lambda_slider';
-    const note = fit(label(pick(lang, 'real data: Qwen2.5-0.5B, Qwen2.5 chat template', '真实数据：Qwen2.5-0.5B，Qwen2.5 聊天模板'), 20, c.muted), 6.2, 0.36);
+    const note = aside(this, fit(label(pick(lang, 'real data: Qwen2.5-0.5B, Qwen2.5 chat template', '真实数据：Qwen2.5-0.5B，Qwen2.5 聊天模板'), 20, c.muted), 6.2, 0.36));
     note.move_to([6.85 - note.width / 2, -3.62, 0]);
     note.name = 'data_note';
 

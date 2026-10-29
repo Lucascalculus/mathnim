@@ -15,6 +15,9 @@ import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
 import { display_math_html, esc, math_html } from './math';
 
+/** The notes a figure keeps beside itself (@mathnim/visuals' aside()), as one line. */
+export const asides = (p: ScenePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
+
 /** A visual ready to embed: its scene, and the handles to add when it has played. */
 export interface EmbeddedVisual {
   scene: () => Scene;
@@ -344,6 +347,9 @@ class VisualSlot {
     await p.load();
     if (this.disposed) return;
     this.player = p;
+    // what the figure is (a simulation, a toy model, real data): a faint line under it, never in it
+    const notes = asides(p);
+    if (notes) this.fig.querySelector('.mn-vis-stage')!.after(Object.assign(document.createElement('div'), { className: 'mn-aside', textContent: notes }));
     p.opts.on_end = () => this.explorable(v);
     const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (still) {

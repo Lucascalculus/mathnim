@@ -205,9 +205,12 @@ fine-tuning lessons' `vis()` helper, or `apps/mathnim/src/lessons/mpc/common.ts`
 once M-A adds it). Add `lang: 'zh'` examples and look at the Chinese contact
 sheets: CJK is wider.
 
-**Honesty.** Every simulated canvas carries a muted note such as
+**Honesty, beside the picture.** Every simulated figure says what it is, such as
 "simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s" /
-"玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s" (the sans font has no ≤; write it in words or TeX) (see `receding_loop.ts`).
+"玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s", through `aside(this, words(...))`
+(`packages/visuals/src/aside.ts`): the words are kept on the scene and the lesson
+shows them in a faint line under the figure. No sentences are drawn in a figure
+(changed 2026-10-29; see `receding_loop.ts`).
 
 ## Visuals by M-A (registered)
 

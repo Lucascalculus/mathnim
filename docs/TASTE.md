@@ -60,6 +60,10 @@ goals that random dragging won't reach, specific feedback). The full bar:
   pixel-rounded spacing), calm compositions, our own motion and interactions.
   Matching Python Manim matters only for the library's regression tests. When
   proposing a look, say what makes it ours.
+- **No sentences in a figure** (2026-10-29). The picture carries labels on things
+  (an axis, a curve, a value), not sentences: the narration says what happens, and
+  what the figure is (a simulation, a toy model, real data and its source) sits in a
+  faint line under it (`aside()` in @mathnim/visuals).
 - **One light theme everywhere.** Never a dark or black lesson theme ("3b1b
   style" means the kind of explanation, not black backgrounds). No dark-mode
   toggle.

@@ -12,6 +12,7 @@ import { define_visual } from '../visual';
 import { cart_step } from './math';
 import { C_TERM, brake_to_rest, term_run } from './terminal_math';
 import { LANG_SPEC, Plot, backed, fill_poly, pick, polyline, resolve_lang, tex, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface ShiftTailParams extends Record<string, unknown> {
   N: number;
@@ -80,7 +81,7 @@ export const mpc_shift_tail = define_visual<ShiftTailParams>({
           words(L('the next QP has a solution.', '因此下一次的 QP 必然有解。'), 20, c.muted, RX, -1.7, { max_w: 5.0 }),
         );
         caption.name = 'caption';
-        const note = words(L(`toy-cart simulation: terminal-set MPC, N = ${p.N}, the plan made at t = ${(d.k * 0.1).toFixed(1)} s`, `玩具小车的模拟：终端集 MPC，N = ${p.N}，t = ${(d.k * 0.1).toFixed(1)} 秒时做的计划`), 20, c.muted, -6.9, 3.55, { max_w: 13.6 });
+        const note = aside(this, words(L(`toy-cart simulation: terminal-set MPC, N = ${p.N}, the plan made at t = ${(d.k * 0.1).toFixed(1)} s`, `玩具小车的模拟：终端集 MPC，N = ${p.N}，t = ${(d.k * 0.1).toFixed(1)} 秒时做的计划`), 20, c.muted, -6.9, 3.55, { max_w: 13.6 }));
         note.name = 'note';
         this.play(FadeIn(P.group), FadeIn(xf), FadeIn(note), { run_time: 1 });
         this.play(Create(plan.submobjects[0]), FadeIn(VGroup(...plan.submobjects.slice(1))), FadeIn(x0), FadeIn(xN), FadeIn(caption.submobjects[0]), { run_time: 1.4 });

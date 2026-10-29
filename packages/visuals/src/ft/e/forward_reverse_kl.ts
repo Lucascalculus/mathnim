@@ -14,6 +14,7 @@ import { define_visual } from '../../visual';
 import { tex } from '../../linalg/kit';
 import { Choice, LANG_SPEC, Toggle, area, clamp, label_at, live_number, pick, pick_shown, polyline, resolve_lang, seg, tag, type Lang, type P3 } from './kit';
 import { descend, gauss, kl_forward, kl_reverse, mixture_pdf, moment_match, type KlDir, type Mixture } from './math';
+import { aside } from '../../aside';
 
 export interface ForwardReverseKlParams extends Record<string, unknown> {
   weight: number;
@@ -147,7 +148,7 @@ function build(p: ForwardReverseKlParams): Scene {
       this.uneven_t = new Toggle(uneven, X, -0.85, pick(lang, 'left peak heavier (70%)', '左峰更重（70%）'), { size: 20 });
       const controls = VGroup(this.dir_c.group, this.uneven_t.group);
       controls.name = 'controls';
-      const honest = tag(pick(lang, 'toy 1-D example · KL by exact numerical integration', '一维示意 · KL 用数值积分精确计算'), 6.9, -3.62, 18, 'right');
+      const honest = aside(this, tag(pick(lang, 'toy 1-D example · KL by exact numerical integration', '一维示意 · KL 用数值积分精确计算'), 6.9, -3.62, 18, 'right'));
 
       // ---- story: forward pulls q over both peaks, reverse into one
       const m0 = moment_match({ w: 0.5, d: p.separation, s0: p.mode_width });

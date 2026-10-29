@@ -13,6 +13,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { OFFSET, offset_run, type OffsetRun } from './disturbance';
 import { Choice, LANG_SPEC, Plot, StepSlider, Track, emit, listen, live_label, live_vm, pick, polys_points, resolve_lang, stroke, tex, visible_when, words, type Listener, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface OffsetParams extends Record<string, unknown> {
   q: number;
@@ -126,7 +127,7 @@ export const mpc_offset = define_visual<OffsetParams>({
         };
 
         // ---- honest label
-        const note = words(L('simulation of a toy cart; the wind is a steady push the model is not told about', '玩具小车的模拟；风是一股恒定的推力，模型并不知道'), 20, c.muted, -6.9, 3.62, { max_w: 13.8 });
+        const note = aside(this, words(L('simulation of a toy cart; the wind is a steady push the model is not told about', '玩具小车的模拟；风是一股恒定的推力，模型并不知道'), 20, c.muted, -6.9, 3.62, { max_w: 13.8 }));
         note.name = 'note';
 
         // ---- the track, zoomed around the flag

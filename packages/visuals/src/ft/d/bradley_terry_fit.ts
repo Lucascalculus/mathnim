@@ -11,6 +11,7 @@ import { define_visual } from '../../visual';
 import { tex } from '../../linalg/kit';
 import { BT_TOY, bt_loglik, bt_prob, sigmoid, type Matchup } from './math';
 import { LANG_SPEC, clamp, label, label_at, live_number, pick, rect, resolve_lang, seg, type Lang, type P3 } from './kit';
+import { aside } from '../../aside';
 
 export interface BradleyTerryFitParams extends Record<string, unknown> {
   story: string;
@@ -146,7 +147,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
         // ---- left: rewards as bars
         const formula = tex('P(i \\succ j) = \\sigma(r_i - r_j)', 32, c.ink).move_to([-4.1, 3.45, 0]);
         formula.name = 'formula';
-        const note = label(pick(lang, 'A is pinned at 0: only differences count', 'A 固定为 0：只有差值有意义'), 22, c.muted);
+        const note = aside(this, label(pick(lang, 'A is pinned at 0: only differences count', 'A 固定为 0：只有差值有意义'), 22, c.muted));
         note.move_to([-6.5 + note.width / 2, 2.9, 0]); // left-aligned: clear of D's value when D runs away
         const base = seg([-6.5, Yr(0)], [-1.25, Yr(0)], c.muted, 2);
         const zero = tex('0', 24, c.muted).move_to([-6.75, Yr(0), 0]);
@@ -172,7 +173,7 @@ export const bradley_terry_fit = define_visual<BradleyTerryFitParams>({
         }));
 
         // ---- right: the data, one row per matchup
-        const toy = label(pick(lang, 'toy data', '玩具数据'), 22, c.muted);
+        const toy = aside(this, label(pick(lang, 'toy data', '玩具数据'), 22, c.muted));
         toy.move_to([6.85 - toy.width / 2, 3.45, 0]);
         toy.name = 'toy_label';
         const head = label(pick(lang, 'matchup', '对局'), 24, c.muted);

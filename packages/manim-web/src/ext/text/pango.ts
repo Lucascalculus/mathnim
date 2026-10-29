@@ -24,6 +24,15 @@ const PX_PER_PT = 96 / 72;
 const round_pu = (d: number): number => Math.floor((d + 512) / 1024) * 1024;
 /** cairo fixed point (24.8) */
 const fixed = (v: number): number => Math.round(v * 256) / 256;
+/**
+ * Pango's hinting: every glyph width and offset rounded to a whole pixel at the size Pango draws (font_size / 4.8 pt,
+ * a few pixels), so letters sit unevenly once the text is scaled up. On by default: manim's text, glyph for glyph (the
+ * regression tests). Off: the font's own advances and kerning, unrounded (what Mathnim shows).
+ */
+let pango_hinting = true;
+export function set_text_hinting(on: boolean): void {
+  pango_hinting = on;
+}
 /** Shear applied when an italic is requested but only an upright face exists. */
 const SYNTH_ITALIC_SKEW = 0.2;
 
@@ -290,11 +299,11 @@ function shape(chars: Ch[], i0: number, i1: number): Glyph[] {
     }
     const adv = item.map((g) => (chars[g.c0].cp === 9 ? 8 * glyph_advance(face, face.font.charToGlyphIndex(' ')) : glyph_advance(face, g.gid)) * sc);
     const xoff = item.map(() => 0);
-    const advp = adv.map((a) => Math.round(a));
+    const advp = pango_hinting ? adv.map((a) => Math.round(a)) : adv;
     for (let k = 0; k + 1 < item.length; k++) {
       const kv = kerning(face, item[k].gid, item[k + 1].gid);
       if (!kv) continue;
-      const kp = Math.round(kv * sc);
+      const kp = pango_hinting ? Math.round(kv * sc) : kv * sc;
       if (face.kern_mode === 'kern') {
         const k1 = kp >> 1, k2 = kp - k1;
         advp[k] += k1;
@@ -303,8 +312,8 @@ function shape(chars: Ch[], i0: number, i1: number): Glyph[] {
       } else advp[k] += kp;
     }
     item.forEach((g, k) => {
-      g.width = round_pu(advp[k] + c0.a.letter_spacing);
-      g.xoff = round_pu(xoff[k]);
+      g.width = pango_hinting ? round_pu(advp[k] + c0.a.letter_spacing) : advp[k] + c0.a.letter_spacing;
+      g.xoff = pango_hinting ? round_pu(xoff[k]) : xoff[k];
     });
     // web: no GPOS mark / AAT anchor support - centre nonspacing marks on their base glyph's ink
     // (like HarfBuzz's fallback mark positioning)

@@ -16,6 +16,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { CAR, ROAD, car_step, plan_cost, shooting_iterates } from './car_math';
 import { LANG_SPEC, live_label, live_vm, pick, poly_points, polyline, polys_points, resolve_lang, stroke, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface ShootingParams extends Record<string, unknown> {
   iters: number;
@@ -57,7 +58,7 @@ export const mpc_shooting = define_visual<ShootingParams>({
         const mix = (a: number[], b: number[]) => a.map((v, i) => v + fr() * (b[i] - v));
         const key = () => it.get_value().toFixed(3);
 
-        const note = words(L('simulation of the toy car: one 2.5 s horizon entering the first bend; right: start states from a rough guess', '玩具小车的模拟：进入第一个弯的一个 2.5 秒时域；右边各段起点来自粗糙的猜测'), 19, c.muted, -6.9, 3.72, { max_w: 13.8 });
+        const note = aside(this, words(L('simulation of the toy car: one 2.5 s horizon entering the first bend; right: start states from a rough guess', '玩具小车的模拟：进入第一个弯的一个 2.5 秒时域；右边各段起点来自粗糙的猜测'), 19, c.muted, -6.9, 3.72, { max_w: 13.8 }));
         note.name = 'note';
         const titles = VGroup(
           words(L('single shooting', '单次打靶（single shooting）'), 26, c.ink, PANELS[0].x0, 3.2, { weight: 'BOLD' }),

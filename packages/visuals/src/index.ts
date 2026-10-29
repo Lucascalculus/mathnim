@@ -1,6 +1,8 @@
 // @mathnim/visuals - parametric, pre-verified explanation scenes ("visuals")
 // shared by authored lessons and AI answers, the catalog the AI chooses from,
 // and the named-colour themes they are drawn with.
+import { set_generic_family } from 'manim-web/ext/text/fonts';
+import { set_text_hinting } from 'manim-web/ext/text/pango';
 import { circle_slices } from './geometry/circle_slices';
 import { register } from './registry';
 import { linear_map } from './linalg/linear_map';
@@ -13,6 +15,16 @@ import { symmetric_ellipse } from './linalg/symmetric_ellipse';
 import { covariance_ellipse } from './linalg/covariance_ellipse';
 import { pca_projection } from './linalg/pca_projection';
 import { pca_3d } from './linalg/pca_3d';
+
+// Words in a figure are Mathnim's, not manim's: Inter (bundled with manim-web) for every family a visual asks for by
+// default, at the font's own spacing (manim's Pango rounds each letter to a whole pixel at a few pixels' size).
+set_generic_family('sans', 'Inter');
+set_generic_family('serif', 'Inter');
+set_text_hinting(false);
+/** The Chinese face's size beside Inter (Inter stands as tall as a formula, about 0.71 of a full-size Latin face):
+ *  register it with this size_adjust, so Chinese and Latin in one label keep their usual proportion. */
+export const CJK_SIZE_ADJUST = 0.71;
+export { aside, asides_of } from './aside';
 
 export { define_visual, type ParamSpec, type ParamSpecs, type Params, type Visual } from './visual';
 export { check_params, describe_param, type ParamCheck } from './params';

@@ -16,6 +16,7 @@ import { define_visual } from '../../visual';
 import { LANG_SPEC, pick, resolve_lang, type Lang } from '../f/kit';
 import { at_left, at_right, caption, txt, Choice, clamp, dashes, emit, fmt_gb, line, listen, live_label, rect, type Listener, type UiLike } from './kit';
 import { METHODS, MODELS, OPTIMS, PARTS, TARGETS, vram_estimate, type Part, type VramConfig, type VramEstimate } from './vram';
+import { aside } from '../../aside';
 
 export interface VramCalculatorParams extends Record<string, unknown> {
   model: string;
@@ -306,9 +307,9 @@ export const vram_calculator = define_visual<VramCalculatorParams>({
           const g = k.zero3 && k.gpus > 1 ? L(` · ${k.gpus} GPUs, ZeRO-3`, ` · ${k.gpus} 张卡 ZeRO-3`) : k.gpus > 1 ? L(` · ${k.gpus} GPUs (no sharding)`, ` · ${k.gpus} 张卡（不分片）`) : '';
           return `${opt}${tg}${g}`;
         }, 24, c.muted, (t) => at_left(t, LEDGER.name, ty - 1.12), { max_width: 5.45 });
-        const note = VGroup(
+        const note = aside(this, VGroup(
           at_left(txt(L('estimate from formulas, not measured', '按公式估算，不是实测'), 24, c.muted), LEDGER.name, ty - 1.62),
-        );
+        ));
         if (note.width > 5.45) note.scale(5.45 / note.width).align_to([LEDGER.name, 0, 0], [-1, 0, 0]);
         note.name = 'honesty_note';
         const title = at_left(txt(L('VRAM per GPU (estimate)', '每张卡的显存（估算）'), 30, c.ink, { weight: 'BOLD' }), LEDGER.x0, 3.45);

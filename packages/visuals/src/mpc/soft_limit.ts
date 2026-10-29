@@ -10,6 +10,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { soft_run } from './terminal_math';
 import { LANG_SPEC, Plot, pick, polyline, resolve_lang, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface SoftLimitParams extends Record<string, unknown> {
   lang: string;
@@ -52,7 +53,7 @@ export const mpc_soft_limit = define_visual<SoftLimitParams>({
           words(L('the wall stays a hard limit', '墙始终是硬约束'), 20, c.muted, RX, -0.85, { max_w: 3.8 }),
         );
         legend.name = 'legend';
-        const note = words(L('simulation of a toy cart: N = 20, |a| up to 1 m/s², docking at the wall at 10 m', '玩具小车的模拟：N = 20，|a| 不超过 1 m/s²，停靠到 10 m 处的墙'), 19, c.muted, -6.9, 3.55, { max_w: 13.6 });
+        const note = aside(this, words(L('simulation of a toy cart: N = 20, |a| up to 1 m/s², docking at the wall at 10 m', '玩具小车的模拟：N = 20，|a| 不超过 1 m/s²，停靠到 10 m 处的墙'), 19, c.muted, -6.9, 3.55, { max_w: 13.6 }));
         note.name = 'note';
         this.play(FadeIn(P.group), FadeIn(limit), FadeIn(note), FadeIn(gust), { run_time: 1 });
         this.play(Create(soft_big), FadeIn(legend.submobjects[0]), { run_time: 1.6 });

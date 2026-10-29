@@ -67,8 +67,14 @@ The contract (`src/visual.ts`):
    (`ui.add_handle({ get, set, constraint, step, label })`), sliders are
    `Slider(...).attach(ui)`. Keep every handle's effect inside the frame: the
    checker drags every handle to the far corners and lints each state.
-8. **Name the key objects** (`m.name = 'matrix'`) and list them in `ids`.
-9. Register it in `src/index.ts` and run the checks.
+8. **No sentences in the picture.** A note about the figure (a simulation, a toy
+   model, exact or real data and its source, how to read it) goes through
+   `aside(this, words(...))` (`src/aside.ts`): its words are kept on the scene
+   and the lesson shows them in a faint line under the figure; the visual gets
+   an empty group in its place. Labels on things (an axis, a curve, a value)
+   stay in the picture.
+9. **Name the key objects** (`m.name = 'matrix'`) and list them in `ids`.
+10. Register it in `src/index.ts` and run the checks.
 
 Pitfalls met while writing the linear algebra set:
 

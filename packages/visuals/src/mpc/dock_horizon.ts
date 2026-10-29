@@ -14,6 +14,7 @@ import { define_visual } from '../visual';
 import { CART } from './math';
 import { dock_run, plan_end, shown_instant, type DockRun } from './dock';
 import { Choice, LANG_SPEC, Plot, StepSlider, emit, fill_box, listen, live_label, pick, polyline, resolve_lang, visible_when, words, type Listener, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface DockHorizonParams extends Record<string, unknown> {
   N: number;
@@ -194,8 +195,9 @@ export const mpc_dock_horizon = define_visual<DockHorizonParams>({
         );
         readout.name = 'readout';
 
-        // ---- the honest label and the controls
-        const note = live_label(() => L(`simulation of a toy cart: |v| up to 2 m/s, brakes up to ${a_txt(this.a.get_value() < 0.75 ? 0.5 : 1)} m/s²`, `玩具小车的模拟：|v| 不超过 2 m/s，刹车不超过 ${a_txt(this.a.get_value() < 0.75 ? 0.5 : 1)} m/s²`), 20, c.muted, (m) => m.move_to([-6.9 + m.width / 2, 3.6, 0]));
+        // ---- the honest note (beside the figure) and the controls
+        // (the brakes are on their own control below)
+        const note = aside(this, L('simulation of a toy cart: |v| up to 2 m/s', '玩具小车的模拟：|v| 不超过 2 m/s'));
         note.name = 'note';
         const slider = new StepSlider(this.N, { lo: N_MIN, hi: N_MAX, step: 1, x0: -5.4, x1: 2.3, y: -3.4, ticks: [10, 20, 30, 40] });
         this.slider = slider;

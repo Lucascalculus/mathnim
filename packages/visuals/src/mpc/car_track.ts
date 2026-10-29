@@ -18,6 +18,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { CAR, ROAD, STEPS, track_run, type Guess, type Iters, type TrackRun } from './car_math';
 import { Choice, LANG_SPEC, Plot, StepSlider, dash_polys, emit, listen, live_label, live_vm, pick, poly_points, polyline, polys_points, resolve_lang, stroke, words, type Listener, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface CarTrackParams extends Record<string, unknown> {
   guess: string;
@@ -152,7 +153,7 @@ export const mpc_car_track = define_visual<CarTrackParams>({
         };
 
         // ---- honest label
-        const note = words(L('simulation of a toy car (kinematic bicycle, 6 m/s, horizon 2 s) that obeys the controller’s own model; the 15 cm brief is a toy number', '玩具小车的模拟（运动学自行车模型，6 m/s，预测时域 2 秒），小车遵循的就是控制器的模型；15 cm 的要求是教学用的玩具数字'), 19, c.muted, -6.9, 3.72, { max_w: 13.8 });
+        const note = aside(this, words(L('simulation of a toy car (kinematic bicycle, 6 m/s, horizon 2 s) that obeys the controller’s own model; the 15 cm brief is a toy number', '玩具小车的模拟（运动学自行车模型，6 m/s，预测时域 2 秒），小车遵循的就是控制器的模型；15 cm 的要求是教学用的玩具数字'), 19, c.muted, -6.9, 3.72, { max_w: 13.8 }));
         note.name = 'note';
 
         // ---- the road

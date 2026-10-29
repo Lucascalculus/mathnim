@@ -12,6 +12,7 @@ import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { KALMAN, kalman_run, rms } from './disturbance';
 import { LANG_SPEC, Plot, live_vm, pick, polyline, polys_points, resolve_lang, stroke, tex, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface KalmanViewParams extends Record<string, unknown> {
   lang: string;
@@ -71,7 +72,7 @@ export const mpc_kalman = define_visual<KalmanViewParams>({
         const shown = upto(t_meas), shown_e = upto(t_est);
         const key = () => `${shown()}`, key_e = () => `${shown_e()}`;
 
-        const note = words(L('simulation of a toy cart: random pushes it does not model; only the position is measured, with 5 cm of noise', '玩具小车的模拟：有模型里没有的随机推力；只测位置，噪声 5 cm'), 20, c.muted, -6.9, 3.62, { max_w: 13.8 });
+        const note = aside(this, words(L('simulation of a toy cart: random pushes it does not model; only the position is measured, with 5 cm of noise', '玩具小车的模拟：有模型里没有的随机推力；只测位置，噪声 5 cm'), 20, c.muted, -6.9, 3.62, { max_w: 13.8 }));
         note.name = 'note';
         const LX0 = -6.1, LX1 = 1.3;
 

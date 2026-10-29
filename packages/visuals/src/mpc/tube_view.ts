@@ -15,6 +15,7 @@ import { define_visual } from '../visual';
 import { CART } from './math';
 import { TUBE, disturbance_history, tube_follow, tube_nominal, tube_widths } from './disturbance';
 import { LANG_SPEC, Plot, fill_poly, pick, resolve_lang, tex, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface TubeViewParams extends Record<string, unknown> {
   lang: string;
@@ -47,7 +48,7 @@ export const mpc_tube = define_visual<TubeViewParams>({
     class Tube extends Scene {
       override construct() {
         const c = palette();
-        const note = words(L(`simulation of a toy cart docking at the wall: an unknown push up to ${TUBE.w_max} m/s² either way, 12 random histories`, `玩具小车靠墙停车的模拟：未知推力，任一方向最大 ${TUBE.w_max} m/s²，随机 12 种`), 20, c.muted, -6.9, 3.62, { max_w: 13.8 });
+        const note = aside(this, words(L(`simulation of a toy cart docking at the wall: an unknown push up to ${TUBE.w_max} m/s² either way, 12 random histories`, `玩具小车靠墙停车的模拟：未知推力，任一方向最大 ${TUBE.w_max} m/s²，随机 12 种`), 20, c.muted, -6.9, 3.62, { max_w: 13.8 }));
         note.name = 'note';
         const W = 3.55, GAP = 1.05, X0 = -6.35;
         const panel = (i: number, data: typeof P.open, title: string, sub: string, tube: boolean, tight: boolean) => {

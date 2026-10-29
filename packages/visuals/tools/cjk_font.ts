@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { face_for_char, register_font_bytes, resolve_font } from 'manim-web/ext/text/fonts';
+import { CJK_SIZE_ADJUST } from '../src';
 
 const NOTO = 'noto-sans-sc-chinese-simplified-400-normal.woff';
 const CJK = /[⺀-⿿　-ヿ㐀-鿿豈-﫿︰-﹏＀-￯]/;
@@ -44,7 +45,7 @@ export function load_cjk(log: (s: string) => void = console.log): boolean {
   for (const file of cjk_candidates()) {
     if (!fs.existsSync(file)) continue;
     try {
-      const names = register_font_bytes(new Uint8Array(fs.readFileSync(file)), {}, file);
+      const names = register_font_bytes(new Uint8Array(fs.readFileSync(file)), { size_adjust: CJK_SIZE_ADJUST }, file);
       // the font must parse and actually have Chinese glyphs
       const ok = names.some((n) => face_for_char(resolve_font(n, 400, 'normal'), '中'.codePointAt(0)!)[0].family === n && face_for_char(resolve_font(n, 400, 'normal'), '中'.codePointAt(0)!)[1] > 0);
       if (!ok) {

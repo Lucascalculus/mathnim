@@ -11,6 +11,7 @@ import { palette } from '../../theme';
 import { define_visual } from '../../visual';
 import { box, fit, label } from '../f/kit';
 import { LANG_SPEC, choice, clamp, hatch, idx, pick, readout, rect, resolve_lang, seg, type Lang } from './kit';
+import { aside } from '../../aside';
 
 export interface AttentionMaskPackingParams extends Record<string, unknown> {
   lengths: number[];
@@ -254,7 +255,7 @@ export class PackingScene extends Scene {
     const formula = (MathTex as any)('C = 1 - \\frac{\\sum_k n_k(n_k+1)}{N(N+1)}', { font_size: 28, color: c.ink });
     formula.move_to([1.55 + formula.width / 2, -3.25, 0]);
     formula.name = 'formula';
-    const note = fit(label(pick(lang, 'exact counts', '精确计算'), 18, c.muted), 2.5, 0.3);
+    const note = aside(this, fit(label(pick(lang, 'exact counts', '精确计算'), 18, c.muted), 2.5, 0.3));
     note.move_to([6.85 - note.width / 2, -3.7, 0]);
 
     // ---- story: naive packing, then equal lengths, then boundaries

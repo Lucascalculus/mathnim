@@ -16,6 +16,7 @@ import { define_visual } from '../../visual';
 import { fit, label, LANG_SPEC, live, live_decimal, pick, resolve_lang, type Lang } from '../f/kit';
 void fit;
 import { angle_deg, grad_docs, grad_query, loss, push_shares, sgd_step, tangential, unit, weights } from './infonce';
+import { aside } from '../../aside';
 
 export interface ContrastiveParams extends Record<string, unknown> {
   tau: number;
@@ -199,7 +200,7 @@ export const contrastive_infonce = define_visual<ContrastiveParams>({
         const st_cap = label(L('temperature τ (log scale)', '温度 τ（对数刻度）'), 24, c.muted).move_to([0, -3.15, 0]).align_to([0.55, 0, 0], [-1, 0, 0]);
         const tau_slider = VGroup(this.st, st_cap);
         tau_slider.name = 'tau_slider';
-        const honest = fit(label(L('toy model: 2D unit vectors; gradients exact; each step capped at 8°, push arrows drawn 5x', '示意：二维单位向量；梯度精确计算；每步最多转 8°，推力箭头放大 5 倍'), 22, c.muted), 13.4).move_to([0, -3.68, 0]);
+        const honest = aside(this, fit(label(L('toy model: 2D unit vectors; gradients exact; each step capped at 8°, push arrows drawn 5x', '示意：二维单位向量；梯度精确计算；每步最多转 8°，推力箭头放大 5 倍'), 22, c.muted), 13.4).move_to([0, -3.68, 0]));
 
         // ---- the story
         this.play(FadeIn(circle), FadeIn(centre), { run_time: 0.8 });

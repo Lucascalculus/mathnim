@@ -17,6 +17,7 @@ import {
   type Lang, type P3,
 } from './kit';
 import { advantages, logit, sigmoid, token_weights, toy_step, zero_variance, type Agg } from './math';
+import { aside } from '../../aside';
 
 export interface GrpoGroupParams extends Record<string, unknown> {
   G: number;
@@ -258,7 +259,8 @@ function build(p: GrpoGroupParams): Scene {
         const pnum = live_number(() => this.p_now(), [X + 2.32, -1.22], { decimals: 2, size: 24, color: c.accent });
         const ulab = label_at(pick(lang, 'updates:', '已更新：'), X, -1.66, 20, c.muted);
         const ucount = VGroup(ulab, live_number(() => this.updates.get_value(), [ulab.get_right()[0] + 0.15, -1.66], { decimals: 0, size: 22, color: c.muted }));
-        extra.add(mcap, track, fill, pnum, ucount, tag(pick(lang, 'p: toy model', 'p：玩具模型'), X, -2.2, 18));
+        extra.add(mcap, track, fill, pnum, ucount);
+        aside(this, pick(lang, 'p: a toy model of this question', 'p：这道题的玩具模型'));
       } else {
         const acap = label_at(pick(lang, 'average the loss by', '损失怎么平均'), X, 0.4, 20, c.ink);
         this.agg_c = new Choice(this.agg, X, -0.08, [pick(lang, 'answer', '按回答'), pick(lang, 'token', '按 token'), pick(lang, 'const.', '常数')], { size: lang === 'zh' ? 18 : 17, cell: 0.95 });
@@ -269,7 +271,7 @@ function build(p: GrpoGroupParams): Scene {
         const ratio = live_number(() => { const v = this.long_short_ratio(); return Number.isFinite(v) ? v : 0; }, [X, -2.15], { decimals: 2, size: 30, color: c.purple });
         extra.add(rcap, rcap2, ratio);
       }
-      const exact = tag(pick(lang, 'exact: the coefficients of one update', '精确计算：一步更新的系数'), 6.88, -3.62, 18, 'right');
+      const exact = aside(this, tag(pick(lang, 'exact: the coefficients of one update', '精确计算：一步更新的系数'), 6.88, -3.62, 18, 'right'));
 
       // ---- the story
       const rest = p.right.slice(0, G);

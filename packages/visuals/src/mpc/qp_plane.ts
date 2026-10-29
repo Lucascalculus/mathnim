@@ -20,6 +20,7 @@ import {
   LANG_SPEC, Plot, Track, backed, clamp, emit, fill_poly, key_of, label, listen, live_label, live_vm, pick, poly_points, polys_points, resolve_lang, stroke, tex, visible_when, words,
   type Lang, type Listener, type P3, type XY,
 } from './kit';
+import { aside } from '../aside';
 
 export interface QpPlaneParams extends Record<string, unknown> {
   story: string;
@@ -486,7 +487,7 @@ export const mpc_qp_plane = define_visual<QpPlaneParams>({
         const pad_word = words(L("the cart's state now", '小车此刻的状态'), 20, c.ink, TX0 + 1.75, 0.5);
         const state_dot = pad.live_dot(() => [p0.get_value(), v0.get_value()], c.ink, 0.11);
         state_dot.name = 'state';
-        const note = words(L('toy cart, exact QP; the plan holds one acceleration per second', '玩具小车，QP 精确求解；计划每秒只换一次加速度'), 20, c.muted, 6.9, 3.62, { align: 'right', max_w: 6.0 });
+        const note = aside(this, words(L('toy cart, exact QP; the plan holds one acceleration per second', '玩具小车，QP 精确求解；计划每秒只换一次加速度'), 20, c.muted, 6.9, 3.62, { align: 'right', max_w: 6.0 }));
         note.name = 'note';
 
         // live readouts must show their current text before they are faded in (README pitfall)

@@ -7,6 +7,7 @@ import { FadeIn, Scene, VGroup } from 'manim-web';
 import { palette } from '../theme';
 import { define_visual } from '../visual';
 import { LANG_SPEC, Plot, fill_box, fill_poly, fit, pick, resolve_lang, tex, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface ZohStepParams extends Record<string, unknown> {
   lang: string;
@@ -81,7 +82,7 @@ export const mpc_zoh_step = define_visual<ZohStepParams>({
         const eu_w = words(L('rectangle only: the triangle is lost every step', '只有矩形：每一步都丢掉那个三角形'), 22, c.coral, RX0, -1.75, { max_w: RX1 - RX0 });
         const euler = VGroup(eu_h, eu, eu_w);
         euler.name = 'euler';
-        const note = words(L('schematic: one sample of the cart', '示意：小车的一个采样周期'), 20, c.muted, RX0, -2.75, { max_w: RX1 - RX0 });
+        const note = aside(this, words(L('schematic: one sample of the cart', '示意：小车的一个采样周期'), 20, c.muted, RX0, -2.75, { max_w: RX1 - RX0 }));
         note.name = 'note';
 
         this.play(FadeIn(ap.group), FadeIn(a_steps), FadeIn(vp.group), FadeIn(rect), FadeIn(tri), FadeIn(v_line), FadeIn(labels), FadeIn(head), FadeIn(exact), FadeIn(euler), FadeIn(note), { run_time: 1 });

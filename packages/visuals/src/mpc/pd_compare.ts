@@ -11,6 +11,7 @@ import { define_visual } from '../visual';
 import { CART } from './math';
 import { dock_run, pd_run, type DockRun } from './dock';
 import { LANG_SPEC, Plot, pick, polyline, resolve_lang, tex, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface PdCompareParams extends Record<string, unknown> {
   brakes: string;
@@ -88,7 +89,7 @@ export const mpc_pd_compare = define_visual<PdCompareParams>({
         const law = tex(`a = k_p\\,(10 - p) - k_d\\, v, \\quad |a| \\le ${a_max === 1 ? '1' : '0.5'}`, 30, c.ink);
         law.move_to([2.3 - law.width / 2, plot.Y(1.2), 0]);
         law.name = 'law';
-        const note = words(L(`simulation of a toy cart: |v| up to 2 m/s, brakes up to ${a_max === 1 ? '1' : '0.5'} m/s²`, `玩具小车的模拟：|v| 不超过 2 m/s，刹车不超过 ${a_max === 1 ? '1' : '0.5'} m/s²`), 20, c.muted, -6.9, 3.6);
+        const note = aside(this, words(L(`simulation of a toy cart: |v| up to 2 m/s, brakes up to ${a_max === 1 ? '1' : '0.5'} m/s²`, `玩具小车的模拟：|v| 不超过 2 m/s，刹车不超过 ${a_max === 1 ? '1' : '0.5'} m/s²`), 20, c.muted, -6.9, 3.6));
         note.name = 'note';
         const cg = VGroup(...curves);
         cg.name = 'curves';

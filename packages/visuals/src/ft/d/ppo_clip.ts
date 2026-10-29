@@ -12,6 +12,7 @@ import { define_visual } from '../../visual';
 import { arrow, readout, tex, texs } from '../../linalg/kit';
 import { clip_objective, clip_slope } from './math';
 import { LANG_SPEC, Switch, clamp, label, live_number, pick, polyline, rect, resolve_lang, seg, switch_text, x_ticks, y_ticks, type Lang, type P3 } from './kit';
+import { aside } from '../../aside';
 
 export interface PpoClipParams extends Record<string, unknown> {
   story: string;
@@ -177,7 +178,7 @@ export const ppo_clip = define_visual<PpoClipParams>({
         });
         const deriv = VGroup(d_cap, d_num);
         deriv.name = 'derivative';
-        const exact = label(pick(lang, 'one token, exact', '一个 token，精确计算'), 22, c.muted);
+        const exact = aside(this, label(pick(lang, 'one token, exact', '一个 token，精确计算'), 22, c.muted));
         exact.move_to([6.9 - exact.width / 2, -3.55, 0]);
 
         // ---- story

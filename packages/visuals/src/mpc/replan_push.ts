@@ -9,6 +9,7 @@ import { define_visual } from '../visual';
 import { CART } from './math';
 import { push_runs, type Trace } from './dock';
 import { LANG_SPEC, Plot, pick, polyline, resolve_lang, words, type XY } from './kit';
+import { aside } from '../aside';
 
 export interface ReplanPushParams extends Record<string, unknown> {
   lang: string;
@@ -61,7 +62,7 @@ export const mpc_replan_push = define_visual<ReplanPushParams>({
         const b2 = block(-0.3, c.accent, false, L('re-planned every 0.1 s', '每 0.1 秒重新规划'), L(`docks at t = ${(r.replan.docked_k * dt).toFixed(1)} s`, `t = ${(r.replan.docked_k * dt).toFixed(1)} s 停稳`), c.good);
         const legend = VGroup(b0, b1, b2);
         legend.name = 'legend';
-        const note = words(L('simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s; the push is not in the model', '玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s；模型里没有这一推'), 20, c.muted, -6.9, 3.6, { max_w: 13.8 });
+        const note = aside(this, words(L('simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s; the push is not in the model', '玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s；模型里没有这一推'), 20, c.muted, -6.9, 3.6, { max_w: 13.8 }));
         note.name = 'note';
         this.play(FadeIn(plot.group), FadeIn(wall_band), FadeIn(note), { run_time: 1 });
         this.play(Create(plan0), FadeIn(b0), { run_time: 1.6 });
