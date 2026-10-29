@@ -84,15 +84,10 @@ const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): 
   if (html) e.innerHTML = html;
   return e;
 };
-/** Step-type glyphs (timeline dots, cards). */
+/** Glyphs of the "your turn" cards. */
 const ICON: Record<string, string> = {
-  watch: '<svg viewBox="0 0 16 16" width="10" height="10"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>',
   explore: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M6.2 1.8c.6 0 1 .4 1 1v4.1h.3V2.3c0-.6.4-1 1-1s1 .4 1 1v4.6h.3V3c0-.6.4-1 1-1s1 .4 1 1v4.3h.3V4.4c0-.6.4-1 1-1s1 .4 1 1v5.2c0 2.9-2 5-4.8 5H8.3c-1.4 0-2.5-.6-3.3-1.7L2.2 9c-.4-.5-.3-1.1.2-1.4.5-.3 1.1-.2 1.4.3l1.4 1.8V2.8c0-.6.4-1 1-1z" fill="currentColor"/></svg>',
-  question: '<svg viewBox="0 0 16 16" width="10" height="10"><text x="8" y="12.5" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor" font-family="system-ui">?</text></svg>',
   sketch: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M11.3 1.9l2.8 2.8-8.3 8.3-3.5.7.7-3.5z" fill="currentColor"/></svg>',
-  read: '<svg viewBox="0 0 16 16" width="10" height="10"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  derive: '<svg viewBox="0 0 16 16" width="10" height="10"><path d="M3 6h10M3 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  code: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M6 4L2 8l4 4M10 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -235,7 +230,7 @@ export class LessonView {
     } else {
       // where am I: "step 5 of 17 · chapter" and a thin bar above the step dots
       this.el.where = h('div', 'mn-where');
-      left.append(stage, this.el.caption, bar, this.el.page, this.el.where, this.el.steps);
+      left.append(stage, this.el.caption, bar, this.el.page, this.el.where);
       app.append(head, left, side);
     }
     if (o.dev) app.append((this.el.dev = h('div', 'mn-dev', 'dev: linter + scene description')));
@@ -1129,8 +1124,6 @@ export class LessonView {
   // ---------------------------------------------------------------- progress, mastery, summary
   private render_steps(): void {
     if (this.game) return this.render_levels();
-    const box = this.el.steps;
-    box.innerHTML = '';
     const cur = this.runtime?.index ?? -1;
     // "step 5 of 17 · chapter" and a thin bar (branch-only detours count as the step they came from)
     const main = this.lesson.steps.map((s, i) => [s, i] as const).filter(([s]) => !s.branch_only);
@@ -1139,22 +1132,6 @@ export class LessonView {
       const chapter = this.tr(this.chapter_of(cur));
       this.el.where.innerHTML = `<span>${esc(t('lesson_step', { k: Math.max(1, k), n: main.length }))}${chapter ? ` · ${math_html(chapter)}` : ''}</span><span class="mn-where-bar" aria-hidden="true"><i style="width:${Math.round((Math.max(1, k) / main.length) * 100)}%"></i></span>`;
     }
-    let lastChapter: string | undefined;
-    this.lesson.steps.forEach((s, i) => {
-      if (s.branch_only) return;
-      const chapter = s.chapter !== undefined ? this.tr(s.chapter) : undefined;
-      if (chapter && chapter !== lastChapter) {
-        lastChapter = chapter;
-        box.append(h('span', 'mn-chapter', esc(chapter)));
-      }
-      const kind = s.kind === 'checkpoint' ? (s.question.type === 'sketch' ? 'sketch' : 'question') : s.kind === 'explore' ? 'explore' : s.kind === 'scene' ? 'watch' : s.kind;
-      // (text kinds get their own prefix: .mn-code and .mn-read are the pages themselves)
-      const d = h('button', 'mn-dot ' + (s.kind === 'read' || s.kind === 'derive' || s.kind === 'code' ? 'mn-dk-' : 'mn-') + kind + (i < cur ? ' done' : i === cur ? ' now' : ''), ICON[kind]);
-      d.title = `${this.tr(s.title) || s.id} - ${t(`kind_${kind}`)}`;
-      d.setAttribute('aria-label', d.title);
-      d.onclick = () => this.runtime.goto(s.id);
-      box.append(d);
-    });
   }
   private render_mastery(): void {
     const box = this.el.mastery;

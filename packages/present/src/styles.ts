@@ -75,12 +75,6 @@ export const CSS = `
 .mn-bar input[type=range]{flex:1;min-width:0;accent-color:var(--mn-accent)}
 .mn-bar select{font:inherit;color:inherit;background:transparent;border:1px solid var(--mn-border);border-radius:8px;padding:3px 6px}
 .mn-iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--mn-border);background:var(--mn-panel);color:var(--mn-fg);cursor:pointer;display:grid;place-items:center;flex:none}
-.mn-steps{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-.mn-dot{width:20px;height:20px;border-radius:50%;background:var(--mn-faint);color:var(--mn-muted);border:0;padding:0;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
-.mn-dot:hover{transform:scale(1.12)}
-.mn-dot.done{background:color-mix(in srgb,var(--mn-muted) 35%,var(--mn-faint));color:var(--mn-bg)}
-.mn-dot.now{background:var(--mn-accent);color:#fff;transform:scale(1.18)}
-.mn-dot.mn-explore:not(.now),.mn-dot.mn-sketch:not(.now){box-shadow:inset 0 0 0 1.5px var(--mn-accent);color:var(--mn-accent)}
 .mn-yourturn{border:1.5px solid var(--mn-accent);background:color-mix(in srgb,var(--mn-accent) 6%,transparent);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .mn-yt-head{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--mn-accent);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
 .mn-yt-icon{width:24px;height:24px;border-radius:50%;background:var(--mn-accent);color:#fff;display:grid;place-items:center;animation:mn-bob 1.6s ease-in-out infinite}
@@ -90,7 +84,6 @@ export const CSS = `
 .mn-sw{display:inline-block;width:18px;height:0;border-top:3px solid var(--mn-accent);margin-left:6px}.mn-sw.real{border-top:3px dashed #1f8a5b}
 .mn-goal{font-weight:600;color:var(--mn-good)}
 @keyframes mn-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.mn-chapter{font-size:12px;color:var(--mn-muted);margin-left:6px}
 .mn-mastery{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--mn-border);padding-top:12px;margin-top:auto}
 .mn-skill{display:grid;grid-template-columns:1fr 44px;gap:4px 8px;font-size:13px;align-items:center}
 .mn-skill .mn-meter{grid-column:1/-1;height:6px;border-radius:3px;background:var(--mn-faint);overflow:hidden}
@@ -103,8 +96,7 @@ export const CSS = `
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-/* phones: the strip of every step is too busy there; the step counter and the outline remain */
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}.mn-app:not(.mn-game) .mn-steps{display:none}}
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -321,10 +313,6 @@ export const CSS = `
 .mn-where-bar{flex:1;min-width:60px;max-width:280px;height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
 .mn-where-bar i{display:block;height:100%;background:var(--mn-accent);transition:width .4s}
 /* step dots: done = filled, now = accent with a ring, upcoming = outline only */
-.mn-app:not(.mn-game) .mn-dot{background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--mn-muted) 45%,transparent);color:var(--mn-muted)}
-.mn-app:not(.mn-game) .mn-dot.done{background:color-mix(in srgb,var(--mn-accent) 22%,var(--mn-panel));box-shadow:none;color:var(--mn-accent)}
-.mn-app:not(.mn-game) .mn-dot.mn-explore:not(.now):not(.done),.mn-app:not(.mn-game) .mn-dot.mn-sketch:not(.now):not(.done){box-shadow:inset 0 0 0 1.5px var(--mn-accent);color:var(--mn-accent)}
-.mn-app:not(.mn-game) .mn-dot.now{background:var(--mn-accent);color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--mn-accent) 25%,transparent)}
 .mn-more{position:relative;flex:none}
 .mn-more>summary{list-style:none;font-size:18px;line-height:1;letter-spacing:1px}
 .mn-more>summary::-webkit-details-marker{display:none}
