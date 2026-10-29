@@ -54,6 +54,12 @@ goals that random dragging won't reach, specific feedback). The full bar:
 
 ## 5. Visual language
 
+- **Our own, not Manim's** (2026-10-29: "尽可能地 develop 我们自己的亮点，而且尽量和
+  manim 不一样"). manim-web started as a faithful port; what learners see is now
+  ours: the site's typography (not Manim's Times/Helvetica stand-ins and Pango's
+  pixel-rounded spacing), calm compositions, our own motion and interactions.
+  Matching Python Manim matters only for the library's regression tests. When
+  proposing a look, say what makes it ours.
 - **One light theme everywhere.** Never a dark or black lesson theme ("3b1b
   style" means the kind of explanation, not black backgrounds). No dark-mode
   toggle.

@@ -51,6 +51,11 @@ npm run catalog                   # regenerate docs/CAPABILITIES.md after adding
 
 - **讲明白 first**: purpose and intuition before math, math before details
   (`docs/TASTE.md` §1).
+- **Our own, not Manim's** (from 2026-10-29): "尽可能地 develop 我们自己的亮点，
+  而且尽量和 manim 不一样." We are past learning from others: in what learners
+  see (typography, composition, motion, interaction) prefer Mathnim's own
+  identity over matching Manim or 3b1b. Manim parity only serves manim-web's
+  regression tests (`docs/TASTE.md` §5).
 - **Bilingual**: every learner-facing string is `{ en, zh }`; write the
   Chinese natively.
 - **One light theme. Narration only on scene steps. No instructional copy in
