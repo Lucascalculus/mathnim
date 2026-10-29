@@ -179,6 +179,9 @@ interface Saved {
   ink?: number;
   /** The paragraph it was asked beside (a question asked on the line). */
   at?: number;
+  /** Where it sits from that paragraph's top, in px: it was asked where the learner was reading, which can be above
+   *  the first paragraph in view (a table or a figure there). */
+  dy?: number;
 }
 const notes_key = (lesson_id: string) => `mathnim.notes.${lesson_id}`;
 function load_notes(lesson_id: string): Record<string, Saved> {
@@ -284,6 +287,8 @@ class Note {
   busy = false;
   private ink: number;
   private turns_shown = 0;
+  /** Its place from its paragraph's top (Saved.dy). */
+  dy = 0;
   constructor(
     readonly key: string,
     readonly para: HTMLElement | null,
@@ -294,6 +299,7 @@ class Note {
     const el = (this.el = document.createElement('section'));
     el.className = phrase ? 'rail-note' : 'rail-note ask-note';
     this.ink = saved?.ink ?? (phrase ? (next_ink(rail.lesson.id) + 2) % INKS.length : next_ink(rail.lesson.id));
+    this.dy = saved?.dy ?? 0;
     el.style.setProperty('--note-ink', INKS[this.ink]);
     el.innerHTML = `<button type="button" class="note-head"></button><div class="note-body"><div class="note-past"></div><div class="note-panel"></div></div>`;
     this.head = el.querySelector('.note-head')!;
@@ -435,7 +441,7 @@ class Note {
   }
   save(): void {
     const at = !this.phrase && this.para ? this.rail.paras().indexOf(this.para) : -1;
-    store_note(this.rail.lesson.id, this.key, { turns: this.panel.transcript(), folded: this.folded, phrase: this.phrase || undefined, ink: this.ink, at: at >= 0 ? at : undefined });
+    store_note(this.rail.lesson.id, this.key, { turns: this.panel.transcript(), folded: this.folded, phrase: this.phrase || undefined, ink: this.ink, at: at >= 0 ? at : undefined, dy: at >= 0 && this.dy ? Math.round(this.dy) : undefined });
   }
   destroy(): void {
     this.panel.clear();
@@ -546,7 +552,10 @@ export class AskRail {
   private ask_here(q: string): void {
     const s = this.view?.runtime.step;
     if (!s) return;
-    const n = this.add(new Note(`${s.id}#talk.${this.next_number()}`, this.reading(), '', undefined, this));
+    const at = this.reading();
+    const n = new Note(`${s.id}#talk.${this.next_number()}`, at?.para ?? null, '', undefined, this);
+    n.dy = at?.dy ?? 0;
+    this.add(n);
     for (const o of this.notes.values()) if (o !== n && !o.phrase && !o.folded) o.fold(true);
     n.quote = this.quote;
     this.quote = '';
@@ -566,14 +575,24 @@ export class AskRail {
     this.talk.querySelector('.ask-n')!.textContent = `ASK · ${String(this.next_number()).padStart(2, '0')}`;
   }
   /** The paragraph being read: the first one just under the line (on phones, near the top of the screen), else the last begun. */
-  private reading(): HTMLElement | null {
+  /**
+   * Where the learner is reading: on wide screens the line just under the conversation block, on phones the top of
+   * the screen. The note asked there is kept with the paragraph nearest that line, at the line itself (dy from the
+   * paragraph's top): the nearest paragraph can be far below when a table or a figure fills the screen.
+   */
+  private reading(): { para: HTMLElement; dy: number } | null {
     const paras = this.paras();
-    const y = wide() ? this.talk.getBoundingClientRect().bottom - 8 : 80;
-    const tops = paras.map((p) => p.getBoundingClientRect().top);
-    const i = tops.findIndex((t) => t >= y && t < innerHeight);
-    if (i >= 0) return paras[i];
-    const begun = tops.filter((t) => t < innerHeight).length;
-    return begun ? paras[begun - 1] : null;
+    if (!paras.length) return null;
+    const y = wide() ? this.talk.getBoundingClientRect().bottom + 12 : 80;
+    let best = paras[0], d = Infinity;
+    for (const p of paras) {
+      const r = p.getBoundingClientRect();
+      // (a paragraph the line runs through is the one being read)
+      const dist = r.top <= y && r.bottom > y ? 0 : Math.min(Math.abs(r.top - y), Math.abs(r.bottom - y));
+      if (dist < d) [best, d] = [p, dist];
+    }
+    // on phones the note opens under its paragraph, in the text
+    return { para: best, dy: wide() ? y - best.getBoundingClientRect().top : 0 };
   }
 
   // ---------------------------------------------------------------- steps and pages
@@ -674,7 +693,7 @@ export class AskRail {
       // (below the conversation where it sits at the top of the page; it covers notes only as they scroll under it)
       let floor = this.talk.offsetHeight + 12;
       for (const n of notes) {
-        const top = Math.max(n.para ? n.para.getBoundingClientRect().top - base : 0, floor);
+        const top = Math.max(n.para ? n.para.getBoundingClientRect().top - base + n.dy : 0, floor);
         n.el.style.top = `${top}px`;
         floor = top + n.el.offsetHeight + 18;
       }
