@@ -203,6 +203,9 @@ export interface HandleSpec {
   label?: string;
   /** Scale the mobject a little while hovered/dragged (default true). */
   highlight?: boolean;
+  /** Drag cues on this handle (ring, arrows, hint; default true). A switch or a row of choices reads as a control by
+   *  itself: false leaves only the keyboard focus ring. */
+  cue?: boolean;
   on_start?: () => void;
   on_change?: (p: Point3D) => void;
   on_end?: () => void;

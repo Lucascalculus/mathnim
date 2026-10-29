@@ -134,6 +134,7 @@ export class Switch {
   /** Register the knob with an Interaction (dragging past the middle flips it). */
   attach(ui: { add_handle(spec: any): unknown }, name: string, on_change?: () => void): void {
     ui.add_handle({
+      cue: false, // a switch or a row of choices reads as a control by itself
       get: () => [this.t.get_value() > 0.5 ? this.x1 : this.x0, this.y, 0],
       set: (p: P3) => {
         const v = p[0] > (this.x0 + this.x1) / 2 ? 1 : 0;

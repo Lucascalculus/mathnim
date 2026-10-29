@@ -2,10 +2,11 @@
 // thing visible and self-explaining without changing the scene itself.
 //
 // Drawn on a transparent overlay canvas above the scene canvas:
-// * a pulsing halo on each handle until it has been used, then a quiet ring;
-// * arrows showing the directions the handle can move (from its constraint);
+// * a thin ring on each handle, breathing until it has been used, then faint;
+//   switches and rows of choices (cue: false) get none, only a focus ring;
+// * chevrons showing the directions the handle can move (from its constraint);
 // * a "Drag me" label (the handle's label) until first use;
-// * while hovering or dragging: the allowed path as a dashed line;
+// * while hovering or dragging: the allowed path as a dotted line;
 // * a coach mark: a ghost hand that demonstrates the drag once.
 //
 // Interactive items (draggables, drop zones, stamps, scrubbers, cutters) draw
@@ -23,7 +24,7 @@ export interface AffordanceOptions {
   color?: string;
   /** Text next to unused handles; `{label}` is replaced by the handle label. */
   hint?: string;
-  /** Halo radius in CSS pixels. */
+  /** Radius of the ring around a handle, in CSS pixels. */
   radius?: number;
 }
 
@@ -54,7 +55,7 @@ export class AffordanceLayer {
 
   constructor(ui: Interaction, o: AffordanceOptions = {}) {
     this.ui = ui;
-    this.o = { color: o.color ?? '#2563EB', hint: o.hint ?? 'Drag {label}', radius: o.radius ?? 18 };
+    this.o = { color: o.color ?? '#2563EB', hint: o.hint ?? 'Drag {label}', radius: o.radius ?? 16 };
     const c = ui.canvas;
     const parent = c.parentElement!;
     if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
@@ -158,7 +159,7 @@ export class AffordanceLayer {
    * default, else the first item with a coach path (a draggable goes to its
    * zone, a knife swipes with a dashed trail, a stamp taps).
    */
-  coach(h: DragHandle | InteractiveItem | undefined = this.ui.handles[0] ?? this.ui.items.find((it) => it.enabled !== false && !!it.coach_path)): void {
+  coach(h: DragHandle | InteractiveItem | undefined = this.ui.handles.find((x) => x.spec.cue !== false) ?? this.ui.items.find((it) => it.enabled !== false && !!it.coach_path)): void {
     if (!h) return;
     if (!('spec' in h)) {
       const path = h.coach_path?.();
@@ -202,18 +203,25 @@ export class AffordanceLayer {
     g.clearRect(0, 0, r.width, r.height);
     const t = (performance.now() - this.t0) / 1000;
     const col = this.o.color;
+    const reduced = prefers_reduced_motion();
+    const lead = this.ui.handles.find((x) => x.spec.cue !== false && !this.used.has(x));
     for (const h of this.ui.handles) {
       const [x, y] = this.px(h.position());
-      const fresh = !this.used.has(h);
-      const R = this.o.radius * (h.active ? 1.25 : h.hot || h.focused ? 1.15 : 1);
-      // allowed path while hovering / dragging / focused
-      if (h.hot || h.active || h.focused) {
+      if (h.spec.cue === false) {
+        if (h.focused) ring(g, x, y, this.o.radius, col, { focused: true });
+        continue;
+      }
+      const fresh = !this.used.has(h), near = h.hot || h.active || h.focused;
+      const R = this.o.radius * (h.active ? 1.08 : near ? 1.04 : 1);
+      // where it can go, while hovered, dragged or focused: a fine dotted line
+      if (near) {
         const pts = this.path(h).map((q) => this.px(q));
         if (pts.length > 1) {
           g.save();
-          g.setLineDash([6, 6]);
+          g.setLineDash([0.5, 5]);
+          g.lineCap = 'round';
           g.strokeStyle = col;
-          g.globalAlpha = 0.55;
+          g.globalAlpha = 0.6;
           g.lineWidth = 2;
           g.beginPath();
           pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py)));
@@ -221,44 +229,29 @@ export class AffordanceLayer {
           g.restore();
         }
       }
-      // pulsing halo while unused, quiet ring afterwards
-      if (fresh && !h.active) {
-        for (const phase of [0, 0.5]) {
-          const k = (t * 0.8 + phase) % 1;
+      ring(g, x, y, R, col, { breathe: fresh && !h.active && !reduced ? t : undefined, active: h.active, focused: h.focused, quiet: !fresh && !near });
+      // which ways it moves: open chevrons, until used (and again while hovered)
+      if (fresh || near) {
+        const { dims, dir } = this.freedom(h);
+        const dirs: XY[] = dims === 2 ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : dims === 1 ? [dir, [-dir[0], -dir[1]]] : [];
+        g.save();
+        g.strokeStyle = col;
+        g.globalAlpha = 0.75;
+        g.lineWidth = 1.5;
+        g.lineCap = g.lineJoin = 'round';
+        for (const [dx, dy] of dirs) {
+          const ux = dx, uy = -dy; // screen y is down
+          const bx = x + ux * (R + 6), by = y + uy * (R + 6);
           g.beginPath();
-          g.arc(x, y, R * (1 + k * 1.2), 0, Math.PI * 2);
-          g.strokeStyle = col;
-          g.globalAlpha = 0.45 * (1 - k);
-          g.lineWidth = 2.5;
+          g.moveTo(bx - uy * 3.5, by + ux * 3.5);
+          g.lineTo(bx + ux * 3.5, by + uy * 3.5);
+          g.lineTo(bx + uy * 3.5, by - ux * 3.5);
           g.stroke();
         }
-      }
-      g.globalAlpha = h.active ? 0.22 : 0.12;
-      g.beginPath();
-      g.arc(x, y, R, 0, Math.PI * 2);
-      g.fillStyle = col;
-      g.fill();
-      g.globalAlpha = 0.9;
-      g.lineWidth = h.focused ? 3 : 2;
-      g.strokeStyle = col;
-      g.stroke();
-      // direction arrows
-      const { dims, dir } = this.freedom(h);
-      const dirs: XY[] = dims === 2 ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : dims === 1 ? [dir, [-dir[0], -dir[1]]] : [];
-      g.globalAlpha = 0.9;
-      g.fillStyle = col;
-      for (const [dx, dy] of dirs) {
-        const ux = dx, uy = -dy; // screen y is down
-        const bx = x + ux * (R + 7), by = y + uy * (R + 7);
-        g.beginPath();
-        g.moveTo(bx + ux * 7, by + uy * 7);
-        g.lineTo(bx - uy * 5, by + ux * 5);
-        g.lineTo(bx + uy * 5, by - ux * 5);
-        g.closePath();
-        g.fill();
+        g.restore();
       }
       // label until first use (only on the first unused handle, to avoid clutter)
-      if (fresh && !h.active && h === this.ui.handles.find((x) => !this.used.has(x))) {
+      if (fresh && !h.active && h === lead) {
         pill(g, this.o.hint.replace('{label}', h.spec.label ?? 'me'), x, y, R, r.width, r.height, col);
       }
       g.globalAlpha = 1;
@@ -282,28 +275,8 @@ export class AffordanceLayer {
       px: (p) => this.px(p),
       once: (key) => (seen.has(key) ? false : (seen.add(key), true)),
       halo: (x, y, R0, o = {}) => {
-        const R = R0 * (o.active ? 1.12 : o.focused ? 1.06 : 1);
-        if (o.pulse) {
-          for (const phase of reduced ? [0.35] : [0, 0.5]) {
-            const k = reduced ? phase : (t * 0.8 + phase) % 1;
-            g.beginPath();
-            g.arc(x, y, R * (1 + k * 0.6), 0, Math.PI * 2);
-            g.strokeStyle = col;
-            g.globalAlpha = 0.45 * (1 - k);
-            g.lineWidth = 2.5;
-            g.stroke();
-          }
-        }
-        g.globalAlpha = o.active ? 0.2 : 0.1;
-        g.beginPath();
-        g.arc(x, y, R, 0, Math.PI * 2);
-        g.fillStyle = col;
-        g.fill();
-        g.globalAlpha = 0.9;
-        g.lineWidth = o.focused ? 3 : 2;
-        g.strokeStyle = col;
-        g.stroke();
-        g.globalAlpha = 1;
+        const R = R0 * (o.active ? 1.08 : o.focused ? 1.04 : 1);
+        ring(g, x, y, R, col, { breathe: o.pulse && !reduced ? t : undefined, active: o.active, focused: o.focused });
       },
       outline: (pts, o = {}) => {
         if (pts.length < 2) return;
@@ -424,9 +397,43 @@ function fit_text(g: CanvasRenderingContext2D, text: string, max: number): { tex
  * A hint pill next to a point (x, y) that keeps clear of radius R: right of
  * it, else left, else centred above (or `below`); always inside the canvas.
  */
+/** The ring around something to drag: a thin line hugging it (no disc over the figure), one soft ring breathing out
+ *  every two seconds until it is used (`breathe`: the time in s), a faint fill only while it is held, fainter once
+ *  used (`quiet`), and a second, outer line when it has the keyboard focus. */
+function ring(g: CanvasRenderingContext2D, x: number, y: number, R: number, col: string, o: { breathe?: number; active?: boolean; focused?: boolean; quiet?: boolean } = {}): void {
+  g.save();
+  g.strokeStyle = g.fillStyle = col;
+  if (o.breathe !== undefined) {
+    const k = (o.breathe / 2) % 1, e = 1 - (1 - k) ** 3;
+    g.globalAlpha = 0.3 * (1 - k);
+    g.lineWidth = 1;
+    g.beginPath();
+    g.arc(x, y, R * (1 + 0.6 * e), 0, Math.PI * 2);
+    g.stroke();
+  }
+  if (o.active) {
+    g.globalAlpha = 0.08;
+    g.beginPath();
+    g.arc(x, y, R, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.globalAlpha = o.quiet ? 0.3 : 0.85;
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.arc(x, y, R, 0, Math.PI * 2);
+  g.stroke();
+  if (o.focused) {
+    g.globalAlpha = 0.5;
+    g.lineWidth = 1;
+    g.beginPath();
+    g.arc(x, y, R + 4, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.restore();
+}
 function pill(g: CanvasRenderingContext2D, raw: string, x: number, y: number, R: number, W: number, H: number, color: string, below = false): void {
   const { text, w } = fit_text(g, raw, W - 8);
-  let lx = x + R + 22, ly = y - R - 16;
+  let lx = x + R + 20, ly = y - R - 14;
   if (lx + w > W - 4) lx = x - R - 22 - w;
   // fits on neither side: centre it above (or below) the point, inside the canvas
   if (lx < 4 || below) {

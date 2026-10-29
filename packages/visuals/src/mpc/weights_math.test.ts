@@ -78,7 +78,7 @@ describe('the M3 runs', () => {
       const w = weights_run(10 ** (-2 + 0.1 * j), 10 ** (-2 + 0.1 * i));
       expect(meets_fast(w) && meets_gentle(w)).toBe(false);
     }
-  });
+  }, 30_000); // 1,681 closed-loop runs: about 1.5 s alone, longer while every package's tests run at once
   it('within the motor limit the best trip takes about 11 s, over twice the shortest possible (2√6 ≈ 4.9 s)', () => {
     // the slider grid (0.05 decades) where |a| can stay within 1: r from 10 to 100, q_v from 1 to 100
     let best = Infinity;

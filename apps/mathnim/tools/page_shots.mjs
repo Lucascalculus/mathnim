@@ -6,7 +6,7 @@
 //   { "wait": ms }
 //   { "shot": "name", "clip": [x, y, w, h] }   save <outdir>/<name>.png (clip in page coordinates)
 // Usage:
-//   node tools/page_shots.mjs <url> <outdir> <width> <height> <steps.json>
+//   node tools/page_shots.mjs <url> <outdir> <width> <height> <steps.json>   (DPR=2 for a retina screen)
 // A fresh browser profile each run (empty localStorage): seed state with an "eval" step, then reload.
 // Chrome is found from $CHROME, else Playwright's cached Chromium, else the installed Google Chrome.
 import { spawn } from 'node:child_process';
@@ -66,7 +66,7 @@ const send = (method, params = {}) => new Promise((r) => {
 });
 await send('Page.enable');
 await send('Runtime.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: +w, height: +h, deviceScaleFactor: 1, mobile: +w < 700 });
+await send('Emulation.setDeviceMetricsOverride', { width: +w, height: +h, deviceScaleFactor: +(process.env.DPR ?? 1), mobile: +w < 700 });
 await send('Page.navigate', { url });
 await sleep(2500);
 for (const s of steps) {

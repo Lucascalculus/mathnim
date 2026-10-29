@@ -261,6 +261,7 @@ export class Choice extends VGroup {
       on_end?.(s.tracker.get_value());
     });
     return ui.add_handle({
+      cue: false, // a switch or a row of choices reads as a control by itself
       get: (): P3 => [this.centres[this.index()], y, 0],
       set: (p: P3) => s.tracker.set_value(this.values[this.stop_at(p[0])]),
       constraint: (p: P3): P3 => [clamp(p[0], lo, hi), y, 0],

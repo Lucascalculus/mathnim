@@ -110,6 +110,7 @@ export class Toggle {
   }
   attach(ui: UiLike, name: string, on_change?: (on: boolean) => void): void {
     ui.add_handle({
+      cue: false, // a switch or a row of choices reads as a control by itself
       get: () => [this.t.get_value() > 0.5 ? this.x1 : this.x0, this.y, 0],
       set: (p: P3) => {
         const v = p[0] > (this.x0 + this.x1) / 2 ? 1 : 0;
@@ -152,6 +153,7 @@ export class Choice {
   attach(ui: UiLike, name: string, on_change?: (k: number) => void): void {
     const n = this.xs.length;
     ui.add_handle({
+      cue: false, // a switch or a row of choices reads as a control by itself
       get: () => [this.xs[Math.round(this.t.get_value())], this.y, 0],
       set: (p: P3) => {
         let best = 0;
@@ -186,6 +188,7 @@ export class VSwitch {
   attach(ui: UiLike, name: string, on_change?: (on: boolean) => void): void {
     const mid = (this.y_on + this.y_off) / 2;
     ui.add_handle({
+      cue: false, // a switch or a row of choices reads as a control by itself
       get: () => [this.x, this.t.get_value() > 0.5 ? this.y_on : this.y_off, 0],
       set: (p: P3) => {
         const v = p[1] > mid ? 1 : 0;

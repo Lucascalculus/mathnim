@@ -86,6 +86,7 @@ export function choice(t: ValueTracker, options: string[], o: { x: number; y: nu
     at,
     attach(ui) {
       ui.add_handle({
+        cue: false, // a switch or a row of choices reads as a control by itself
         tracker: t,
         from_value: (v: number) => at(v),
         to_value: (p: number[]) => clamp(Math.round((o.y - p[1]) / gap), 0, n - 1),
