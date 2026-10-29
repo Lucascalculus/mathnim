@@ -55,7 +55,7 @@ export type Block =
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
-  | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: string }
+  | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: L10n }
   /** A drawing given as SVG markup (generated courses draw their own diagrams; one per language when it has words); shown as an image, so it runs no code. */
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */

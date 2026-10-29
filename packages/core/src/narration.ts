@@ -34,6 +34,15 @@ export function beat_times(text: string, rec: Recording): number[] {
   return out;
 }
 
+/** A scene's voice starts this long after its picture (seconds): the eye finds the figure first. */
+export const VOICE_DELAY = 0.6;
+/** A section starts this long before the words its beat stands at (seconds): its motion is under way as they are said. */
+export const BEAT_LEAD = 0.4;
+/** A scene's beats on its picture's clock (the voice starts VOICE_DELAY in): when each beat's words are said, and the end. */
+export function scene_beats(text: string, rec: Recording): { at: number[]; end: number } {
+  return { at: beat_times(text, rec).map((t) => t + VOICE_DELAY), end: rec.duration + VOICE_DELAY };
+}
+
 /** Stable key of a narration line (FNV-1a 64-bit, hex); gen_narration uses the same. Beats do not count. */
 export function narration_key(text: string): string {
   let h = 0xcbf29ce484222325n;

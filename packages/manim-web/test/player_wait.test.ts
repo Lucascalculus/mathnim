@@ -56,3 +56,12 @@ describe('voice_waits', () => {
     expect(w.tail).toBeCloseTo(1); // the picture ends at 4.5 s, a second after the voice
   });
 });
+
+describe('voice_waits with a lead', () => {
+  it('starts each section that long before its beat, and counts lateness from the beat', () => {
+    const w = voice_waits([1, 2], 3, [2.5, 3.0], 3.5, 0.4);
+    expect(w.waits[0]).toBeCloseTo(1.1); // section 1 at 2.1 s, 0.4 s before its words at 2.5 s
+    expect(w.waits[1]).toBe(0); // section 2 would aim at 2.6 s but arrives at 3.1 s ...
+    expect(w.late[1]).toBeCloseTo(0.1); // ... 0.1 s after its words at 3.0 s
+  });
+});

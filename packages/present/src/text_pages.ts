@@ -130,7 +130,7 @@ export class BlockRenderer {
         this.figures++;
         // absolute: lessons live at nested paths (/<course>/<lesson>)
         const src = '/' + tr(b.src, this.lang).replace(/^\//, '');
-        const cap = [b.caption ? this.prose(b.caption) : '', b.credit ? `<span class="mn-credit">${esc(t('source_credit', { c: b.credit }, this.lang))}</span>` : ''].filter(Boolean).join(' ');
+        const cap = [b.caption ? this.prose(b.caption) : '', b.credit ? `<span class="mn-credit">${esc(t('source_credit', { c: tr(b.credit, this.lang) }, this.lang))}</span>` : ''].filter(Boolean).join(' ');
         return `<figure class="mn-fig"><img src="${esc(src)}" alt="${esc(tr(b.alt, this.lang))}" loading="lazy" decoding="async">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
       }
       case 'svg': {

@@ -92,7 +92,7 @@ export const lesson: Lesson = {
         { type: 'p', text: t(
           'InstructGPT’s SFT model "overfit on validation loss after 1 epoch", yet training up to 16 epochs kept improving both the reward-model score and human preference; they picked checkpoints by reward-model score[^igpt]. LIMA found perplexity did not track quality and chose its checkpoint by hand on a 50-example dev set[^lima].',
           'InstructGPT 的 SFT 模型"一轮之后在验证 loss 上就过拟合了"，可一直训到 16 轮，奖励模型分数和人类偏好都还在上升；他们按奖励模型分数选检查点[^igpt]。LIMA 发现困惑度和回答质量对不上，最后在一个 50 条样本的开发集上人工挑选检查点[^lima]。') },
-        { type: 'figure', src: 'ft/b/b3-instructgpt-overfit.svg', alt: t('Over 16 epochs, validation loss bottoms after epoch 1 and rises, while reward-model score and human preference keep rising.', '在 16 轮里，验证 loss 在第 1 轮后见底回升，而奖励模型分数和人类偏好持续上升。'), credit: 'Schematic from the text of InstructGPT (Ouyang et al., 2022) §3.5, not a redraw of a figure · 示意，依据 InstructGPT 第 3.5 节的文字描述绘制' },
+        { type: 'figure', src: 'ft/b/b3-instructgpt-overfit.svg', alt: t('Over 16 epochs, validation loss bottoms after epoch 1 and rises, while reward-model score and human preference keep rising.', '在 16 轮里，验证 loss 在第 1 轮后见底回升，而奖励模型分数和人类偏好持续上升。'), credit: t('Schematic from the text of InstructGPT (Ouyang et al., 2022) §3.5, not a redraw of a figure', '示意，依据 InstructGPT 第 3.5 节的文字描述绘制') },
         { type: 'p', text: t('Why? The validation loss asks how likely the **reference** answers are under the model:', '为什么？验证 loss 问的是：**参考答案**在模型下有多大概率：') },
         { type: 'math', tex: '\\mathbb{E}_{y\\sim D}\\big[-\\log \\pi(y \\mid x)\\big] = H(D) + \\mathrm{KL}(D \\,\\Vert\\, \\pi)' },
         { type: 'list', items: [
@@ -132,7 +132,7 @@ export const lesson: Lesson = {
       id: 'eval-layers', kind: 'read', chapter: t('Evaluation', '评测'), title: t('Four layers of evaluation', '评测的四层'),
       blocks: [
         { type: 'p', text: t('A fine-tune is only as good as the evaluation that accepted it. Build these before training, not after:', '一个微调好不好，取决于验收它的评测。这些要在训练之前就搭好，而不是之后：') },
-        { type: 'figure', src: 'ft/b/b3-eval-layers.svg', alt: t('Four stacked layers: task held-out set, general-capability regression, safety regression, and evaluating the shipped artifact.', '四层叠在一起：任务留出集、通用能力回归、安全回归，以及评测真正上线的那个文件。'), credit: 'Own drawing · 自绘' },
+        { type: 'figure', src: 'ft/b/b3-eval-layers.svg', alt: t('Four stacked layers: task held-out set, general-capability regression, safety regression, and evaluating the shipped artifact.', '四层叠在一起：任务留出集、通用能力回归、安全回归，以及评测真正上线的那个文件。'), credit: t('Own drawing', '自绘') },
         { type: 'list', ordered: true, items: [
           t('**The task itself:** a held-out set from the same distribution as the training data, decontaminated. Score automatically where you can (exact match, unit tests, JSON schema validation); otherwise with a written rubric.', '**任务本身：**一个和训练数据同分布、去过污染的留出集。能自动打分就自动打分（精确匹配、单元测试、JSON schema 校验）；否则按写好的评分细则（rubric）打分。'),
           t('**What it could do before:** general benchmarks such as IFEval and GSM8K, run before and after, with the same settings.', '**它原来会的东西：**IFEval、GSM8K 这类通用基准，训练前后各跑一次，设置完全一样。'),
@@ -211,7 +211,7 @@ export const lesson: Lesson = {
           'Open-ended answers have no exact match, so teams ask a strong model to compare two answers: an **LLM-as-a-judge**. On MT-Bench, GPT-4’s verdicts agreed with humans 85% of the time (excluding ties), about as often as humans agree with each other[^zheng]. But judges have measurable biases:',
           '开放式回答没有标准答案可以精确匹配，所以团队会请一个强模型来比较两个回答：**大模型评委（LLM-as-a-judge）**。在 MT-Bench 上，GPT-4 的判断与人类的一致率（不计平局）是 85%，和人与人之间的一致率差不多[^zheng]。但评委有可测量的偏差：') },
         { type: 'figure', src: 'ft/b/b3-judge-position.svg', alt: t('Position consistency of three judges when the answer order is swapped: Claude-v1 23.8%, GPT-3.5 46.2%, GPT-4 65.0%.', '交换回答顺序后三个评委的一致率：Claude-v1 23.8%，GPT-3.5 46.2%，GPT-4 65.0%。'),
-          caption: t('Swap the two answers and ask again: even GPT-4 gave the same verdict only 65% of the time on these near-identical pairs.', '把两个回答对调再问一次：在这些几乎一样的回答对上，即使是 GPT-4，也只有 65% 的情况给出相同的判断。'), credit: 'Data: Zheng et al. (2023), Table 2 · 数据：Zheng 等（2023）表 2' },
+          caption: t('Swap the two answers and ask again: even GPT-4 gave the same verdict only 65% of the time on these near-identical pairs.', '把两个回答对调再问一次：在这些几乎一样的回答对上，即使是 GPT-4，也只有 65% 的情况给出相同的判断。'), credit: t('Data: Zheng et al. (2023), Table 2', '数据：Zheng 等（2023）表 2') },
         { type: 'table',
           head: [t('Bias', '偏差'), t('What to do', '怎么办')],
           rows: [

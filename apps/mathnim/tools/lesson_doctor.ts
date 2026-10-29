@@ -8,7 +8,7 @@ import { lint_timeline } from 'manim-web/ext/lint';
 import { ScenePlayer, voice_waits } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { RECORDED, compile_answer, recorded_lesson_responses, INSCRIBED_PLAN, MockProvider, apply_white } from '@mathnim/ai';
-import { BEAT, WorldSession, beat_times, lesson_langs, narration_key, tr, unbeat, type Block, type ExploreStep, type Lesson, type Recording } from '@mathnim/core';
+import { BEAT, BEAT_LEAD, VOICE_DELAY, WorldSession, scene_beats, lesson_langs, narration_key, tr, unbeat, type Block, type ExploreStep, type Lesson, type Recording } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
 import { init_tex } from 'manim-web';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
@@ -117,7 +117,7 @@ function voice_fits(lesson: Lesson, narration: Parameters<typeof tr>[0], row: Ro
     }
     const file = path.join(PUBLIC, 'narration', `${narration_key(text)}.json`);
     if (!text || /\{\w+\}/.test(text) || !fs.existsSync(file)) continue;
-    const said = (JSON.parse(fs.readFileSync(file, 'utf8')) as { duration: number }).duration;
+    const said = (JSON.parse(fs.readFileSync(file, 'utf8')) as { duration: number }).duration + VOICE_DELAY; // (on the picture's clock)
     if (said > row.seconds + 0.5) {
       row.ok = false;
       row.errors.push(`narration (${lang}) ${said.toFixed(1)} s runs ${(said - row.seconds).toFixed(1)} s past the picture: time it with beats (§) and sections (docs/COURSE-PLAYBOOK.md; tools/beats.mjs)`);
@@ -137,8 +137,8 @@ function beats_fit(text: string, lang: string, row: Row): void {
   const file = path.join(PUBLIC, 'narration', `${narration_key(text)}.json`);
   if (!fs.existsSync(file)) return void row.warnings.push(`narration (${lang}) has no recording yet: npm run narration`);
   const rec = JSON.parse(fs.readFileSync(file, 'utf8')) as Recording;
-  const at = beat_times(text, rec);
-  const plan = voice_waits(row.starts ?? [], row.seconds ?? 0, at, rec.duration);
+  const b = scene_beats(text, rec);
+  const plan = voice_waits(row.starts ?? [], row.seconds ?? 0, b.at, b.end, BEAT_LEAD);
   const parts = text.split(BEAT);
   plan.late.forEach((late, k) => {
     if (late > 0.5) fail(row, `narration (${lang}): section ${k + 1} ("${unbeat(parts[k + 1]).slice(0, 32)}…") starts ${late.toFixed(1)} s after its words: shorten the animations or pauses of section ${k}`);

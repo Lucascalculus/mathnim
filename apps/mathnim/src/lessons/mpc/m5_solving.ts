@@ -51,7 +51,7 @@ print(f"end p = {x[0]:.4f} m, v = {x[1]:.4f} m/s; closest to the wall {max_p:.4f
 
 /** The chip the world's cue points at first (a limit the no-limits plan breaks at sample 18). */
 const FIRST_CHIP = t('limit a1+', '限制 a1+');
-const BENCH = 'Measured with docs/lessons/mpc/m5/bench.py (Apple M4, Python 3.12, OSQP 1.1.1, Clarabel 0.11.1) · 用 bench.py 实测';
+const BENCH = t('Measured with docs/lessons/mpc/m5/bench.py (Apple M4, Python 3.12, OSQP 1.1.1, Clarabel 0.11.1)', '用 bench.py 实测');
 
 export const lesson: Lesson = {
   id: 'mpc-m5-solving',
@@ -127,7 +127,7 @@ export const lesson: Lesson = {
     {
       id: 'measured', kind: 'read', title: t('Dense and small, or sparse and big', '小而稠密，还是大而稀疏'),
       blocks: [
-        { type: 'figure', src: t('mpc/m5/structure.en.svg', 'mpc/m5/structure.zh.svg'), alt: t('Two matrices at the same cell size: the condensed one is 10 by 10 and completely filled; the sparse one is 50 by 50 with nonzeros only in a band along the diagonal.', '同样格子大小的两个矩阵：稠密形式 10 × 10，全部填满；稀疏形式 50 × 50，非零元只在对角线附近的一条带上。'), credit: 'Own computation for the course cart · 按课程小车自行计算' },
+        { type: 'figure', src: t('mpc/m5/structure.en.svg', 'mpc/m5/structure.zh.svg'), alt: t('Two matrices at the same cell size: the condensed one is 10 by 10 and completely filled; the sparse one is 50 by 50 with nonzeros only in a band along the diagonal.', '同样格子大小的两个矩阵：稠密形式 10 × 10，全部填满；稀疏形式 50 × 50，非零元只在对角线附近的一条带上。'), credit: t('Own computation for the course cart', '按课程小车自行计算') },
         { type: 'p', text: t(
           'To see what this means in time, we solved the cart’s docking MPC (M1’s task) in a closed loop of 90 samples for horizons from 20 to 320, with an interior-point solver (Clarabel) on both forms and with OSQP (ADMM, explained below) on the sparse form:',
           '为了看清这在时间上意味着什么，我们把小车的停靠 MPC（M1 的任务）在 90 个采样的闭环里实际跑了一遍，预测步数从 20 到 320：内点法求解器（Clarabel）两种写法都跑，OSQP（ADMM，下面会讲）跑稀疏形式：') },

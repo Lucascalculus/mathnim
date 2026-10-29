@@ -14,7 +14,7 @@ import { export_video } from 'manim-web/ext/export';
 import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import {
-  BEAT, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, beat_times, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, tr, unbeat,
+  BEAT, BEAT_LEAD, VOICE_DELAY, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, scene_beats, tr, unbeat,
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Recording, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
 import { drag_hint, plural_s, t, ui_lang } from './i18n';
@@ -373,12 +373,15 @@ export class LessonView {
   /** A step's narration: said without its beats; a scene with beats (§) has its picture wait for the voice at each. */
   private say_narration(text: string): void {
     const timed = this.scene_step && text.includes(BEAT);
+    this.narrator.lead_in = this.scene_step ? VOICE_DELAY : 0; // (the picture first, then the voice)
     void this.narrator.say(unbeat(text), timed ? (rec) => ((this.timing = { text, rec }), this.time_picture()) : undefined);
   }
   /** The picture waits for the voice (ScenePlayer.wait_for), once both the recording and the step's scene are in. */
   private time_picture(): void {
     const p = this.step_player, tm = this.timing;
-    if (p?.loaded && tm) p.wait_for(beat_times(tm.text, tm.rec), tm.rec.duration);
+    if (!p?.loaded || !tm) return;
+    const b = scene_beats(tm.text, tm.rec);
+    p.wait_for(b.at, b.end, BEAT_LEAD);
   }
   private shown_ended = false;
   /** A scene that has ended offers its whole narration (show_text) in place of the subtitle. */
@@ -727,6 +730,7 @@ export class LessonView {
         break;
       }
       case 'line':
+        this.narrator.lead_in = 0; // (a world's line is said at once)
         void this.narrator.say(this.tr(e.line.text));
         break;
       case 'semantic':

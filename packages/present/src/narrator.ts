@@ -95,6 +95,9 @@ export class Narrator {
     if (this.audio) this.audio.playbackRate = r;
   }
 
+  /** Seconds of picture before a line's voice comes in (a scene's VOICE_DELAY; 0 for a world's lines); seek() takes the picture's clock. */
+  lead_in = 0;
+  private start_timer: ReturnType<typeof setTimeout> | undefined;
   /** When the voice could not start: the moment (performance.now) its subtitles' own clock reads 0; -1 otherwise. */
   private clock = -1;
   /** Run `f` once the line being said has finished (at once if none is); a new line or stop() drops it. */
@@ -247,17 +250,31 @@ export class Narrator {
         if (my === this.token && !this.keep_caption) setTimeout(() => my === this.token && (this.caption.textContent = ''), 1500);
         resolve();
       };
-      a.play().then(tick, () => {
-        this.clock = performance.now();
-        tick();
-        resolve();
-      });
+      const start = () =>
+        a.play().then(tick, () => {
+          this.clock = performance.now();
+          tick();
+          resolve();
+        });
+      // a scene's voice comes a moment after its picture (lead_in)
+      if (this.lead_in > 0) this.start_timer = setTimeout(() => my === this.token && void start(), (this.lead_in / this.rate) * 1000);
+      else void start();
     });
   }
   /** Move the line to `t` seconds (the scene it goes with was seeked); past its end it stays quiet. */
   seek(t: number, playing: boolean): void {
     const a = this.audio;
     if (!a) return;
+    clearTimeout(this.start_timer);
+    t -= this.lead_in; // (`t` is on the picture's clock)
+    if (t < 0) {
+      // before the voice comes in: quiet until then
+      cancelAnimationFrame(this.raf);
+      a.pause();
+      a.currentTime = 0;
+      if (playing) this.start_timer = setTimeout(() => this.seek(this.lead_in, true), (-t / this.rate) * 1000);
+      return;
+    }
     // subtitles on their own clock (the voice has not been allowed to start) jump with the picture too
     if (this.clock >= 0) this.clock = performance.now() - (t / this.rate) * 1000;
     if (!Number.isFinite(a.duration)) {
@@ -270,7 +287,8 @@ export class Narrator {
       this.done(this.token);
       return;
     }
-    a.currentTime = Math.max(0, t);
+    // (only when it is off: a browser takes a moment to start again after a jump, and a pause leaves it in place)
+    if (Math.abs(a.currentTime - t) > 0.15) a.currentTime = Math.max(0, t);
     if (playing) {
       this.saying = true;
       this.tick?.(); // (the subtitle for t at once; it follows the voice, or its clock if the voice is refused again)
@@ -278,6 +296,7 @@ export class Narrator {
     } else a.pause();
   }
   pause(): void {
+    clearTimeout(this.start_timer);
     cancelAnimationFrame(this.raf); // (a subtitle running on its own clock stops too)
     this.audio?.pause();
     if (typeof speechSynthesis !== 'undefined') speechSynthesis.pause();
@@ -294,6 +313,7 @@ export class Narrator {
   }
   private dead = false;
   stop(clear = true): void {
+    clearTimeout(this.start_timer);
     this.token++;
     this.saying = false;
     this.done_waiters = [];

@@ -29,7 +29,7 @@ function block_strings(b: Block, at: string, out: LessonString[]): void {
     case 'list': return b.items.forEach((x, i) => add(`items[${i}]`, x));
     case 'math': return;
     case 'code': return void add('caption', b.caption);
-    case 'figure': add('alt', b.alt, 'label'); return void add('caption', b.caption);
+    case 'figure': add('alt', b.alt, 'label'); add('credit', b.credit); return void add('caption', b.caption);
     case 'svg': add('alt', b.alt, 'label'); return void add('caption', b.caption);
     case 'visual': return void add('caption', b.caption);
     case 'callout': add('title', b.title, 'label'); return void add('body', b.body);

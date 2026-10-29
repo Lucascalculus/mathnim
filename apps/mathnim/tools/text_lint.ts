@@ -75,10 +75,12 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
     if (is_bilingual(v)) {
       for (const l of ['en', 'zh'] as const) if (typeof v[l] !== 'string' || !v[l].trim()) err(x.where, `the ${l === 'en' ? 'English' : 'Chinese'} text is missing`);
       if (v.en && v.zh && v.en === v.zh && looks_english(v.en)) warn(x.where, 'the Chinese text is the same as the English (not translated?)');
-      if (v.en && has_cjk(v.en)) warn(x.where, 'the English text contains Chinese characters');
+      if (v.en && has_cjk(v.en)) err(x.where, 'the English text contains Chinese characters (they show on the English page)');
       // (Chinese punctuation counts: an English paper title in a Chinese citation is fine)
       if (v.zh && looks_english(v.zh) && !has_cjk(v.zh) && !/[\u3000-\u303f\uff00-\uffef]/.test(v.zh)) warn(x.where, 'the Chinese text has no Chinese characters (not translated?)');
     } else if (typeof v === 'string') {
+      // a plain string shows in both languages: Chinese in it shows on the English page (a credit written 'en · zh')
+      if (bilingual && has_cjk(v)) err(x.where, 'plain text with Chinese in a bilingual lesson shows on the English page: write { en, zh }');
       if (bilingual) {
         // a shared string shows the same TeX in both languages
         const words = [...v.replace(/`[^`]*`/g, '').matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)].flatMap((m) => tex_english(m[1] ?? m[2]));

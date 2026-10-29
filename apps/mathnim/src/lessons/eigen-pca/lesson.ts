@@ -143,7 +143,7 @@ export const lesson: Lesson = {
     // ---------------------------------------------------------------- 4. why det(A - λI) = 0
     {
       id: 'why', kind: 'scene', chapter: 'Why det(A − λI) = 0', title: 'The key idea', scene: vis('lambda_sweep', { A: [[3, 1], [0, 2]] }),
-      narration: 'Here is why the recipe works. A v equals lambda v means that A minus lambda I sends v to zero. A matrix that sends a nonzero vector to zero squashes the plane flat, so its determinant is zero. Slide lambda: exactly at the eigenvalues, the grid collapses.',
+      narration: 'Here is why the recipe works. A v equals lambda v § means that A minus lambda I sends v to zero. § A matrix that sends a nonzero vector to zero squashes the plane flat, so its determinant is zero. § Slide lambda: exactly at the eigenvalues, the grid collapses.',
     },
     {
       id: 'why-try', kind: 'explore', title: 'Make the grid collapse', skill: 'char-poly', scene: vis('lambda_sweep', { A: A_SYM }),
@@ -231,7 +231,7 @@ export const lesson: Lesson = {
     // ---------------------------------------------------------------- 8-9. data, covariance, PCA
     {
       id: 'data', kind: 'scene', chapter: 'The shape of data', title: 'Covariance', scene: vis('covariance_ellipse'),
-      narration: 'Now some data. Its covariance matrix records how the points spread and how x and y move together. It is symmetric, so it has perpendicular eigenvectors: the axes of the data’s own ellipse.',
+      narration: 'Now some data. § Its covariance matrix records how the points spread and how x and y move together. § It is symmetric, so it has perpendicular eigenvectors: the axes of the data’s own ellipse.',
     },
     {
       id: 'pca', kind: 'scene', chapter: 'PCA', title: 'The direction of greatest spread', scene: vis('pca_projection'),

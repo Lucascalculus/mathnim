@@ -179,6 +179,7 @@ export const lambda_sweep = define_visual<LambdaSweepParams>({
         det_ro.update(0);
         mat.update(0);
         this.play(FadeIn(para), FadeIn(mrow), FadeIn(dot), FadeIn(drop), FadeIn(slider), FadeIn(lam_ro), FadeIn(det_ro), { run_time: 1 });
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(Write(eq1), { run_time: 1.2 });
         // from now on A - λI follows λ
         M.t[0].add_updater(() => syncB());
@@ -187,6 +188,7 @@ export const lambda_sweep = define_visual<LambdaSweepParams>({
         let cur = lo;
         const speed = 0.9;
         roots.forEach((r, i) => {
+          if (i === 1) this.next_section(); // ("exactly at the eigenvalues": the second root)
           this.play(lam.animate.set_value(r), { run_time: Math.max(1, (r - cur) / speed), rate_func: i === 0 ? smooth : smooth });
           cur = r;
           const tag = backed(tex(e.kind === 'distinct' ? `\\lambda_{${i + 1}} = ${fmt(r)}` : `\\lambda = ${fmt(r)}`, 32, c.gold), 0.8);
@@ -201,6 +203,7 @@ export const lambda_sweep = define_visual<LambdaSweepParams>({
           if (i === 0) {
             const eq2 = texs([['\\text{a vector goes to } \\vec 0', undefined], ['\\iff', c.muted], ['\\det(A - \\lambda I) = 0', c.gold]], 34);
             eq2.move_to([(GRAPH.x0 + GRAPH.x1) / 2, 2.98, 0]);
+            this.next_section();
             this.play(Write(eq2), { run_time: 1.2 });
             equation.add(eq2);
           }

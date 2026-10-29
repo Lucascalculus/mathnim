@@ -31,18 +31,19 @@ export async function preload(o: { tex?: boolean } = {}): Promise<void> {
  * begins on the scene's own clock (-1: no section there), `length` the scene's own length, `at[k]` when the voice
  * reaches beat k, `end` when it stops. Section k+1 waits `waits[k]` before it starts, or starts `late[k]` after its
  * beat (its picture before it outlasts the words); the last frame holds `end_wait`, or the picture runs `tail`
- * seconds past the voice.
+ * seconds past the voice. With a `lead`, each section aims that long before its beat (late is still counted from the
+ * beat itself).
  */
-export function voice_waits(starts: number[], length: number, at: number[], end: number): { waits: number[]; late: number[]; end_wait: number; tail: number } {
+export function voice_waits(starts: number[], length: number, at: number[], end: number, lead = 0): { waits: number[]; late: number[]; end_wait: number; tail: number } {
   const waits = starts.map(() => 0), late = starts.map(() => 0);
   let held = 0;
   starts.forEach((t, k) => {
     if (t <= 0 || k >= at.length) return;
-    const gap = at[k] - (t + held);
+    const gap = Math.max(0, at[k] - lead) - (t + held);
     if (gap > 0) {
       waits[k] = gap;
       held += gap;
-    } else late[k] = -gap;
+    } else late[k] = Math.max(0, t + held - at[k]);
   });
   const over = end - (length + held);
   return { waits, late, end_wait: Math.max(0, over), tail: Math.max(0, -over) };
@@ -132,16 +133,17 @@ export class ScenePlayer {
   /**
    * Let the picture wait for a voice. Section k of the scene (begun by its k-th next_section()) starts no earlier
    * than at[k-1] seconds, the picture holding the frame before it until then; after its last frame it holds until
-   * `end`. The timeline (duration, time, seek_time) then runs on the voice's clock. Call again with other times (a
+   * `end`; with a `lead`, each section aims that long before its beat. The timeline (duration, time, seek_time) then
+   * runs on the voice's clock. Call again with other times (a
    * different voice) or with nothing to drop the waits; the picture stays where it is. (voice_waits computes the
    * waits; the lesson doctor and tools/beats use it too, so what they report is what plays.)
    */
-  wait_for(at: number[] = [], end = 0): void {
+  wait_for(at: number[] = [], end = 0, lead = 0): void {
     const segs = this.scene.segments;
     if (!segs.length) return;
     const [si, j] = this.frame >= 0 && this.frame < this.total_frames ? this.locate(this.frame) : [-1, 0];
     const starts = this.section_starts();
-    const plan = voice_waits(starts, this.natural_duration, at, end);
+    const plan = voice_waits(starts, this.natural_duration, at, end, lead);
     const holds = segs.map(() => 0);
     starts.forEach((t, k) => {
       if (t <= 0 || !plan.waits[k]) return;

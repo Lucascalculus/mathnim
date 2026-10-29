@@ -86,7 +86,11 @@ explaining it. The picture waits at each **section** of the scene
 the narration, and holds its last frame until the voice ends. The waits are
 worked out from the recording when it plays, so any voice, speed or language
 lines up and a new voice needs no change; `§` is not said or shown and does
-not change the recording. Every narrated scene is timed this way. The recipe:
+not change the recording. The picture leads a little: a scene's voice comes in
+0.6 s after its picture, and each section starts 0.4 s before its words, so the
+eye has found the figure and the motion is under way as they are said
+(`VOICE_DELAY`, `BEAT_LEAD` in `packages/core/src/narration.ts`; the tools below
+use them). Every narrated scene is timed this way. The recipe:
 
 1. Write the narration in parts, one per thing the picture does, in both
    languages, in the order the picture shows them.

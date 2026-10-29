@@ -209,6 +209,7 @@ export const covariance_ellipse = define_visual<CovarianceEllipseParams>({
         this.play(LaggedStart(...dots.map((d) => FadeIn(d, { scale: 0.3 })), { lag_ratio: 1.5 / Math.max(1, dots.length) }), { run_time: 2 });
         this.add(points);
         mean_ro.update(0);
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(mean_mark, { scale: 1.6 }), FadeIn(mean_ro), { run_time: 1 });
         this.play(Create(quadrants), tint.animate.set_value(1), FadeIn(legend), { run_time: 1.5 });
         cov_ro.update(0);
@@ -216,6 +217,7 @@ export const covariance_ellipse = define_visual<CovarianceEllipseParams>({
         this.play(Write(formula), FadeIn(cov_ro), FadeIn(corr_ro), { run_time: 1.5 });
         this.play(FadeIn(top), { run_time: 1 });
         this.wait(0.6);
+        this.next_section();
         this.play(Create(e1), FadeIn(l1s), { run_time: 1.2 });
         this.play(Create(e2), FadeIn(l2s), { run_time: 1.2 });
         this.bring_to_front(l1s, l2s);

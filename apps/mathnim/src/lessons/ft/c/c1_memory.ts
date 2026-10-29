@@ -50,7 +50,7 @@ export const lesson: Lesson = {
           t('**Logits**: one score per vocabulary word at every position, often the single largest tensor.', '**logits**：每个位置上，每个词表单词一个分数，常常是最大的单个张量。'),
         ] },
         { type: 'figure', src: 'ft/c/c1-ledger.svg', alt: t('Stacked bars for Llama-3.1-8B at 4k tokens: full fine-tuning about 135 GB, LoRA about 23.6 GB, QLoRA about 13.2 GB, against 24 and 80 GB lines.', 'Llama-3.1-8B、4k token 的堆叠柱：全量约 135 GB，LoRA 约 23.6 GB，QLoRA 约 13.2 GB，对照 24 GB 和 80 GB 两条线。'),
-          caption: t('Where this lesson ends up: the same 8B model, three ways. The rest of the lesson builds each block.', '这节课最后会得到的结果：同一个 8B 模型，三种做法。下面一块块把它搭出来。'), credit: 'Estimate, formulas in C1 (4.2 GB logits = plain PyTorch / Trainer; TRL v1.15 SFTTrainer chunks them) · 估算，公式见 C1（logits 4.2 GB 为普通 PyTorch / Trainer 的情形；TRL v1.15 SFTTrainer 默认分块计算）' },
+          caption: t('Where this lesson ends up: the same 8B model, three ways. The rest of the lesson builds each block.', '这节课最后会得到的结果：同一个 8B 模型，三种做法。下面一块块把它搭出来。'), credit: t('Estimate, formulas in C1 (4.2 GB logits = plain PyTorch / Trainer; TRL v1.15 SFTTrainer chunks them)', '估算，公式见 C1（logits 4.2 GB 为普通 PyTorch / Trainer 的情形；TRL v1.15 SFTTrainer 默认分块计算）') },
       ],
     },
     {
@@ -103,7 +103,7 @@ export const lesson: Lesson = {
           t('34: the tensors kept per layer (attention 11, MLP 19, two LayerNorms 4, in units of $sbh$ bytes).', '34：每层保留的张量（注意力 11、MLP 19、两个 LayerNorm 4，单位是 $sbh$ 字节）。'),
           t('$5as/h$: the $s \\times s$ attention scores. FlashAttention never stores them, so this term disappears.', '$5as/h$：$s \\times s$ 的注意力分数。FlashAttention 不保存它们，这一项就没了。'),
         ] },
-        { type: 'figure', src: 'ft/c/c1-activations.svg', alt: t('One transformer layer with the tensors it keeps for backward: attention 11 sbh, MLP 19 sbh, LayerNorms 4 sbh, plus 5 a s² b for scores, removed by FlashAttention.', '一个 Transformer 层为反向传播保留的张量：注意力 11 sbh、MLP 19 sbh、LayerNorm 4 sbh，外加注意力分数 5 a s² b（FlashAttention 去掉了它）。'), credit: 'Drawn after Korthikanti et al. (2022), §4.1 · 据 Korthikanti 等（2022）第 4.1 节绘制' },
+        { type: 'figure', src: 'ft/c/c1-activations.svg', alt: t('One transformer layer with the tensors it keeps for backward: attention 11 sbh, MLP 19 sbh, LayerNorms 4 sbh, plus 5 a s² b for scores, removed by FlashAttention.', '一个 Transformer 层为反向传播保留的张量：注意力 11 sbh、MLP 19 sbh、LayerNorm 4 sbh，外加注意力分数 5 a s² b（FlashAttention 去掉了它）。'), credit: t('Drawn after Korthikanti et al. (2022), §4.1', '据 Korthikanti 等（2022）第 4.1 节绘制') },
         { type: 'p', text: t('For 8B at 4,096 tokens: $34 \\times 4096 \\times 4096 \\approx 0.57$ GB per layer, about **18 GB** for 32 layers. **Activation recomputation** (often called gradient checkpointing) keeps only each layer’s input, $2\\,sbh$ per layer (about 1.07 GB), and recomputes the rest during backward: about **1.6 GB** at the peak, for one extra forward pass, about **+33% compute** (6N → 8N FLOPs per token).', '8B 模型、4096 个 token：每层 $34 \\times 4096 \\times 4096 \\approx 0.57$ GB，32 层约 **18 GB**。**激活重算（activation recomputation，口语也叫梯度检查点）**只保留每层的输入，每层 $2\\,sbh$（约 1.07 GB），其余在反向时重新算：峰值约 **1.6 GB**，代价是多一次前向传播，计算量约 **+33%**（每 token 从 6N 变成 8N FLOPs）。') },
         { type: 'callout', kind: 'misconception', title: t('LoRA does not save the activations', 'LoRA 不省激活值'), body: t('LoRA freezes the base weights, so their gradients and optimizer states disappear. But the backward pass still has to travel through every frozen layer to reach the adapters below, and each adapter needs its input. So the activations stay: about the same 18 GB, or 1.6 GB with recomputation.', 'LoRA 冻结了基座权重，所以它们的梯度和优化器状态没有了。但反向传播仍然要穿过每一个冻结层，才能到达下面的适配器；每个适配器也都需要它的输入。所以激活值照样要存：还是约 18 GB，开激活重算时约 1.6 GB。') },
         { type: 'cite', key: 'korthikanti', text: t('Korthikanti et al. (2023). Reducing Activation Recomputation in Large Transformer Models. MLSys.', 'Korthikanti 等（2023）。Reducing Activation Recomputation in Large Transformer Models。MLSys。'), url: 'https://arxiv.org/abs/2205.05198' },
@@ -191,7 +191,7 @@ export const lesson: Lesson = {
     {
       id: 'timeline', kind: 'read', title: t('What a training step looks like in memory', '一个训练步在显存里的样子'),
       blocks: [
-        { type: 'figure', src: 'ft/c/c1-memory-timeline.svg', alt: t('Memory over one step: activations climb during the forward pass, fall during backward while gradients appear, and the optimizer step adds a spike.', '一个训练步的显存变化：前向时激活值一路上升，反向时激活值释放、梯度出现，优化器更新时出现尖峰。'), credit: 'Schematic (full fine-tuning, mixed-precision AdamW), not to scale · 示意（全量微调、混合精度 AdamW），比例不按实际' },
+        { type: 'figure', src: 'ft/c/c1-memory-timeline.svg', alt: t('Memory over one step: activations climb during the forward pass, fall during backward while gradients appear, and the optimizer step adds a spike.', '一个训练步的显存变化：前向时激活值一路上升，反向时激活值释放、梯度出现，优化器更新时出现尖峰。'), credit: t('Schematic (full fine-tuning, mixed-precision AdamW), not to scale', '示意（全量微调、混合精度 AdamW），比例不按实际') },
       ],
     },
     // ------------------------------------------------------------------ checks

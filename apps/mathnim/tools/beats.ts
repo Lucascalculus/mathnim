@@ -9,7 +9,7 @@
 import { createCanvas } from '@napi-rs/canvas';
 import { ScenePlayer, voice_waits } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
-import { BEAT, beat_times, lesson_langs, narration_key, tr, unbeat, type L10n, type Lesson, type Recording } from '@mathnim/core';
+import { BEAT, BEAT_LEAD, VOICE_DELAY, lesson_langs, narration_key, scene_beats, tr, unbeat, type L10n, type Lesson, type Recording } from '@mathnim/core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
@@ -91,9 +91,9 @@ function check(lesson: Lesson, step: string, narration: L10n, p: ScenePlayer): b
       continue;
     }
     const rec = JSON.parse(fs.readFileSync(file, 'utf8')) as Recording;
-    console.log(`  ${lang} · voice ${s1(rec.duration)} s (${rec.voice ?? 'voice'}) · ${beats} beat${beats === 1 ? '' : 's'}`);
+    console.log(`  ${lang} · voice ${s1(rec.duration)} s (${rec.voice ?? 'voice'}), from ${s1(VOICE_DELAY)} s · ${beats} beat${beats === 1 ? '' : 's'} · times on the picture's clock`);
     if (!beats && !starts.length) {
-      const over = rec.duration - length;
+      const over = rec.duration + VOICE_DELAY - length;
       console.log(`    no beats: the voice ${over > 0 ? `runs ${s1(over)} s past` : `ends ${s1(-over)} s before the end of`} the picture`);
       if (over > LATE) {
         console.log(`    FAIL: add beats (§) and sections (next_section) so the picture waits for the voice`);
@@ -107,21 +107,21 @@ function check(lesson: Lesson, step: string, narration: L10n, p: ScenePlayer): b
       ok = false;
       continue;
     }
-    const at = beat_times(text, rec);
-    const plan = voice_waits(starts, length, at, rec.duration);
+    const { at, end } = scene_beats(text, rec);
+    const plan = voice_waits(starts, length, at, end, BEAT_LEAD);
     let held = 0;
     parts.forEach((x, k) => {
-      if (!k) return console.log(`    part 0   0.0 s  ${quote(x)}  section 0 starts with the voice`);
+      if (!k) return console.log(`    part 0  ${s1(VOICE_DELAY).padStart(4)} s  ${quote(x)}  section 0 starts at 0.0 s`);
       const i = k - 1;
       held += plan.waits[i];
       const begins = starts[i] + held;
-      const note = plan.late[i] > LATE ? `LATE ${s1(plan.late[i])} s: shorten section ${i}` : plan.waits[i] > 0 ? `waits ${s1(plan.waits[i])} s` : 'on time';
+      const note = plan.late[i] > LATE ? `LATE ${s1(plan.late[i])} s: shorten section ${i}` : plan.waits[i] > 0 ? `waits ${s1(plan.waits[i])} s, ${s1(BEAT_LEAD)} s ahead of its words` : at[i] >= begins ? `${s1(at[i] - begins)} s ahead of its words` : `${s1(begins - at[i])} s after its words`;
       if (plan.late[i] > LATE) ok = false;
       console.log(`    part ${k}  ${s1(at[i]).padStart(4)} s  ${quote(x)}  section ${k} starts ${s1(begins)} s (${note})`);
     });
     if (plan.tail > TAIL) ok = false;
     console.log(
-      `    end: the voice stops at ${s1(rec.duration)} s; ${plan.tail > 0 ? `the picture runs ${s1(plan.tail)} s longer${plan.tail > TAIL ? ': shorten the last section' : ''}` : `the last frame holds ${s1(plan.end_wait)} s`}`,
+      `    end: the voice stops at ${s1(end)} s; ${plan.tail > 0 ? `the picture runs ${s1(plan.tail)} s longer${plan.tail > TAIL ? ': shorten the last section' : ''}` : `the last frame holds ${s1(plan.end_wait)} s`}`,
     );
   }
   console.log(`  ${ok ? 'PASS' : 'FAIL'}`);
