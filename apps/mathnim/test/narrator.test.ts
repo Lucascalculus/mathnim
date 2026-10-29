@@ -11,15 +11,22 @@ function reply(text: string, bytes: number[], words: [number, number, string][])
 let calls: { url: string; body?: string }[];
 let tts_on: boolean;
 let played: string[];
+/** The audio elements made, newest last. */
+let audios: { src: string; muted: boolean }[];
+/** Lines with a pre-generated recording (others get the SPA's HTML, as on a static host). */
+let recorded: Set<string>;
 
 beforeEach(() => {
   vi.resetModules(); // the Narrator module keeps per-page state (availability, takes)
   calls = [];
   tts_on = true;
   played = [];
+  audios = [];
+  recorded = new Set();
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     calls.push({ url, body: init?.body as string | undefined });
     if (url === '/api/providers') return Response.json({ anthropic: false, deepseek: true, tts: tts_on });
+    if (recorded.has(url)) return Response.json(reply('Recorded.', [1], [[0.1, 0.2, 'Recorded.']]));
     if (url.startsWith('/narration/')) return new Response('<html>', { status: 200, headers: { 'content-type': 'text/html' } }); // SPA fallback
     if (url === '/api/tts') {
       const { text } = JSON.parse(init!.body as string);
@@ -37,8 +44,11 @@ beforeEach(() => {
       playbackRate = 1;
       paused = true;
       ended = false;
+      muted = false;
       onended: (() => void) | null = null;
-      constructor(public src: string) {}
+      constructor(public src: string) {
+        audios.push(this);
+      }
       play() {
         played.push(this.src);
         this.paused = false;
@@ -112,6 +122,23 @@ describe('Narrator with live narration', () => {
     n.enabled = false;
     await n.say('Quiet.');
     expect(caption.textContent).toBe('Quiet.');
-    expect(calls).toHaveLength(0);
+    // (its recording is looked for, to play muted; nothing is synthesised)
+    expect(calls.map((c) => c.url).filter((u) => !u.startsWith('/narration/'))).toEqual([]);
+    expect(played).toHaveLength(0);
+  });
+
+  it('plays a recorded line muted while narration is off, heard where it is once it is on again', async () => {
+    const { narration_key } = await import('../../../packages/core/src/narration');
+    recorded.add(`/narration/${narration_key('Recorded.')}.json`);
+    const { n } = await narrator();
+    n.set_enabled(false);
+    const said = n.say('Recorded.');
+    await vi.waitFor(() => expect(played).toHaveLength(1));
+    expect(audios[0].muted).toBe(true);
+    n.set_enabled(true);
+    expect(audios[0].muted).toBe(false);
+    await said;
+    expect(played).toHaveLength(1); // the same line, not started again
+    expect(calls.some((c) => c.url === '/api/tts')).toBe(false);
   });
 });

@@ -11,6 +11,8 @@ import { caption_cues, merge_recordings, narration_key, spoken_lang, to_spoken, 
 interface Take {
   rec: Recording;
   src: string;
+  /** The recording's own address when `src` is a copy in memory (played instead if the copy will not play). */
+  url?: string;
 }
 
 /**
@@ -78,10 +80,15 @@ export class Narrator {
       /* no storage */
     }
   }
+  /**
+   * Sound on or off. The line goes on silently while it is off (the captions and the scene stay in step), so
+   * turning it on again is heard at once, where the scene is.
+   */
   set_enabled(on: boolean): void {
     this.enabled = on;
     this.persist();
-    if (!on) this.stop(false);
+    if (this.audio) this.audio.muted = !on;
+    if (!on && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
   }
   set_rate(r: number): void {
     this.rate = r;
@@ -94,12 +101,12 @@ export class Narrator {
     this.stop();
     const my = ++this.token;
     this.caption.textContent = text;
-    if (!this.enabled) return;
+    // (with the sound off a recorded line still plays, muted: see set_enabled; nothing is synthesised for it)
     let take = await this.recording(text);
-    if (!take && my === this.token && this.live) take = await live_take(this.live, text);
+    if (!take && my === this.token && this.live && this.enabled) take = await live_take(this.live, text);
     if (my !== this.token) return;
     if (take) return this.play(take, text, my);
-    if (this.system_voice && typeof speechSynthesis !== 'undefined') {
+    if (this.enabled && this.system_voice && typeof speechSynthesis !== 'undefined') {
       const u = new SpeechSynthesisUtterance(to_spoken(text));
       u.lang = spoken_lang(text) === 'zh' ? 'zh-CN' : this.lang;
       u.rate = this.rate;
@@ -124,7 +131,7 @@ export class Narrator {
         const rec = (await r.json()) as Recording;
         const a = await fetch(`${this.base}/${key}.mp3`, low);
         if (!a.ok) return null;
-        const take = { rec, src: URL.createObjectURL(await a.blob()) };
+        const take = { rec, src: URL.createObjectURL(await a.blob()), url: `${this.base}/${key}.mp3` };
         ahead.set(key, take);
         for (const [k, t] of ahead) {
           if (ahead.size <= AHEAD_MAX) break;
@@ -173,6 +180,7 @@ export class Narrator {
     const cues = caption_cues(text, rec);
     const a = new Audio(take.src);
     a.playbackRate = this.rate;
+    a.muted = !this.enabled;
     this.audio?.pause(); // (never two lines at once)
     this.audio = a;
     let shown = -1;
@@ -189,6 +197,14 @@ export class Narrator {
       this.raf = requestAnimationFrame(tick);
     };
     this.tick = tick;
+    // a copy in memory that does not play (a browser that will not read it): the recording itself
+    const url = take.url;
+    if (url)
+      a.onerror = () => {
+        if (my !== this.token || a.src.endsWith(url)) return;
+        a.src = url;
+        void a.play().then(tick, () => {});
+      };
     return new Promise((resolve) => {
       a.onended = () => {
         cancelAnimationFrame(this.raf);

@@ -89,6 +89,10 @@ const ICON: Record<string, string> = {
   explore: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M6.2 1.8c.6 0 1 .4 1 1v4.1h.3V2.3c0-.6.4-1 1-1s1 .4 1 1v4.6h.3V3c0-.6.4-1 1-1s1 .4 1 1v4.3h.3V4.4c0-.6.4-1 1-1s1 .4 1 1v5.2c0 2.9-2 5-4.8 5H8.3c-1.4 0-2.5-.6-3.3-1.7L2.2 9c-.4-.5-.3-1.1.2-1.4.5-.3 1.1-.2 1.4.3l1.4 1.8V2.8c0-.6.4-1 1-1z" fill="currentColor"/></svg>',
   sketch: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M11.3 1.9l2.8 2.8-8.3 8.3-3.5.7.7-3.5z" fill="currentColor"/></svg>',
 };
+/** The narration button: a speaker with its sound waves, or crossed out. */
+const SPEAKER = '<path d="M2.5 6.2h2.6L8.6 3.2v9.6L5.1 9.8H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
+const VOICE_ON = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${SPEAKER}<path d="M10.8 5.6a3.4 3.4 0 0 1 0 4.8M12.8 3.6a6.2 6.2 0 0 1 0 8.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+const VOICE_OFF = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${SPEAKER}<path d="M11 6l3.6 4M14.6 6L11 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 export class LessonView {
@@ -191,7 +195,7 @@ export class LessonView {
     this.el.steps = h('div', 'mn-steps');
     const exp = h('button', 'mn-btn mn-export', esc(t('export_mp4')));
     this.el.export = exp;
-    this.el.voice = h('button', 'mn-iconbtn', '🔈');
+    this.el.voice = h('button', 'mn-iconbtn', VOICE_ON);
     this.el.voice.setAttribute('aria-label', t('narration_toggle'));
     // rarely needed: export sits in a small "⋯" menu instead of on every step
     const more = h('details', 'mn-more', `<summary class="mn-iconbtn" aria-label="${esc(t('more'))}" title="${esc(t('more'))}">⋯</summary>`);
@@ -240,7 +244,7 @@ export class LessonView {
     this.sketch = new SketchPad(sk, { to_data: (x, y) => [x, y], to_px: (x, y) => [x, y] });
     this.narrator = new Narrator(this.el.caption, { base: o.narration_base, lang: this.lang === 'zh' ? 'zh-CN' : 'en-US' });
     this.narrator.keep_caption = this.game;
-    this.el.voice.textContent = this.narrator.enabled ? '🔈' : '🔇';
+    this.el.voice.innerHTML = this.narrator.enabled ? VOICE_ON : VOICE_OFF;
     // on scene steps the panel holds the narration; the phrase being spoken is highlighted
     this.narrator.on_cue = (cues, i) => {
       if (!this.scene_step) return;
@@ -332,7 +336,7 @@ export class LessonView {
     };
     this.el.voice.onclick = () => {
       this.narrator.set_enabled(!this.narrator.enabled);
-      this.el.voice.textContent = this.narrator.enabled ? '🔈' : '🔇';
+      this.el.voice.innerHTML = this.narrator.enabled ? VOICE_ON : VOICE_OFF;
       set('narration', this.narrator.enabled);
     };
     this.el.export.onclick = async () => {

@@ -1,4 +1,4 @@
-// "The directions a matrix can't turn" - eigenvalues and eigenvectors, then
+// "Eigenvectors and PCA" - eigenvalues and eigenvectors, then
 // PCA. The university demo: an essay lesson in the same light theme as every
 // other lesson, built from @mathnim/visuals. Each segment resolves one confusion: watch the
 // visual, then hold it yourself, then a question aimed at the usual mistake.
@@ -33,7 +33,7 @@ const EV = linalg.eig2(A_SYM as any).vectors as unknown as [number[], number[]];
 
 export const lesson: Lesson = {
   id: 'eigen-pca',
-  title: 'The directions a matrix can’t turn',
+  title: 'Eigenvectors and PCA',
   description: 'Eigenvectors and eigenvalues from the picture up - and why they are exactly what PCA needs.',
   mode: 'essay',
   skills: [

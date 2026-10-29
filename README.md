@@ -24,7 +24,7 @@ answered with new animations; lessons are generated from a syllabus.
   cover the pizza with tiles, cut it with a knife, build $\pi r^2$ from tiles,
   run the shop.
 * **Visual essay** (university): explanations in the spirit of 3Blue1Brown that
-  you can hold in your hands (same light look as every lesson) - e.g. *The directions a matrix can't turn*: drag the basis
+  you can hold in your hands (same light look as every lesson) - e.g. *Eigenvectors and PCA*: drag the basis
   vectors, slide $\lambda$ until the grid collapses, turn a line until the
   data's shadow is widest (PCA).
 
