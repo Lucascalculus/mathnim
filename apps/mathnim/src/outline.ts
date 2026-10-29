@@ -60,12 +60,12 @@ const CSS = `
 .ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
 .ol-toggle[aria-expanded=true]{color:var(--mn-accent);border-color:color-mix(in srgb,var(--mn-accent) 40%,var(--mn-border))}
 .ol-toggle svg{flex:none}
-.mn-head .crumb{margin:0;flex:none;max-width:34%;min-width:0;display:flex;align-items:center;gap:12px;font-size:14px;white-space:nowrap}
-/* the back link's arrow sits on the column's edge (its frame reaches out past it), its words on the title's line */
-.mn-head .crumb .backlink{margin:0 0 0 -8px;min-width:0;max-width:100%}
+.mn-head .crumb{margin:0;flex:none;max-width:32%;min-width:0;display:flex;align-items:center;gap:10px;font-size:14px;white-space:nowrap}
+/* the course's name stays on the column's edge; its frame (pointed at) reaches out past the words on both sides */
+.mn-head .crumb .backlink{margin:0 -8px;padding:5px 8px;min-width:0;max-width:calc(100% + 16px)}
 .mn-head .crumb .backlink:is(:hover,:focus-visible){color:var(--mn-fg);text-decoration:none}
-.mn-head .crumb .backlink>span:nth-of-type(2){min-width:0;overflow:hidden;text-overflow:ellipsis}
-.mn-head .crumb::after{content:'';flex:none;width:1px;height:14px;background:var(--mn-border)}
+.mn-head .crumb .backlink>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mn-head .crumb::after{content:'›';color:var(--mn-muted);opacity:.6}
 .ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.22);z-index:28;opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
 .ol-backdrop.open{opacity:1;visibility:visible;transition:opacity .28s}
 @media (prefers-reduced-motion:reduce){.outline,.ol-backdrop{transition:none!important}}
