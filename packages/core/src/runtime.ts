@@ -73,11 +73,17 @@ function mulberry(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-/** After the browser has painted what changed (at once outside a visible browser page: tools, tests, a hidden tab). */
+/**
+ * After the browser has painted what changed: at once outside a browser page (tools, tests), and after
+ * 100 ms at most, since a page that is open but not on screen may get no frames without being "hidden".
+ */
 const painted = (): Promise<void> =>
   typeof requestAnimationFrame === 'undefined' || typeof document === 'undefined' || document.hidden
     ? Promise.resolve()
-    : new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    : new Promise((r) => {
+        requestAnimationFrame(() => setTimeout(r, 0));
+        setTimeout(r, 100);
+      });
 const isClass = (f: SceneSpec): f is new () => Scene => /^class\b/.test(Function.prototype.toString.call(f)) || !!(f as any).prototype?.construct;
 
 export class LessonRuntime {
