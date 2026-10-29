@@ -376,7 +376,9 @@ export const CSS = `
 .mn-lb-start{display:flex;align-items:center}.mn-lb-start:empty{display:none}
 .mn-lb-gap{flex:1}
 .mn-lessonbar .mn-where{margin:0;min-width:0;flex:0 1 auto}
-.mn-lessonbar .mn-segs{width:auto;flex:1 1 260px;min-width:48px;max-width:260px}
+.mn-lessonbar .mn-segs{width:auto;flex:1 1 260px;min-width:72px;max-width:260px}
+/* (a phone's bar has no room to spare: there the progress takes what the buttons leave) */
+@media (max-width:640px){.mn-lessonbar .mn-segs{min-width:48px}}
 .mn-lessonbar .mn-btn{flex:none;box-sizing:border-box;height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
 .mn-lessonbar .mn-btn:not(.primary){background:var(--mn-panel);border-color:var(--mn-border);color:var(--mn-fg)}
 .mn-lessonbar .mn-btn:not(.primary):hover{border-color:color-mix(in srgb,var(--mn-fg) 35%,var(--mn-border))}
