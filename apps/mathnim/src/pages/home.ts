@@ -2,7 +2,8 @@
 // what the course is, how it is laid out, and where the learner is in it.
 // (docs/SITE-STRUCTURE.md)
 import { tr, type L10n, type Lang } from '@mathnim/core';
-import { esc, math_html, t, ui_lang } from '@mathnim/present';
+import { esc, icon, math_html, t, ui_lang } from '@mathnim/present';
+import { progress_mark, type Progress } from '../progress_mark';
 import { ScenePlayer } from 'manim-web/ext/player';
 import { check_params, get_visual } from '@mathnim/visuals';
 import { COURSES, all_lessons, course_path, lab_path, lab_setups, lesson_code, lesson_info, lesson_path, playable, unit_title, visible_lessons, visible_units, type Course, type CourseLesson } from '../course';
@@ -50,7 +51,7 @@ function course_card(c: Course): string {
         <div class="meta"><span>${esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) }))}</span><span>${done ? esc(t('course_done', { k: done, n: all.length })) : ''}</span></div>
         ${go ? progress_bar(done, all.length) : ''}
       </a>
-      ${go ? `<a class="course-resume" href="${lesson_path(go.id)}"><span class="muted">${esc(t('continue'))}</span><b>${math_html(tr(go.title, lang))}</b><span aria-hidden="true">→</span></a>` : ''}
+      ${go ? `<a class="course-resume" href="${lesson_path(go.id)}"><span class="muted">${esc(t('continue'))}</span><b>${math_html(tr(go.title, lang))}</b>${icon('arrow_right', 16)}</a>` : ''}
     </article>`;
 }
 
@@ -82,7 +83,7 @@ function kinds_text(l: CourseLesson): string {
   const kinds = lesson_info(l)?.kinds ?? [];
   return KIND_WORD.filter(([k]) => kinds.includes(k)).map(([, key]) => t(key)).join(' · ');
 }
-const STATUS: Record<string, [string, string]> = { done: ['✓', 'status_done'], started: ['●', 'status_started'], new: ['○', 'status_new'] };
+const STATUS: Record<string, string> = { done: 'status_done', started: 'status_started', new: 'status_new' };
 
 /** A course page: header (start/continue, progress, a feature picture), what you will be able to do, its units. */
 export function course_page(root: HTMLElement, route: Route): () => void {
@@ -129,7 +130,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         return `
         <a class="card lesson-card status-${st}" href="${lesson_path(l.id)}" title="${esc(kinds_text(l))}">
           ${thumb(l.id)}
-          <div class="lesson-title"><span class="status" role="img" aria-label="${esc(t(STATUS[st][1]))}">${STATUS[st][0]}</span>${math_html(tr(l.title, lang))}</div>
+          <div class="lesson-title">${progress_mark(st as Progress, t(STATUS[st]))}${math_html(tr(l.title, lang))}</div>
           <div class="meta"><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
         </a>`;
       }).join('')}</div></section>`).join('')}

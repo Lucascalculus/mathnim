@@ -4,7 +4,8 @@
 // choice is remembered); below that it opens over the page. When docked it
 // replaces the row of small step icons under the lesson. (docs/SITE-STRUCTURE.md)
 import { tr, type Lesson, type Step } from '@mathnim/core';
-import { esc, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
+import { esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
+import { progress_mark } from './progress_mark';
 import { course_path, lesson_code, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
 import { lesson_status } from './store';
 
@@ -22,16 +23,14 @@ const CSS = `
 .ol-head{display:flex;align-items:center;gap:8px;padding:12px 12px 8px 14px;position:sticky;top:0;background:var(--mn-panel);z-index:1}
 .ol-head a{flex:1;min-width:0;font-weight:650;color:var(--mn-fg);text-decoration:none;line-height:1.3}
 .ol-head a:hover{color:var(--mn-accent)}
-.ol-close{flex:none;border:0;background:transparent;color:var(--mn-muted);font-size:18px;line-height:1;width:28px;height:28px;border-radius:8px;cursor:pointer}
+.ol-close{flex:none;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--mn-muted);width:28px;height:28px;border-radius:8px;cursor:pointer}
 .ol-close:hover{background:var(--mn-faint);color:var(--mn-fg)}
 .ol-unit{padding:6px 0 4px}
 .ol-unit>h4{margin:0;padding:6px 14px 4px;font-size:12px;font-weight:600;color:var(--mn-muted);letter-spacing:.01em}
 .ol-lesson{display:flex;gap:8px;align-items:baseline;padding:5px 12px 5px 14px;color:var(--mn-fg);text-decoration:none;line-height:1.35;border-left:3px solid transparent}
 .ol-lesson:hover{background:color-mix(in srgb,var(--mn-accent) 6%,transparent)}
 .ol-lesson.current{font-weight:650;border-left-color:var(--mn-accent);background:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
-.ol-st{flex:none;width:14px;text-align:center;font-size:11px;color:var(--mn-muted)}
-.ol-lesson.done .ol-st{color:var(--mn-good)}
-.ol-lesson.started .ol-st{color:var(--mn-accent)}
+.ol-lesson>.pm{align-self:flex-start;margin-top:4px}
 .ol-steps{position:relative;list-style:none;margin:2px 0 6px;padding:0 0 0 20px;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel))}
 .ol-chapter{position:relative;z-index:1;padding:9px 10px 3px 39px;font-size:11.5px;color:var(--mn-muted);font-weight:600}
 .ol-step{position:relative;z-index:1;display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;font:inherit;font-size:13px;line-height:1.35;color:var(--mn-muted);background:transparent;border:0;padding:4px 10px 4px 16px;cursor:pointer}
@@ -128,11 +127,11 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
   toggle.innerHTML = `${ICON}<span>${esc(t('outline'))}</span>`;
 
   // the course: units, lessons; the current lesson's steps are filled in by render_steps
-  panel.innerHTML = `<div class="ol-head"><a href="${course_path(o.course)}">${math_html(tr(o.course.title, lang))}</a><button type="button" class="ol-close" aria-label="${esc(t('close'))}" title="${esc(t('close'))}">×</button></div>
+  panel.innerHTML = `<div class="ol-head"><a href="${course_path(o.course)}">${math_html(tr(o.course.title, lang))}</a><button type="button" class="ol-close" aria-label="${esc(t('close'))}" title="${esc(t('close'))}">${icon('x', 16)}</button></div>
     ${visible_units(o.course).map((u) => `<div class="ol-unit"><h4>${math_html(unit_title(o.course, u, lang))}</h4>${u.lessons.map((l) => {
       const st = l.id === o.current.id ? 'current' : lesson_status(l.id);
       const code = lesson_code(l.id);
-      return `<a class="ol-lesson ${st}" href="${lesson_path(l.id)}"${l.id === o.current.id ? ' aria-current="page"' : ''}><span class="ol-st" aria-hidden="true">${st === 'done' ? '✓' : st === 'started' ? '●' : st === 'current' ? '▸' : '○'}</span><span>${code ? `${esc(code)} · ` : ''}${math_html(tr(l.title, lang))}</span></a>${l.id === o.current.id ? '<ul class="ol-steps"></ul>' : ''}`;
+      return `<a class="ol-lesson ${st}" href="${lesson_path(l.id)}"${l.id === o.current.id ? ' aria-current="page"' : ''}>${progress_mark(st === 'done' ? 'done' : st === 'started' ? 'started' : st === 'current' ? 'current' : 'new')}<span>${code ? `${esc(code)} · ` : ''}${math_html(tr(l.title, lang))}</span></a>${l.id === o.current.id ? '<ul class="ol-steps"></ul>' : ''}`;
     }).join('')}</div>`).join('')}`;
   const steps = panel.querySelector<HTMLUListElement>('.ol-steps');
 

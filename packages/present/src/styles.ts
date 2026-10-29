@@ -22,6 +22,8 @@ export const CSS = `
 .mn-caption.offstage{display:none}
 /* two columns: the panel shows the narration, so the subtitle strip is only for narrow screens */
 @media (min-width:901px){.mn-caption{display:none}}
+/* one column: the subtitle under the figure says it in step, so the panel below does not say it again */
+@media (max-width:900px){.mn-app.mn-scenestep:not(.mn-game) .mn-side :is(.mn-prompt,.mn-side>:empty){display:none}}
 .mn-cue{transition:color .3s}.mn-cue.next{color:var(--mn-muted)}
 .mn-finding{margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--mn-warn) 12%,transparent);color:var(--mn-fg);font-size:14px}
 .mn-stars{margin-left:6px;color:var(--mn-warn);letter-spacing:1px}
@@ -73,8 +75,23 @@ export const CSS = `
 .mn-conf button[aria-pressed=true]{background:var(--mn-fg);color:var(--mn-bg);border-color:var(--mn-fg)}
 .mn-bar{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mn-muted)}.mn-bar>span{white-space:nowrap}
 .mn-bar input[type=range]{flex:1;min-width:0;accent-color:var(--mn-accent)}
-.mn-bar select{font:inherit;color:inherit;background:transparent;border:1px solid var(--mn-border);border-radius:8px;padding:3px 6px}
-.mn-iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--mn-border);background:var(--mn-panel);color:var(--mn-fg);cursor:pointer;display:grid;place-items:center;flex:none}
+/* the player: play is the one solid button; the rest are quiet, and show the drawing-sheet corners when pointed at */
+.mn-play{width:34px;height:34px;border-radius:50%;border:0;background:var(--mn-fg);color:var(--mn-bg);cursor:pointer;display:grid;place-items:center;flex:none;padding:0;transition:transform .15s}
+.mn-play:hover{transform:scale(1.06)}.mn-play .mn-ic{margin-left:1px}
+.mn-ghost{flex:none;position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--mn-muted);cursor:pointer;font:inherit;transition:color .15s}
+.mn-ghost:hover,.mn-ghost:focus-visible,details[open]>.mn-ghost{color:var(--mn-fg)}
+.mn-ghost>i{position:absolute;width:5px;height:5px;border:0 solid currentColor;opacity:0;transition:inset .3s cubic-bezier(.3,1.5,.5,1),opacity .2s}
+.mn-ghost>i:nth-child(1){left:-4px;top:-4px;border-left-width:1.3px;border-top-width:1.3px}
+.mn-ghost>i:nth-child(2){right:-4px;top:-4px;border-right-width:1.3px;border-top-width:1.3px}
+.mn-ghost>i:nth-child(3){left:-4px;bottom:-4px;border-left-width:1.3px;border-bottom-width:1.3px}
+.mn-ghost>i:nth-child(4){right:-4px;bottom:-4px;border-right-width:1.3px;border-bottom-width:1.3px}
+.mn-ghost:is(:hover,:focus-visible)>i,details[open]>.mn-ghost>i{opacity:1}
+.mn-ghost:is(:hover,:focus-visible)>i:nth-child(1),details[open]>.mn-ghost>i:nth-child(1){left:2px;top:2px}
+.mn-ghost:is(:hover,:focus-visible)>i:nth-child(2),details[open]>.mn-ghost>i:nth-child(2){right:2px;top:2px}
+.mn-ghost:is(:hover,:focus-visible)>i:nth-child(3),details[open]>.mn-ghost>i:nth-child(3){left:2px;bottom:2px}
+.mn-ghost:is(:hover,:focus-visible)>i:nth-child(4),details[open]>.mn-ghost>i:nth-child(4){right:2px;bottom:2px}
+.mn-speed{width:40px;font-size:13px;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.mn-ghost>i,.mn-play{transition:none}}
 .mn-yourturn{border:1.5px solid var(--mn-accent);background:color-mix(in srgb,var(--mn-accent) 6%,transparent);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .mn-yt-head{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--mn-accent);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
 .mn-yt-icon{width:24px;height:24px;border-radius:50%;background:var(--mn-accent);color:#fff;display:grid;place-items:center;animation:mn-bob 1.6s ease-in-out infinite}
@@ -96,7 +113,7 @@ export const CSS = `
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}}
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -314,7 +331,7 @@ export const CSS = `
 .mn-where-bar i{display:block;height:100%;background:var(--mn-accent);transition:width .4s}
 /* step dots: done = filled, now = accent with a ring, upcoming = outline only */
 .mn-more{position:relative;flex:none}
-.mn-more>summary{list-style:none;font-size:18px;line-height:1;letter-spacing:1px}
+.mn-more>summary{list-style:none}
 .mn-more>summary::-webkit-details-marker{display:none}
 .mn-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
 .mn-more-menu .mn-btn{border:0;width:100%;text-align:left}

@@ -18,6 +18,7 @@ import {
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
 import { drag_hint, plural_s, t, ui_lang } from './i18n';
+import { CORNERS, icon } from './icons';
 import { esc, math_html, reading, set_math, set_tex_renderer, type TexRenderer } from './math';
 import { hush_all, Narrator } from './narrator';
 import { SketchPad, type SketchMapping } from './sketchpad';
@@ -85,14 +86,9 @@ const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): 
   return e;
 };
 /** Glyphs of the "your turn" cards. */
-const ICON: Record<string, string> = {
-  explore: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M6.2 1.8c.6 0 1 .4 1 1v4.1h.3V2.3c0-.6.4-1 1-1s1 .4 1 1v4.6h.3V3c0-.6.4-1 1-1s1 .4 1 1v4.3h.3V4.4c0-.6.4-1 1-1s1 .4 1 1v5.2c0 2.9-2 5-4.8 5H8.3c-1.4 0-2.5-.6-3.3-1.7L2.2 9c-.4-.5-.3-1.1.2-1.4.5-.3 1.1-.2 1.4.3l1.4 1.8V2.8c0-.6.4-1 1-1z" fill="currentColor"/></svg>',
-  sketch: '<svg viewBox="0 0 16 16" width="11" height="11"><path d="M11.3 1.9l2.8 2.8-8.3 8.3-3.5.7.7-3.5z" fill="currentColor"/></svg>',
-};
-/** The narration button: a speaker with its sound waves, or crossed out. */
-const SPEAKER = '<path d="M2.5 6.2h2.6L8.6 3.2v9.6L5.1 9.8H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
-const VOICE_ON = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${SPEAKER}<path d="M10.8 5.6a3.4 3.4 0 0 1 0 4.8M12.8 3.6a6.2 6.2 0 0 1 0 8.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-const VOICE_OFF = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${SPEAKER}<path d="M11 6l3.6 4M14.6 6L11 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+const ICON = { explore: icon('hand', 14), sketch: icon('pencil', 14) };
+/** Playback speeds, in the order a click on the speed steps through them. */
+const RATES = [1, 0.75, 0.5];
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 export class LessonView {
@@ -178,7 +174,7 @@ export class LessonView {
     if (o.rail) side.append(o.rail);
     this.el.feedback.setAttribute('aria-live', 'polite');
     const bar = h('div', 'mn-bar');
-    this.el.play = h('button', 'mn-iconbtn', '▶');
+    this.el.play = h('button', 'mn-play', icon('play', 16, { solid: true }));
     this.el.play.setAttribute('aria-label', t('play_pause'));
     const seek = h('input') as HTMLInputElement;
     seek.type = 'range';
@@ -187,18 +183,18 @@ export class LessonView {
     seek.value = '0';
     seek.setAttribute('aria-label', t('scene_position'));
     this.el.seek = seek;
-    const speed = h('select') as HTMLSelectElement;
-    for (const r of [0.5, 0.75, 1, 1.25, 1.5, 2]) speed.add(new Option(`${r}×`, String(r), r === 1, r === 1));
+    // one click steps to the next speed (1× → 0.75× → 0.5× → 1×)
+    const speed = h('button', 'mn-ghost mn-speed', `${CORNERS}1×`);
     speed.setAttribute('aria-label', t('speed'));
     this.el.speed = speed;
     this.el.time = h('span', '', '0:00');
     this.el.steps = h('div', 'mn-steps');
     const exp = h('button', 'mn-btn mn-export', esc(t('export_mp4')));
     this.el.export = exp;
-    this.el.voice = h('button', 'mn-iconbtn', VOICE_ON);
+    this.el.voice = h('button', 'mn-ghost', CORNERS + icon('volume'));
     this.el.voice.setAttribute('aria-label', t('narration_toggle'));
     // rarely needed: export sits in a small "⋯" menu instead of on every step
-    const more = h('details', 'mn-more', `<summary class="mn-iconbtn" aria-label="${esc(t('more'))}" title="${esc(t('more'))}">⋯</summary>`);
+    const more = h('details', 'mn-more', `<summary class="mn-ghost" aria-label="${esc(t('more'))}" title="${esc(t('more'))}">${CORNERS}${icon('dots')}</summary>`);
     const menu = h('div', 'mn-more-menu');
     menu.append(exp);
     more.append(menu);
@@ -244,7 +240,7 @@ export class LessonView {
     this.sketch = new SketchPad(sk, { to_data: (x, y) => [x, y], to_px: (x, y) => [x, y] });
     this.narrator = new Narrator(this.el.caption, { base: o.narration_base, lang: this.lang === 'zh' ? 'zh-CN' : 'en-US' });
     this.narrator.keep_caption = this.game;
-    this.el.voice.innerHTML = this.narrator.enabled ? VOICE_ON : VOICE_OFF;
+    this.show_voice();
     // on scene steps the panel holds the narration; the phrase being spoken is highlighted
     this.narrator.on_cue = (cues, i) => {
       if (!this.scene_step) return;
@@ -291,10 +287,22 @@ export class LessonView {
       if (!p.duration) return;
       seek.value = String(Math.round((t / p.duration) * 1000));
       this.el.time.textContent = `${fmt(t)} / ${fmt(p.duration)}`;
-      this.el.play.textContent = p.playing ? '❚❚' : '▶';
+      this.show_playing(p.playing);
     };
-    p.set_rate(+(this.el.speed as HTMLSelectElement).value);
+    p.set_rate(this.rate);
     if (this.o.dev) queueMicrotask(() => this.dev_report(p));
+  }
+  private show_voice(): void {
+    this.el.voice.innerHTML = CORNERS + icon(this.narrator.enabled ? 'volume' : 'volume_off');
+  }
+  /** The playback speed (RATES). */
+  private rate = 1;
+  private shown_playing: boolean | null = null;
+  /** The play button shows pause while the scene plays. */
+  private show_playing(playing: boolean): void {
+    if (playing === this.shown_playing) return;
+    this.shown_playing = playing;
+    this.el.play.innerHTML = icon(playing ? 'pause' : 'play', 16, { solid: true });
   }
   /** Play the current scene again from the start, with its narration. */
   private replay(): void {
@@ -303,7 +311,7 @@ export class LessonView {
     p.pause();
     p.seek_frame(0);
     p.play();
-    this.el.play.textContent = '❚❚';
+    this.show_playing(true);
     if (s?.kind === 'scene' && s.narration) void this.narrator.say(this.runtime.text(s.narration));
     this.runtime.log.emit({ verb: 'replayed', lesson: this.lesson.id, step: s?.id });
   }
@@ -313,7 +321,7 @@ export class LessonView {
       if (!p) return;
       if (!p.playing && p.frame >= p.total_frames - 1) return this.replay();
       p.toggle();
-      this.el.play.textContent = p.playing ? '❚❚' : '▶';
+      this.show_playing(p.playing);
       if (p.playing) this.narrator.resume();
       else this.narrator.pause();
       this.runtime.log.emit({ verb: p.playing ? 'resumed' : 'paused', lesson: this.lesson.id, step: this.runtime.step?.id });
@@ -328,15 +336,16 @@ export class LessonView {
     };
     (this.el.seek as HTMLInputElement).onchange = () => this.runtime.log.emit({ verb: 'seeked', lesson: this.lesson.id, step: this.runtime.step?.id });
     const set = (object: string, value: unknown) => this.runtime.log.emit({ verb: 'set', lesson: this.lesson.id, step: this.runtime.step?.id, object, data: { value } });
-    this.el.speed.onchange = () => {
-      const r = +(this.el.speed as HTMLSelectElement).value;
+    this.el.speed.onclick = () => {
+      const r = (this.rate = RATES[(RATES.indexOf(this.rate) + 1) % RATES.length]);
+      this.el.speed.innerHTML = `${CORNERS}${r}×`;
       this.runtime.player?.set_rate(r);
       this.narrator.set_rate(r);
       set('speed', r);
     };
     this.el.voice.onclick = () => {
       this.narrator.set_enabled(!this.narrator.enabled);
-      this.el.voice.innerHTML = this.narrator.enabled ? VOICE_ON : VOICE_OFF;
+      this.show_voice();
       set('narration', this.narrator.enabled);
     };
     this.el.export.onclick = async () => {
@@ -432,6 +441,7 @@ export class LessonView {
         this.el.kicker.textContent = text ? '' : [chapter, this.tr(s.title)].filter(Boolean).join(' · ');
         // on interactive steps the instructions are in the panel: speak them, but keep the figure clear
         this.scene_step = s.kind === 'scene';
+        this.app.classList.toggle('mn-scenestep', this.scene_step);
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
@@ -470,7 +480,7 @@ export class LessonView {
         this.render_mastery(); // the derivation page shows the outcome itself
         break;
       case 'scene-end':
-        this.el.play.textContent = '▶';
+        this.show_playing(false);
         break;
       case 'explore': {
         const scrubs = e.step.scrub ?? {};

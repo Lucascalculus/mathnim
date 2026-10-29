@@ -1,6 +1,6 @@
 // App chrome: navigation bar (with the language switch) + hash router.
 import { LANGS, type Lang } from '@mathnim/core';
-import { esc, hush_all, inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
+import { esc, hush_all, icon, inject_styles, on_ui_lang, t, ui_lang } from '@mathnim/present';
 import './i18n';
 import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
@@ -9,6 +9,7 @@ import { settings_panel } from './pages/settings';
 import { accounts_available, current_user, sign_out, studio_available } from './account';
 import { login_form } from './login';
 import { SHEET } from './sheet';
+import { PROGRESS_CSS } from './progress_mark';
 
 const CSS = `
 body{margin:0;background:#fbfbfa}
@@ -98,6 +99,7 @@ body{margin:0;background:#fbfbfa}
 .course-card{display:flex;flex-direction:column;gap:10px;transition:transform .15s,border-color .15s;border-top:4px solid var(--course-accent,var(--mn-border))}
 .course-link{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit}
 .course-resume{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;font-size:14px;text-decoration:none;color:var(--mn-fg);background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 8%,transparent)}
+.course-resume .mn-ic{flex:none}
 .course-resume b{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .course-resume:hover{background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 15%,transparent)}
 .course-card:hover{transform:translateY(-2px)}
@@ -236,8 +238,7 @@ body{margin:0;background:#fbfbfa}
 .about-sec a:hover{color:var(--mn-accent);text-decoration-color:currentColor}
 .about-body p{margin:0}
 .lesson-title{font-weight:600;font-size:16px;display:flex;gap:8px;align-items:baseline}
-.lesson-title .status{flex:none;font-size:13px;width:16px;text-align:center;color:var(--mn-muted)}
-.status-done .lesson-title .status{color:var(--mn-good)}
+.lesson-title .pm{align-self:flex-start;margin-top:6px}
 .status-started .lesson-title .status{color:var(--mn-accent)}
 .kinds{display:inline-flex;gap:5px;color:var(--mn-muted);align-items:center}
 .labs-soon{font-size:14px}
@@ -286,6 +287,7 @@ label.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
 /* phones: logo and language on top, a tab bar at the bottom (not inside lessons) */
 
 @media (max-width:420px){.nav .brand .name{display:none}.nav{gap:11px;padding:12px 10px}.nav a{font-size:13.5px}.langs button{padding:3px 7px}}
+${PROGRESS_CSS}
 `;
 
 export type Page = (root: HTMLElement, route: Route) => void | (() => void) | Promise<void | (() => void)>;
@@ -295,7 +297,7 @@ let relocalizing = false;
 export const is_relocalizing = () => relocalizing;
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
 // (a symmetric gear, centred on the middle of its box)
-const GEAR = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
+const GEAR = icon('settings');
 
 /** An admin wears the course map's crown on their initial (and on their pass); everything else is the learner's view. */
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';

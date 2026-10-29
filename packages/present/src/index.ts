@@ -5,6 +5,7 @@ export { LessonView, type ViewOptions, type TextGrader } from './view';
 export { SketchPad, type SketchMapping } from './sketchpad';
 export { CueGuide } from './cue';
 export { Narrator, hush_all } from './narrator';
+export { icon, CORNERS, type IconName } from './icons';
 export { math_html, display_math_html, set_math, set_tex_renderer, esc, formula_text, reading, type TexRenderer, type MarkupOptions } from './math';
 export { inject_styles, CSS } from './styles';
 export { t, set_ui_lang, ui_lang, on_ui_lang, define_ui, plural_s, ui_entries, drag_hint } from './i18n';

@@ -8,6 +8,7 @@
 // run and keeps up to three going until none is left. The drop areas are drawn on the engineering
 // sheet (sheet.ts), whose crop marks close in while files are held over them.
 import { esc, t, ui_lang } from '@mathnim/present';
+import { progress_mark } from '../progress_mark';
 import { accounts_available, current_user, generate_available, studio_available } from '../account';
 import { backlink } from '../backlink';
 import { lesson_path } from '../course';
@@ -94,12 +95,10 @@ const CSS = `
 .st-progress .st-bar{flex:1}
 .st-progress small{flex:none;font-size:12.5px;color:var(--mn-muted);font-variant-numeric:tabular-nums}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.steps li{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--mn-faint);font-size:14px}
+.steps li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--mn-faint);font-size:14px}
 .steps li:first-child{border-top:0}
-.steps i{font-style:normal;text-align:center;color:var(--mn-muted)}
-.steps .done i{color:var(--mn-good)}
-.steps .failed i,.steps .failed .st{color:var(--mn-bad)}
-.steps .active i{color:var(--mn-accent);animation:st-blink 1.2s ease-in-out infinite}
+.steps .failed .st{color:var(--mn-bad)}
+.steps .active .pm{animation:st-blink 1.2s ease-in-out infinite}
 .steps .label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .steps .label a{color:inherit;text-decoration:none}
 .steps .label a:hover{color:var(--mn-accent);text-decoration:underline}
@@ -376,10 +375,10 @@ async function course_view(root: HTMLElement, id: string): Promise<() => void> {
   };
 
   type RowState = 'done' | 'active' | 'todo' | 'failed';
-  const mark = (state: RowState) => (state === 'done' ? '✓' : state === 'failed' ? '!' : state === 'active' ? '●' : '○');
+  const mark = (state: RowState) => progress_mark(state === 'active' ? 'started' : state === 'todo' ? 'new' : state);
   /** One row: `label` is HTML (a link to a finished lesson), the rest is text. */
   const row = (state: RowState, label: string, st: string, extra = '') =>
-    `<li class="${state}"><i aria-hidden="true">${mark(state)}</i><span class="label">${label}</span><span class="st">${esc(st)}</span>${extra}</li>`;
+    `<li class="${state}">${mark(state)}<span class="label">${label}</span><span class="st">${esc(st)}</span>${extra}</li>`;
   /** The state of a group of steps, as a row. */
   const state_row = (keys: string[], done: boolean, label: string, running_word: string) => {
     const k = keys.find((x) => failed.has(x));
