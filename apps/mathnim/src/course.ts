@@ -151,8 +151,8 @@ export const MATH_COURSE: Course = {
     {
       id: 'area', title: { en: 'Circles and area', zh: '圆与面积' },
       lessons: [
-        { id: pizzaGame.id, title: 'Pizza shop', summary: 'A game: bet on the deal, cover, cut and rebuild the pizza, run the shop - and find out why a circle’s area is πr².', lesson: pizzaGame, minutes: 15, level: 'grades 7-9', thumb: 'bet' },
-        { id: pizza.id, title: 'The pizza deal', summary: 'One 16-inch pizza or two 8-inch ones? Slice a circle into a rectangle and see why its area is πr².', lesson: pizza, minutes: 15, level: 'grades 7-9' },
+        { id: pizzaGame.id, title: { en: 'Pizza shop (game layout test)', zh: '披萨店（游戏版式测试）' }, summary: 'A game: bet on the deal, cover, cut and rebuild the pizza, run the shop - and find out why a circle’s area is πr².', lesson: pizzaGame, minutes: 15, level: 'grades 7-9', thumb: 'bet' },
+        { id: pizza.id, title: { en: 'Pizza shop (video legacy)', zh: '披萨店（视频旧版）' }, summary: 'One 16-inch pizza or two 8-inch ones? Slice a circle into a rectangle and see why its area is πr².', lesson: pizza, minutes: 15, level: 'grades 7-9' },
       ],
     },
     {
