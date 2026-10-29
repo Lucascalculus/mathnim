@@ -48,7 +48,7 @@ const CSS = `
 .ol-sta>s{box-sizing:border-box;display:block;width:9px;height:9px;border-radius:50%;border:1.75px solid color-mix(in srgb,var(--mn-fg) 28%,transparent);background:var(--mn-panel);text-decoration:none;transition:border-color .2s,background-color .2s}
 .ol-sta.ask>s{width:7.5px;height:7.5px;border-radius:1px;transform:rotate(45deg)}
 .ol-sta.code>s{display:none}
-.ol-sta.code>svg{position:relative;display:block;width:15px;height:11px;padding:2px 0;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel));fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.ol-sta.code>svg{position:relative;display:block;width:15px;height:11px;margin:0 -1.5px;padding:2px 0;background:color-mix(in srgb,var(--mn-accent) 4%,var(--mn-panel));fill:none;stroke:color-mix(in srgb,var(--mn-fg) 40%,transparent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
 .ol-step.done .ol-sta.code>svg{stroke:color-mix(in srgb,var(--mn-accent) 80%,transparent)}
 .ol-step.now .ol-sta.code>svg{stroke:var(--mn-accent);stroke-width:2}
 .ol-sta.world>s{width:7px;height:7px;border-width:1.75px}
