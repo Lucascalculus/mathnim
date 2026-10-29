@@ -138,8 +138,8 @@ export class LessonView {
     this.game = (o.mode ?? lesson.mode) === 'game';
     const app = (this.app = h('div', 'mn-app' + (o.dark ? ' mn-dark' : '') + (this.game ? ' mn-game' : '')));
     app.lang = this.lang === 'zh' ? 'zh-CN' : 'en';
-    const head = h('div', 'mn-head');
-    // only the lesson's title: the chapter is on the page itself, in the progress line and the outline
+    // one line above the lesson: (the app's outline button and course,) the lesson's title, and its progress at the end
+    const head = (this.el.head = h('div', 'mn-head'));
     head.append(h('div', 'mn-title', math_html(this.tr(lesson.title))));
     // a Chinese learner opening a lesson that exists only in English is told so, once, at the top
     if (this.lang !== 'en' && !lesson_langs(lesson).includes(this.lang)) head.append(h('span', 'mn-lang-note', esc(t('only_english'))));
@@ -175,7 +175,7 @@ export class LessonView {
     }
     if (o.rail) side.append(o.rail);
     this.el.feedback.setAttribute('aria-live', 'polite');
-    const bar = h('div', 'mn-bar');
+    const bar = (this.el.bar = h('div', 'mn-bar'));
     this.el.play = h('button', 'mn-play', icon('play', 16, { solid: true }));
     this.el.play.setAttribute('aria-label', t('play_pause'));
     const seek = h('input') as HTMLInputElement;
@@ -202,7 +202,7 @@ export class LessonView {
     more.append(menu);
     exp.addEventListener('click', () => ((more as HTMLDetailsElement).open = false));
     bar.append(this.el.play, seek, this.el.time, speed, this.el.voice, more);
-    const left = h('div');
+    const left = h('div', 'mn-left');
     left.style.display = 'flex';
     left.style.flexDirection = 'column';
     left.style.gap = '10px';
@@ -230,9 +230,10 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      // where am I: "step 5 of 17 · chapter" and a thin bar above the step dots
+      // where am I: the lesson's chapters as segments, filled as far as the learner has come, at the end of the head
       this.el.where = h('div', 'mn-where');
-      left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page, this.el.where);
+      head.append(this.el.where);
+      left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page);
       app.append(head, left, side);
     }
     if (o.dev) app.append((this.el.dev = h('div', 'mn-dev', 'dev: linter + scene description')));
@@ -428,7 +429,7 @@ export class LessonView {
     void this.runtime.goto(prev.id);
   };
   private primary(): HTMLButtonElement | null {
-    return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)');
+    return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)') ?? this.el.bar.querySelector('.mn-btn.primary:not(:disabled)');
   }
 
   // ---------------------------------------------------------------- runtime events
@@ -478,9 +479,13 @@ export class LessonView {
         if (s.kind === 'scene') {
           const cont = this.button(t('continue'), () => this.runtime.next(), true);
           cont.dataset.next = '';
-          // (in the essay view the play button replays an ended scene; the game keeps its Replay)
-          if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()));
-          this.el.actions.append(cont);
+          // (in the essay view the play button replays an ended scene, and Continue ends the player's row, where the
+          // eyes are; the game keeps its Replay and its tray)
+          if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()), cont);
+          else {
+            cont.classList.add('mn-next');
+            this.el.bar.append(cont);
+          }
           if (s.narration) set_math(this.el.prompt, this.runtime.text(s.narration));
         }
         break;
@@ -682,6 +687,7 @@ export class LessonView {
     this.root.innerHTML = '';
   }
   private reset_panel(): void {
+    this.el.bar.querySelector('.mn-next')?.remove();
     this.cue?.dispose();
     this.cue = null;
     this.pending_cue = null;
@@ -1173,10 +1179,29 @@ export class LessonView {
     const cur = this.runtime?.index ?? -1;
     // "step 5 of 17 · chapter" and a thin bar (branch-only detours count as the step they came from)
     const main = this.lesson.steps.map((s, i) => [s, i] as const).filter(([s]) => !s.branch_only);
-    const k = main.filter(([, i]) => i <= cur).length;
+    const k = Math.max(1, main.filter(([, i]) => i <= cur).length);
     if (this.el.where && cur >= 0) {
-      const chapter = this.tr(this.chapter_of(cur));
-      this.el.where.innerHTML = `<span>${esc(t('lesson_step', { k: Math.max(1, k), n: main.length }))}${chapter ? ` · ${math_html(chapter)}` : ''}</span><span class="mn-where-bar" aria-hidden="true"><i style="width:${Math.round((Math.max(1, k) / main.length) * 100)}%"></i></span>`;
+      // one segment per chapter (as wide as its steps), filled as far as the learner has come; the chapter on hover
+      const chapters: { name: string; steps: number; done: number; here: boolean }[] = [];
+      for (const [, i] of main) {
+        const name = this.tr(this.chapter_of(i)) ?? '';
+        let c = chapters[chapters.length - 1];
+        if (!c || c.name !== name) chapters.push((c = { name, steps: 0, done: 0, here: false }));
+        c.steps++;
+        if (i <= cur) c.done++;
+        if (i === cur) c.here = true;
+      }
+      const label = t('lesson_step', { k, n: main.length });
+      const here = this.tr(this.chapter_of(cur));
+      this.el.where.setAttribute('role', 'progressbar');
+      this.el.where.setAttribute('aria-valuemin', '1');
+      this.el.where.setAttribute('aria-valuemax', String(main.length));
+      this.el.where.setAttribute('aria-valuenow', String(k));
+      this.el.where.setAttribute('aria-valuetext', here ? `${label} · ${here}` : label);
+      this.el.where.title = here ? `${label} · ${here}` : label;
+      this.el.where.innerHTML = `<span class="mn-where-n" aria-hidden="true">${k}<i>/</i>${main.length}</span><span class="mn-segs" aria-hidden="true">${chapters
+        .map((c) => `<span class="mn-seg${c.here ? ' here' : ''}" style="flex:${c.steps}" title="${esc(c.name)}"><i style="width:${Math.round((c.done / c.steps) * 100)}%"></i></span>`)
+        .join('')}</span>`;
     }
   }
   private render_mastery(): void {

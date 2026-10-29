@@ -56,11 +56,6 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   // the next lesson of the same course (in the order of its page) is the end card's main action
   const course = course_of(cl.id);
   const in_course = course ? visible_lessons(course) : [];
-  // where am I: the outline button and "<course> /" above the lesson, back to the course page
-  const top = document.createElement('div');
-  top.className = 'lesson-top';
-  if (course) top.innerHTML = `<nav class="crumb"><a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a></nav>`;
-  root.prepend(top);
   const at = in_course.findIndex((l) => l.id === cl.id);
   const after = at >= 0 ? in_course[at + 1] : undefined;
   // the lab that reproduces this lesson on a real model, offered on the end card
@@ -91,7 +86,14 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   rail.attach(view);
   // the outline of the course with this lesson's steps (docked on wide screens)
   const outline = course ? mount_outline(layout, host, { course, current: cl, lesson, view }) : null;
-  if (outline) top.prepend(outline.toggle);
+  // the head of the lesson, one line: the outline button, "<course> ›" back to the course page, the title, the progress
+  if (course) {
+    const crumb = document.createElement('nav');
+    crumb.className = 'crumb';
+    crumb.innerHTML = `<a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a>`;
+    view.el.head.prepend(crumb);
+  }
+  if (outline) view.el.head.prepend(outline.toggle);
   (window as any).mathnim_view = view; // for debugging in the console
   // a link to a step opens it; otherwise the lesson resumes where the learner left it
   // (not awaited: the page hands back its cleanup at once, so leaving mid-scene stops it)

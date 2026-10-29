@@ -1,25 +1,20 @@
-// The lesson outline: the course's units and lessons beside a lesson, with
-// the steps of the lesson being learned nested under it (click one to go
-// there). Docked at the left from 1280 px (open by default, the learner's
-// choice is remembered); below that it opens over the page. When docked it
-// replaces the row of small step icons under the lesson. (docs/SITE-STRUCTURE.md)
+// The lesson outline: the course's units and lessons, with the steps of the
+// lesson being learned nested under it (click one to go there). A drawer that
+// slides in from the left over the page, closed when a lesson opens: the figure
+// leads. Its button is the first thing in the lesson's head. (docs/SITE-STRUCTURE.md)
 import { tr, type Lesson, type Step } from '@mathnim/core';
-import { esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
+import { CORNERS, esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
 import { progress_mark } from './progress_mark';
 import { course_path, lesson_code, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
 import { lesson_status } from './store';
 
-const KEY = 'mathnim.outline';
-const WIDE = '(min-width: 1280px)';
 
 const CSS = `
 .lesson-layout{display:block}
-.lesson-layout.docked{display:grid;grid-template-columns:268px minmax(0,1fr);gap:4px;align-items:start}
 .lesson-main{min-width:0}
-.lesson-layout.docked .mn-steps{display:none}
-.outline{background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:var(--mn-radius);font-size:13.5px;overflow:auto;overscroll-behavior:contain}
-.lesson-layout.docked .outline{position:sticky;top:calc(var(--mn-sticky-top) + 16px);max-height:calc(100vh - var(--mn-sticky-top) - 32px);margin-top:16px}
-.outline[hidden]{display:none}
+.outline{position:fixed;z-index:29;left:0;top:0;bottom:0;width:min(320px,86vw);background:var(--mn-panel);border-right:1px solid var(--mn-border);box-shadow:0 10px 40px rgba(0,0,0,.14);font-size:13.5px;overflow:auto;overscroll-behavior:contain;
+ transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
+.outline.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .ol-head{display:flex;align-items:center;gap:8px;padding:12px 12px 8px 14px;position:sticky;top:0;background:var(--mn-panel);z-index:1}
 .ol-head a{flex:1;min-width:0;font-weight:650;color:var(--mn-fg);text-decoration:none;line-height:1.3}
 .ol-head a:hover{color:var(--mn-accent)}
@@ -60,36 +55,21 @@ const CSS = `
 .ol-step.now .ol-sta>u{border-color:var(--mn-accent)}
 .ol-step.now .ol-sta::after{content:'';position:absolute;inset:-4px;--c:color-mix(in srgb,var(--mn-accent) 85%,transparent);background:linear-gradient(var(--c),var(--c)) 0 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1px 4px no-repeat}
 @media (prefers-reduced-motion:reduce){.ol-steps::after,.ol-sta.world>u{transition:none}}
-.ol-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;color:var(--mn-muted);background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
-.ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
-.ol-toggle svg{flex:none}
-.lesson-top{display:flex;align-items:center;gap:12px;margin:0 0 4px}
-.lesson-top .crumb{margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ol-toggle[aria-expanded=true]{color:var(--mn-accent);border-color:color-mix(in srgb,var(--mn-accent) 40%,var(--mn-border))}
-/* below 1280 px: over the page, with a backdrop */
-.ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.28);z-index:28}
-.ol-backdrop[hidden]{display:none}
-.lesson-layout:not(.docked) .outline{position:fixed;z-index:29;left:0;top:0;bottom:0;width:min(320px,86vw);border-radius:0 var(--mn-radius) var(--mn-radius) 0;box-shadow:0 10px 40px rgba(0,0,0,.18)}
+/* the head of a lesson: the outline button, the course, then the lesson's title (present: .mn-head) */
+.ol-toggle{margin-left:-6px}
+.mn-head .crumb{margin:0;flex:none;max-width:32%;display:flex;align-items:center;gap:10px;font-size:14px;white-space:nowrap}
+.mn-head .crumb a{color:var(--mn-muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis}
+.mn-head .crumb a:hover{color:var(--mn-fg)}
+.mn-head .crumb::after{content:'›';color:var(--mn-muted);opacity:.6}
+.ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.22);z-index:28;opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
+.ol-backdrop.open{opacity:1;visibility:visible;transition:opacity .28s}
+@media (prefers-reduced-motion:reduce){.outline,.ol-backdrop{transition:none!important}}
+@media (max-width:640px){.mn-head .crumb{display:none}}
 `;
 let injected = false;
 
-const ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 3.5h12M2 8h12M2 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const ICON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 3.5h12M2 8h12M2 12.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
-function saved(): boolean | null {
-  try {
-    const v = localStorage.getItem(KEY);
-    return v === 'open' ? true : v === 'closed' ? false : null;
-  } catch {
-    return null;
-  }
-}
-function save(open: boolean): void {
-  try {
-    localStorage.setItem(KEY, open ? 'open' : 'closed');
-  } catch {
-    /* no storage */
-  }
-}
 
 export interface Outline {
   /** The "目录" button for the lesson's top row. */
@@ -109,22 +89,22 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     document.head.append(s);
   }
   const lang = ui_lang();
-  const wide = matchMedia(WIDE);
   layout.classList.add('lesson-layout');
   const panel = document.createElement('nav');
   panel.className = 'outline';
   panel.setAttribute('aria-label', t('outline'));
   const backdrop = document.createElement('div');
   backdrop.className = 'ol-backdrop';
-  backdrop.hidden = true;
   layout.prepend(panel);
   layout.append(backdrop);
   if (main.parentElement !== layout) layout.append(main);
 
   const toggle = document.createElement('button');
   toggle.type = 'button';
-  toggle.className = 'ol-toggle';
-  toggle.innerHTML = `${ICON}<span>${esc(t('outline'))}</span>`;
+  toggle.className = 'ol-toggle mn-ghost';
+  toggle.setAttribute('aria-label', t('outline'));
+  toggle.title = t('outline');
+  toggle.innerHTML = CORNERS + ICON;
 
   // the course: units, lessons; the current lesson's steps are filled in by render_steps
   panel.innerHTML = `<div class="ol-head"><a href="${course_path(o.course)}">${math_html(tr(o.course.title, lang))}</a><button type="button" class="ol-close" aria-label="${esc(t('close'))}" title="${esc(t('close'))}">${icon('x', 16)}</button></div>
@@ -175,7 +155,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     draw_line();
     // keep the current step in view inside the outline (never scrolls the page)
     const now = steps.querySelector<HTMLElement>('.ol-step.now');
-    if (now && !panel.hidden) {
+    if (now && open) {
       const pr = panel.getBoundingClientRect(), nr = now.getBoundingClientRect();
       if (nr.top < pr.top + 48 || nr.bottom > pr.bottom - 8) panel.scrollTop += nr.top - pr.top - pr.height / 3;
     }
@@ -184,40 +164,41 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
     const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.ol-step');
     if (b?.dataset.step) {
       void o.view.runtime.goto(b.dataset.step);
-      if (!wide.matches) set(false, false);
+      set(false);
     }
   });
   panel.querySelector<HTMLButtonElement>('.ol-close')!.onclick = () => set(false);
-  backdrop.onclick = () => set(false, false);
+  backdrop.onclick = () => set(false);
 
   let open = false;
-  /** Open or close; `remember` keeps the choice for wide screens. */
-  function set(v: boolean, remember = true): void {
+  /** Open or close the drawer (the page under it stays as it is). */
+  function set(v: boolean): void {
     open = v;
-    const docked = v && wide.matches;
-    layout.classList.toggle('docked', docked);
-    panel.hidden = !v;
-    backdrop.hidden = !v || wide.matches;
+    panel.classList.toggle('open', v);
+    backdrop.classList.toggle('open', v);
+    panel.inert = !v;
     toggle.setAttribute('aria-expanded', String(v));
-    if (remember && wide.matches) save(v);
-    if (v) render_steps();
+    if (v) {
+      render_steps();
+      panel.querySelector<HTMLElement>('.ol-step.now, .ol-close')?.focus({ preventScroll: true });
+    }
   }
   toggle.onclick = () => set(!open);
-  const on_width = () => set(wide.matches ? saved() ?? true : false, false);
-  wide.addEventListener('change', on_width);
   const on_key = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && open && !wide.matches) set(false, false);
+    if (e.key === 'Escape' && open) {
+      set(false);
+      toggle.focus();
+    }
   };
   document.addEventListener('keydown', on_key);
   const off = o.view.runtime.on((e) => {
     if (e.type === 'step' || e.type === 'finished') render_steps();
   });
-  on_width();
+  set(false);
   return {
     toggle,
     destroy() {
       off();
-      wide.removeEventListener('change', on_width);
       document.removeEventListener('keydown', on_key);
     },
   };

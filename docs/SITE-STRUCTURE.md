@@ -40,12 +40,16 @@ One template for every course, with modules switched on per course in `course.ts
 
 ## Lesson (`/<slug>/<lesson-id>`)
 
-- Breadcrumb "<course title> /" above the lesson title, linking to the course page.
-- **Course outline drawer** (D):
-  - lists the course's units and lessons, with the current lesson's steps nested under it, so learners can see and jump to where they are;
-  - default open on wide screens (≥ 1280 px), collapsed otherwise; remembers the learner's choice;
-  - replaces the row of tiny step icons on desktop.
-- A progress line "第 5 / 17 步 · <chapter>" and a thin progress bar.
+- **One head line**: the outline button, "<course> ›" (to the course page), the lesson's title, and at its end the
+  progress: "5/17" and the lesson's chapters as segments (as wide as their steps), filled as far as the learner has
+  come; the chapter's name on hover. (On phones the course is left out and the progress takes a line of its own.)
+- **Course outline drawer** (D): slides in from the left over the page, closed when a lesson opens (the figure
+  leads); lists the course's units and lessons with the current lesson's steps nested under it (the metro line);
+  choosing a step closes it.
+- **Steps with a figure**: the figure up to 960 px wide, centred where the screen allows (the side keeps ≥ 300 px).
+  A scene ("video") is said by the subtitle under it; the player's row ends with Continue at the figure's right edge
+  (its own full-width row on phones); once the scene ends its whole narration is under the figure. Worlds and
+  questions keep their panel at the side.
 - At the end, the primary button is "下一课：<title>", and the secondary one goes back to the course page.
 - Resume where the learner left off, with a "从头开始" link.
 - "导出 MP4" moves into a "⋯" menu.

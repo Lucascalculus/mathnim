@@ -9,8 +9,14 @@ export const CSS = `
  display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto auto 1fr;gap:16px;padding:16px;box-sizing:border-box;min-height:100%}
 .mn-app *{box-sizing:border-box}
 .mn-app.mn-dark{--mn-code-bg:#161a20;--mn-purple:#b69cff;--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-good:#5fd3a2;--mn-bad:#ff8a73;--mn-shadow:none}
-.mn-head{grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.mn-title{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.mn-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:32px}
+.mn-title{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* steps with a figure (essay view): the figure leads, up to 960 px and centred where the screen allows; the side keeps 300 px */
+@media (min-width:901px){
+.mn-app:not(.mn-game):not(.mn-nostage){grid-template-columns:minmax(0,1fr) minmax(0,960px) minmax(300px,1fr)}
+.mn-app:not(.mn-game):not(.mn-nostage)>.mn-left{grid-column:2}
+.mn-app:not(.mn-game):not(.mn-nostage)>.mn-side{grid-column:3;max-width:400px}
+}
 .mn-stage{position:relative;aspect-ratio:16/9;border-radius:var(--mn-radius);overflow:hidden;box-shadow:var(--mn-shadow);background:linear-gradient(#fff,#f5f5f7)}
 .mn-app.mn-dark .mn-stage{background:#101318}
 .mn-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -118,7 +124,8 @@ export const CSS = `
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}}
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px;flex-wrap:wrap}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}
+ .mn-head .mn-where{flex-basis:100%;margin-left:0}.mn-head .mn-segs{flex:1;width:auto}.mn-app .mn-bar .mn-next{flex:1 1 100%;margin:6px 0 0}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -330,10 +337,15 @@ export const CSS = `
 @media (max-width:640px){.mn-page{font-size:16.5px;border-radius:12px}.mn-dline{grid-template-columns:22px minmax(0,1fr);gap:8px;padding:6px 4px}.mn-dnum{width:22px;height:22px;font-size:11px}
  .mn-dcontrols{padding-left:0}.mn-drow{flex-direction:column;align-items:stretch;gap:4px}.mn-drow .mn-dtex{flex:none}.mn-why-btn{align-self:flex-start;margin-left:0}.mn-code{font-size:12.5px}.mn-callout{font-size:15.5px}.mn-dtex{font-size:16px}}
 /* ---- orientation and the overflow menu */
-.mn-where{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mn-muted);margin-top:2px}
-.mn-where>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.mn-where-bar{flex:1;min-width:60px;max-width:280px;height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden}
-.mn-where-bar i{display:block;height:100%;background:var(--mn-accent);transition:width .4s}
+/* the lesson's progress at the end of the head: its chapters as segments, filled as far as the learner has come */
+.mn-where{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mn-muted);font-variant-numeric:tabular-nums}
+.mn-where-n i{font-style:normal;margin:0 1px;opacity:.6}
+.mn-segs{display:flex;gap:3px;width:clamp(120px,22vw,260px)}
+.mn-seg{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden;min-width:6px}
+.mn-seg i{display:block;height:100%;background:color-mix(in srgb,var(--mn-accent) 55%,var(--mn-faint));transition:width .4s}
+.mn-seg.here i{background:var(--mn-accent)}
+/* Continue ends the player's row on a scene, at the figure's right edge */
+.mn-bar .mn-next{margin-left:8px;flex:none}
 /* step dots: done = filled, now = accent with a ring, upcoming = outline only */
 .mn-more{position:relative;flex:none}
 .mn-more>summary{list-style:none}
