@@ -80,11 +80,12 @@ export class AffordanceLayer {
     cancelAnimationFrame(this.raf);
     this.overlay.remove();
   }
-  /** Scene point -> overlay CSS pixels. */
+  /** Scene point -> overlay CSS pixels. The overlay covers the canvas's parent, which can be larger than the canvas
+   *  (a page that centres the figure in a taller or wider box), so the canvas's offset in it is added. */
   private px(p: Point3D | Point3DLike): XY {
     const cam = this.ui.player.scene.camera as any;
-    const r = this.ui.canvas.getBoundingClientRect();
-    return [((p[0] - cam.frame_center[0]) / cam.frame_width + 0.5) * r.width, (0.5 - (p[1] - cam.frame_center[1]) / cam.frame_height) * r.height];
+    const r = this.ui.canvas.getBoundingClientRect(), o = this.overlay.getBoundingClientRect();
+    return [r.left - o.left + ((p[0] - cam.frame_center[0]) / cam.frame_width + 0.5) * r.width, r.top - o.top + (0.5 - (p[1] - cam.frame_center[1]) / cam.frame_height) * r.height];
   }
   /** Directions a handle can move: 0 (fixed), 1 (a line: unit vector) or 2 (free). */
   private freedom(h: DragHandle): { dims: number; dir: XY } {

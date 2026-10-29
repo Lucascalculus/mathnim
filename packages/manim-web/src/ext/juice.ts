@@ -354,12 +354,13 @@ export class Juice implements FeedbackLike {
   }
 
   // ---------------------------------------------------------------- drawing
-  /** Scene point -> overlay CSS pixels (null without a DOM canvas). */
+  /** Scene point -> overlay CSS pixels (null without a DOM canvas). The overlay covers the canvas's parent, which can be
+   *  larger than the canvas, so the canvas's offset in it is added. */
   private px(p: Point3DLike): [number, number] | null {
     if (typeof this.canvas?.getBoundingClientRect !== 'function') return null;
     const cam = this.player.scene.camera as any;
-    const r = this.canvas.getBoundingClientRect();
-    return [((p[0] - cam.frame_center[0]) / cam.frame_width + 0.5) * r.width, (0.5 - (p[1] - cam.frame_center[1]) / cam.frame_height) * r.height];
+    const r = this.canvas.getBoundingClientRect(), o = this.ensure_overlay()?.getBoundingClientRect() ?? r;
+    return [r.left - o.left + ((p[0] - cam.frame_center[0]) / cam.frame_width + 0.5) * r.width, r.top - o.top + (0.5 - (p[1] - cam.frame_center[1]) / cam.frame_height) * r.height];
   }
   private ensure_overlay(): HTMLCanvasElement | null {
     if (this.overlay) return this.overlay;
