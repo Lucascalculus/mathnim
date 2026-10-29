@@ -20,4 +20,4 @@ export const capstone: CourseLesson = {
   level: T('end of the course', '课程最后'),
 };
 export const lessons: CourseLesson[] = [midway, capstone];
-export const unit: Unit = { id: 'ft-f', title: T('Fine-tuning F · How to choose', '微调 F · 怎么选'), lessons };
+export const unit: Unit = { id: 'ft-f', title: T('Fine-tuning · How to choose', '微调 · 怎么选'), lessons };

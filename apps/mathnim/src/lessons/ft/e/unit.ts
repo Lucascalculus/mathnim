@@ -11,7 +11,7 @@ import { t } from './common';
 
 export const unit: { id: string; title: L10n; lessons: CourseLesson[] } = {
   id: 'ft-e-reasoning',
-  title: t('E · Reasoning and distillation', 'E · 推理与蒸馏'),
+  title: t('Reasoning and distillation', '推理与蒸馏'),
   lessons: [
     {
       id: e1.id, lesson: e1, minutes: 30, thumb: 'w-flip',

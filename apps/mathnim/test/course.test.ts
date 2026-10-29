@@ -18,12 +18,12 @@ describe('course pages', () => {
   });
   it('drop the course name from unit titles', () => {
     const a = FT_COURSE.units.find((u) => u.id === 'ft-a')!;
-    expect(unit_title(FT_COURSE, a, 'zh')).toBe('A · 地图与 RAG');
-    expect(unit_title(FT_COURSE, a, 'en')).toBe('A · The map and RAG');
+    expect(unit_title(FT_COURSE, a, 'zh')).toBe('地图与 RAG');
+    expect(unit_title(FT_COURSE, a, 'en')).toBe('The map and RAG');
     const f0 = FT_COURSE.units.find((u) => u.id === 'ft-f0')!;
     expect(unit_title(FT_COURSE, f0, 'zh')).toBe('中场选择练习');
     const b = FT_COURSE.units.find((u) => u.id === 'ft-b')!;
-    expect(unit_title(FT_COURSE, b, 'zh')).toBe('B · 模仿：监督微调（SFT）');
+    expect(unit_title(FT_COURSE, b, 'zh')).toBe('模仿：监督微调（SFT）');
   });
   it('name fine-tuning lessons by their code', () => {
     expect(lesson_code('ft-c2-lora')).toBe('C2');

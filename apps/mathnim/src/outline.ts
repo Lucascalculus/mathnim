@@ -5,7 +5,7 @@
 import { tr, type Lesson, type Step } from '@mathnim/core';
 import { esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
 import { progress_mark } from './progress_mark';
-import { course_path, lesson_code, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
+import { course_path, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
 import { lesson_status } from './store';
 
 
@@ -111,8 +111,7 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
   panel.innerHTML = `<div class="ol-head"><a href="${course_path(o.course)}">${math_html(tr(o.course.title, lang))}</a><button type="button" class="ol-close" aria-label="${esc(t('close'))}" title="${esc(t('close'))}">${icon('x', 16)}</button></div>
     ${visible_units(o.course).map((u) => `<div class="ol-unit"><h4>${math_html(unit_title(o.course, u, lang))}</h4>${u.lessons.map((l) => {
       const st = l.id === o.current.id ? 'current' : lesson_status(l.id);
-      const code = lesson_code(l.id);
-      return `<a class="ol-lesson ${st}" href="${lesson_path(l.id)}"${l.id === o.current.id ? ' aria-current="page"' : ''}>${progress_mark(st === 'done' ? 'done' : st === 'started' ? 'started' : st === 'current' ? 'current' : 'new')}<span>${code ? `${esc(code)} · ` : ''}${math_html(tr(l.title, lang))}</span></a>${l.id === o.current.id ? '<ul class="ol-steps"></ul>' : ''}`;
+      return `<a class="ol-lesson ${st}" href="${lesson_path(l.id)}"${l.id === o.current.id ? ' aria-current="page"' : ''}>${progress_mark(st === 'done' ? 'done' : st === 'started' ? 'started' : st === 'current' ? 'current' : 'new')}<span>${math_html(tr(l.title, lang))}</span></a>${l.id === o.current.id ? '<ul class="ol-steps"></ul>' : ''}`;
     }).join('')}</div>`).join('')}`;
   const steps = panel.querySelector<HTMLUListElement>('.ol-steps');
 

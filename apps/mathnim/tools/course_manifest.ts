@@ -39,7 +39,7 @@ const LAZY: { course: string; units: (u: Sources['units']) => Unit[] }[] = [
         u('a'), u('b'),
         f && { id: 'ft-f0', title: { en: 'Fine-tuning · Choosing, halfway', zh: '微调 · 中场选择练习' }, lessons: [f.midway] },
         u('c'), u('d'), u('e'),
-        f && { id: 'ft-f1', title: { en: 'Fine-tuning F · How to choose', zh: '微调 F · 怎么选' }, lessons: [f.capstone] },
+        f && { id: 'ft-f1', title: { en: 'Fine-tuning · How to choose', zh: '微调 · 怎么选' }, lessons: [f.capstone] },
       ].filter((x): x is Unit => !!x);
     },
   },

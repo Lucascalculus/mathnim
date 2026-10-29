@@ -79,7 +79,7 @@ export interface Course {
   audience?: L10n;
   /** "学完你能": what the learner can do afterwards (about three). */
   outcomes?: L10n[];
-  /** The course's short name, which its unit titles may start with ("微调 A · …"); a course page leaves it out. */
+  /** The course's short name, which its unit titles may start with ("微调 · …"); a course page leaves it out. */
   short?: L10n;
   /** What to know first, with starter links (shown under the audience line). */
   prerequisites?: Prerequisites;
@@ -300,7 +300,7 @@ export function visible_units(c: Course): Unit[] {
     .filter((u) => u.lessons.length);
 }
 export const visible_lessons = (c: Course): CourseLesson[] => visible_units(c).flatMap((u) => u.lessons);
-/** A unit's title inside its course: without the course's name ("微调 A · 地图与 RAG" → "A · 地图与 RAG"). */
+/** A unit's title inside its course: without the course's name ("微调 · 地图与 RAG" → "地图与 RAG"). */
 export function unit_title(c: Course, u: Unit, lang: Lang): string {
   const title = tr(u.title, lang), short = c.short && tr(c.short, lang);
   if (!short || !title.startsWith(short + ' ')) return title;

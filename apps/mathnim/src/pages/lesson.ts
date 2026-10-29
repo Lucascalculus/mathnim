@@ -4,7 +4,7 @@ import { tr } from '@mathnim/core';
 import { LessonView, esc, fit_display_math, math_html, t, ui_lang } from '@mathnim/present';
 import { apply_palette, set_theme } from '@mathnim/visuals';
 import { apply_theme } from '../lessons/best-angle/theme';
-import { cache_generation, course_of, course_path, ensure_lesson, find_lesson, lab_path, lab_setups, lesson_code, lesson_path, playable, visible_lessons, type CourseLesson } from '../course';
+import { cache_generation, course_of, course_path, ensure_lesson, find_lesson, lab_path, lab_setups, lesson_path, playable, visible_lessons, type CourseLesson } from '../course';
 import { load_lab } from '../labs';
 import { render_lab } from './lab';
 import { mount_outline } from '../outline';
@@ -179,9 +179,9 @@ export async function lab_page(root: HTMLElement, route: Route): Promise<() => v
   }
   if (location.pathname !== here) return () => {}; // the learner went elsewhere meanwhile
   const after = meta.after ? find_lesson(meta.after) : undefined;
-  // "建议先学完这节课：C2 · LoRA：…", the lesson as a link
+  // "建议先学完这节课：LoRA：…", the lesson as a link
   const [pre, post] = t('lab_after_page', { l: '\u0000' }).split('\u0000');
-  const link = after ? `<a href="${lesson_path(after.id)}">${esc(lesson_code(after.id))} · ${math_html(tr(after.title, ui_lang()))}</a>` : '';
+  const link = after ? `<a href="${lesson_path(after.id)}">${math_html(tr(after.title, ui_lang()))}</a>` : '';
   root.innerHTML = `${crumb}${after ? `<p class="muted lab-after">${esc(pre)}${link}${esc(post ?? '')}</p>` : ''}`;
   const body = document.createElement('div');
   root.append(body);

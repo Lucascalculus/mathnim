@@ -26,4 +26,4 @@ export const lessons: CourseLesson[] = [
   },
 ];
 
-export const unit: Unit = { id: 'ft-a', title: T('Fine-tuning A · The map and RAG', '微调 A · 地图与 RAG'), lessons };
+export const unit: Unit = { id: 'ft-a', title: T('Fine-tuning · The map and RAG', '微调 · 地图与 RAG'), lessons };

@@ -9,8 +9,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-a",
    "title": {
-    "en": "Fine-tuning A · The map and RAG",
-    "zh": "微调 A · 地图与 RAG"
+    "en": "Fine-tuning · The map and RAG",
+    "zh": "微调 · 地图与 RAG"
    },
    "lessons": [
     {
@@ -69,8 +69,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-b",
    "title": {
-    "en": "B · Imitation: supervised fine-tuning",
-    "zh": "B · 模仿：监督微调（SFT）"
+    "en": "Imitation: supervised fine-tuning",
+    "zh": "模仿：监督微调（SFT）"
    },
    "lessons": [
     {
@@ -160,8 +160,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-c",
    "title": {
-    "en": "C · Efficient: LoRA, QLoRA",
-    "zh": "C · 高效：LoRA、QLoRA"
+    "en": "Efficient: LoRA, QLoRA",
+    "zh": "高效：LoRA、QLoRA"
    },
    "lessons": [
     {
@@ -211,8 +211,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-d",
    "title": {
-    "en": "D · Preferences: from reward models to DPO",
-    "zh": "D · 偏好：从奖励模型到 DPO"
+    "en": "Preferences: from reward models to DPO",
+    "zh": "偏好：从奖励模型到 DPO"
    },
    "lessons": [
     {
@@ -289,8 +289,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-e-reasoning",
    "title": {
-    "en": "E · Reasoning and distillation",
-    "zh": "E · 推理与蒸馏"
+    "en": "Reasoning and distillation",
+    "zh": "推理与蒸馏"
    },
    "lessons": [
     {
@@ -349,8 +349,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-f1",
    "title": {
-    "en": "Fine-tuning F · How to choose",
-    "zh": "微调 F · 怎么选"
+    "en": "Fine-tuning · How to choose",
+    "zh": "微调 · 怎么选"
    },
    "lessons": [
     {

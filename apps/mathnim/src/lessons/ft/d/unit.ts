@@ -11,7 +11,7 @@ import { lesson as d4 } from './d4';
 
 export const unit: { id: string; title: { en: string; zh: string }; lessons: CourseLesson[] } = {
   id: 'ft-d',
-  title: { en: 'D · Preferences: from reward models to DPO', zh: 'D · 偏好：从奖励模型到 DPO' },
+  title: { en: 'Preferences: from reward models to DPO', zh: '偏好：从奖励模型到 DPO' },
   lessons: [
     { id: d1.id, title: d1.title, summary: { en: 'What imitation cannot say, how "A is better than B" becomes a reward (Bradley–Terry), and where reward signals come from in practice.', zh: '模仿说不出来的东西，"A 比 B 好"怎样变成奖励（Bradley–Terry），以及实践中奖励信号从哪来。' }, lesson: d1, minutes: 30, level: 'knows neural networks', thumb: 'league' },
     { id: d2a.id, title: d2a.title, summary: { en: 'Training on a score you cannot differentiate: REINFORCE, the baseline, and PPO’s ratio and clipping - the pieces GRPO is built from.', zh: '用一个不能求导的分数来训练：REINFORCE、基线，以及 PPO 的概率比和截断——GRPO 正是由这些部件搭成的。' }, lesson: d2a, minutes: 30, level: 'knows neural networks', thumb: 'clip-world' },
