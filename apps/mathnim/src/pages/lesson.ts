@@ -16,6 +16,7 @@ import { AskRail } from '../side_chat';
 import { learner, log, remember_last } from '../store';
 import { is_relocalizing } from '../shell';
 import { text_grader, visual_resolver } from '../lesson_services';
+import { backlink } from '../backlink';
 
 export async function lesson_page(root: HTMLElement, route: Route): Promise<() => void> {
   const cl = route.page === 'lesson' ? find_lesson(route.lesson) : undefined;
@@ -88,12 +89,12 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   rail.attach(view);
   // the outline of the course with this lesson's steps (docked on wide screens)
   const outline = course ? mount_outline(layout, host, { course, current: cl, lesson, view }) : null;
-  // the head of the lesson: "<course> ›" back to the course page, then the title; the outline button and the progress
-  // are in the lesson bar at the foot of the screen
+  // the head of the lesson: "‹ <course>" back to the course page (the site's back link), then the title; the outline
+  // button and the progress are in the lesson bar at the foot of the screen
   if (course) {
     const crumb = document.createElement('nav');
     crumb.className = 'crumb';
-    crumb.innerHTML = `<a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a>`;
+    crumb.innerHTML = backlink(course_path(course), tr(course.title, ui_lang()));
     view.el.head.prepend(crumb);
   }
   if (outline) (view.el.bar_start ?? view.el.head).prepend(outline.toggle);

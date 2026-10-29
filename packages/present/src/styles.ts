@@ -402,7 +402,8 @@ export const CSS = `
 .mn-more>summary::-webkit-details-marker{display:none}
 .mn-more-menu{position:absolute;right:0;bottom:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
 .mn-more-menu .mn-btn{border:0;width:100%;text-align:left}
-.mn-capsize{display:flex;align-items:center;gap:2px;padding:2px 2px 6px 10px;margin-bottom:4px;border-bottom:1px solid var(--mn-border);font-size:14px;color:var(--mn-fg)}
+/* (a row of the menu: its words on the same edge and in the same type as the menu's buttons, its last A on their right edge) */
+.mn-capsize{display:flex;align-items:center;gap:2px;padding:2px 0 6px 14px;margin-bottom:4px;border-bottom:1px solid var(--mn-border);font-size:13px;font-weight:500;color:var(--mn-fg)}
 .mn-capsize>span{flex:1;margin-right:12px}
 .mn-capsize-b{width:32px;height:32px;border:0;border-radius:8px;background:none;color:var(--mn-muted);font:inherit;font-weight:600;line-height:1;cursor:pointer}
 .mn-capsize-b:hover{background:color-mix(in srgb,var(--mn-faint) 60%,transparent);color:var(--mn-fg)}

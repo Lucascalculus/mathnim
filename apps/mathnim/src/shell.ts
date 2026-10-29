@@ -43,8 +43,8 @@ body{margin:0;background:#fbfbfa}
 .nav-ic:hover>i:nth-child(3),.nav-ic[aria-expanded=true]>i:nth-child(3),.nav-ic:focus-visible>i:nth-child(3){left:2px;bottom:2px}
 .nav-ic:hover>i:nth-child(4),.nav-ic[aria-expanded=true]>i:nth-child(4),.nav-ic:focus-visible>i:nth-child(4){right:2px;bottom:2px}
 .nav-ic svg{display:block;transition:transform .4s}
-.gear svg{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
-.gear:hover svg,.gear[aria-expanded=true] svg{transform:rotate(60deg)}
+.gear svg{transition:none;will-change:transform}
+@media (prefers-reduced-motion:reduce){.gear svg{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}.gear:hover svg,.gear[aria-expanded=true] svg{transform:rotate(60deg)!important}}
 .acct .dots circle{transition:opacity .25s}
 .acct:hover .dots circle:not(.mid),.acct[aria-expanded=true] .dots circle:not(.mid){opacity:.25}
 .acct.me{font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
@@ -300,6 +300,34 @@ export const is_relocalizing = () => relocalizing;
 const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--mn-accent)" stroke-width="3"/><path d="M6 22 L16 8 L26 22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>';
 // (a symmetric gear, centred on the middle of its box)
 const GEAR = icon('settings');
+/**
+ * The gear turns like a flywheel: pointed at, a quick half turn, then slowly on for as long as the pointer stays on it
+ * or on its open card; let go, it coasts to a stop where it is (no snapping back).
+ */
+function spin_gear(btn: HTMLElement, card: HTMLElement): () => void {
+  const svg = btn.querySelector('svg');
+  if (!svg || matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
+  let angle = 0, speed = 0, last = 0, raf = 0; // degrees, degrees per second
+  const held = () => btn.matches(':hover') || (!card.hidden && card.matches(':hover'));
+  const frame = (now: number) => {
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); // (a frame can be stamped before go() ran)
+    last = now;
+    speed += ((held() ? 36 : 0) - speed) * Math.min(1, dt * 3.2);
+    angle = (angle + speed * dt) % 360;
+    svg.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+    raf = held() || speed > 1 ? requestAnimationFrame(frame) : 0;
+  };
+  const go = () => {
+    if (raf) return;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  };
+  btn.addEventListener('pointerenter', () => {
+    speed = Math.max(speed, 620);
+    go();
+  });
+  return go; // (for the card: pointed at, it keeps the gear turning)
+}
 
 /** An admin wears the course map's crown on their initial (and on their pass); everything else is the learner's view. */
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
@@ -324,6 +352,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
   const pop = document.createElement('div');
   pop.className = 'set-pop card';
   pop.hidden = true;
+  let gear_turn = () => {}; // (the gear of the nav drawn last)
+  pop.addEventListener('pointerenter', () => gear_turn());
   const close_settings = () => {
     pop.hidden = true;
     nav.querySelector('.gear')?.setAttribute('aria-expanded', 'false');
@@ -400,6 +430,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
         acct_pop.querySelector('input')?.focus();
       };
     const gear = nav.querySelector<HTMLButtonElement>('.gear')!;
+    gear_turn = spin_gear(gear, pop);
     gear.onclick = () => {
       if (!pop.hidden) return close_settings();
       close_account();

@@ -261,6 +261,7 @@ async function list_view(root: HTMLElement): Promise<() => void> {
   const status = (c: Summary) =>
     !c.files ? t('st_empty') : !c.lessons ? t('st_waiting') : c.done < c.lessons ? t('st_making', { k: c.done, n: c.lessons }) : t('st_done', { n: c.lessons });
   root.innerHTML = `<div class="studio">
+    ${backlink('/', t('all_courses'))}
     <header class="studio-head"><h1>${esc(t('my_studio'))}</h1></header>
     <p class="studio-lead">${esc(lead())}</p>
     <div class="st-grid${courses.length ? '' : ' empty'}">

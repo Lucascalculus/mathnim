@@ -15,7 +15,7 @@ const CSS = `
 .outline{position:fixed;z-index:29;left:0;top:0;bottom:0;width:min(320px,86vw);background:var(--mn-panel);border-right:1px solid var(--mn-border);box-shadow:0 10px 40px rgba(0,0,0,.14);font-size:13.5px;overflow:auto;overscroll-behavior:contain;
  transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
 .outline.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-.ol-head{display:flex;align-items:center;gap:8px;padding:12px 12px 8px 14px;position:sticky;top:0;background:var(--mn-panel);z-index:1}
+.ol-head{display:flex;align-items:center;gap:8px;padding:12px 12px 8px 14px;position:sticky;top:0;background:var(--mn-panel);z-index:3;box-shadow:0 1px 0 var(--mn-border)}
 .ol-head a{flex:1;min-width:0;font-weight:650;color:var(--mn-fg);text-decoration:none;line-height:1.3}
 .ol-head a:hover{color:var(--mn-accent)}
 .ol-close{flex:none;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--mn-muted);width:28px;height:28px;border-radius:8px;cursor:pointer}
@@ -60,10 +60,12 @@ const CSS = `
 .ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
 .ol-toggle[aria-expanded=true]{color:var(--mn-accent);border-color:color-mix(in srgb,var(--mn-accent) 40%,var(--mn-border))}
 .ol-toggle svg{flex:none}
-.mn-head .crumb{margin:0;flex:none;max-width:32%;display:flex;align-items:center;gap:10px;font-size:14px;white-space:nowrap}
-.mn-head .crumb a{color:var(--mn-muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis}
-.mn-head .crumb a:hover{color:var(--mn-fg)}
-.mn-head .crumb::after{content:'›';color:var(--mn-muted);opacity:.6}
+.mn-head .crumb{margin:0;flex:none;max-width:34%;min-width:0;display:flex;align-items:center;gap:12px;font-size:14px;white-space:nowrap}
+/* the back link's arrow sits on the column's edge (its frame reaches out past it), its words on the title's line */
+.mn-head .crumb .backlink{margin:0 0 0 -8px;min-width:0;max-width:100%}
+.mn-head .crumb .backlink:is(:hover,:focus-visible){color:var(--mn-fg);text-decoration:none}
+.mn-head .crumb .backlink>span:nth-of-type(2){min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mn-head .crumb::after{content:'';flex:none;width:1px;height:14px;background:var(--mn-border)}
 .ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.22);z-index:28;opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
 .ol-backdrop.open{opacity:1;visibility:visible;transition:opacity .28s}
 @media (prefers-reduced-motion:reduce){.outline,.ol-backdrop{transition:none!important}}
