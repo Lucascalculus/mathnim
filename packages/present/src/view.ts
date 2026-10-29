@@ -258,7 +258,21 @@ export class LessonView {
     this.render_mastery();
   }
   start(at?: string): Promise<void> {
-    return this.runtime.start(at);
+    return this.runtime.start(at).then(() => this.fetch_ahead());
+  }
+  private stop_ahead: (() => void) | null = null;
+  /** Once the first step is up, the recordings of every line after it (then those before), so the steps start at once. */
+  private fetch_ahead(): void {
+    if (this.destroyed) return;
+    const steps = this.lesson.steps, i = Math.max(0, this.runtime.index ?? 0);
+    const mode = this.game ? 'game' : 'essay';
+    // (the line of this step is playing already, fetched as it plays)
+    const lines = [...steps.slice(i), ...steps.slice(0, i)].flatMap((s, k) => [
+      ...(k > 0 && s.narration && is_voiced(s, mode) ? [this.runtime.text(s.narration)] : []),
+      ...(s.kind === 'explore' ? (s.lines ?? []).map((l) => this.runtime.text(l.text)) : []),
+    ]);
+    this.stop_ahead?.();
+    this.stop_ahead = this.narrator.prefetch(lines);
   }
   /** An L10n text in this view's language. */
   private tr(s: L10n | undefined): string {
@@ -625,6 +639,7 @@ export class LessonView {
       if (!p.done && s && !s.branch_only && i > p.furthest) this.save_progress({ furthest: i, done: false });
     }
     this.unwatch?.();
+    this.stop_ahead?.();
     this.narrator.dispose();
     this.runtime.dispose();
     this.page?.dispose();

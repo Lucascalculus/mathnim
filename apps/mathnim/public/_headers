@@ -2,9 +2,10 @@
 # Built assets have content hashes in their names: cache them for a year.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
-# Narration audio is keyed by its text, but can be re-recorded with another voice.
+# Narration audio is keyed by its text, but can be re-recorded with another voice:
+# a week (a lesson's lines are also fetched ahead while its first page is read).
 /narration/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=604800
 # Thumbnails and figures keep their names when regenerated: cache for a day.
 /thumbs/*
   Cache-Control: public, max-age=86400

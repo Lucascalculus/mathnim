@@ -13,6 +13,21 @@ interface Take {
   src: string;
 }
 
+/**
+ * Recordings fetched ahead (a lesson's lines while its first page is read), by narration key, played from
+ * memory: later steps start at once (and offline). Blob URLs rather than the HTTP cache, since Safari asks
+ * for audio in ranges and often misses a prefetched file. The oldest go beyond AHEAD_MAX (~50 KB each).
+ */
+const ahead = new Map<string, Take>();
+const AHEAD_MAX = 120;
+/** Lines being fetched ahead, so a step that comes first waits for that download rather than starting another. */
+const fetching = new Map<string, Promise<Take | null>>();
+/** The browser asks to spare data, or the connection is 2G (only Chrome on Android says; elsewhere: fetch ahead). */
+function saving_data(): boolean {
+  const c = (globalThis.navigator as { connection?: { saveData?: boolean; effectiveType?: string } } | undefined)?.connection;
+  return !!c?.saveData || /(^|-)2g$/.test(c?.effectiveType ?? '');
+}
+
 /** Every narrator alive on the page (lessons, the tutor's read-aloud), so a new page or step can silence them all. */
 const alive = new Set<Narrator>();
 /** Stop every narrator but `keep`: nothing goes on speaking over a page or step it does not belong to. */
@@ -91,9 +106,59 @@ export class Narrator {
       speechSynthesis.speak(u);
     }
   }
+  /**
+   * Fetch the recordings of these lines in the background, in this order, so the steps after this one
+   * start at once: when the page is idle, two at a time, at low priority, and not when the browser asks
+   * to spare data. Returns a function that stops it.
+   */
+  prefetch(texts: string[]): () => void {
+    if (!this.enabled || saving_data() || typeof URL.createObjectURL !== 'function') return () => {};
+    const ctl = new AbortController();
+    const queue = [...new Set(texts)].filter((t) => t.trim() && !ahead.has(narration_key(t)));
+    const one = async (text: string): Promise<Take | null> => {
+      const key = narration_key(text);
+      const low = { signal: ctl.signal, priority: 'low' } as RequestInit;
+      try {
+        const r = await fetch(`${this.base}/${key}.json`, low);
+        if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
+        const rec = (await r.json()) as Recording;
+        const a = await fetch(`${this.base}/${key}.mp3`, low);
+        if (!a.ok) return null;
+        const take = { rec, src: URL.createObjectURL(await a.blob()) };
+        ahead.set(key, take);
+        for (const [k, t] of ahead) {
+          if (ahead.size <= AHEAD_MAX) break;
+          URL.revokeObjectURL(t.src);
+          ahead.delete(k);
+        }
+        return take;
+      } catch {
+        return null; // stopped, or offline
+      }
+    };
+    const worker = async () => {
+      for (let text = queue.shift(); text !== undefined && !ctl.signal.aborted; text = queue.shift()) {
+        const key = narration_key(text);
+        if (ahead.has(key) || fetching.has(key)) continue;
+        const p = one(text);
+        fetching.set(key, p);
+        await p;
+        fetching.delete(key);
+      }
+    };
+    const idle = globalThis.requestIdleCallback ?? ((f: () => void) => setTimeout(f, 1000));
+    idle(() => ctl.signal.aborted || void Promise.all([worker(), worker()]), { timeout: 3000 });
+    return () => ctl.abort();
+  }
   /** The pre-generated recording of a line, if there is one. */
   private async recording(text: string): Promise<Take | null> {
     const key = narration_key(text);
+    const kept = ahead.get(key) ?? (await fetching.get(key));
+    if (kept) {
+      ahead.delete(key); // (most recently used last: the oldest go first)
+      ahead.set(key, kept);
+      return kept;
+    }
     try {
       const r = await fetch(`${this.base}/${key}.json`);
       // static hosts may answer a missing file with the app's HTML
