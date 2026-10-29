@@ -81,22 +81,39 @@ before writing your first one.
 
 **Time each scene to its voice.** A narrated scene shows each thing as the
 voice talks about it, never a finished figure under a voice that is still
-explaining it. Write the narration first, in parts, one per thing the picture
-does; then:
+explaining it. The picture waits at each **section** of the scene
+(`this.next_section()`) until the voice reaches the matching **beat** (`§`) of
+the narration, and holds its last frame until the voice ends. The waits are
+worked out from the recording when it plays, so any voice, speed or language
+lines up and a new voice needs no change; `§` is not said or shown and does
+not change the recording. Every narrated scene is timed this way. The recipe:
 
-- put `§` in the narration where the picture's next part should start, in both
-  languages (`'…at time zero. § Executed blindly, …'`, `'…的计划。§闭着眼睛…'`);
-- call `this.next_section()` in the scene at the same places, in the same order.
+1. Write the narration in parts, one per thing the picture does, in both
+   languages, in the order the picture shows them.
+2. In the scene, call `this.next_section()` right before the `play` of each
+   part after the first. Only in the story that is narrated: a visual with
+   several stories guards it (`if (p.story === 'trap') this.next_section();`).
+   Never before the scene's first `play` (a section at 0 s cannot wait).
+3. Put one `§` in each narration where that part's words begin, the same
+   number in both languages, in the same order: `'…at time zero. § Executed
+   blindly, …'` (English: spaces around it), `'…的计划。§闭着眼睛…'` (Chinese:
+   none). Never two together, never inside `$…$` or a word.
+4. Run `node apps/mathnim/tools/beats.mjs <lesson-id>/<step-id>`. It lists the
+   sections (what plays in each) and, per language, each part's words, when the
+   voice reaches them and when the section starts, and ends PASS or FAIL. Fix
+   until it passes:
+   - `N beats but M sections`: add or remove a `§` or a `next_section()`;
+   - `LATE x s: shorten section k`: the animations or `wait`s of section k take
+     longer than its words; shorten them (`run_time`, `wait`), or move the next
+     `§` a few words later; never cut words to fit;
+   - `the picture runs x s longer`: shorten the `wait`s of the last section;
+   - `no recording yet`: run `npm run narration` (new or changed words).
+5. `npm run doctor` repeats these checks for every lesson and fails on the
+   same things.
 
-The picture then waits at each section until the voice reaches its `§`, and
-holds its last frame until the voice ends. The waits are worked out from the
-recording when it plays, so any voice, speed or language lines up, and a new
-voice needs no change. `§` is not said or shown and does not change the
-recording. Animations should take no longer than the words they go with
-(the picture waits for the voice, never the other way round). `npm run doctor`
-checks one `§` per section in each language, and warns when a scene without
-beats has a voice that runs on past its picture. Do this for new scenes; the
-scenes made before it (October 2026) keep their own timing.
+`node apps/mathnim/tools/beats.mjs 'mpc-*'` checks a whole course. Adding or
+moving `§` never needs new audio; changing the words does
+(`npm run narration`).
 
 **Parallel work.** With several agents, give each one lesson and a brief
 (template below); keep shared files (`course.ts`, packages, index files) with
@@ -107,6 +124,7 @@ the bar is the brief and the review, not the effort setting.
 ## Phase 6 · Check and polish
 
 - Automatic: `npm run typecheck`, `npm test`, `npm run doctor`,
+  `node apps/mathnim/tools/beats.mjs '<course>-*'` (every narrated scene PASS),
   `npm run check -w @mathnim/visuals -- --only <names>` (look at every contact
   sheet, both languages), `npm run catalog -- --check`.
 - Read it as a student: `node apps/mathnim/tools/lesson_text.mjs <id> zh` (and

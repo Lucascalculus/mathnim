@@ -51,11 +51,14 @@ function build(p: R1PipelineParams): Scene {
       const zero_row = VGroup(base, rl, zero, za, zres);
       zero_row.name = 'zero_row';
       this.play(FadeIn(base), { run_time: 0.6 });
+      if (p.stage === 'zero') this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
       this.play(GrowArrow(za.submobjects[0] as any), FadeIn(rl), { run_time: 0.8 });
       this.play(GrowArrow(za.submobjects[1] as any), FadeIn(zero), { run_time: 0.8 });
+      if (p.stage === 'zero') this.next_section();
       this.play(FadeIn(zres.submobjects[0]), { run_time: 0.6 });
+      if (p.stage === 'zero') this.next_section();
       this.play(FadeIn(zres.submobjects[1]), { run_time: 0.6 });
-      this.wait(1.5);
+      this.wait(p.stage === 'zero' ? 1.5 : 0.8);
       if (p.stage === 'zero') {
         this.add(zero_row);
         const stages = VGroup();
@@ -97,6 +100,7 @@ function build(p: R1PipelineParams): Scene {
       );
       this.play(FadeIn(head), { run_time: 0.5 });
       for (let i = 0; i < 4; i++) {
+        this.next_section(); // (a stage per beat, §, of the narration)
         if (i > 0) this.play(GrowArrow(arrows.submobjects[i - 1] as any), { run_time: 0.4 });
         this.play(FadeIn(boxes[i], { shift: [0, 0.2, 0] }), { run_time: 0.8 });
         this.wait(i === 2 ? 0.4 : 1);

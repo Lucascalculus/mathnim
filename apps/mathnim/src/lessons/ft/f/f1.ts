@@ -66,8 +66,8 @@ export const lesson: Lesson = {
       ],
     },
     map_scene('map', 'F1', T(
-      'Here is the whole map. It starts with an evaluation and a strong context baseline; a fixed label goes to a small classifier. Every other gap takes one of four branches. Knowledge goes into the context. Behaviour goes to demonstrations or comparisons. Capability goes to a verifier or a teacher. Cost goes to distillation and deployment. Every path that changes weights then passes through the same three gates: where the data comes from, the constraints, and the evaluation.',
-      '这是完整的决策图。它从评测和一个强的上下文基线开始；输出是固定标签的，交给小分类模型。其余的差距走四条分支之一：知识放进上下文；行为看示范或比较；能力看验证器或老师；成本走蒸馏和部署。所有要改权重的路径，最后都要过同样三道关：数据从哪来，有哪些约束，以及怎么验收。',
+      'Here is the whole map. It starts with an evaluation and a strong context baseline; a fixed label goes to a small classifier. § Every other gap takes one of four branches. Knowledge goes into the context. Behaviour goes to demonstrations or comparisons. Capability goes to a verifier or a teacher. Cost goes to distillation and deployment. § Every path that changes weights then passes through the same three gates: where the data comes from, the constraints, and the evaluation.',
+      '这是完整的决策图。它从评测和一个强的上下文基线开始；输出是固定标签的，交给小分类模型。§其余的差距走四条分支之一：知识放进上下文；行为看示范或比较；能力看验证器或老师；成本走蒸馏和部署。§所有要改权重的路径，最后都要过同样三道关：数据从哪来，有哪些约束，以及怎么验收。',
     )),
     {
       id: 'nodes', kind: 'read', title: T('The questions at each node', '每一格要问的问题'),

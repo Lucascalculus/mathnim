@@ -14,6 +14,8 @@ review again).
 - The target: a lesson id, or every lesson of a course (`apps/mathnim/src/course.ts`).
 - Automatic checks, and note any failure as a finding:
   - `npm run typecheck`, `npm run doctor`;
+  - `node apps/mathnim/tools/beats.mjs <lesson-id>` (every narrated scene must
+    PASS: its picture timed to its voice, docs/COURSE-PLAYBOOK.md);
   - the visuals checker for the visuals these lessons use
     (`npm run check -w @mathnim/visuals -- --only <names>`; look at the
     contact sheets);

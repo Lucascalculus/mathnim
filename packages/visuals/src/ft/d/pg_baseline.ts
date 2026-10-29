@@ -156,13 +156,17 @@ export const pg_baseline = define_visual<PgBaselineParams>({
         b.set_value(0);
         this.play(FadeIn(formula), FadeIn(lcap), Create(floor), FadeIn(bars), FadeIn(exact), { run_time: 1.2 });
         this.play(FadeIn(zero_line), FadeIn(b_lab), FadeIn(advantages), { run_time: 0.8 });
+        if (p.story === 'full') this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(rcap), FadeIn(axes), FadeIn(origin), FadeIn(updates), FadeIn(spread), { run_time: 1 });
+        if (p.story === 'full') this.next_section();
         this.play(FadeIn(mean_arrow), FadeIn(mean_note), FadeIn(variance), FadeIn(vaxis), FadeIn(vt), FadeIn(vb), { run_time: 1 });
         this.add(trace);
         if (p.story === 'full') {
           this.wait(1);
-          this.play(b.animate.set_value(B_MAX), { run_time: 6, rate_func: smooth });
+          this.next_section();
+          this.play(b.animate.set_value(B_MAX), { run_time: 5, rate_func: smooth });
           this.wait(0.5);
+          this.next_section();
           this.play(b.animate.set_value(PG_BEST), { run_time: 3, rate_func: smooth });
           this.wait(2);
         } else {

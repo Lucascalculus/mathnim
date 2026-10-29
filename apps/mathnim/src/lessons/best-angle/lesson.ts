@@ -120,6 +120,7 @@ class Formula extends Scene {
     lines.forEach((l) => l.move_to([3.5, 0.4, 0]));
     this.play(FadeIn(hint), Write(lines[0]));
     this.wait(0.8);
+    this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
     this.play(TransformMatchingTex(lines[0], lines[1]));
     this.wait(0.6);
     this.play(TransformMatchingTex(lines[1], lines[2]));
@@ -136,6 +137,7 @@ class TooClose extends Scene {
     const d = ValueTracker(6);
     this.add(pitch, readout(d), always_redraw(() => pitch.cone(Math.max(d.get_value(), 0.05))));
     const note = fit(say('On the goal line both posts are straight ahead, so the angle is 0°.', 26), 6).move_to([3.5, 1.2, 0]);
+    this.next_section();
     this.play(d.animate.set_value(0.05), { run_time: 2.5 });
     this.play(FadeIn(note));
     this.wait(1);
@@ -156,6 +158,7 @@ class NotTheAverage extends Scene {
       T('\\tfrac{9+16}{2} = 12.5', 34, C.coral),
     ).arrange(DOWN, { buff: 0.18 }).move_to([-3.6, -1.1, 0]);
     this.play(FadeIn(p1), Write(l1));
+    this.next_section();
     this.play(FadeIn(p2), Write(l2));
     this.play(FadeIn(why));
     this.wait(1);
@@ -256,7 +259,7 @@ export const lesson: Lesson = {
       },
       hints: ['Compare the angle from a big circle and from a small one.'],
     },
-    { id: 'formula', kind: 'scene', chapter: 'The formula', scene: Formula, narration: 'For a tangent from her run: d² = a·b. So d = √(9·16) = 12.' },
+    { id: 'formula', kind: 'scene', chapter: 'The formula', scene: Formula, narration: 'For a tangent from her run: d² = a·b. § So d = √(9·16) = 12.' },
     {
       id: 'general', kind: 'checkpoint', skill: 'geometric-mean', purpose: 'check',
       prompt: 'Posts at distances $a$ and $b$ from her run. Write the best distance $d$.',
@@ -284,7 +287,7 @@ export const lesson: Lesson = {
       hints: ['$d = \\sqrt{a\\,b}$', '$\\sqrt{ {a} \\cdot {b} }$'],
     },
     // remediation detours (only reached by branching)
-    { id: 'too-close', kind: 'scene', scene: TooClose, branch_only: true, narration: 'Closer is not always better: on the goal line the angle shrinks to nothing.' },
-    { id: 'not-average', kind: 'scene', scene: NotTheAverage, branch_only: true, narration: 'The average 12.5 m gives a slightly smaller angle than 12 m.' },
+    { id: 'too-close', kind: 'scene', scene: TooClose, branch_only: true, narration: 'Closer is not always better: § on the goal line the angle shrinks to nothing.' },
+    { id: 'not-average', kind: 'scene', scene: NotTheAverage, branch_only: true, narration: 'The average 12.5 m § gives a slightly smaller angle than 12 m.' },
   ],
 };

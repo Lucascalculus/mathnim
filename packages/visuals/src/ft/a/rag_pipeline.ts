@@ -80,10 +80,12 @@ export const rag_pipeline = define_visual<RagPipelineParams>({
         const doc = S('docs');
         const page = group(...[0, 1, 2, 3].map((i) => Rectangle({ width: 1.1, height: 0.08, stroke_width: 0, fill_color: c.muted, fill_opacity: 0.6 }).move_to([doc.x, doc.y + 0.82 - i * 0.16, 0])));
         this.play(FadeIn(page), { run_time: 0.6 });
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(Create(index_links.submobjects[0]), FadeIn(index_boxes.submobjects[1]), { run_time: 0.8 });
         const ch = S('chunk');
         const pieces = group(...[0, 1, 2, 3].map((i) => Rectangle({ width: 0.42, height: 0.22, stroke_color: c.accent, stroke_width: 2, fill_color: c.accent, fill_opacity: 0.2 }).move_to([ch.x - 0.75 + i * 0.5, ch.y + 0.82, 0])));
         this.play(Transform(page, pieces), { run_time: 1.1 });
+        this.next_section();
         this.play(Create(index_links.submobjects[1]), FadeIn(index_boxes.submobjects[2]), Create(index_links.submobjects[2]), FadeIn(index_boxes.submobjects[3]), { run_time: 1 });
         // the stored vectors: a little cloud above the index box
         const ix = S('index');
@@ -93,27 +95,32 @@ export const rag_pipeline = define_visual<RagPipelineParams>({
         this.play(...knobs.submobjects.slice(0, 4).map((m: any) => FadeIn(m)), { run_time: 0.8 });
 
         // ---- query time
+        this.next_section();
         this.play(FadeIn(t_query), FadeIn(query_boxes.submobjects[0]), Create(down), { run_time: 1 });
         const qdot = Dot([ix.x + 0.1, ix.y + H / 2 + 0.1 + 0.55 * 0.6, 0], { radius: 0.08, color: c.gold });
         const nearest = cloud_pts.map(([dx, dy], i) => [Math.hypot(dx - 0.1, dy - 0.55), i]).sort((a, b) => a[0] - b[0]).slice(0, p.k).map(([, i]) => i);
         const rings = group(...nearest.map((i) => Circle({ radius: 0.12, color: c.gold, stroke_width: 3 }).move_to(cloud.submobjects[i].get_center())));
+        this.next_section();
         this.play(Create(query_links.submobjects[0]), FadeIn(query_boxes.submobjects[1]), FadeIn(qdot, { scale: 2 }), { run_time: 0.9 });
-        this.play(Create(rings), { run_time: 0.8 });
+        this.next_section();
+        this.play(Create(rings), { run_time: 0.6 });
         // the retrieved chunks as cards under the retrieve box
         const rt = S('retrieve');
         const card = (n: number, x: number, y: number) => group(box(x, y, 0.62, 0.32, { stroke: c.gold, width: 2, fill: c.gold, fill_opacity: 0.12, radius: 0.06 }), label(`#${n}`, 22, c.ink).move_to([x, y, 0]));
         const cards = nearest.map((_, i) => card(i + 1, rt.x - 0.75 + (i % 3) * 0.75, QY - 1.25 - Math.floor(i / 3) * 0.42));
-        this.play(FadeIn(group(...cards)), { run_time: 0.7 });
-        this.play(Create(query_links.submobjects[1]), FadeIn(query_boxes.submobjects[2]), { run_time: 0.7 });
+        this.play(FadeIn(group(...cards)), { run_time: 0.5 });
+        this.play(Create(query_links.submobjects[1]), FadeIn(query_boxes.submobjects[2]), { run_time: 0.5 });
         const rr = S('rerank');
         const kept = Math.min(3, cards.length);
         const order = p.rerank ? [...Array(kept).keys()].reverse() : [...Array(kept).keys()];
         const moved = order.map((ci, slot) => card(ci + 1, rr.x - 0.75 + slot * 0.75, QY - 1.25));
+        this.next_section();
         this.play(...cards.slice(0, kept).map((m, i) => Transform(m, moved[order.indexOf(i)])), ...cards.slice(kept).map((m) => FadeOut(m)), { run_time: 1.1, rate_func: smooth });
         this.play(Create(query_links.submobjects[2]), FadeIn(query_boxes.submobjects[3]), Create(query_links.submobjects[3]), FadeIn(query_boxes.submobjects[4]), { run_time: 1 });
         const g = S('generate');
         const answer = fit(label(L('“... about 1,800 km/h [2]”', '“……每小时 1,800 公里 [2]”'), 24, c.ink), 2.6).move_to([g.x, QY - 1.25, 0]);
         answer.name = 'answer';
+        this.next_section();
         this.play(FadeIn(answer, { shift: [0, -0.15, 0] }), ...knobs.submobjects.slice(4).map((m: any) => FadeIn(m)), { run_time: 1 });
         this.add(indexing, query_time, knobs);
 

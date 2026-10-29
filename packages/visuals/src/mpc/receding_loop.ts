@@ -152,10 +152,10 @@ export const mpc_receding_loop = define_visual<RecedingLoopParams>({
         this.next_section();
         forward(brake_seen, 3.5);
         this.next_section();
-        loop(3);
-        forward(end_k, 3);
+        loop(2);
+        forward(end_k, 2.2);
         this.add(outcome);
-        this.wait(1);
+        this.wait(0.6);
       }
     }
     return new RecedingLoop();

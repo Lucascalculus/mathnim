@@ -318,7 +318,7 @@ export const mpc_terminal_world = define_visual<TerminalWorldParams>({
           this.play(FadeIn(legend.submobjects[4]), Create(plan_line), { run_time: 1.2 });
           this.play(FadeIn(legend.submobjects[6]), tween(1e4, 0.1));
           this.add(legend);
-          this.wait(2);
+          this.wait(1);
         } else {
           this.play(FadeIn(trap), FadeIn(legend), { run_time: 0.8 });
           this.wait(1);

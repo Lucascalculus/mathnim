@@ -35,8 +35,8 @@ export const lesson: Lesson = {
       ],
     },
     map_scene('map', 'F0', T(
-      'Here is the map so far, with three routes lit: the label check that leads to an encoder classifier, retrieval for missing knowledge, and supervised fine-tuning for behaviour you can demonstrate. Everything else on the map comes later.',
-      '这是到目前为止的决策图，亮着三条路：输出是固定标签时走编码器分类模型，缺知识时走检索，能写出示范的行为问题走监督微调。图上其余部分后面再学。',
+      'Here is the map so far, § with three routes lit: the label check that leads to an encoder classifier, § retrieval for missing knowledge, and supervised fine-tuning for behaviour you can demonstrate. Everything else on the map comes later.',
+      '这是到目前为止的决策图，§亮着三条路：输出是固定标签时走编码器分类模型，§缺知识时走检索，能写出示范的行为问题走监督微调。图上其余部分后面再学。',
     )),
     {
       id: 'c1', kind: 'checkpoint', skill: 'f0-route', purpose: 'practice', group: CASES,

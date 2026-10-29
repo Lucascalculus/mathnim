@@ -189,6 +189,8 @@ describe('beats: the picture waits for the voice', () => {
     expect(unbeat('两秒钟：§虚线是它的预测')).toBe('两秒钟：虚线是它的预测');
     expect(narration_key('ahead: § the curve')).toBe(narration_key('ahead: the curve'));
     expect(to_spoken('the § curve')).toBe('the curve');
+    expect(unbeat('the branches. §§ Each lesson')).toBe('the branches. Each lesson'); // two sections on one word
+    expect(unbeat('分支。§§每一课')).toBe('分支。每一课');
   });
   it('fall where this voice says the word after them, whatever its pace', () => {
     const text = 'Plan twenty steps. § Apply only the first. § Then plan again.';

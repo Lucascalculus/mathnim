@@ -26,6 +26,28 @@ export async function preload(o: { tex?: boolean } = {}): Promise<void> {
   await load_fonts();
 }
 
+/**
+ * How a picture waits for a voice (ScenePlayer.wait_for), worked out in seconds: `starts[k]` is where section k+1
+ * begins on the scene's own clock (-1: no section there), `length` the scene's own length, `at[k]` when the voice
+ * reaches beat k, `end` when it stops. Section k+1 waits `waits[k]` before it starts, or starts `late[k]` after its
+ * beat (its picture before it outlasts the words); the last frame holds `end_wait`, or the picture runs `tail`
+ * seconds past the voice.
+ */
+export function voice_waits(starts: number[], length: number, at: number[], end: number): { waits: number[]; late: number[]; end_wait: number; tail: number } {
+  const waits = starts.map(() => 0), late = starts.map(() => 0);
+  let held = 0;
+  starts.forEach((t, k) => {
+    if (t <= 0 || k >= at.length) return;
+    const gap = at[k] - (t + held);
+    if (gap > 0) {
+      waits[k] = gap;
+      held += gap;
+    } else late[k] = -gap;
+  });
+  const over = end - (length + held);
+  return { waits, late, end_wait: Math.max(0, over), tail: Math.max(0, -over) };
+}
+
 export interface PlayerOptions {
   /** Keep running updaters after the end (for interactive scenes). */
   live?: boolean;
@@ -91,32 +113,42 @@ export class ScenePlayer {
     this.total_frames = f;
   }
   /**
+   * Where each section after the first begins on the scene's own clock (seconds, before any waits): the start of its
+   * first segment, -1 for a section that has none (opened after the last animation).
+   */
+  section_starts(): number[] {
+    const segs = this.scene.segments;
+    let f = 0;
+    const starts = segs.map((sg) => ((f += sg.n_frames), f - sg.n_frames));
+    return this.scene.sections.slice(1).map((sec) => {
+      const i = segs.findIndex((sg) => sg.t0 >= sec.time - 1e-6);
+      return i < 0 ? -1 : starts[i] * this.dt;
+    });
+  }
+  /** The scene's own length in seconds, before any waits. */
+  get natural_duration(): number {
+    return this.scene.segments.reduce((n, sg) => n + sg.n_frames, 0) * this.dt;
+  }
+  /**
    * Let the picture wait for a voice. Section k of the scene (begun by its k-th next_section()) starts no earlier
    * than at[k-1] seconds, the picture holding the frame before it until then; after its last frame it holds until
    * `end`. The timeline (duration, time, seek_time) then runs on the voice's clock. Call again with other times (a
-   * different voice) or with nothing to drop the waits; the picture stays where it is.
+   * different voice) or with nothing to drop the waits; the picture stays where it is. (voice_waits computes the
+   * waits; the lesson doctor and tools/beats use it too, so what they report is what plays.)
    */
   wait_for(at: number[] = [], end = 0): void {
     const segs = this.scene.segments;
     if (!segs.length) return;
     const [si, j] = this.frame >= 0 && this.frame < this.total_frames ? this.locate(this.frame) : [-1, 0];
+    const starts = this.section_starts();
+    const plan = voice_waits(starts, this.natural_duration, at, end);
     const holds = segs.map(() => 0);
-    let base = 0, held = 0; // frames of the segments so far, and of the holds before them
-    const starts = segs.map((sg) => {
-      const b = base;
-      base += sg.n_frames;
-      return b;
+    starts.forEach((t, k) => {
+      if (t <= 0 || !plan.waits[k]) return;
+      const first = segs.findIndex((sg) => sg.t0 >= this.scene.sections[k + 1].time - 1e-6);
+      holds[first - 1] += Math.round(plan.waits[k] * this.fps);
     });
-    const firsts = this.scene.sections.slice(1).map((sec) => segs.findIndex((sg) => sg.t0 >= sec.time - 1e-6));
-    firsts.forEach((first, k) => {
-      if (k >= at.length || first <= 0) return;
-      const wait = Math.round(at[k] * this.fps) - (starts[first] + held);
-      if (wait > 0) {
-        holds[first - 1] += wait;
-        held += wait;
-      }
-    });
-    holds[segs.length - 1] += Math.max(0, Math.round(end * this.fps) - (base + held));
+    holds[segs.length - 1] += Math.round(plan.end_wait * this.fps);
     this.holds = holds;
     this.lay_out();
     // the same picture as before, on the new timeline

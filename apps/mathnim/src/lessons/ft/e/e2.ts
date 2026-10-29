@@ -60,8 +60,8 @@ export const lesson: Lesson = {
       id: 'r1-zero', kind: 'scene', title: t('R1-Zero: RL straight on the base model', 'R1-Zero：直接在基座上做强化学习'),
       scene: vis('r1_pipeline', { stage: 'zero' }),
       narration: t(
-        'The first experiment was bold. Take the pretrained base model, with no fine-tuning at all, and run GRPO with just two rule-based rewards: is the answer right, and is the thinking inside the think tags. On the AIME 2024 maths exam, its single-try accuracy climbed from about sixteen percent to seventy-one percent. But its answers were hard to read, and it switched between Chinese and English mid-thought.',
-        '第一个实验很大胆：拿只做过预训练、没做过任何微调的基座模型，直接跑 GRPO，奖励只有两条规则：答案对不对，思考过程有没有写在 think 标签里。在 AIME 2024 这套数学竞赛题上，它一次就做对的比例从大约百分之十六涨到了百分之七十一。但它的回答很难读，思考到一半还会在中文和英文之间来回切换。',
+        'The first experiment was bold. Take the pretrained base model, with no fine-tuning at all, § and run GRPO with just two rule-based rewards: is the answer right, and is the thinking inside the think tags. § On the AIME 2024 maths exam, its single-try accuracy climbed from about sixteen percent to seventy-one percent. § But its answers were hard to read, and it switched between Chinese and English mid-thought.',
+        '第一个实验很大胆：拿只做过预训练、没做过任何微调的基座模型，§直接跑 GRPO，奖励只有两条规则：答案对不对，思考过程有没有写在 think 标签里。§在 AIME 2024 这套数学竞赛题上，它一次就做对的比例从大约百分之十六涨到了百分之七十一。§但它的回答很难读，思考到一半还会在中文和英文之间来回切换。',
       ),
     },
     {
@@ -93,8 +93,8 @@ export const lesson: Lesson = {
       id: 'r1-stages', kind: 'scene', title: t('R1: four stages, each fixing a problem', 'R1：四个阶段，各修一个问题'),
       scene: vis('r1_pipeline', { stage: 'all' }),
       narration: t(
-        'R1 keeps R1-Zero\'s reinforcement learning but surrounds it. First, a cold start: fine-tune the base model on a few thousand readable long chains of thought, so RL starts from something that writes clearly. Second, the same reasoning RL, with an extra reward for staying in one language. Third, use that model to generate answers, keep only the correct and readable ones, about six hundred thousand, add two hundred thousand ordinary examples like writing and question answering, and fine-tune the base model again from scratch. Fourth, a last round of RL on everything: rules for reasoning, reward models for helpfulness and safety.',
-        'R1 保留了 R1-Zero 的强化学习，但在前后都加了东西。第一步，冷启动：用几千条可读的长思维链微调基座模型，让强化学习从一个"会好好写字"的起点出发。第二步，同样的推理强化学习，再加一项"别混语言"的奖励。第三步，用这个模型生成答案，只留下正确又好读的，大约六十万条，再加上二十万条写作、问答之类的普通数据，从基座模型重新微调一遍。第四步，再做一轮覆盖所有场景的强化学习：推理题用规则奖励，有用和安全用奖励模型。',
+        'R1 keeps R1-Zero\'s reinforcement learning but surrounds it. § First, a cold start: fine-tune the base model on a few thousand readable long chains of thought, so RL starts from something that writes clearly. § Second, the same reasoning RL, with an extra reward for staying in one language. § Third, use that model to generate answers, keep only the correct and readable ones, about six hundred thousand, add two hundred thousand ordinary examples like writing and question answering, and fine-tune the base model again from scratch. § Fourth, a last round of RL on everything: rules for reasoning, reward models for helpfulness and safety.',
+        'R1 保留了 R1-Zero 的强化学习，但在前后都加了东西。§第一步，冷启动：用几千条可读的长思维链微调基座模型，让强化学习从一个"会好好写字"的起点出发。§第二步，同样的推理强化学习，再加一项"别混语言"的奖励。§第三步，用这个模型生成答案，只留下正确又好读的，大约六十万条，再加上二十万条写作、问答之类的普通数据，从基座模型重新微调一遍。§第四步，再做一轮覆盖所有场景的强化学习：推理题用规则奖励，有用和安全用奖励模型。',
       ),
     },
     {

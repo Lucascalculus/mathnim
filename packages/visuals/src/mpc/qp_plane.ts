@@ -531,10 +531,10 @@ export const mpc_qp_plane = define_visual<QpPlaneParams>({
           this.wait(0.4);
           this.next_section();
           this.play(p0.animate.set_value(9.3), v0.animate.set_value(1.8), { run_time: 2.4, rate_func: smooth });
-          this.wait(1.6);
-          this.play(p0.animate.set_value(p.p0), v0.animate.set_value(p.v0), { run_time: 2, rate_func: smooth });
+          this.wait(1);
+          this.play(p0.animate.set_value(p.p0), v0.animate.set_value(p.v0), { run_time: 1.4, rate_func: smooth });
           this.add(legend);
-          this.wait(0.8);
+          this.wait(0.5);
         } else {
           this.add(...always);
           fresh(P.center_word, a1n, a2n, active, dots, speed_word);

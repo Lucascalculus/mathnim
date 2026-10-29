@@ -41,6 +41,7 @@ docs/                  plans, taste, playbook, catalog; docs/lessons/<course>/ h
 npm run dev                       # the site at http://localhost:5173
 npm run typecheck && npm test     # always before you say you are done
 npm run doctor                    # builds and lints every lesson and both languages
+node apps/mathnim/tools/beats.mjs <lesson-id>[/<step-id>]   # a narrated scene against its voice: PASS or FAIL
 npm run check -w @mathnim/visuals -- --only <names>   # a visual: checks + contact sheets (look at them)
 node apps/mathnim/tools/lesson_text.mjs <lesson-id> zh # a lesson as the student reads it
 node apps/mathnim/tools/page_shots.mjs <url> <out> <w> <h> <steps.json>   # click through the site headlessly

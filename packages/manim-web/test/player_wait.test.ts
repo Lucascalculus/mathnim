@@ -3,7 +3,7 @@
 import { createCanvas } from '@napi-rs/canvas';
 import { describe, expect, it } from 'vitest';
 import { FadeIn, Scene, Square } from '../src';
-import { ScenePlayer } from '../src/ext/player';
+import { ScenePlayer, voice_waits } from '../src/ext/player';
 
 class ThreeParts extends Scene {
   construct() {
@@ -43,5 +43,16 @@ describe('ScenePlayer.wait_for', () => {
     p.wait_for([2.5, 4], 6);
     expect(p.frame - p.seg_starts[seg]).toBe(into);
     expect(p.time).toBeCloseTo(3, 1); // the same picture, now 3 s into the voice's timeline
+  });
+});
+
+describe('voice_waits', () => {
+  it('waits for early beats, reports late ones, and the tail past the voice', () => {
+    // sections at 1 s and 2 s of a 3 s scene; beats at 2.5 s and 2.8 s; the voice stops at 3.5 s
+    const w = voice_waits([1, 2], 3, [2.5, 2.8], 3.5);
+    expect(w.waits).toEqual([1.5, 0]);
+    expect(w.late[1]).toBeCloseTo(0.7); // section 2 arrives at 2 + 1.5 = 3.5 s, its beat was at 2.8 s
+    expect(w.end_wait).toBe(0);
+    expect(w.tail).toBeCloseTo(1); // the picture ends at 4.5 s, a second after the voice
   });
 });

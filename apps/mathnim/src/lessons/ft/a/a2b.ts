@@ -218,8 +218,8 @@ corpus_vectors = model.encode(chunks, normalize_embeddings=True)   # re-index: o
     },
     // ---------------------------------------------------------------- 4. checks
     map_scene('map', 'A2b', T(
-      'On the map this lesson refines one box: fixing retrieval. If the right chunk is in the top hundred, add and then tune a reranker, which needs no re-indexing. If it never comes near, tune the embedding model with a contrastive loss, filter the false negatives, and re-index the corpus.',
-      '这一课细化了决策图上的一格：修检索。正确的块在前一百名之内，就先加重排模型、再微调它，不用重建索引。正确的块根本靠不近，就用对比损失微调向量模型，过滤掉假负例，然后重建索引。',
+      'On the map this lesson refines one box: fixing retrieval. § If the right chunk is in the top hundred, add and then tune a reranker, which needs no re-indexing. § If it never comes near, tune the embedding model with a contrastive loss, filter the false negatives, and re-index the corpus.',
+      '这一课细化了决策图上的一格：修检索。§正确的块在前一百名之内，就先加重排模型、再微调它，不用重建索引。§正确的块根本靠不近，就用对比损失微调向量模型，过滤掉假负例，然后重建索引。',
     )),
     card_page('card',
       T('Find where the right chunk is lost. In the top 100 but not the top 20: a reranker, then tune it. Never near: query rewriting and hybrid search, then tune the embedding model with in-batch negatives and filtered hard negatives - and re-index. In the prompt but misused: fix the assembly, then RAFT.', '先找出正确的块在哪里丢的。在前 100 但不在前 20：加重排模型，再微调它。根本靠不近：先做查询改写和混合检索，再用批内负例加过滤后的难负例微调向量模型，然后重建索引。进了提示却被用错：先改拼法，再考虑 RAFT。'),

@@ -289,8 +289,8 @@ export const lesson: Lesson = {
       id: 'clip-higher', kind: 'scene', title: t('Clip-higher: room for unlikely tokens', '非对称截断：给低概率 token 留余地'),
       scene: vis('ppo_clip', { eps: 0.2, eps_high: 0.28 }),
       narration: t(
-        'This is the clipping picture from D2a, with the upper edge moved from 1.2 to 1.28. Why bother? Take a token that the old policy gave one percent. With a symmetric clip it can only rise to 1.2 percent in one step, while a token at ninety percent is not held back at all. Rare tokens are where new ideas start, and DAPO found that the symmetric clip makes the policy collapse onto its most common phrasings. Raising only the upper edge gives the rare tokens a little more room.',
-        '这是 D2a 里的截断图，只是把上界从 1.2 挪到了 1.28。为什么要挪？看一个旧策略只给了百分之一概率的 token：对称截断时，它一步最多涨到百分之一点二；而一个百分之九十的 token 根本不受限制。新想法往往就藏在这些低概率的 token 里。DAPO 发现，对称截断会让策略塌缩到最常见的写法上。只放宽上界，就给这些稀有的 token 多留了一点空间。',
+        'This is the clipping picture from D2a, with the upper edge moved from 1.2 to 1.28. Why bother? § Take a token that the old policy gave one percent. With a symmetric clip it can only rise to 1.2 percent in one step, while a token at ninety percent is not held back at all. Rare tokens are where new ideas start, and DAPO found that the symmetric clip makes the policy collapse onto its most common phrasings. Raising only the upper edge gives the rare tokens a little more room.',
+        '这是 D2a 里的截断图，只是把上界从 1.2 挪到了 1.28。为什么要挪？§看一个旧策略只给了百分之一概率的 token：对称截断时，它一步最多涨到百分之一点二；而一个百分之九十的 token 根本不受限制。新想法往往就藏在这些低概率的 token 里。DAPO 发现，对称截断会让策略塌缩到最常见的写法上。只放宽上界，就给这些稀有的 token 多留了一点空间。',
       ),
     },
     // ------------------------------------------------------------------ length bias

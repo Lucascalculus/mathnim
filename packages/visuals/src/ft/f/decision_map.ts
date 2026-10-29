@@ -121,11 +121,13 @@ function build(lang: Lang, open: (n: MapNode) => boolean, hl: Set<string>, route
       map.name = 'map';
 
       this.play(LaggedStart(FadeIn(top), Create(top_edges), FadeIn(yes), FadeIn(no), { lag_ratio: 0.4 }), { run_time: 1.6 });
+      this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
       this.play(FadeIn(gap), Create(fan), FadeIn(headers), { run_time: 1.2 });
       this.play(Create(spines), Create(ticks), LaggedStart(...cols.map((g) => FadeIn(g, { shift: [0, 0.15, 0] })), { lag_ratio: 0.25 }), { run_time: 2.2 });
       this.play(Create(bus), FadeIn(bottom), ...(note ? [FadeIn(note)] : []), { run_time: 1.2 });
       this.add(map);
 
+      this.next_section();
       const lit = [...hl].filter((id) => visible_ids.has(id) && shapes.has(id));
       if (lit.length) this.play(...lit.map((id) => Indicate(shapes.get(id), { color: c.accent, scale_factor: 1.06 })), { run_time: 1 });
 

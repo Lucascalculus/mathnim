@@ -5,7 +5,7 @@
 import type { Lesson } from '@mathnim/core';
 import { expr } from '@mathnim/core';
 import {
-  Circle, DecimalNumber, DOWN, LEFT, Line, Mobject, NumberLine, RIGHT, Rectangle, Scene, Square,
+  Circle, DecimalNumber, DOWN, FadeIn, LEFT, Line, Mobject, NumberLine, RIGHT, Rectangle, Scene, Square,
   UP, VGroup, ValueTracker, always_redraw, BraceBetweenPoints, mul,
 } from 'manim-web';
 import { add_cut_angles, disc_cut_angles, snap_line_through } from 'manim-web/ext/cut';
@@ -249,8 +249,17 @@ class Wrap extends Scene {
       fit(say('Twice as wide → four times the pizza.', 32), 9),
       fit(say('Pizza sizes are diameters: halve them first.', 32), 9),
     ).arrange(DOWN, { buff: 0.6 }).move_to([0, 0.2, 0]);
+    // one line per sentence of the narration (its beats, §: the picture waits there for the voice)
+    const [area, wide, halve] = rows.submobjects;
+    this.add(area);
+    this.wait(0.6);
+    this.next_section();
+    this.play(FadeIn(wide), { run_time: 0.5 });
+    this.wait(0.6);
+    this.next_section();
+    this.play(FadeIn(halve), { run_time: 0.5 });
     this.add(rows);
-    this.wait(6);
+    this.wait(1.2);
   }
 }
 
@@ -553,7 +562,7 @@ export const lesson: Lesson = {
     },
     {
       id: 'wrap', kind: 'scene', chapter: 'Settle the bet', title: 'What we found', scene: Wrap,
-      narration: 'Area is pi r squared. Twice as wide means four times the pizza. And pizza sizes are diameters, so halve them first.',
+      narration: 'Area is pi r squared. § Twice as wide means four times the pizza. § And pizza sizes are diameters, so halve them first.',
     },
   ],
 };

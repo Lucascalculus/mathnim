@@ -5,10 +5,10 @@
 //   node tools/lesson_doctor.mjs
 import { createCanvas } from '@napi-rs/canvas';
 import { lint_timeline } from 'manim-web/ext/lint';
-import { ScenePlayer } from 'manim-web/ext/player';
+import { ScenePlayer, voice_waits } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { RECORDED, compile_answer, recorded_lesson_responses, INSCRIBED_PLAN, MockProvider, apply_white } from '@mathnim/ai';
-import { BEAT, WorldSession, lesson_langs, narration_key, tr, type Block, type ExploreStep, type Lesson } from '@mathnim/core';
+import { BEAT, WorldSession, beat_times, lesson_langs, narration_key, tr, unbeat, type Block, type ExploreStep, type Lesson, type Recording } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
 import { init_tex } from 'manim-web';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
@@ -26,7 +26,7 @@ await load_all_lessons();
 // the bundle cannot locate the font files relative to itself; point at the source folder
 await load_fonts({ font_dir: process.env.MANIM_WEB_FONTS! });
 
-type Row = { what: string; ok: boolean; errors: string[]; warnings: string[]; seconds?: number; sections?: number };
+type Row = { what: string; ok: boolean; errors: string[]; warnings: string[]; seconds?: number; sections?: number; starts?: number[] };
 const rows: Row[] = [];
 
 async function check(what: string, make: () => any) {
@@ -38,7 +38,7 @@ async function check_row(what: string, make: () => any): Promise<Row> {
     apply_white(player);
     await player.load();
     const issues = lint_timeline(player);
-    return { what, ok: !issues.some((i) => i.severity === 'error'), errors: issues.filter((i) => i.severity === 'error').map((i) => i.message), warnings: issues.filter((i) => i.severity === 'warning').map((i) => i.message), seconds: player.duration, sections: player.scene.sections.length - 1 };
+    return { what, ok: !issues.some((i) => i.severity === 'error'), errors: issues.filter((i) => i.severity === 'error').map((i) => i.message), warnings: issues.filter((i) => i.severity === 'warning').map((i) => i.message), seconds: player.duration, sections: player.scene.sections.length - 1, starts: player.section_starts() };
   } catch (e: any) {
     return { what, ok: false, errors: [`crash: ${e?.message ?? e}`], warnings: [] };
   }
@@ -99,7 +99,7 @@ await init_tex();
 const PUBLIC = process.env.MATHNIM_PUBLIC!;
 /**
  * A scene's narration should end with its picture: a voice that runs on past the last frame leaves the learner
- * watching a still figure while the subtitles finish (warned past half a second, in each language of the lesson).
+ * watching a still figure while the subtitles finish (an error past half a second, in each language of the lesson).
  * A narration with beats (§) has the picture wait for it instead: then each language needs one beat per section
  * of the scene (next_section), in the same order.
  */
@@ -112,14 +112,38 @@ function voice_fits(lesson: Lesson, narration: Parameters<typeof tr>[0], row: Ro
       if (beats !== row.sections) {
         row.ok = false;
         row.errors.push(`narration (${lang}) has ${beats} beat${beats === 1 ? '' : 's'} (§) but the scene ${row.sections} section${row.sections === 1 ? '' : 's'} (next_section)`);
-      }
+      } else beats_fit(text, lang, row);
       continue;
     }
     const file = path.join(PUBLIC, 'narration', `${narration_key(text)}.json`);
     if (!text || /\{\w+\}/.test(text) || !fs.existsSync(file)) continue;
     const said = (JSON.parse(fs.readFileSync(file, 'utf8')) as { duration: number }).duration;
-    if (said > row.seconds + 0.5) row.warnings.push(`narration (${lang}) ${said.toFixed(1)} s runs ${(said - row.seconds).toFixed(1)} s past the picture`);
+    if (said > row.seconds + 0.5) {
+      row.ok = false;
+      row.errors.push(`narration (${lang}) ${said.toFixed(1)} s runs ${(said - row.seconds).toFixed(1)} s past the picture: time it with beats (§) and sections (docs/COURSE-PLAYBOOK.md; tools/beats.mjs)`);
+    }
   }
+}
+const fail = (row: Row, message: string) => {
+  row.ok = false;
+  row.errors.push(message);
+};
+/**
+ * With its recording, how the picture of a scene with beats will wait for the voice (voice_waits, as the player
+ * does): a section that starts more than half a second after its beat, or a picture that runs on for more than
+ * 3 s after the voice, is an error that says what to shorten (tools/beats.mjs shows the whole timing).
+ */
+function beats_fit(text: string, lang: string, row: Row): void {
+  const file = path.join(PUBLIC, 'narration', `${narration_key(text)}.json`);
+  if (!fs.existsSync(file)) return void row.warnings.push(`narration (${lang}) has no recording yet: npm run narration`);
+  const rec = JSON.parse(fs.readFileSync(file, 'utf8')) as Recording;
+  const at = beat_times(text, rec);
+  const plan = voice_waits(row.starts ?? [], row.seconds ?? 0, at, rec.duration);
+  const parts = text.split(BEAT);
+  plan.late.forEach((late, k) => {
+    if (late > 0.5) fail(row, `narration (${lang}): section ${k + 1} ("${unbeat(parts[k + 1]).slice(0, 32)}…") starts ${late.toFixed(1)} s after its words: shorten the animations or pauses of section ${k}`);
+  });
+  if (plan.tail > 3) fail(row, `narration (${lang}): the picture runs ${plan.tail.toFixed(1)} s past the voice: shorten the pauses of its last section`);
 }
 /** Visual blocks of a page (also inside details). */
 const visual_blocks = (bs: Block[]): Extract<Block, { type: 'visual' }>[] => bs.flatMap((b) => (b.type === 'visual' ? [b] : b.type === 'details' ? visual_blocks(b.blocks) : []));

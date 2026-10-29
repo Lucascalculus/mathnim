@@ -196,6 +196,7 @@ export const ppo_clip = define_visual<PpoClipParams>({
         }
         this.wait(1);
         // a good token: pushed up until 1 + ε, then left alone
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(rho.animate.set_value(1.7), { run_time: 4, rate_func: linear });
         this.play(Indicate(formula.submobjects[3], { color: c.accent }), { run_time: 1 });
         // a bad token: pushed down until 1 - ε, then left alone

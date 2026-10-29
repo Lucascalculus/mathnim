@@ -6,8 +6,11 @@
  * voice, speed or language lines up). Beats are not said or shown, and do not change a line's recording.
  */
 export const BEAT = '§';
-/** A line as it is said and shown: without its beats ("ahead: § the" -> "ahead: the"; "两秒：§虚线" -> "两秒：虚线"). */
-export const unbeat = (text: string): string => (text.includes(BEAT) ? text.replace(/(\s*)§(\s*)/g, (_m, a: string, b: string) => (a || b ? ' ' : '')).trim() : text);
+/**
+ * A line as it is said and shown: without its beats ("ahead: § the" -> "ahead: the"; "两秒：§虚线" -> "两秒：虚线").
+ * Beats side by side ("§§": two sections start on the same word) go as one.
+ */
+export const unbeat = (text: string): string => (text.includes(BEAT) ? text.replace(/\s*(?:§\s*)+/g, (m) => (/\s/.test(m) ? ' ' : '')).trim() : text);
 /**
  * When this recording's voice reaches each beat of `text` (seconds): the start of the word the beat stands before,
  * found by its share of the line's spoken letters and digits (the words a voice reports are its own, so they are

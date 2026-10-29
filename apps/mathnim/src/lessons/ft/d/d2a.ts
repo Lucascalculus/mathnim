@@ -136,8 +136,8 @@ for step in range(300):
     {
       id: 'baseline-scene', kind: 'scene', title: t('The mean stays, the spread changes', '均值不动，散布在变'), scene: vis('pg_baseline'),
       narration: t(
-        'Three answers with rewards two, five and nine. Each possible sample gives a different update; for three answers each update is a point in a plane. The gold arrow is their average, the true gradient. Now move the zero line. The points slide in and out, but the gold arrow never moves. Only the spread changes, and it is smallest when the zero line sits at the mean reward.',
-        '三个回答，奖励分别是二、五、九。采到不同的回答，就得到不同的更新；只有三个回答时，每个更新都是平面上的一个点。金色箭头是它们的平均，也就是真正的梯度。现在挪动零线。几个点忽远忽近，金色箭头却纹丝不动。变的只是散布，零线停在平均奖励时，散布最小。'),
+        'Three answers with rewards two, five and nine. § Each possible sample gives a different update; for three answers each update is a point in a plane. § The gold arrow is their average, the true gradient. § Now move the zero line. The points slide in and out, but the gold arrow never moves. § Only the spread changes, and it is smallest when the zero line sits at the mean reward.',
+        '三个回答，奖励分别是二、五、九。§采到不同的回答，就得到不同的更新；只有三个回答时，每个更新都是平面上的一个点。§金色箭头是它们的平均，也就是真正的梯度。§现在挪动零线。几个点忽远忽近，金色箭头却纹丝不动。§变的只是散布，零线停在平均奖励时，散布最小。'),
     },
     {
       id: 'baseline-world', kind: 'explore', title: t('Find the quietest zero line', '找到最安静的零线'), skill: 'baseline-advantage',

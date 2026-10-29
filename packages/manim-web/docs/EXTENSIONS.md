@@ -53,7 +53,9 @@ Manim would have written at `t`.
 each section (begun by `next_section()`) until `at[k]` seconds, and on its last
 frame until `end`; the timeline (`duration`, `time`, `seek_time`) then runs on
 the voice's clock, and the picture stays where it is when the waits change.
-A picture that is already late never waits. Lessons get `at` from the narration's
+A picture that is already late never waits. The arithmetic is `voice_waits` (a
+pure function, exported beside the player): the lesson doctor and
+`apps/mathnim/tools/beats.mjs` use it to report what will play. Lessons get `at` from the narration's
 beats (`§`) and the recording's word timings (`beat_times` in
 `@mathnim/core`), so the same scene lines up with any voice
 (docs/COURSE-PLAYBOOK.md, "Time each scene to its voice").

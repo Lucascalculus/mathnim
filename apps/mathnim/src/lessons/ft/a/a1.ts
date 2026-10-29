@@ -315,8 +315,8 @@ export const lesson: Lesson = {
     },
     // ---------------------------------------------------------------- 5. the map
     map_scene('map', 'A1', T(
-      'This is the decision map we will build through the course. It starts before any method. First, write down how you will judge success. Second, try the strongest model with a well-built context. If the output is just a label, a small classifier will do. Otherwise, ask what kind of gap is left: missing knowledge, unstable behaviour, missing capability, or plain cost. Each later lesson fills in one of these branches.',
-      '这是整门课要一起搭起来的决策图。它从任何方法之前开始。第一步，写下怎么判断成功。第二步，用最强的模型加上精心准备的上下文试一试。如果输出只是一个标签，一个小分类模型就够了。否则，看剩下的差距属于哪一类：缺知识、行为不稳、缺能力，还是单纯太贵。后面每一课，都会补上其中一条分支。',
+      'This is the decision map we will build through the course. It starts before any method. First, write down how you will judge success. Second, try the strongest model with a well-built context. If the output is just a label, a small classifier will do. § Otherwise, ask what kind of gap is left: missing knowledge, unstable behaviour, missing capability, or plain cost. § Each later lesson fills in one of these branches.',
+      '这是整门课要一起搭起来的决策图。它从任何方法之前开始。第一步，写下怎么判断成功。第二步，用最强的模型加上精心准备的上下文试一试。如果输出只是一个标签，一个小分类模型就够了。§否则，看剩下的差距属于哪一类：缺知识、行为不稳、缺能力，还是单纯太贵。§后面每一课，都会补上其中一条分支。',
     )),
     card_page('card',
       T('Do not fine-tune by default. Write the evaluation first and get a baseline with the strongest model and good context engineering. Sort what still fails into knowledge, behaviour, capability or cost. Knowledge goes into the context. For the rest, the signal you have - demonstrations, comparisons, a verifier, a teacher, labels - picks the method; fixed labels go to an encoder classifier.',

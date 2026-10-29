@@ -60,8 +60,8 @@ export const lesson: Lesson = {
     {
       id: 'pipeline', kind: 'scene', title: T('Two pipelines', '两条流水线'), scene: vis('rag_pipeline', {}),
       narration: T(
-        'RAG is two pipelines. Once, offline: cut the documents into chunks, turn every chunk into a vector, and store the vectors in an index. Then, for every question: turn the question into a vector, fetch the nearest chunks, let a reranker reorder the best few, number them in the prompt, and ask the model to answer with citations. Under each stage is the knob you tune there.',
-        'RAG 是两条流水线。一条是离线的，只做一次：把文档切成块，把每一块变成一个向量，存进索引。另一条是每个问题都要走的：把问题变成向量，取回离它最近的块，用重排模型把最好的几块重新排序，编好号放进提示，让模型带着引用作答。每个环节下面写着这一步可以调的东西。',
+        'RAG is two pipelines. Once, offline: § cut the documents into chunks, § turn every chunk into a vector, and store the vectors in an index. § Then, for every question: § turn the question into a vector, § fetch the nearest chunks, § let a reranker reorder the best few, § number them in the prompt, and ask the model to answer with citations. Under each stage is the knob you tune there.',
+        'RAG 是两条流水线。一条是离线的，只做一次：§把文档切成块，§把每一块变成一个向量，存进索引。§另一条是每个问题都要走的：§把问题变成向量，§取回离它最近的块，§用重排模型把最好的几块重新排序，§编好号放进提示，让模型带着引用作答。每个环节下面写着这一步可以调的东西。',
       ),
     },
     // ---------------------------------------------------------------- 2. how retrieval finds chunks
@@ -335,8 +335,8 @@ export const lesson: Lesson = {
     },
     // ---------------------------------------------------------------- 7. the map
     map_scene('map', 'A2', T(
-      'The knowledge branch of the map is now filled in. Can the whole knowledge base fit in the prompt? Then use it with caching. If not, use RAG, and measure retrieval on its own. If the right chunk does not reach the prompt, fix retrieval in order: chunking, hybrid search, reranking, and only then tuning the retriever. If it does reach the prompt and the answer is still wrong, change how the prompt is assembled.',
-      '决策图上"知识"这一支现在补齐了。整个知识库放得进提示吗？放得进，就整体放入，配合缓存。放不进，就用 RAG，并把检索单独拿出来测。正确的块进不了提示，就按顺序修检索：切块、混合检索、重排，最后才是微调检索器。块进了提示、回答还是错，就改提示的拼法。',
+      'The knowledge branch of the map § is now filled in. Can the whole knowledge base fit in the prompt? Then use it with caching. § If not, use RAG, and measure retrieval on its own. If the right chunk does not reach the prompt, fix retrieval in order: chunking, hybrid search, reranking, and only then tuning the retriever. If it does reach the prompt and the answer is still wrong, change how the prompt is assembled.',
+      '决策图上"知识"这一支§现在补齐了。整个知识库放得进提示吗？放得进，就整体放入，配合缓存。§放不进，就用 RAG，并把检索单独拿出来测。正确的块进不了提示，就按顺序修检索：切块、混合检索、重排，最后才是微调检索器。块进了提示、回答还是错，就改提示的拼法。',
     )),
     card_page('card',
       T('When RAG is wrong, measure retrieval first (Recall@k). If the right chunk does not reach the prompt, fix in this order: chunking and metadata, hybrid search, reranking, then fine-tuning the reranker or the embedding model (A2b). If it does reach the prompt, change the assembly; fine-tune the generator last.',
