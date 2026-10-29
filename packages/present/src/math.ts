@@ -9,6 +9,9 @@ export type TexRenderer = (tex: string, display: boolean) => string;
 let renderer: TexRenderer | null = null;
 export function set_tex_renderer(r: TexRenderer | null): void {
   renderer = r;
+  // formulas written while the renderer was loading (the app loads MathJax after the first page): draw them now
+  if (r && typeof document !== 'undefined')
+    for (const el of document.querySelectorAll<HTMLElement>('.mn-tex-wait')) el.outerHTML = tex_html(el.dataset.tex ?? '', el.hasAttribute('data-display'));
 }
 export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -45,7 +48,8 @@ function tex_html(tex: string, display: boolean): string {
       /* fall through */
     }
   }
-  return `<code>${esc(tex)}</code>`;
+  // no renderer (yet): the source, faint, drawn once set_tex_renderer gets one
+  return `<span class="mn-tex-wait" data-tex="${esc(tex)}"${display ? ' data-display=""' : ''} style="opacity:.5">${esc(tex)}</span>`;
 }
 
 // Chinese punctuation must not start a line: closing marks after inline math stay with it

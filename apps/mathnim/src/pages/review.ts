@@ -8,6 +8,7 @@ import { all_lessons, ensure_lesson, playable } from '../course';
 import { load_settings } from '../settings';
 import { learner, log } from '../store';
 import { ready_visuals } from '../cjk_font';
+import { enable_dom_tex } from '../tex_dom';
 
 interface Item {
   lesson: Lesson;
@@ -33,7 +34,7 @@ export async function review(root: HTMLElement): Promise<() => void> {
     if (location.pathname !== '/review') return () => {};
     root.innerHTML = '';
   }
-  await ready_visuals();
+  await Promise.all([ready_visuals(), enable_dom_tex()]);
   if (location.pathname !== '/review') return () => {};
   const items = practice_items();
   const byId = new Map(items.map((i) => [`${i.lesson.id}/${i.step.id}`, i]));

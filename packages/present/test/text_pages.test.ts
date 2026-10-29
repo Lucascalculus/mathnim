@@ -6,6 +6,9 @@ import { define_ui, drag_hint, set_ui_lang, t, ui_entries } from '../src/i18n';
 import { math_html } from '../src/math';
 import { blocks_html } from '../src/text_pages';
 
+/** A formula before the TeX renderer is set: its source, drawn once it is (math.ts). */
+const tex = (src: string) => `<span class="mn-tex-wait" data-tex="${src}" style="opacity:.5">${src}</span>`;
+
 describe('highlight', () => {
   it('colours python keywords, strings, numbers, comments and calls', () => {
     const toks = tokenize('def f(x):\n    return g(x, "hi", 3.5)  # done', 'python');
@@ -40,15 +43,15 @@ describe('light markup', () => {
     expect(math_html('see [the paper](https://arxiv.org/abs/1)')).toBe('see <a href="https://arxiv.org/abs/1" target="_blank" rel="noopener">the paper</a>');
     expect(math_html('[x](javascript:void)')).toBe('x');
     expect(math_html('claim[^hu]', { footnote: (k) => `<sup>${k}</sup>` })).toBe('claim<sup>hu</sup>');
-    expect(math_html('a $x$ and `$y$`')).toBe('a <code>x</code> and <code>$y$</code>');
+    expect(math_html('a $x$ and `$y$`')).toBe('a ' + tex('x') + ' and <code>$y$</code>');
     // Chinese punctuation never starts a line: it is glued to the math before it (and opening marks to the math after)
     // bold that contains math is still bold (a tutor answer: "**冻结是为了不替 $W_0$ 存梯度**")
-    expect(math_html('**rank of $BA$ is $r$** here')).toBe('<b>rank of <code>BA</code> is <code>r</code></b> here');
-    expect(math_html('**plain** and $x$')).toBe('<b>plain</b> and <code>x</code>');
+    expect(math_html('**rank of $BA$ is $r$** here')).toBe('<b>rank of ' + tex('BA') + ' is ' + tex('r') + '</b> here');
+    expect(math_html('**plain** and $x$')).toBe('<b>plain</b> and ' + tex('x'));
     // "\$" is a literal dollar; inside math it is TeX's own
-    expect(math_html('costs \\$5 and \\$7, or $x$')).toBe('costs $5 and $7, or <code>x</code>');
-    expect(math_html('$a + \\$b$')).toBe('<code>a + \\$b</code>');
-    expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap"><code>W_0</code>，</span>只学<span class="mn-nowrap">（<code>r</code>）。</span>');
+    expect(math_html('costs \\$5 and \\$7, or $x$')).toBe('costs $5 and $7, or ' + tex('x'));
+    expect(math_html('$a + \\$b$')).toBe(tex('a + \\$b'));
+    expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap">' + tex('W_0') + '，</span>只学<span class="mn-nowrap">（' + tex('r') + '）。</span>');
   });
 });
 

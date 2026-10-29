@@ -10,6 +10,7 @@ import { render_lab } from './lab';
 import { mount_outline } from '../outline';
 import { navigate, type Route } from '../router';
 import { ready_visuals } from '../cjk_font';
+import { enable_dom_tex } from '../tex_dom';
 import { has_model, load_settings, provider } from '../settings';
 import { AskRail } from '../side_chat';
 import { learner, log, remember_last } from '../store';
@@ -38,7 +39,8 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
   }
   const lesson = playable(cl);
   if (!lesson) return generate_view(root, cl);
-  await ready_visuals(); // (Chinese labels need their font, loaded the first time a visual is drawn)
+  // (Chinese labels need their font, loaded the first time a visual is drawn; prompts and options need MathJax)
+  await Promise.all([ready_visuals(), enable_dom_tex()]);
   if (location.pathname !== here) return () => {};
   remember_last(cl.id);
   const host = document.createElement('div');
@@ -164,7 +166,7 @@ export async function lab_page(root: HTMLElement, route: Route): Promise<() => v
   root.innerHTML = `${crumb}<div class="card muted" style="max-width:620px;margin:40px auto;text-align:center">${esc(t('loading_lab'))}</div>`;
   let mod;
   try {
-    mod = await load_lab(c.id, meta.slug);
+    [mod] = await Promise.all([load_lab(c.id, meta.slug), enable_dom_tex()]);
   } catch (e) {
     console.warn('lab chunk failed to load', e);
     root.innerHTML = `${crumb}<div class="card" style="max-width:620px;margin:40px auto">${esc(t('load_failed'))} <a href="${here}?retry=${Date.now()}">${esc(t('try_again'))}</a></div>`;

@@ -44,7 +44,7 @@ describe('math in lab tutorials', () => {
   it('reads \\$ as a literal dollar, for the reader too', () => {
     const [p] = body('A GPU hour costs about \\$2, and $u_0$ is applied.') as { text: string }[];
     expect(p.text).toBe('A GPU hour costs about \\$2, and $u_0$ is applied.');
-    expect(math_html(p.text)).toBe('A GPU hour costs about $2, and <code>u_0</code> is applied.');
+    expect(math_html(p.text)).toBe('A GPU hour costs about $2, and <span class="mn-tex-wait" data-tex="u_0" style="opacity:.5">u_0</span> is applied.');
   });
   it('leaves code alone: code spans and fenced code keep their dollars', () => {
     const bs = body('Run `echo $HOME` first.\n\n```bash\nexport N=$((10 * 2))\n```');
