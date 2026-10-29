@@ -112,7 +112,7 @@ const CSS = `
 .rail-talk::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px;background:var(--mn-bg)}
 .rail-talk{${SHEET}}
 
-.rail-talk .rail-q{font:500 14px/1.55 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;font-style:normal;color:var(--mn-fg);padding-left:18px;position:relative}
+.rail-talk .rail-q{font:500 14px/1.55 ui-sans-serif,system-ui,"PingFang SC",sans-serif;font-style:normal;color:var(--mn-fg);padding-left:18px;position:relative}
 .rail-talk .rail-q::before{content:'→';position:absolute;left:0;font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mn-accent)}
 .rail-talk .mn-ask form .mn-input{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
 }

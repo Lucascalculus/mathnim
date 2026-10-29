@@ -14,7 +14,7 @@ import { PROGRESS_CSS } from './progress_mark';
 const CSS = `
 body{margin:0;background:#fbfbfa}
 .app-shell{--mn-sticky-top:58px;--mn-bg:#fbfbfa;--mn-fg:#15171a;--mn-muted:#6b7077;--mn-faint:#ececE8;--mn-panel:#fff;--mn-border:#e3e3de;--mn-accent:#2f5bd3;--mn-good:#1f8a5b;--mn-bad:#c2412d;--mn-warn:#b7791f;--mn-radius:14px;--mn-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
- font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--mn-fg);background:var(--mn-bg);min-height:100vh}
+ font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--mn-fg);background:var(--mn-bg);min-height:100vh}
 .app-shell.dark{--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-shadow:none}
 .nav{display:flex;align-items:center;gap:22px;padding:14px 24px;border-bottom:1px solid var(--mn-border);position:sticky;top:0;background:color-mix(in srgb,var(--mn-bg) 88%,transparent);backdrop-filter:blur(8px);z-index:5}
 .nav .brand{font-weight:700;letter-spacing:-.02em;font-size:18px;display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none}
@@ -81,6 +81,8 @@ body{margin:0;background:#fbfbfa}
 @media (prefers-reduced-motion:reduce){.langs::before,.langs button{transition:none}}
 .langs button:focus-visible{outline:2px solid var(--mn-accent);outline-offset:1px}
 .page{max-width:1500px;margin:0 auto;padding:24px}
+/* a lesson's head line sits close under the top bar */
+.in-lesson .page{padding-top:10px}
 /* home: continue learning, all courses */
 .section-title{font-size:13px;letter-spacing:.02em;color:var(--mn-muted);margin:26px 0 12px;font-weight:600}
 .page>.section-title:first-child{margin-top:4px}

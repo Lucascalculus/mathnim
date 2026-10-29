@@ -3,7 +3,7 @@
 // slides in from the left over the page, closed when a lesson opens: the figure
 // leads. Its button is the first thing in the lesson's head. (docs/SITE-STRUCTURE.md)
 import { tr, type Lesson, type Step } from '@mathnim/core';
-import { CORNERS, esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
+import { esc, icon, math_html, t, ui_lang, type LessonView } from '@mathnim/present';
 import { progress_mark } from './progress_mark';
 import { course_path, lesson_code, lesson_path, unit_title, visible_units, type Course, type CourseLesson } from './course';
 import { lesson_status } from './store';
@@ -56,7 +56,10 @@ const CSS = `
 .ol-step.now .ol-sta::after{content:'';position:absolute;inset:-4px;--c:color-mix(in srgb,var(--mn-accent) 85%,transparent);background:linear-gradient(var(--c),var(--c)) 0 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/4px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1px 4px no-repeat}
 @media (prefers-reduced-motion:reduce){.ol-steps::after,.ol-sta.world>u{transition:none}}
 /* the head of a lesson: the outline button, the course, then the lesson's title (present: .mn-head) */
-.ol-toggle{margin-left:-6px}
+.ol-toggle{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;color:var(--mn-muted);background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap}
+.ol-toggle:hover{color:var(--mn-accent);border-color:var(--mn-accent)}
+.ol-toggle[aria-expanded=true]{color:var(--mn-accent);border-color:color-mix(in srgb,var(--mn-accent) 40%,var(--mn-border))}
+.ol-toggle svg{flex:none}
 .mn-head .crumb{margin:0;flex:none;max-width:32%;display:flex;align-items:center;gap:10px;font-size:14px;white-space:nowrap}
 .mn-head .crumb a{color:var(--mn-muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis}
 .mn-head .crumb a:hover{color:var(--mn-fg)}
@@ -68,7 +71,7 @@ const CSS = `
 `;
 let injected = false;
 
-const ICON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 3.5h12M2 8h12M2 12.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+const ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 3.5h12M2 8h12M2 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 
 
 export interface Outline {
@@ -101,10 +104,8 @@ export function mount_outline(layout: HTMLElement, main: HTMLElement, o: { cours
 
   const toggle = document.createElement('button');
   toggle.type = 'button';
-  toggle.className = 'ol-toggle mn-ghost';
-  toggle.setAttribute('aria-label', t('outline'));
-  toggle.title = t('outline');
-  toggle.innerHTML = CORNERS + ICON;
+  toggle.className = 'ol-toggle';
+  toggle.innerHTML = `${ICON}<span>${esc(t('outline'))}</span>`;
 
   // the course: units, lessons; the current lesson's steps are filled in by render_steps
   panel.innerHTML = `<div class="ol-head"><a href="${course_path(o.course)}">${math_html(tr(o.course.title, lang))}</a><button type="button" class="ol-close" aria-label="${esc(t('close'))}" title="${esc(t('close'))}">${icon('x', 16)}</button></div>

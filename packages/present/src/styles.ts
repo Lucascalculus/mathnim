@@ -5,18 +5,13 @@ export const CSS = `
 .mn-app{--mn-bg:#fbfbfa;--mn-fg:#15171a;--mn-muted:#6b7077;--mn-faint:#e7e7e3;--mn-panel:#ffffff;--mn-border:#e3e3de;
  --mn-accent:#2f5bd3;--mn-good:#1f8a5b;--mn-bad:#c2412d;--mn-warn:#b7791f;--mn-radius:14px;--mn-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
  --mn-code-bg:#f6f7f9;--mn-purple:#7c3aed;
- font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--mn-fg);background:var(--mn-bg);
+ font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--mn-fg);background:var(--mn-bg);
  display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto auto 1fr;gap:16px;padding:16px;box-sizing:border-box;min-height:100%}
 .mn-app *{box-sizing:border-box}
 .mn-app.mn-dark{--mn-code-bg:#161a20;--mn-purple:#b69cff;--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-good:#5fd3a2;--mn-bad:#ff8a73;--mn-shadow:none}
 .mn-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:32px}
 .mn-title{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* steps with a figure (essay view): the figure leads, up to 960 px and centred where the screen allows; the side keeps 300 px */
-@media (min-width:901px){
-.mn-app:not(.mn-game):not(.mn-nostage){grid-template-columns:minmax(0,1fr) minmax(0,960px) minmax(300px,1fr)}
-.mn-app:not(.mn-game):not(.mn-nostage)>.mn-left{grid-column:2}
-.mn-app:not(.mn-game):not(.mn-nostage)>.mn-side{grid-column:3;max-width:400px}
-}
+
 .mn-stage{position:relative;aspect-ratio:16/9;border-radius:var(--mn-radius);overflow:hidden;box-shadow:var(--mn-shadow);background:linear-gradient(#fff,#f5f5f7)}
 .mn-app.mn-dark .mn-stage{background:#101318}
 .mn-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -337,8 +332,8 @@ export const CSS = `
 @media (max-width:640px){.mn-page{font-size:16.5px;border-radius:12px}.mn-dline{grid-template-columns:22px minmax(0,1fr);gap:8px;padding:6px 4px}.mn-dnum{width:22px;height:22px;font-size:11px}
  .mn-dcontrols{padding-left:0}.mn-drow{flex-direction:column;align-items:stretch;gap:4px}.mn-drow .mn-dtex{flex:none}.mn-why-btn{align-self:flex-start;margin-left:0}.mn-code{font-size:12.5px}.mn-callout{font-size:15.5px}.mn-dtex{font-size:16px}}
 /* ---- orientation and the overflow menu */
-/* the lesson's progress at the end of the head: its chapters as segments, filled as far as the learner has come */
-.mn-where{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mn-muted);font-variant-numeric:tabular-nums}
+/* the lesson's progress after its title: its chapters as segments, filled as far as the learner has come */
+.mn-where{margin-left:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mn-muted);font-variant-numeric:tabular-nums}
 .mn-where-n i{font-style:normal;margin:0 1px;opacity:.6}
 .mn-segs{display:flex;gap:3px;width:clamp(120px,22vw,260px)}
 .mn-seg{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden;min-width:6px}
@@ -357,7 +352,7 @@ export const CSS = `
 .mn-helpbtn:hover,.mn-helpbtn:focus-visible{color:var(--mn-accent);border-color:var(--mn-accent);border-style:solid;outline:none}
 .mn-helpicon{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--mn-accent) 12%,transparent);color:var(--mn-accent);font-weight:700;font-size:12px}
 @media (max-width:900px){.mn-helpbtn{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:20;background:var(--mn-panel);border-style:solid;box-shadow:0 4px 18px rgba(0,0,0,.14);padding:8px 14px 8px 8px;color:var(--mn-fg)}}
-.mn-askhere{position:fixed;z-index:40;font:600 13px/1 Inter,ui-sans-serif,system-ui,"PingFang SC",sans-serif;padding:8px 12px;border-radius:999px;border:0;background:#15171a;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.22);cursor:pointer;white-space:nowrap}
+.mn-askhere{position:fixed;z-index:40;font:600 13px/1 ui-sans-serif,system-ui,"PingFang SC",sans-serif;padding:8px 12px;border-radius:999px;border:0;background:#15171a;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.22);cursor:pointer;white-space:nowrap}
 .mn-askhere[hidden]{display:none}
 .mn-endextra:empty{display:none}
 .mn-labcard{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--mn-border);border-left:3px solid var(--mn-purple);border-radius:12px;text-decoration:none;color:inherit;background:var(--mn-bg)}

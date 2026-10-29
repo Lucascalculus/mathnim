@@ -29,7 +29,7 @@ const FOLD_TO = 18;
 const CSS = `
 .lab-page{--mn-bg:#fbfbfa;--mn-fg:#15171a;--mn-muted:#6b7077;--mn-faint:#e7e7e3;--mn-panel:#fff;--mn-border:#e3e3de;--mn-accent:#2f5bd3;--mn-good:#1f8a5b;--mn-bad:#c2412d;--mn-warn:#b7791f;
  --mn-radius:14px;--mn-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);--mn-code-bg:#f6f7f9;--mn-purple:#7c3aed;
- color:var(--mn-fg);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+ color:var(--mn-fg);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
 .lab-page *,.lab-page *::before,.lab-page *::after{box-sizing:border-box}
 .lab-page .mn-page{display:block}
 .lab-page .mn-h,.lab-page .lab-file{scroll-margin-top:calc(var(--mn-sticky-top,0px) + 12px)}

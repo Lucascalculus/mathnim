@@ -230,7 +230,7 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      // where am I: the lesson's chapters as segments, filled as far as the learner has come, at the end of the head
+      // where am I: the lesson's chapters as segments, filled as far as the learner has come, after the title
       this.el.where = h('div', 'mn-where');
       head.append(this.el.where);
       left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page);

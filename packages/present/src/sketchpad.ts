@@ -131,10 +131,10 @@ export class SketchPad {
         const [first, ...rest] = this.placeholder.split(': ');
         const lines = rest.length ? [first, rest.join(': ')] : [first];
         let size = 15;
-        g.font = `600 ${size}px Inter, ui-sans-serif, system-ui, sans-serif`;
+        g.font = `600 ${size}px ui-sans-serif, system-ui, sans-serif`;
         while (size > 10 && Math.max(...lines.map((l) => g.measureText(l).width)) > w) {
           size--;
-          g.font = `600 ${size}px Inter, ui-sans-serif, system-ui, sans-serif`;
+          g.font = `600 ${size}px ui-sans-serif, system-ui, sans-serif`;
         }
         lines.forEach((l, i) => g.fillText(i === 0 ? l : l.charAt(0).toUpperCase() + l.slice(1), (ax + bx) / 2, ay + 22 + i * (size + 5)));
       }

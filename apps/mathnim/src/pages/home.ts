@@ -504,7 +504,7 @@ async function draw_one(c: HTMLCanvasElement): Promise<void> {
       const g = c.getContext('2d')!;
       g.fillStyle = '#2f5bd3';
       g.globalAlpha = 0.85;
-      g.font = '600 30px Inter, ui-sans-serif, system-ui, sans-serif';
+      g.font = '600 30px ui-sans-serif, system-ui, sans-serif';
       g.textAlign = 'center';
       g.fillText(t('thumb_ai'), c.width / 2, c.height / 2 + 10);
     }
@@ -539,7 +539,7 @@ function text_thumbnail(c: HTMLCanvasElement, lesson: { title: L10n; kinds: stri
   let y = H * 0.22;
   // the title, in up to two lines
   g.fillStyle = '#15171a';
-  g.font = '700 22px Inter, ui-sans-serif, system-ui, "PingFang SC", sans-serif';
+  g.font = '700 22px ui-sans-serif, system-ui, "PingFang SC", sans-serif';
   g.textAlign = 'left';
   const words = tr(lesson.title, ui_lang()).split(/(?<=\s)|(?=[\u3400-\u9fff])/);
   const lines: string[] = [''];
