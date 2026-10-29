@@ -49,6 +49,21 @@ Frame counts follow Manim exactly (`ceil(run_time·fps)` per animation,
 `int(duration·fps)` for frozen waits), so `seek_time(t)` shows the frame
 Manim would have written at `t`.
 
+**Recording skips to the last frames.** Recording only needs each segment's
+starting state, so a segment with no stop condition and no updater that takes
+`dt` runs just its last 3 frames (`Scene.LAST_FRAMES`) instead of all of them
+(5-10x faster: a 20 s scene no longer freezes the page when a step opens). The
+last frames let a chain of updaters that read each other (a grid that follows a
+matrix that follows `n`, each one frame behind the next) end where
+frame-by-frame recording leaves it. Two things would make a segment end
+differently from the frames the player then shows, and so jump at the next
+segment: a chain of followers 3 or more deep, and an updater without `dt` that
+accumulates per frame (`m.shift(0.01 * RIGHT)`, smoothing `x += (target - x) * 0.2`).
+Write such motion with `dt` (it is then recorded frame by frame) or as a
+function of a ValueTracker. When it was introduced (October 2026), all 414
+visuals and lesson scenes recorded this way matched frame-by-frame recording
+pixel for pixel, except float rounding on 44 (edge anti-aliasing).
+
 **Closures and snapshots.** Snapshots capture mobjects, ValueTrackers,
 animations and the camera. State hidden in JS closures (a counter captured by
 an updater) is not visible to them; call `scene.track(mob)` for extra

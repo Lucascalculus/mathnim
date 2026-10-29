@@ -103,7 +103,8 @@ export const CSS = `
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}}
+/* phones: the strip of every step is too busy there; the step counter and the outline remain */
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-title{font-size:18px}.mn-bar .mn-more{display:none}.mn-bar{gap:8px}.mn-app:not(.mn-game) .mn-steps{display:none}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}

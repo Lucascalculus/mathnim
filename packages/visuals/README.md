@@ -58,7 +58,11 @@ The contract (`src/visual.ts`):
    player's snapshots can seek exactly. Values cached by updaters are stored as
    properties of a mobject (they are snapshotted too), never in closures.
 6. **Deterministic**: seeded data (`linalg/math.ts`: `rng`, `gaussian`,
-   `cloud2`, `cloud3`), no `Math.random`, no time-based updaters.
+   `cloud2`, `cloud3`), no `Math.random`, no time-based updaters. No updater
+   that accumulates per frame without `dt` (`x += (target - x) * 0.2`), and no
+   chain of 3 or more updaters each following the next: recording runs only the
+   last 3 frames of such segments, so the scene would jump between segments
+   (`packages/manim-web/docs/EXTENSIONS.md`, "Recording skips to the last frames").
 7. **Explore** works on the finished scene: handles set trackers
    (`ui.add_handle({ get, set, constraint, step, label })`), sliders are
    `Slider(...).attach(ui)`. Keep every handle's effect inside the frame: the

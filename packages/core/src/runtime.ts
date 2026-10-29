@@ -73,6 +73,11 @@ function mulberry(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+/** After the browser has painted what changed (at once outside a visible browser page: tools, tests, a hidden tab). */
+const painted = (): Promise<void> =>
+  typeof requestAnimationFrame === 'undefined' || typeof document === 'undefined' || document.hidden
+    ? Promise.resolve()
+    : new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 const isClass = (f: SceneSpec): f is new () => Scene => /^class\b/.test(Function.prototype.toString.call(f)) || !!(f as any).prototype?.construct;
 
 export class LessonRuntime {
@@ -220,6 +225,9 @@ export class LessonRuntime {
     this.vars = step.kind === 'checkpoint' && step.params ? { ...this.lesson_vars, ...step.params(this.rng) } : { ...this.lesson_vars };
     const spec = 'scene' in step ? step.scene : undefined;
     if (spec) {
+      // let the page show the new step before building its scene (that blocks the page while it records)
+      await painted();
+      if (my !== this.token) return;
       const player = await this.load_scene(spec);
       if (my !== this.token) return;
       this.player = player;
