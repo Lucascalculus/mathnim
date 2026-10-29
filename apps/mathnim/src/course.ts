@@ -158,7 +158,7 @@ export const MATH_COURSE: Course = {
     {
       id: 'linalg', title: { en: 'Linear algebra (university)', zh: '线性代数（大学）' },
       lessons: [
-        { id: eigenPca.id, title: 'The directions a matrix can’t turn', summary: 'Eigenvectors and eigenvalues from the picture up - hold the matrix in your hands - and why they are exactly what PCA needs.', lesson: eigenPca, minutes: 20, level: 'university, first-year linear algebra', thumb: 'why' },
+        { id: eigenPca.id, title: { en: 'Eigenvectors and eigenvalues', zh: '特征向量与特征值' }, summary: 'Eigenvectors and eigenvalues from the picture up - hold the matrix in your hands - and why they are exactly what PCA needs.', lesson: eigenPca, minutes: 20, level: 'university, first-year linear algebra', thumb: 'why' },
       ],
     },
     {
