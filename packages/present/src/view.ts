@@ -91,6 +91,9 @@ const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): 
 const ICON = { explore: icon('hand', 14), sketch: icon('pencil', 14) };
 /** Playback speeds, in the order a click on the speed steps through them. */
 const RATES = [1, 0.75, 0.5];
+/** Subtitle sizes in CSS px (small, the default, large), kept in this browser for every lesson. */
+const CAPTION_SIZES = [14, 16, 19];
+const CAPTION_KEY = 'mathnim.caption_size';
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 export class LessonView {
@@ -205,7 +208,19 @@ export class LessonView {
     // rarely needed: export sits in a small "⋯" menu instead of on every step
     const more = h('details', 'mn-more', `<summary class="mn-ghost" aria-label="${esc(t('more'))}" title="${esc(t('more'))}">${CORNERS}${icon('dots')}</summary>`);
     const menu = h('div', 'mn-more-menu');
-    menu.append(exp);
+    // the subtitles' size: three A's growing left to right, the one in use marked
+    const capsize = (this.el.capsize = h('div', 'mn-capsize', `<span>${esc(t('subtitles'))}</span>`));
+    capsize.setAttribute('role', 'group');
+    capsize.setAttribute('aria-label', t('subtitle_size'));
+    CAPTION_SIZES.forEach((px, i) => {
+      const b = h('button', 'mn-capsize-b', 'A') as HTMLButtonElement;
+      b.type = 'button';
+      b.style.fontSize = `${12 + i * 3}px`;
+      b.setAttribute('aria-label', t(['size_small', 'size_default', 'size_large'][i]));
+      b.onclick = () => this.set_caption_size(px);
+      capsize.append(b);
+    });
+    menu.append(capsize, exp);
     more.append(menu);
     exp.addEventListener('click', () => ((more as HTMLDetailsElement).open = false));
     bar.append(this.el.play, seek, this.el.time, speed, this.el.voice, more);
@@ -237,7 +252,10 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      left.append(stage, this.el.aside, this.el.caption, this.el.transcript, bar, this.el.page);
+      // the figure and its subtitle in one frame: the subtitle reads as part of the video, in a band under the picture
+      const screen = h('div', 'mn-screen');
+      screen.append(stage, this.el.caption);
+      left.append(screen, this.el.aside, this.el.transcript, bar, this.el.page);
       // the way through the lesson, in one place on every step: a bar at the foot of the screen with (the app's
       // outline button,) the progress, back, and one button that is always the way on (sync_go)
       // laid out by reach: the rare ways (outline, back) at the left, the progress between, the way on alone at the
@@ -276,6 +294,13 @@ export class LessonView {
     this.sketch = new SketchPad(sk, { to_data: (x, y) => [x, y], to_px: (x, y) => [x, y] });
     this.narrator = new Narrator(this.el.caption, { base: o.narration_base, lang: this.lang === 'zh' ? 'zh-CN' : 'en-US' });
     this.narrator.keep_caption = this.game;
+    let size = 16;
+    try {
+      size = Number(localStorage.getItem(CAPTION_KEY)) || 16;
+    } catch {
+      /* no storage */
+    }
+    this.set_caption_size(CAPTION_SIZES.includes(size) ? size : 16, false);
     this.show_voice();
     // on scene steps the panel holds the narration; the phrase being spoken is highlighted
     this.narrator.on_cue = (cues, i) => {
@@ -347,6 +372,18 @@ export class LessonView {
   }
   /** The playback speed (RATES). */
   private rate = 1;
+  /** Subtitles (and the transcript after a scene) at `px` (CAPTION_SIZES); `save` keeps it for every lesson. */
+  private set_caption_size(px: number, save = true): void {
+    this.app.style.setProperty('--mn-caption', `${px}px`);
+    this.el.capsize?.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(CAPTION_SIZES[i] === px)));
+    if (save) {
+      try {
+        localStorage.setItem(CAPTION_KEY, String(px));
+      } catch {
+        /* no storage */
+      }
+    }
+  }
   private shown_playing: boolean | null = null;
   /** The play button shows pause while the scene plays. */
   private show_playing(playing: boolean): void {

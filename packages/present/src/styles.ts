@@ -12,7 +12,7 @@ export const CSS = `
    the stage keeps the column's width and is as tall as the screen allows; the figure stays 16:9, centred in it */
 @media (min-width:901px){
 .mn-app.mn-has-lessonbar:not(.mn-game)>.mn-left{container-type:inline-size}
-.mn-app.mn-has-lessonbar:not(.mn-game) .mn-stage{aspect-ratio:auto;height:min(calc(100cqw * 9 / 16),calc(100vh - 310px));min-height:240px}
+.mn-app.mn-has-lessonbar:not(.mn-game) .mn-stage{aspect-ratio:auto;height:min(calc(100cqw * 9 / 16),calc(100vh - 280px - 2.8 * var(--mn-caption,16px)));min-height:240px}
 .mn-app.mn-has-lessonbar:not(.mn-game) .mn-stage canvas{margin:auto;width:auto;height:100%;aspect-ratio:16/9}
 }
 .mn-app *{box-sizing:border-box}
@@ -26,7 +26,14 @@ export const CSS = `
 .mn-stage canvas:focus-visible{outline:3px solid var(--mn-accent);outline-offset:-3px}
 .mn-sketch{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M17 2l5 5L8 21l-6 1 1-6z' fill='%23fff' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") 2 22,crosshair;touch-action:none}
 /* subtitles sit under the figure, never over it */
-.mn-caption{min-height:46px;margin:-2px 0 -4px;padding:0 8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;line-height:1.4;color:var(--mn-fg);transition:opacity .25s}
+.mn-caption{min-height:46px;margin:-2px 0 -4px;padding:0 8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:var(--mn-caption,16px);line-height:1.4;color:var(--mn-fg);transition:opacity .25s}
+/* ...but inside the video's frame: a band of the picture's own bottom colour (the canvas fades to #F5F5F7), two lines
+   tall so a longer phrase does not move the player below it */
+.mn-screen{border-radius:var(--mn-radius);overflow:hidden;box-shadow:var(--mn-shadow);background:#F5F5F7}
+.mn-screen>.mn-stage{border-radius:0;box-shadow:none}
+.mn-screen>.mn-caption{margin:0;padding:0 28px 10px;min-height:calc(2.8em + 10px);align-items:flex-start}
+.mn-app.mn-dark .mn-screen{background:#0B0D10}
+.mn-nostage .mn-screen{background:none;box-shadow:none;border-radius:0;overflow:visible}
 .mn-caption:empty{opacity:0}
 .mn-caption.offstage{display:none}
 /* a scene ("video") is said by the subtitle under it, near the picture, and nowhere else: the side holds only the way on
@@ -38,7 +45,7 @@ export const CSS = `
 /* what a figure is (a simulation, a toy model, real data and its source): one faint line under it, never in it */
 .mn-aside{font-size:12px;line-height:1.45;color:var(--mn-muted);opacity:.85;padding:0 4px;margin-top:-4px}.mn-aside:empty{display:none}
 .mn-vis .mn-aside{margin:6px 0 0}
-.mn-transcript{display:none;padding:0 8px;font-size:15.5px;line-height:1.6;color:var(--mn-fg)}
+.mn-transcript{display:none;padding:0 8px;font-size:var(--mn-caption,16px);line-height:1.6;color:var(--mn-fg)}
 .mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-transcript{display:block}
 .mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-caption{display:none}
 .mn-cue{transition:color .3s}.mn-cue.next{color:var(--mn-muted)}
@@ -130,7 +137,7 @@ export const CSS = `
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
-@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px;flex-wrap:wrap}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}
+@media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-more-menu .mn-export{display:none}.mn-capsize{border:0;margin:0;padding-bottom:2px}.mn-bar{gap:6px;flex-wrap:wrap}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}
  .mn-lessonbar .mn-where{flex:1;min-width:0;margin:0 4px}.mn-lessonbar .mn-segs{flex:1;width:auto}.mn-lessonbar .mn-where-n{display:none}
  .mn-lessonbar .mn-lb-gap{display:none}.mn-lessonbar .mn-go{min-width:0}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
@@ -386,8 +393,14 @@ export const CSS = `
 .mn-more{position:relative;flex:none}
 .mn-more>summary{list-style:none}
 .mn-more>summary::-webkit-details-marker{display:none}
-.mn-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
+.mn-more-menu{position:absolute;right:0;bottom:calc(100% + 6px);z-index:4;background:var(--mn-panel);border:1px solid var(--mn-border);border-radius:10px;box-shadow:var(--mn-shadow);padding:6px;white-space:nowrap}
 .mn-more-menu .mn-btn{border:0;width:100%;text-align:left}
+.mn-capsize{display:flex;align-items:center;gap:2px;padding:2px 2px 6px 10px;margin-bottom:4px;border-bottom:1px solid var(--mn-border);font-size:14px;color:var(--mn-fg)}
+.mn-capsize>span{flex:1;margin-right:12px}
+.mn-capsize-b{width:32px;height:32px;border:0;border-radius:8px;background:none;color:var(--mn-muted);font:inherit;font-weight:600;line-height:1;cursor:pointer}
+.mn-capsize-b:hover{background:color-mix(in srgb,var(--mn-faint) 60%,transparent);color:var(--mn-fg)}
+.mn-capsize-b[aria-pressed=true]{background:color-mix(in srgb,var(--mn-accent) 12%,transparent);color:var(--mn-accent)}
+.mn-capsize-b:focus-visible{outline:2px solid var(--mn-accent);outline-offset:1px}
 /* "explain this": a quiet button under the step's actions; on phones it floats in the corner */
 .mn-helpbtn{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13.5px;color:var(--mn-muted);background:transparent;border:1px dashed var(--mn-border);border-radius:999px;padding:5px 12px 5px 6px;cursor:pointer}
 .mn-helpbtn:hover,.mn-helpbtn:focus-visible{color:var(--mn-accent);border-color:var(--mn-accent);border-style:solid;outline:none}
