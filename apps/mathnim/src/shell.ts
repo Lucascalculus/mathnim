@@ -47,9 +47,12 @@ body{margin:0;background:#fbfbfa}
 .acct .dots circle{transition:opacity .25s}
 .acct:hover .dots circle:not(.mid),.acct[aria-expanded=true] .dots circle:not(.mid){opacity:.25}
 .acct.me{font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
-.acct-crown{position:absolute;top:3px;left:16px;width:12px;height:10px;transform:rotate(18deg);transform-origin:20% 100%;pointer-events:none}
+/* an admin's crown takes the place of the top-right crop mark: always there, it closes in with the others */
+.acct.admin>i:nth-child(2){display:none}
+.acct-crown{position:absolute;top:-3px;right:-2px;width:13px;height:11px;transform:rotate(18deg);transform-origin:50% 90%;pointer-events:none;transition:top .3s cubic-bezier(.3,1.5,.5,1),right .3s cubic-bezier(.3,1.5,.5,1)}
+.acct:hover .acct-crown,.acct[aria-expanded=true] .acct-crown,.acct:focus-visible .acct-crown{top:0;right:1px}
 .acct-crown svg,.pass-admin svg{display:block;width:100%;height:100%;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 2px rgba(245,180,0,.45))}
-.acct:hover .acct-crown,.acct[aria-expanded=true] .acct-crown{animation:acct-wiggle .9s ease-in-out}
+.acct:hover .acct-crown,.acct[aria-expanded=true] .acct-crown{animation:acct-wiggle .9s ease-in-out .1s}
 @keyframes acct-wiggle{0%,100%{transform:rotate(18deg)}20%{transform:rotate(-4deg) scale(1.15)}45%{transform:rotate(26deg) scale(1.1)}70%{transform:rotate(12deg)}}
 .pass-admin{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:#B7791F;letter-spacing:.14em}
 .pass-admin svg{width:12px;height:10px}
@@ -375,7 +378,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const acct = !accounts_available()
       ? ''
       : me
-        ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}${me.admin ? `<span class="acct-crown" aria-hidden="true">${CROWN}</span>` : ''}</button>`
+        ? `<button type="button" class="nav-ic acct me${me.admin ? ' admin' : ''}" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}${me.admin ? `<span class="acct-crown" aria-hidden="true">${CROWN}</span>` : ''}</button>`
         : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
       <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;

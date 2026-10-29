@@ -177,9 +177,9 @@ define_ui({
   saved: { en: 'Saved.', zh: '已保存。' },
   // ---- account (login.ts, the settings panel)
   account: { en: 'Account', zh: '账号' },
-  account_help: { en: 'Your progress and the courses you make follow you to other devices', zh: '登录后，进度和你生成的课程会跟着你到其它设备' },
+  account_help: { en: 'Pick up where you left off, on any device.', zh: '登录后，在任何设备上接着学。' },
   admitted: { en: 'ADMITTED', zh: '已登记' },
-  account_help_progress: { en: 'Your progress follows you to other devices', zh: '登录后，学习进度会跟着你到其它设备' },
+  account_help_progress: { en: 'Pick up where you left off, on any device.', zh: '登录后，在任何设备上接着学。' },
   email: { en: 'Email', zh: '邮箱' },
   send_code: { en: 'Send code', zh: '发送验证码' },
   code_sent: { en: 'Code sent to {email}', zh: '验证码已发到 {email}' },
