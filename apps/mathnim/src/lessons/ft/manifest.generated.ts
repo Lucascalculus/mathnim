@@ -160,8 +160,8 @@ export const MANIFEST: CourseManifest = {
   {
    "id": "ft-c",
    "title": {
-    "en": "C · Making it fit: memory, LoRA, QLoRA",
-    "zh": "C · 装得下：显存、LoRA、QLoRA"
+    "en": "C · Efficient: LoRA, QLoRA",
+    "zh": "C · 高效：LoRA、QLoRA"
    },
    "lessons": [
     {
