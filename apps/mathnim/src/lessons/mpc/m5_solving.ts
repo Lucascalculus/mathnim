@@ -153,8 +153,8 @@ export const lesson: Lesson = {
       id: 'paths', kind: 'scene', chapter: t('Three ways to the optimum', '通往最优解的三条路'), title: t('Same point, three walks', '同一个点，三种走法'),
       scene: vis('mpc_solver_paths'),
       narration: t(
-        'This is M4’s plan plane, with the cart at rest at seven metres, three metres from the wall. The best plan is the corner where both motor limits meet. The active-set method guesses which limits hold: none, then the first motor limit, then both. Two changes, and it lands exactly on the corner. The interior-point method starts inside the polygon and takes Newton steps along a curve that never leaves it; each step builds and factors a new matrix. ADMM, the method inside OSQP, takes many small steps. Each one reuses the same matrix, so it is cheap, but it only gets close, to a tolerance.',
-        '这是 M4 的计划平面，小车静止停在 7 米处，离墙 3 米。最好的计划在两条电机限制相交的角上。有效集法猜哪些限制要守住：先一个都不守，再守住第一条电机限制，然后两条都守住。改了两次，正好落在角上。内点法从多边形内部出发，沿着一条始终不出多边形的曲线走牛顿步；每一步都要构造并分解一个新矩阵。ADMM，也就是 OSQP 里用的方法，走很多小步。每一步都重用同一个矩阵，所以很便宜，但它只会走到足够近，也就是容差以内。'),
+        'This is M4’s plan plane, with the cart at rest at seven metres, three metres from the wall. § The best plan is the corner where both motor limits meet. § The active-set method guesses which limits hold: none, then the first motor limit, then both. Two changes, and it lands exactly on the corner. § The interior-point method starts inside the polygon and takes Newton steps along a curve that never leaves it; each step builds and factors a new matrix. § ADMM, the method inside OSQP, takes many small steps. Each one reuses the same matrix, so it is cheap, but it only gets close, to a tolerance.',
+        '这是 M4 的计划平面，小车静止停在 7 米处，离墙 3 米。§最好的计划在两条电机限制相交的角上。§有效集法猜哪些限制要守住：先一个都不守，再守住第一条电机限制，然后两条都守住。改了两次，正好落在角上。§内点法从多边形内部出发，沿着一条始终不出多边形的曲线走牛顿步；每一步都要构造并分解一个新矩阵。§ADMM，也就是 OSQP 里用的方法，走很多小步。每一步都重用同一个矩阵，所以很便宜，但它只会走到足够近，也就是容差以内。'),
     },
     {
       id: 'families', kind: 'read', title: t('What each family pays for', '每一类方法花的是什么'),

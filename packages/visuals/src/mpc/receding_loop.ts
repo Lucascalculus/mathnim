@@ -129,6 +129,7 @@ export const mpc_receding_loop = define_visual<RecedingLoopParams>({
         // ---- the story
         this.play(FadeIn(track.group), FadeIn(cart), FadeIn(plot.group), FadeIn(wall_band), FadeIn(note), FadeIn(clock), { run_time: 1.2 });
         this.add(now_line);
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(strip.group), FadeIn(window), { run_time: 0.9 });
         this.play(Create(plan), FadeIn(dots), FadeIn(legend), { run_time: 1.3 });
         this.add(past);
@@ -144,14 +145,17 @@ export const mpc_receding_loop = define_visual<RecedingLoopParams>({
           const k0 = kf.get_value();
           this.play(UpdateFromAlphaFunc(kf, (_m: unknown, a?: number) => kf.set_value(k0 + (to - k0) * (a ?? 1)), { run_time, rate_func: linear }));
         };
+        this.next_section();
         loop(3);
         // fast-forward until the far end of the window starts to see the braking it will need
         const brake_seen = Math.max(4, Math.min(end_k - 6, (run.brake_k >= 0 ? run.brake_k : end_k) - N + 1));
+        this.next_section();
         forward(brake_seen, 3.5);
+        this.next_section();
         loop(3);
-        forward(end_k, 4.5);
+        forward(end_k, 3);
         this.add(outcome);
-        this.wait(1.8);
+        this.wait(1);
       }
     }
     return new RecedingLoop();

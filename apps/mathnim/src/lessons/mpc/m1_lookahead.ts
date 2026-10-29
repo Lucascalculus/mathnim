@@ -114,8 +114,8 @@ export const lesson: Lesson = {
     {
       id: 'loop', kind: 'scene', title: t('Plan, apply the first, re-plan', '做计划，走一步，再做计划'), scene: vis('mpc_receding_loop', { N: 20 }),
       narration: t(
-        'At every instant the controller plans twenty steps, two seconds ahead: the dashed curve is where it predicts the cart will be, the strip below holds the twenty accelerations it chose. It applies only the first one. The cart moves a tenth of a second, the window slides forward by one step, and it plans again from where the cart really is. Watch the strip: the braking first appears at the far end of the window, the moment the stop fits inside it, and then moves closer, step by step, until it is the step being applied.',
-        '每一个时刻，控制器都往前规划二十步，也就是两秒：虚线是它预测小车会到的位置，下面这一条格子是它选出的二十个加速度。它只执行第一个。小车走了十分之一秒，窗口往前滑一步，它再从小车实际所在的位置重新规划。盯着这条格子看：刹车最先出现在窗口的最远端，就在整段刹停刚好装进窗口的那一刻；然后一步一步往前挪，直到变成正在执行的那一步。'),
+        'At every instant the controller plans twenty steps, two seconds ahead: § the dashed curve is where it predicts the cart will be, the strip below holds the twenty accelerations it chose. § It applies only the first one. The cart moves a tenth of a second, the window slides forward by one step, and it plans again from where the cart really is. § Watch the strip: the braking first appears at the far end of the window, the moment the stop fits inside it, § and then moves closer, step by step, until it is the step being applied.',
+        '每一个时刻，控制器都往前规划二十步，也就是两秒：§虚线是它预测小车会到的位置，下面这一条格子是它选出的二十个加速度。§它只执行第一个。小车走了十分之一秒，窗口往前滑一步，它再从小车实际所在的位置重新规划。§盯着这条格子看：刹车最先出现在窗口的最远端，就在整段刹停刚好装进窗口的那一刻；§然后一步一步往前挪，直到变成正在执行的那一步。'),
     },
     // ------------------------------------------------------------------ the optimisation
     {
@@ -167,8 +167,8 @@ export const lesson: Lesson = {
     {
       id: 'push', kind: 'scene', title: t('A push the model did not expect', '模型没料到的一推'), scene: vis('mpc_replan_push'),
       narration: t(
-        'At one second, something pushes the cart: its speed jumps by 0.3 metres per second, and nothing in the model said that would happen. The grey dashed curve is the plan made at time zero. Executed blindly, step after step, it never learns about the push, and the cart hits the wall at almost two metres per second. The blue controller re-plans every tenth of a second from the measured state. It sees the extra speed at once, starts braking earlier, and docks at seven seconds. Applying only the first step is what turns a plan into feedback.',
-        '第一秒时，有什么东西推了小车一下：速度一下子多了每秒 0.3 米，而模型里没有任何东西预料到这一点。灰色虚线是零时刻做的计划。闭着眼睛一步一步照着执行，它永远不知道被推过，小车以接近每秒两米的速度撞上了墙。蓝色的控制器每十分之一秒都从测得的状态重新规划。它马上看到多出来的速度，提早开始刹车，七秒时停稳。只执行第一步，正是这一点把计划变成了反馈。'),
+        'At one second, something pushes the cart: its speed jumps by 0.3 metres per second, and nothing in the model said that would happen. § The grey dashed curve is the plan made at time zero. § Executed blindly, step after step, it never learns about the push, and the cart hits the wall at almost two metres per second. § The blue controller re-plans every tenth of a second from the measured state. It sees the extra speed at once, starts braking earlier, and docks at seven seconds. Applying only the first step is what turns a plan into feedback.',
+        '第一秒时，有什么东西推了小车一下：速度一下子多了每秒 0.3 米，而模型里没有任何东西预料到这一点。§灰色虚线是零时刻做的计划。§闭着眼睛一步一步照着执行，它永远不知道被推过，小车以接近每秒两米的速度撞上了墙。§蓝色的控制器每十分之一秒都从测得的状态重新规划。它马上看到多出来的速度，提早开始刹车，七秒时停稳。只执行第一步，正是这一点把计划变成了反馈。'),
     },
     // ------------------------------------------------------------------ how far ahead
     {

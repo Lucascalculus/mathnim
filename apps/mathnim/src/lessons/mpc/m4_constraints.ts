@@ -126,8 +126,8 @@ export const lesson: Lesson = {
     {
       id: 'qp-scene', kind: 'scene', title: t('The smallest ellipse that touches', '刚好碰到的最小椭圆'), scene: vis('mpc_qp_plane'),
       narration: t(
-        'Each point is a whole plan: a-one for the first second, a-two for the second. The cross is the plan without limits; each ellipse joins plans of equal cost. The motor limit cuts the plane to a square. Grow an ellipse from the cross until it touches: that point is the best plan, and the line it touches is the active limit. Add speed and wall, then move the cart. The lines slide, and the best plan slides along the edges. Fast and close to the wall, no plan is left.',
-        '每个点都是一整份计划：第一秒推 a1，第二秒推 a2。叉号是不管限制时的最优计划，同一个椭圆上代价相同。电机上限把平面切成正方形。椭圆从叉号长大，第一次碰到边界的那一点就是最好的计划，碰到的那条线就是起作用的约束。再加上限速和墙，然后移动小车：约束线平移，最优点沿着边滑动。又快又近时，一个计划都不剩。'),
+        'Each point is a whole plan: a-one for the first second, a-two for the second. § The cross is the plan without limits; each ellipse joins plans of equal cost. § The motor limit cuts the plane to a square. § Grow an ellipse from the cross until it touches: that point is the best plan, and the line it touches is the active limit. § Add speed and wall, then move the cart. The lines slide, and the best plan slides along the edges. § Fast and close to the wall, no plan is left.',
+        '每个点都是一整份计划：第一秒推 a1，第二秒推 a2。§叉号是不管限制时的最优计划，同一个椭圆上代价相同。§电机上限把平面切成正方形。§椭圆从叉号长大，第一次碰到边界的那一点就是最好的计划，碰到的那条线就是起作用的约束。§再加上限速和墙，然后移动小车：约束线平移，最优点沿着边滑动。§又快又近时，一个计划都不剩。'),
     },
     {
       id: 'kkt', kind: 'derive', skill: 'kkt-multipliers', title: t('Why the touching point is the best', '为什么"相切"的那一点最好'),

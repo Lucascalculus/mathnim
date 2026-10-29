@@ -246,10 +246,13 @@ export const mpc_weights = define_visual<WeightsParams>({
             const l0 = Math.log10(r.get_value()), l1 = Math.log10(to);
             this.play(UpdateFromAlphaFunc(r, (_m: unknown, a?: number) => r.set_value(10 ** (l0 + (l1 - l0) * (a ?? 1))), { run_time, rate_func: smooth }));
           };
+          this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
           sweep(100, 6);
           this.wait(1.5);
+          this.next_section();
           sweep(0.01, 4);
           this.wait(1);
+          this.next_section();
           sweep(r_end, 1.5);
           this.wait(1.5);
         }

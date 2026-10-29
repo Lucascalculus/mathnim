@@ -110,8 +110,8 @@ export const lesson: Lesson = {
     {
       id: 'trap-scene', kind: 'scene', title: t('The trap', '陷阱'), scene: vis('mpc_terminal_world', { story: 'trap', N: 5, mode: 'none' }),
       narration: t(
-        'Each dot is the cart’s state, position across and speed up, one every tenth of a second. Right of the coral curve, a crash is certain: even full brakes need more room than is left. The cart crosses that curve at five point one seconds, but its short plans still find a way to stay off the wall inside their half-second window. That dark strip is the trap: the problem still has a solution, the crash is already certain. Half a second later the solver finally gives up, and the cart hits the wall.',
-        '每个点是小车某一刻的状态：横轴是位置，纵轴是速度，每 0.1 秒一个。珊瑚色曲线右边，撞墙已成定局：就算全力刹车，需要的距离也比剩下的多。小车在 5.1 秒越过了这条线，可它的短计划在半秒的窗口里，仍然找得到不碰墙的走法。那条深色的窄带就是陷阱：问题还有解，撞墙却已经注定。又过了半秒，求解器才终于放弃，小车撞上了墙。'),
+        'Each dot is the cart’s state, position across and speed up, one every tenth of a second. § Right of the coral curve, a crash is certain: even full brakes need more room than is left. § The cart crosses that curve at five point one seconds, but its short plans still find a way to stay off the wall inside their half-second window. § That dark strip is the trap: the problem still has a solution, the crash is already certain. § Half a second later the solver finally gives up, and the cart hits the wall.',
+        '每个点是小车某一刻的状态：横轴是位置，纵轴是速度，每 0.1 秒一个。§珊瑚色曲线右边，撞墙已成定局：就算全力刹车，需要的距离也比剩下的多。§小车在 5.1 秒越过了这条线，可它的短计划在半秒的窗口里，仍然找得到不碰墙的走法。§那条深色的窄带就是陷阱：问题还有解，撞墙却已经注定。§又过了半秒，求解器才终于放弃，小车撞上了墙。'),
     },
     {
       id: 'trap', kind: 'derive', title: t('When does a trap exist?', '陷阱什么时候存在？'), skill: 'trap',

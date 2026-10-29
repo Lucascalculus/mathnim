@@ -65,10 +65,13 @@ export const mpc_replan_push = define_visual<ReplanPushParams>({
         const note = aside(this, words(L('simulation of a toy cart: |a| up to 1 m/s², |v| up to 2 m/s; the push is not in the model', '玩具小车的模拟：|a| 不超过 1 m/s²，|v| 不超过 2 m/s；模型里没有这一推'), 20, c.muted, -6.9, 3.6, { max_w: 13.8 }));
         note.name = 'note';
         this.play(FadeIn(plot.group), FadeIn(wall_band), FadeIn(note), { run_time: 1 });
-        this.play(Create(plan0), FadeIn(b0), { run_time: 1.6 });
         this.play(FadeIn(push), { run_time: 0.6 });
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
+        this.play(Create(plan0), FadeIn(b0), { run_time: 1.6 });
+        this.next_section();
         this.play(Create(blind), FadeIn(b1), { run_time: 1.6 });
         this.add(ends.submobjects[0]);
+        this.next_section();
         this.play(Create(replan), FadeIn(b2), { run_time: 1.6 });
         this.add(ends, legend);
         this.wait(1.8);

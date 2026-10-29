@@ -139,8 +139,8 @@ export const lesson: Lesson = {
     {
       id: 'early-late', kind: 'scene', title: t('Same total, different timing', '总量相同，时机不同'), scene: vis('mpc_bars', { story: 'early_late' }),
       narration: t(
-        'Ten bars, ten planned accelerations, each held for a tenth of a second. Below them, the predicted speed and position. Dashed is coasting: the cart would end twenty centimetres inside the wall. Brake hard on the first five bars. The speed falls to zero, and the cart stops seventeen and a half centimetres short. Now move the same braking to the last five bars. The final speed is zero again, because speed only adds up the bars. But the cart first coasted at full speed for half a second, so it ends seven and a half centimetres past the wall. Same total, different timing, different position. The grey numbers under the bars say by how much.',
-        '十根柱子，就是十个计划好的加速度，每个保持十分之一秒。下面是预测的速度和位置。虚线是一直滑行：小车最后会冲进墙里二十厘米。在前五根柱子上用力刹车。速度降到零，小车在离墙十七点五厘米的地方停下。现在把同样的刹车挪到后五根柱子。最后的速度还是零，因为速度只是把柱子加起来。可小车先全速滑行了半秒，所以最后停在墙后七点五厘米。总量相同，时机不同，位置就不同。柱子下面的灰色数字，说的就是差多少。'),
+        'Ten bars, ten planned accelerations, each held for a tenth of a second. Below them, the predicted speed and position. Dashed is coasting: the cart would end twenty centimetres inside the wall. § Brake hard on the first five bars. The speed falls to zero, and the cart stops seventeen and a half centimetres short. § Now move the same braking to the last five bars. The final speed is zero again, because speed only adds up the bars. § But the cart first coasted at full speed for half a second, so it ends seven and a half centimetres past the wall. Same total, different timing, different position. The grey numbers under the bars say by how much.',
+        '十根柱子，就是十个计划好的加速度，每个保持十分之一秒。下面是预测的速度和位置。虚线是一直滑行：小车最后会冲进墙里二十厘米。§在前五根柱子上用力刹车。速度降到零，小车在离墙十七点五厘米的地方停下。§现在把同样的刹车挪到后五根柱子。最后的速度还是零，因为速度只是把柱子加起来。§可小车先全速滑行了半秒，所以最后停在墙后七点五厘米。总量相同，时机不同，位置就不同。柱子下面的灰色数字，说的就是差多少。'),
     },
     {
       id: 'dock-world', kind: 'explore', title: t('Plan the stop yourself', '自己规划这次停车'), skill: 'input-timing',

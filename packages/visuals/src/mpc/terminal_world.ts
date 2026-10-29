@@ -305,16 +305,20 @@ export const mpc_terminal_world = define_visual<TerminalWorldParams>({
         if (p.story === 'trap') {
           const r = R();
           const stop = r.trap_k >= 0 ? r.trap_k : r.doomed_k >= 0 ? r.doomed_k : r.x.length - 1;
+          this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
           this.play(FadeIn(legend.submobjects[0]), FadeIn(legend.submobjects[2]), { run_time: 0.8 });
+          this.next_section();
           this.play(tween(stop, 4.5));
+          this.next_section();
           this.play(FadeIn(trap), FadeIn(legend.submobjects[3]), { run_time: 1 });
           this.wait(3);
+          this.next_section();
           this.play(FadeIn(legend.submobjects[1]), FadeIn(legend.submobjects[5]), tween(r.x.length - 1, 2.5));
-          this.wait(2.5);
+          this.wait(1);
           this.play(FadeIn(legend.submobjects[4]), Create(plan_line), { run_time: 1.2 });
           this.play(FadeIn(legend.submobjects[6]), tween(1e4, 0.1));
           this.add(legend);
-          this.wait(6);
+          this.wait(2);
         } else {
           this.play(FadeIn(trap), FadeIn(legend), { run_time: 0.8 });
           this.wait(1);

@@ -503,28 +503,33 @@ export const mpc_qp_plane = define_visual<QpPlaneParams>({
           // the bowl: its centre (the no-limits plan) and its contours
           this.add(P.poly);
           fresh(P.center_word);
+          this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
           this.play(FadeIn(P.center), FadeIn(P.center_word), Create(P.contours), { run_time: 1.8 });
           this.wait(1.2);
           // the limits, one family at a time: the polygon is what is left
           this.add(P.limit_lines);
+          this.next_section();
           this.play(fam.animate.set_value(1), FadeIn(legend_bg), FadeIn(legend.submobjects[0]), { run_time: 1.2 });
           this.wait(0.8);
           // the best plan: grow an ellipse from the centre until it touches the polygon
           this.add(P.best_contour, P.best);
+          this.next_section();
           this.play(grow.animate.set_value(1), { run_time: 2.2, rate_func: smooth });
           fresh(a1n, a2n, active, dots);
           this.play(FadeIn(readout), FadeIn(best_word), FadeIn(act_word), FadeIn(active), FadeIn(dots), FadeIn(plan_word), { run_time: 0.8 });
           this.wait(1);
-          this.play(fam.animate.set_value(2), FadeIn(legend.submobjects[1]), { run_time: 1 });
-          this.play(fam.animate.set_value(3), FadeIn(legend.submobjects[2]), { run_time: 1 });
+          this.next_section();
+          this.play(fam.animate.set_value(2), FadeIn(legend.submobjects[1]), { run_time: 0.8 });
+          this.play(fam.animate.set_value(3), FadeIn(legend.submobjects[2]), { run_time: 0.8 });
           this.add(P.clip_contour, P.clip_mark, none_hint, dots_bad, P.none_word);
-          if (p.clip) this.play(FadeIn(clip_key), { run_time: 0.6 });
-          this.wait(1.2);
+          if (p.clip) this.play(FadeIn(clip_key), { run_time: 0.5 });
+          this.wait(0.1);
           // move the state: the lines slide, the centre follows, the ellipses keep their shape
-          this.play(p0.animate.set_value(6.4), v0.animate.set_value(1.5), { run_time: 3, rate_func: smooth });
-          this.wait(1.2);
-          this.play(p0.animate.set_value(7.1), v0.animate.set_value(1.9), { run_time: 2.2, rate_func: smooth });
-          this.wait(1.4);
+          this.play(p0.animate.set_value(6.4), v0.animate.set_value(1.5), { run_time: 1.6, rate_func: smooth });
+          this.wait(0.4);
+          this.play(p0.animate.set_value(7.1), v0.animate.set_value(1.9), { run_time: 1.6, rate_func: smooth });
+          this.wait(0.4);
+          this.next_section();
           this.play(p0.animate.set_value(9.3), v0.animate.set_value(1.8), { run_time: 2.4, rate_func: smooth });
           this.wait(1.6);
           this.play(p0.animate.set_value(p.p0), v0.animate.set_value(p.v0), { run_time: 2, rate_func: smooth });

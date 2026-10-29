@@ -100,8 +100,8 @@ export const lesson: Lesson = {
     {
       id: 'r-sweep', kind: 'scene', title: t('Changing only the price of effort', '只改用力的价格'), scene: vis('mpc_weights', { story: 'sweep_r', briefs: false }),
       narration: t(
-        'The cart runs to the flag with cheap effort: one big push, a quick arrival, and a small overshoot, about a quarter of a metre. Now the price of effort rises a thousandfold. The push shrinks, the trip stretches out, but look at the overshoot label: it stays near twenty-five centimetres. Then effort gets cheap: the pushes are huge, the trip is short, and the overshoot is still the same. The price of effort sets the pace, not the shape.',
-        '先看用力便宜的时候：猛推一下，很快到达，冲过旗子一点点，大约四分之一米。现在把用力的价格提高一千倍。推力变小了，路程拉长了，但请盯住超调的标注：它一直在二十五厘米左右。再把用力变得很便宜：推力大得惊人，路程很短，超调还是一样。用力的价格决定的是快慢，不是形状。'),
+        'The cart runs to the flag with cheap effort: one big push, a quick arrival, and a small overshoot, about a quarter of a metre. § Now the price of effort rises a thousandfold. The push shrinks, the trip stretches out, but look at the overshoot label: it stays near twenty-five centimetres. § Then effort gets cheap: the pushes are huge, the trip is short, and the overshoot is still the same. § The price of effort sets the pace, not the shape.',
+        '先看用力便宜的时候：猛推一下，很快到达，冲过旗子一点点，大约四分之一米。§现在把用力的价格提高一千倍。推力变小了，路程拉长了，但请盯住超调的标注：它一直在二十五厘米左右。§再把用力变得很便宜：推力大得惊人，路程很短，超调还是一样。§用力的价格决定的是快慢，不是形状。'),
     },
     {
       id: 'gentle-predict', kind: 'checkpoint', title: t('Guess first', '先猜一猜'), skill: 'weights-tradeoff', purpose: 'predict',
@@ -221,8 +221,8 @@ export const lesson: Lesson = {
     {
       id: 'gain-horizon', kind: 'scene', title: t('The gain against the horizon', '增益随时域的变化'), scene: vis('mpc_gain_horizon'),
       narration: t(
-        'Each point is the gain of an MPC without limits, as the horizon grows. With the terminal weight equal to Q, the blue curves start small: a short plan does not see far enough to bother. They climb with N and settle on the black line, the gain of an endless horizon, called LQR. Now the green dots: the same MPC, but its terminal weight is the true cost of everything after the window. They sit on the black line for every horizon, even a single step.',
-        '每个点都是一个没有约束的 MPC 的增益，时域一点点变长。终端权重等于 Q 时，蓝色曲线一开始很小：短计划看得不够远，懒得用力。随着 N 变大，它们往上爬，最后停在黑线上，那是时域无限长时的增益，叫 LQR。再看绿色的点：同样的 MPC，只是终端权重换成了窗口之后所有代价的真实值。不管时域多长，哪怕只有一步，它们都正好落在黑线上。'),
+        'Each point is the gain of an MPC without limits, as the horizon grows. § With the terminal weight equal to Q, the blue curves start small: a short plan does not see far enough to bother. They climb with N and § settle on the black line, the gain of an endless horizon, called LQR. § Now the green dots: the same MPC, but its terminal weight is the true cost of everything after the window. They sit on the black line for every horizon, even a single step.',
+        '每个点都是一个没有约束的 MPC 的增益，时域一点点变长。§终端权重等于 Q 时，蓝色曲线一开始很小：短计划看得不够远，懒得用力。随着 N 变大，它们往上爬，§最后停在黑线上，那是时域无限长时的增益，叫 LQR。§再看绿色的点：同样的 MPC，只是终端权重换成了窗口之后所有代价的真实值。不管时域多长，哪怕只有一步，它们都正好落在黑线上。'),
     },
     {
       id: 'riccati', kind: 'derive', title: t('Solving backwards: Riccati', '倒着解：Riccati 递推'), skill: 'riccati-lqr',

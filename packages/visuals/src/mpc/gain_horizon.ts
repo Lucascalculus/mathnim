@@ -87,8 +87,11 @@ export const mpc_gain_horizon = define_visual<GainHorizonParams>({
         );
         legend.name = 'legend';
         this.play(FadeIn(title), FadeIn(note), FadeIn(left.plot.group), FadeIn(right.plot.group), { run_time: 1.2 });
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(legend.submobjects[0]), Create(left.pq), Create(right.pq), { run_time: 2.2 });
+        this.next_section();
         this.play(FadeIn(lqr_lines), { run_time: 0.8 });
+        this.next_section();
         this.play(FadeIn(legend.submobjects[1]), FadeIn(left.pinf), FadeIn(right.pinf), { run_time: 1.6 });
         this.add(title, note, left.plot.group, right.plot.group, pq, pinf, lqr_lines, legend);
         this.wait(2.5);

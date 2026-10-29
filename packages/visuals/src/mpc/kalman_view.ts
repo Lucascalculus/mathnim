@@ -163,13 +163,17 @@ export const mpc_kalman = define_visual<KalmanViewParams>({
         t_est.set_value(0);
         this.play(FadeIn(note), FadeIn(v_legend), FadeIn(vp.group), FadeIn(p_legend), FadeIn(pp.group), FadeIn(zero), FadeIn(steps), { run_time: 1.2 });
         this.add(v_true, v_diff, p_meas);
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(UpdateFromAlphaFunc(t_meas, (_m: unknown, a?: number) => t_meas.set_value((a ?? 1) * T_END), { run_time: 4, rate_func: linear }));
         this.wait(0.8);
         this.add(v_est, p_est);
+        this.next_section();
         this.play(UpdateFromAlphaFunc(t_est, (_m: unknown, a?: number) => t_est.set_value((a ?? 1) * T_END), { run_time: 3.5, rate_func: linear }));
         this.play(FadeIn(scores), { run_time: 0.6 });
+        this.next_section();
         this.play(FadeIn(bells), { run_time: 1 });
         this.wait(0.6);
+        this.next_section();
         this.play(Create(b_est), FadeIn(mu_line), FadeIn(w_est), { run_time: 1.2 });
         this.play(FadeIn(gain), { run_time: 0.8 });
         this.wait(2);

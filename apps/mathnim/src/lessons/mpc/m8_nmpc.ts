@@ -151,8 +151,8 @@ export const lesson: Lesson = {
       id: 'shooting-scene', kind: 'scene', chapter: t('Shooting', '打靶法'), title: t('Two ways to give the solver the trajectory', '把轨迹交给求解器的两种方式'),
       scene: vis('mpc_shooting', { iters: 3 }),
       narration: t(
-        'One horizon of the car entering the first bend, solved from scratch in two ways. On the left, single shooting: the only unknowns are the twenty-five inputs, and the path comes from simulating them, so it is always one unbroken line. It starts as straight ahead and bends towards the green reference points, iteration by iteration. On the right, multiple shooting: the start of every piece is an unknown too. Each piece is simulated on its own, and at first they do not join: the coral gaps are the dynamics not yet satisfied. One iteration nearly closes them. Watch the end: both methods arrive at the same plan.',
-        '这是车进入第一个弯时的一个预测时域，用两种方法从头求解。左边是单次打靶：未知量只有 25 个输入，轨迹靠把它们一路仿真出来，所以永远是一条连续的线。它从"直行"出发，一次迭代一次迭代地弯向绿色的参考点。右边是多重打靶：每一段的起点也是未知量。每一段单独仿真，一开始段与段之间接不上：珊瑚色的缺口就是还没满足的动力学约束。一次迭代几乎就把缺口合上了。看最后：两种方法得到的是同一个计划。'),
+        'One horizon of the car entering the first bend, solved from scratch in two ways. § On the left, single shooting: the only unknowns are the twenty-five inputs, and the path comes from simulating them, so it is always one unbroken line. It starts as straight ahead and bends towards the green reference points, iteration by iteration. § On the right, multiple shooting: the start of every piece is an unknown too. Each piece is simulated on its own, and at first they do not join: the coral gaps are the dynamics not yet satisfied. § One iteration nearly closes them. § Watch the end: both methods arrive at the same plan.',
+        '这是车进入第一个弯时的一个预测时域，用两种方法从头求解。§左边是单次打靶：未知量只有 25 个输入，轨迹靠把它们一路仿真出来，所以永远是一条连续的线。它从"直行"出发，一次迭代一次迭代地弯向绿色的参考点。§右边是多重打靶：每一段的起点也是未知量。每一段单独仿真，一开始段与段之间接不上：珊瑚色的缺口就是还没满足的动力学约束。§一次迭代几乎就把缺口合上了。§看最后：两种方法得到的是同一个计划。'),
     },
     {
       id: 'shooting-read', kind: 'read', title: t('Single or multiple shooting?', '单次打靶还是多重打靶？'),

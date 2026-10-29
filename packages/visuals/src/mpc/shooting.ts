@@ -156,11 +156,15 @@ export const mpc_shooting = define_visual<ShootingParams>({
         legend.name = 'legend';
 
         this.play(FadeIn(note), FadeIn(titles), FadeIn(roads), FadeIn(refs), FadeIn(legend), { run_time: 1.2 });
-        this.play(FadeIn(single_curve), FadeIn(ms_pieces), FadeIn(ms_nodes), FadeIn(gaps), FadeIn(single_read), FadeIn(multi_read), FadeIn(iter_label), { run_time: 1 });
-        this.wait(3);
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
+        this.play(FadeIn(single_curve), FadeIn(single_read), FadeIn(iter_label), { run_time: 1 });
+        this.next_section();
+        this.play(FadeIn(ms_pieces), FadeIn(ms_nodes), FadeIn(gaps), FadeIn(multi_read), { run_time: 1 });
+        this.wait(1);
         for (let i = 0; i < n_it; i++) {
+          if (i < 2) this.next_section(); // (the first iteration, then the rest: the narration's last two beats)
           this.play(UpdateFromAlphaFunc(it, (_m: unknown, a?: number) => it.set_value(i + (a ?? 1)), { run_time: 1.6, rate_func: linear }));
-          this.wait(i === 0 ? 3.5 : 2.5);
+          this.wait(i === 0 ? 0.8 : 1);
         }
         this.wait(1);
       }

@@ -91,18 +91,23 @@ export const mpc_tube = define_visual<TubeViewParams>({
         }
         law.name = 'law';
         this.play(FadeIn(note), FadeIn(a.frame), { run_time: 1 });
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(Create(a.nom), { run_time: 0.8 });
         this.play(Create(a.runs), { run_time: 2 });
         this.play(FadeIn(a.res), { run_time: 0.5 });
         this.wait(1);
+        this.next_section();
         this.play(FadeIn(b.frame), FadeIn(law), { run_time: 0.9 });
         this.play(Create(b.nom), { run_time: 0.6 });
         this.play(Create(b.runs), { run_time: 2 });
+        this.next_section();
         this.play(FadeIn(b.res), { run_time: 0.5 });
         this.wait(1.2);
+        this.next_section();
         this.play(FadeIn(d.frame), { run_time: 0.9 });
         this.play(Create(d.nom), { run_time: 0.6 });
         this.play(Create(d.runs), { run_time: 2 });
+        this.next_section();
         this.play(FadeIn(d.res), { run_time: 0.5 });
         this.wait(2);
         this.add(open, feedback, tight, law);

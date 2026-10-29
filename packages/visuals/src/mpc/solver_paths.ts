@@ -141,10 +141,12 @@ export const mpc_solver_paths = define_visual<SolverPathsParams>({
         this.add(P.poly);
         this.play(FadeIn(plane.group), FadeIn(state), Create(P.contours), FadeIn(P.limit_lines), FadeIn(P.center), FadeIn(center_word), { run_time: 1.6 });
         this.wait(0.8);
+        this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(best), FadeIn(best_word), { run_time: 0.8 });
         this.wait(1.2);
         // active set: the start (no limit held = the no-limits plan), then one change at a time
         this.add(g_active);
+        this.next_section();
         this.play(FadeIn(rows.submobjects[0]), { run_time: 0.6 });
         this.play(n_active.animate.set_value(1), { run_time: 0.4 });
         this.wait(1.2);
@@ -154,6 +156,7 @@ export const mpc_solver_paths = define_visual<SolverPathsParams>({
         }
         // interior point
         this.add(g_ip);
+        this.next_section();
         this.play(FadeIn(rows.submobjects[1]), { run_time: 0.6 });
         this.play(n_ip.animate.set_value(1), { run_time: 0.4 });
         this.wait(1);
@@ -161,6 +164,7 @@ export const mpc_solver_paths = define_visual<SolverPathsParams>({
         this.wait(1.5);
         // ADMM
         this.add(g_admm);
+        this.next_section();
         this.play(FadeIn(rows.submobjects[2]), { run_time: 0.6 });
         this.play(n_admm.animate.set_value(1), { run_time: 0.4 });
         this.wait(0.8);

@@ -202,6 +202,7 @@ export const mpc_bars = define_visual<BarsParams>({
             this.set_plan(to);
           };
           this.wait(1);
+          this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
           morph(PLANS.early, 2);
           this.wait(2.5);
           // keep the early run as a faint copy, then move the same braking late
@@ -212,9 +213,11 @@ export const mpc_bars = define_visual<BarsParams>({
             pp.note(L('early', '早踩'), 10.08, e.p[N] - 0.02, c.accent, 20, 'left'),
           );
           early_copy.name = 'early_copy';
+          this.next_section();
           this.play(FadeIn(early_copy), { run_time: 0.6 });
           morph(PLANS.late, 2.5);
           this.wait(1);
+          this.next_section();
           const late_word = pp.note(L('late', '晚踩'), 10.08, predict(PLANS.late).p[N] + 0.06, c.coral, 20, 'left');
           this.play(FadeIn(late_word), { run_time: 0.5 });
           this.wait(3);

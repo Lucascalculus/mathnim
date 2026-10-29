@@ -227,10 +227,13 @@ export const mpc_offset = define_visual<OffsetParams>({
         // ---- the story
         t_show.set_value(0);
         this.play(FadeIn(note), FadeIn(track.group), FadeIn(cart), FadeIn(wind), FadeIn(pp.group), FadeIn(flag_line), FadeIn(ap.group), { run_time: 1.1 });
+        if (p.story === 'offset') this.next_section(); // (a section per beat, §, of the narration: the picture waits there for the voice)
         this.play(FadeIn(law), FadeIn(readout), FadeIn(q_group), FadeIn(d_group), FadeIn(source), { run_time: 0.9 });
         this.add(p_curve, a_curve, us_line);
+        if (p.story === 'offset') this.next_section();
         this.play(UpdateFromAlphaFunc(t_show, (_m: unknown, a?: number) => t_show.set_value((a ?? 1) * T_END), { run_time: p.story === 'offset' ? 5 : 2.5, rate_func: linear }));
         if (p.story === 'offset') this.wait(1);
+        if (p.story === 'offset') this.next_section();
         this.play(Create(plan_curve), FadeIn(plan_dot), FadeIn(plan_word), { run_time: 1.2 });
         this.wait(p.story === 'offset' ? 2.5 : 1);
         this.add(plan);

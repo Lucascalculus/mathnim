@@ -113,8 +113,8 @@ export const lesson: Lesson = {
       id: 'offset-scene', kind: 'scene', title: t('A wind the model does not know', '模型不知道的风'),
       scene: vis('mpc_offset', { story: 'offset' }),
       narration: t(
-        'The cart is parked at the flag, six metres along the track. A steady headwind blows, and the model knows nothing about it. The controller is the MPC from M3. The wind pushes the cart back, and it comes to rest about eleven centimetres short, holding a push of plus zero point three. Now look at the dashed curve: the plan made at ten seconds. It still expects to get back to the flag. Every tenth of a second the plan says "I will reach the flag", and every tenth of a second a wind it does not know about holds the cart where it is.',
-        '小车停在旗子处，轨道上六米的位置。一阵恒定的逆风吹来，模型对它一无所知。控制器就是 M3 里的那个 MPC。风把小车往回推，它最后停在离旗子大约十一厘米的地方，一直保持着正零点三的推力。再看那条虚线：这是第十秒时做的计划。它仍然以为自己能回到旗子。每过零点一秒，计划都说"我会到旗子那儿"；每过零点一秒，它不知道的那阵风又把小车按在原地。'),
+        'The cart is parked at the flag, six metres along the track. A steady headwind blows, and the model knows nothing about it. § The controller is the MPC from M3. § The wind pushes the cart back, and it comes to rest about eleven centimetres short, holding a push of plus zero point three. § Now look at the dashed curve: the plan made at ten seconds. It still expects to get back to the flag. Every tenth of a second the plan says "I will reach the flag", and every tenth of a second a wind it does not know about holds the cart where it is.',
+        '小车停在旗子处，轨道上六米的位置。一阵恒定的逆风吹来，模型对它一无所知。§控制器就是 M3 里的那个 MPC。§风把小车往回推，它最后停在离旗子大约十一厘米的地方，一直保持着正零点三的推力。§再看那条虚线：这是第十秒时做的计划。它仍然以为自己能回到旗子。每过零点一秒，计划都说"我会到旗子那儿"；每过零点一秒，它不知道的那阵风又把小车按在原地。'),
     },
     {
       id: 'offset', kind: 'derive', chapter: t('Why it rests short', '为什么停不到位'), title: t('Where the cart can rest', '小车能停在哪里'), skill: 'offset-cause',
@@ -280,8 +280,8 @@ export const lesson: Lesson = {
       id: 'kalman-scene', kind: 'scene', title: t('Predict, then correct', '先预测，再修正'),
       scene: vis('mpc_kalman'),
       narration: t(
-        'Only the position is measured, with five centimetres of noise, and random pushes the model does not know act on the cart. Top, in orange: the speed from differencing two measurements. It jumps by more than a metre per second; its error is about point eight. Now the Kalman filter, in blue. Each step it predicts with the model, then corrects toward the measurement. Its speed error is about point one two, though it never measures speed. On the right, one correction. The prediction and the measurement are both uncertain. Combined, the estimate is narrower than either, and it moves twenty-nine percent of the way toward the measurement.',
-        '只测位置，噪声五厘米；还有模型不知道的随机推力作用在小车上。上面橙色的，是对两次测量做差分得到的速度。它一跳就是一米每秒以上，误差约零点八。再看蓝色的卡尔曼滤波。每一步，它先用模型预测，再朝测量值修正。它从来没测过速度，速度误差却只有零点一二左右。右边是一次修正。预测和测量各有不确定性；两者合起来，估计比任何一个都更窄，而且朝测量值挪了百分之二十九的路。'),
+        'Only the position is measured, with five centimetres of noise, and random pushes the model does not know act on the cart. § Top, in orange: the speed from differencing two measurements. It jumps by more than a metre per second; its error is about point eight. § Now the Kalman filter, in blue. Each step it predicts with the model, then corrects toward the measurement. Its speed error is about point one two, though it never measures speed. § On the right, one correction. The prediction and the measurement are both uncertain. § Combined, the estimate is narrower than either, and it moves twenty-nine percent of the way toward the measurement.',
+        '只测位置，噪声五厘米；还有模型不知道的随机推力作用在小车上。§上面橙色的，是对两次测量做差分得到的速度。它一跳就是一米每秒以上，误差约零点八。§再看蓝色的卡尔曼滤波。每一步，它先用模型预测，再朝测量值修正。它从来没测过速度，速度误差却只有零点一二左右。§右边是一次修正。预测和测量各有不确定性；§两者合起来，估计比任何一个都更窄，而且朝测量值挪了百分之二十九的路。'),
     },
     {
       id: 'kalman', kind: 'derive', title: t('The two steps', '两个步骤'), skill: 'kalman',
@@ -328,8 +328,8 @@ export const lesson: Lesson = {
       id: 'tube-scene', kind: 'scene', title: t('A tube around the plan', '计划外面的一根管子'),
       scene: vis('mpc_tube'),
       narration: t(
-        'Twelve random push histories, each up to zero point one five metres per second squared, either way. Left: just carry out the docking plan. The errors pile up, and four of the twelve runs cross the wall. Middle: add a feedback that pulls the cart back toward the plan. Now every run stays within eighteen centimetres of the plan: the shaded tube. But the plan ends right at the wall, so runs on the outer side cross it: eight of twelve. Right: the same feedback, with the plan’s wall moved in by the tube’s width. No run crosses.',
-        '十二种随机的推力历程，每一种最大零点一五米每二次方秒，方向不定。左边：只是照着停车计划执行。误差越积越多，十二次里有四次越过了墙。中间：加上一个把小车拉回计划的反馈。现在每一次运行都在计划上下十八厘米以内，也就是那根阴影管子。可是计划的终点正好贴着墙，所以停在外侧的那些都越过了墙：十二次里有八次。右边：同样的反馈，只是计划用的墙往里收了一个管子的宽度。一次都没有越过。'),
+        'Twelve random push histories, each up to zero point one five metres per second squared, either way. § Left: just carry out the docking plan. The errors pile up, and four of the twelve runs cross the wall. § Middle: add a feedback that pulls the cart back toward the plan. Now every run stays within eighteen centimetres of the plan: the shaded tube. § But the plan ends right at the wall, so runs on the outer side cross it: eight of twelve. § Right: the same feedback, with the plan’s wall moved in by the tube’s width. § No run crosses.',
+        '十二种随机的推力历程，每一种最大零点一五米每二次方秒，方向不定。§左边：只是照着停车计划执行。误差越积越多，十二次里有四次越过了墙。§中间：加上一个把小车拉回计划的反馈。现在每一次运行都在计划上下十八厘米以内，也就是那根阴影管子。§可是计划的终点正好贴着墙，所以停在外侧的那些都越过了墙：十二次里有八次。§右边：同样的反馈，只是计划用的墙往里收了一个管子的宽度。§一次都没有越过。'),
     },
     {
       id: 'tube', kind: 'derive', title: t('Why there is a tube, and how wide', '管子从哪来，有多宽'), skill: 'tube',
