@@ -46,7 +46,12 @@ export const CSS = `
 .mn-aside{font-size:12px;line-height:1.45;color:var(--mn-muted);opacity:.85;padding:0 4px;margin-top:-4px}.mn-aside:empty{display:none}
 .mn-vis .mn-aside{margin:6px 0 0}
 .mn-transcript{display:none;padding:0 8px;font-size:var(--mn-caption,16px);line-height:1.6;color:var(--mn-fg)}
-.mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-transcript{display:block}
+.mn-app.mn-scenestep.mn-ended.mn-textopen:not(.mn-game) .mn-transcript{display:block;animation:mn-fade .3s ease-out}
+/* after a scene its band keeps its height and offers the whole text: one quiet line, opened on request */
+.mn-fulltext{display:none}
+.mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-screen>.mn-fulltext:not([hidden]){display:flex;align-items:center;justify-content:center;width:100%;min-height:calc(2.8 * var(--mn-caption,16px) + 10px);padding:0 0 10px;border:0;background:none;font:inherit;font-size:14px;color:var(--mn-muted);cursor:pointer}
+.mn-fulltext:hover{color:var(--mn-fg);text-decoration:underline;text-underline-offset:3px}
+.mn-fulltext:focus-visible{outline:2px solid var(--mn-accent);outline-offset:-4px;border-radius:8px}
 .mn-app.mn-scenestep.mn-ended:not(.mn-game) .mn-caption{display:none}
 .mn-cue{transition:color .3s}.mn-cue.next{color:var(--mn-muted)}
 .mn-finding{margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--mn-warn) 12%,transparent);color:var(--mn-fg);font-size:14px}

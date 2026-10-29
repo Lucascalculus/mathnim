@@ -254,8 +254,13 @@ export class LessonView {
     } else {
       // the figure and its subtitle in one frame: the subtitle reads as part of the video, in a band under the picture
       const screen = h('div', 'mn-screen');
-      screen.append(stage, this.el.caption);
-      left.append(screen, this.el.aside, this.el.transcript, bar, this.el.page);
+      // once a scene has ended its subtitle band offers the whole narration, opened under the figure on request
+      const full = (this.el.fulltext = h('button', 'mn-fulltext', esc(t('show_text'))));
+      (full as HTMLButtonElement).type = 'button';
+      full.setAttribute('aria-expanded', 'false');
+      full.onclick = () => this.show_text(!this.app.classList.contains('mn-textopen'));
+      screen.append(stage, this.el.caption, full);
+      left.append(screen, this.el.aside, bar, this.el.transcript, this.el.page); // (the text opens under the player: the controls stay put)
       // the way through the lesson, in one place on every step: a bar at the foot of the screen with (the app's
       // outline button,) the progress, back, and one button that is always the way on (sync_go)
       // laid out by reach: the rare ways (outline, back) at the left, the progress between, the way on alone at the
@@ -361,11 +366,18 @@ export class LessonView {
     if (this.o.dev) queueMicrotask(() => this.dev_report(p));
   }
   private shown_ended = false;
-  /** A scene that has ended shows its whole narration under the figure in place of the subtitle. */
+  /** A scene that has ended offers its whole narration (show_text) in place of the subtitle. */
   private show_ended(ended: boolean): void {
     if (ended === this.shown_ended) return;
     this.shown_ended = ended;
     this.app.classList.toggle('mn-ended', ended);
+  }
+  /** The scene's whole narration under the figure, or not. */
+  private show_text(open: boolean): void {
+    this.app.classList.toggle('mn-textopen', open);
+    if (!this.el.fulltext) return;
+    this.el.fulltext.textContent = t(open ? 'hide_text' : 'show_text');
+    this.el.fulltext.setAttribute('aria-expanded', String(open));
   }
   private show_voice(): void {
     this.el.voice.innerHTML = CORNERS + icon(this.narrator.enabled ? 'volume' : 'volume_off');
@@ -409,7 +421,9 @@ export class LessonView {
       if (!p.playing && p.frame >= p.total_frames - 1) return this.replay();
       p.toggle();
       this.show_playing(p.playing);
-      if (p.playing) this.narrator.resume();
+      // a scene's voice joins the picture where it is (it may not have started: a browser that wanted a click first)
+      if (p.playing && this.runtime.step?.kind === 'scene') this.narrator.seek(p.time, true);
+      else if (p.playing) this.narrator.resume();
       else this.narrator.pause();
       this.runtime.log.emit({ verb: p.playing ? 'resumed' : 'paused', lesson: this.lesson.id, step: this.runtime.step?.id });
     };
@@ -579,7 +593,9 @@ export class LessonView {
         this.scene_step = s.kind === 'scene';
         this.app.classList.toggle('mn-scenestep', this.scene_step);
         this.show_ended(false);
+        this.show_text(false);
         set_math(this.el.transcript, this.scene_step && s.narration ? this.runtime.text(s.narration) : '');
+        if (this.el.fulltext) this.el.fulltext.hidden = !(this.scene_step && s.narration);
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
@@ -621,7 +637,8 @@ export class LessonView {
         break;
       case 'scene-end':
         this.show_playing(false);
-        this.show_ended(true);
+        // a voice can run past the picture: its subtitles finish their line before the end shows
+        this.narrator.when_done(() => !this.runtime.player?.playing && this.show_ended(true));
         break;
       case 'explore': {
         const scrubs = e.step.scrub ?? {};

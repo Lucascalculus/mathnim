@@ -32,6 +32,8 @@ const DICT: Record<string, Entry> = {
   speed: { en: 'Speed', zh: '速度' },
   export_mp4: { en: 'Export MP4', zh: '导出 MP4' },
   subtitles: { en: 'Subtitles', zh: '字幕' },
+  show_text: { en: 'Show the full text', zh: '显示全文' },
+  hide_text: { en: 'Hide the text', zh: '收起全文' },
   subtitle_size: { en: 'Subtitle size', zh: '字幕大小' },
   size_small: { en: 'Small', zh: '小' },
   size_default: { en: 'Medium', zh: '中' },

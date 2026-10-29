@@ -8,7 +8,7 @@ import { lint_timeline } from 'manim-web/ext/lint';
 import { ScenePlayer } from 'manim-web/ext/player';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { RECORDED, compile_answer, recorded_lesson_responses, INSCRIBED_PLAN, MockProvider, apply_white } from '@mathnim/ai';
-import { WorldSession, type Block, type ExploreStep, type Lesson } from '@mathnim/core';
+import { WorldSession, lesson_langs, narration_key, tr, type Block, type ExploreStep, type Lesson } from '@mathnim/core';
 import { check_params, get_visual } from '@mathnim/visuals';
 import { init_tex } from 'manim-web';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
@@ -97,6 +97,20 @@ async function world_row(what: string, step: ExploreStep, make: () => any): Prom
 const ctx = { vars: { a: 4, b: 9 }, rng: () => 0.5, lang: 'en' as const };
 await init_tex();
 const PUBLIC = process.env.MATHNIM_PUBLIC!;
+/**
+ * A scene's narration should end with its picture: a voice that runs on past the last frame leaves the learner
+ * watching a still figure while the subtitles finish (warned past half a second, in each language of the lesson).
+ */
+function voice_fits(lesson: Lesson, narration: Parameters<typeof tr>[0], row: Row): void {
+  if (row.seconds === undefined) return;
+  for (const lang of lesson_langs(lesson)) {
+    const text = tr(narration, lang);
+    const file = path.join(PUBLIC, 'narration', `${narration_key(text)}.json`);
+    if (!text || /\{\w+\}/.test(text) || !fs.existsSync(file)) continue;
+    const said = (JSON.parse(fs.readFileSync(file, 'utf8')) as { duration: number }).duration;
+    if (said > row.seconds + 0.5) row.warnings.push(`narration (${lang}) ${said.toFixed(1)} s runs ${(said - row.seconds).toFixed(1)} s past the picture`);
+  }
+}
 /** Visual blocks of a page (also inside details). */
 const visual_blocks = (bs: Block[]): Extract<Block, { type: 'visual' }>[] => bs.flatMap((b) => (b.type === 'visual' ? [b] : b.type === 'details' ? visual_blocks(b.blocks) : []));
 for (const l of all_lessons()) {
@@ -135,6 +149,7 @@ for (const l of all_lessons()) {
     if (!spec) continue;
     const make = () => (/^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec(ctx));
     await check(`${lesson.id}/${s.id}`, make);
+    if (s.kind === 'scene' && s.narration !== undefined) voice_fits(lesson, s.narration, rows[rows.length - 1]);
     if (s.kind === 'explore' && (s.goal || s.goals?.length)) await check_world(`${lesson.id}/${s.id}`, s, make);
   }
 }
