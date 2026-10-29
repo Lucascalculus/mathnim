@@ -47,6 +47,13 @@ body{margin:0;background:#fbfbfa}
 .acct .dots circle{transition:opacity .25s}
 .acct:hover .dots circle:not(.mid),.acct[aria-expanded=true] .dots circle:not(.mid){opacity:.25}
 .acct.me{font:600 15px/1 Georgia,'Times New Roman',serif;text-transform:uppercase}
+.acct-crown{position:absolute;top:3px;left:16px;width:12px;height:10px;transform:rotate(18deg);transform-origin:20% 100%;pointer-events:none}
+.acct-crown svg,.pass-admin svg{display:block;width:100%;height:100%;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 2px rgba(245,180,0,.45))}
+.acct:hover .acct-crown,.acct[aria-expanded=true] .acct-crown{animation:acct-wiggle .9s ease-in-out}
+@keyframes acct-wiggle{0%,100%{transform:rotate(18deg)}20%{transform:rotate(-4deg) scale(1.15)}45%{transform:rotate(26deg) scale(1.1)}70%{transform:rotate(12deg)}}
+.pass-admin{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:#B7791F;letter-spacing:.14em}
+.pass-admin svg{width:12px;height:10px}
+@media (prefers-reduced-motion:reduce){.acct .acct-crown{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.nav-ic>i,.nav-ic svg{transition:none}}
 .acct-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;z-index:30;display:flex;flex-direction:column;gap:12px;${SHEET};padding:16px 20px 18px;box-shadow:0 18px 50px -12px rgba(0,0,0,.25),0 0 0 1px var(--mn-border)}
 .acct-pop[hidden]{display:none}
@@ -287,6 +294,8 @@ const LOGO = '<svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"
 // (a symmetric gear, centred on the middle of its box)
 const GEAR = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
 
+/** An admin wears the course map's crown on their initial (and on their pass); everything else is the learner's view. */
+const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
 /** The four crop marks that hold each tool of the top bar. */
 const CORNERS = '<i></i><i></i><i></i><i></i>';
 /** Signed out, the account is a blank sheet: the margin's dot grid, three by three. */
@@ -330,7 +339,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     close_account();
   });
   // the pass: its number (from the account id) once there is an account, the sign-in form until then
-  const pass_head = (n: string) => `<div class="pass-head"><span>LAB PASS</span><span>№ ${esc(n)}</span></div>`;
+  const pass_head = (n: string, admin = false) =>
+    `<div class="pass-head"><span>LAB PASS${admin ? ` · <b class="pass-admin">${CROWN}ADMIN</b>` : ''}</span><span>№ ${esc(n)}</span></div>`;
   let stamping = false;
   const account_card = () => {
     const me = current_user();
@@ -351,7 +361,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       );
       return;
     }
-    acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase())}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
+    acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase(), me.admin)}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
       <div class="pass-links">${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
     acct_pop.querySelector<HTMLButtonElement>('.pass-out')!.onclick = () => {
       close_account();
@@ -365,7 +375,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const acct = !accounts_available()
       ? ''
       : me
-        ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}</button>`
+        ? `<button type="button" class="nav-ic acct me" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}${me.admin ? `<span class="acct-crown" aria-hidden="true">${CROWN}</span>` : ''}</button>`
         : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
       <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
