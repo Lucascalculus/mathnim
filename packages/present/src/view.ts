@@ -176,6 +176,9 @@ export class LessonView {
       side.insertBefore(help, this.el.mastery);
     }
     if (o.rail) side.append(o.rail);
+    // a question with no figure takes the figure's place at the left; the conversation then has the right column
+    // to itself (place_rail)
+    this.el.railcol = h('div', 'mn-railcol');
     this.el.feedback.setAttribute('aria-live', 'polite');
     const bar = (this.el.bar = h('div', 'mn-bar'));
     this.el.play = h('button', 'mn-play', icon('play', 16, { solid: true }));
@@ -259,7 +262,7 @@ export class LessonView {
       lbar.setAttribute('aria-label', t('lesson_progress'));
       lbar.append(inner);
       app.classList.add('mn-has-lessonbar');
-      app.append(head, left, side, lbar);
+      app.append(head, left, side, this.el.railcol, lbar);
       // the step's own ways on (Next step, Check, Continue) keep their logic, hidden; the bar's button stands for them
       this.go_watch = new MutationObserver(() => this.queue_go());
       for (const el of [this.el.actions, this.el.page]) this.go_watch.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden'] });
@@ -454,6 +457,20 @@ export class LessonView {
   private primary(): HTMLButtonElement | null {
     return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)');
   }
+  /**
+   * Where the app's conversation sits: in the side column under the step's panel, except beside a question (or the
+   * summary) with no figure, where the panel takes the figure's place at the left like a page, and the conversation
+   * has the right column (essay view).
+   */
+  private place_rail(): void {
+    const rail = this.o.rail;
+    if (!rail || this.game || !this.el.railcol) return;
+    const s = this.runtime.step;
+    const apart = this.app.classList.contains('mn-nostage') && !this.app.classList.contains('mn-textstep') && !this.app.classList.contains('mn-casestep') && s?.kind !== 'explore';
+    this.app.classList.toggle('mn-asksplit', apart);
+    const host = apart ? this.el.railcol : this.el.mastery.parentElement!;
+    if (rail.parentElement !== host) host.append(rail);
+  }
   /** Back to the step before (branch-only detours are skipped); false at the first step. */
   private back(): boolean {
     const before = this.lesson.steps.slice(0, this.runtime.index).filter((s) => !s.branch_only);
@@ -521,6 +538,7 @@ export class LessonView {
         this.app.classList.toggle('mn-textstep', text);
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
         this.app.classList.toggle('mn-nostage', text || !(s as { scene?: unknown }).scene);
+        this.place_rail();
         this.reached = Math.max(this.reached, e.index);
         if (this.o.remember && !s.branch_only) {
           const p = this.read_progress();
@@ -1283,6 +1301,7 @@ export class LessonView {
     this.app.classList.remove('mn-textstep');
     // the last scene's final frame stays beside the summary; a lesson that ended on a page has none (no empty stage)
     this.app.classList.toggle('mn-nostage', !this.runtime.player && !this.game);
+    this.place_rail();
     this.root.querySelector('.mn-resumed')?.remove();
     this.narrator.stop(!this.game); // the character's last words stay in the game view
     this.runtime.player?.show_end();

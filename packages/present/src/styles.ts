@@ -6,7 +6,11 @@ export const CSS = `
  --mn-accent:#2f5bd3;--mn-good:#1f8a5b;--mn-bad:#c2412d;--mn-warn:#b7791f;--mn-radius:14px;--mn-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
  --mn-code-bg:#f6f7f9;--mn-purple:#7c3aed;
  font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--mn-fg);background:var(--mn-bg);
- display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto auto 1fr;gap:16px;padding:16px;box-sizing:border-box;min-height:100%}
+ --mn-main:minmax(0,1fr);
+ display:grid;grid-template-columns:var(--mn-main) 360px;justify-content:start;grid-template-rows:auto auto 1fr;gap:16px;padding:16px;box-sizing:border-box;min-height:100%}
+/* a figure, its subtitle and the player fit above the lesson bar without scrolling: the figure's column is as wide as
+   the screen's height allows (16:9), and the side column follows it (the lesson bar's row shares --mn-main) */
+@media (min-width:901px){.mn-app.mn-has-lessonbar:not(.mn-game):not(.mn-nostage){--mn-main:minmax(0,calc((100vh - 310px) * 16 / 9))}}
 .mn-app *{box-sizing:border-box}
 .mn-app.mn-dark{--mn-code-bg:#161a20;--mn-purple:#b69cff;--mn-bg:#0d0f12;--mn-fg:#eef1f6;--mn-muted:#8d96a6;--mn-faint:#232830;--mn-panel:#14171c;--mn-border:#262b33;--mn-accent:#8fb0ff;--mn-good:#5fd3a2;--mn-bad:#ff8a73;--mn-shadow:none}
 .mn-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:32px}
@@ -171,6 +175,15 @@ export const CSS = `
 /* a question (or world) without a figure: no empty left column, the panel becomes a centred card */
 .mn-app.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game){grid-template-columns:minmax(0,1fr)}
 .mn-app.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game) .mn-side{grid-column:1;grid-row:auto;width:100%;max-width:46rem;margin:0 auto}
+/* a question with no figure, beside the conversation (place_rail): the question where a figure or a page would be, its
+   lines at a page's measure; the conversation in the right column */
+.mn-railcol{min-width:0}.mn-railcol:empty{display:none}
+@media (min-width:901px){
+.mn-app.mn-asksplit.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game){grid-template-columns:minmax(0,1fr) 360px}
+.mn-app.mn-asksplit:not(.mn-game)>.mn-left{display:none}
+.mn-app.mn-asksplit.mn-nostage:not(.mn-textstep):not(.mn-casestep):not(.mn-game)>.mn-side{grid-column:1;grid-row:2/4;align-self:start;width:auto;max-width:none;margin:0;padding:32px max(18px,calc((100% - 46rem) / 2))}
+.mn-app.mn-asksplit:not(.mn-game)>.mn-railcol{grid-column:2;grid-row:2/4}
+}
 .mn-textstep .mn-side>:empty{display:none}
 .mn-textstep .mn-side,.mn-casestep .mn-side{position:sticky;top:calc(var(--mn-sticky-top,0px) + 12px);max-height:calc(100vh - var(--mn-sticky-top,0px) - 24px);align-self:start}
 /* an app element in the side column (rail): on text pages it is all the side holds, the way on ends the page */
@@ -344,12 +357,13 @@ export const CSS = `
    Its row lines up with the lesson's column (the side column's width is left free), so the way on ends where the
    content ends. One set of buttons for every screen: 40 px tall, 10 px corners, outlined or (the way on) solid */
 .mn-lessonbar{position:fixed;left:0;right:0;bottom:0;z-index:22;background:color-mix(in srgb,var(--mn-bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--mn-border)}
-.mn-lessonbar-in{max-width:1500px;margin:0 auto;box-sizing:border-box;padding:10px 40px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
+.mn-lessonbar-in{max-width:1500px;margin:0 auto;box-sizing:border-box;padding:10px 40px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:var(--mn-main) 360px;justify-content:start;gap:16px}
 .mn-lb-main{display:flex;align-items:center;gap:8px;min-width:0}
 .mn-lb-start{display:flex;align-items:center}.mn-lb-start:empty{display:none}
 .mn-lb-gap{flex:1}
-.mn-lessonbar .mn-where{margin:0}
-.mn-lessonbar .mn-btn{box-sizing:border-box;height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.mn-lessonbar .mn-where{margin:0;min-width:0;flex:0 1 auto}
+.mn-lessonbar .mn-segs{width:auto;flex:1 1 260px;min-width:48px;max-width:260px}
+.mn-lessonbar .mn-btn{flex:none;box-sizing:border-box;height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
 .mn-lessonbar .mn-btn:not(.primary){background:var(--mn-panel);border-color:var(--mn-border);color:var(--mn-fg)}
 .mn-lessonbar .mn-btn:not(.primary):hover{border-color:color-mix(in srgb,var(--mn-fg) 35%,var(--mn-border))}
 .mn-lessonbar .mn-btn.primary:not(:disabled):hover{background:color-mix(in srgb,var(--mn-fg) 86%,var(--mn-bg))}
