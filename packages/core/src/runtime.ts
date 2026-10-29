@@ -203,12 +203,20 @@ export class LessonRuntime {
    * steps are cancelled and no more events are emitted.
    */
   dispose(): void {
+    this.leave();
     this.disposed = true;
     this.token++;
     this.listeners = [];
     this.teardown();
   }
   private disposed = false;
+  /** When the step on screen came (its 'left' event says how long it stayed). */
+  private entered = 0;
+  private leave(): void {
+    const s = this.entered ? this.lesson.steps[this.index] : undefined;
+    if (s) this.log.emit({ verb: 'left', lesson: this.lesson.id, step: s.id, result: { duration_ms: Math.round(performance.now() - this.entered) } });
+    this.entered = 0;
+  }
   private teardown(): void {
     this.world?.stop();
     this.world = null;
@@ -221,7 +229,9 @@ export class LessonRuntime {
     if (this.disposed) return;
     const my = ++this.token;
     this.teardown();
+    this.leave();
     this.index = i;
+    this.entered = performance.now();
     const step = this.lesson.steps[i];
     this.attempt = 0;
     this.hints_used = 0;

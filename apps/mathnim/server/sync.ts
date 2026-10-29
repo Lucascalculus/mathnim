@@ -11,9 +11,12 @@ export const MAX_STATE_BODY = 4 * 1024 * 1024;
 export const MAX_VALUE = 1024 * 1024;
 const MAX_ITEMS = 200;
 const MAX_KEYS = 3000;
-/** What may be stored: the app's own records (settings stay per browser: they can hold model keys). */
+/**
+ * What may be stored: the app's own records (settings stay per browser: they can hold model keys; the event
+ * log goes to its own table, /api/me/events).
+ */
 export const syncable_key = (k: unknown): k is string =>
-  typeof k === 'string' && k.length <= 160 && k.startsWith('mathnim.') && k !== 'mathnim.settings' && !k.startsWith('mathnim.sync');
+  typeof k === 'string' && k.length <= 160 && k.startsWith('mathnim.') && k !== 'mathnim.settings' && k !== 'mathnim.events' && !k.startsWith('mathnim.sync');
 
 export async function state(request: Request, env: AuthEnv): Promise<Response> {
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');

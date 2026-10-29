@@ -323,14 +323,17 @@ export class LessonView {
       this.narrator.seek(t, p.playing);
     };
     (this.el.seek as HTMLInputElement).onchange = () => this.runtime.log.emit({ verb: 'seeked', lesson: this.lesson.id, step: this.runtime.step?.id });
+    const set = (object: string, value: unknown) => this.runtime.log.emit({ verb: 'set', lesson: this.lesson.id, step: this.runtime.step?.id, object, data: { value } });
     this.el.speed.onchange = () => {
       const r = +(this.el.speed as HTMLSelectElement).value;
       this.runtime.player?.set_rate(r);
       this.narrator.set_rate(r);
+      set('speed', r);
     };
     this.el.voice.onclick = () => {
       this.narrator.set_enabled(!this.narrator.enabled);
       this.el.voice.textContent = this.narrator.enabled ? '🔈' : '🔇';
+      set('narration', this.narrator.enabled);
     };
     this.el.export.onclick = async () => {
       const p = this.runtime.player;

@@ -7,6 +7,7 @@ import { d1_of, type NodeSqlite } from '../server/dev';
 import { check_lesson } from '../server/studio/format';
 import type { StudioModel, StudioRequest } from '../server/studio/model';
 import { studio } from '../server/studio/routes';
+import { events } from '../server/events';
 import { state } from '../server/sync';
 
 // (a variable specifier: the server's type project has no Node types)
@@ -103,6 +104,27 @@ describe('progress sync', () => {
     expect(Object.keys(got.items)).toEqual(['mathnim.learner']);
     expect(got.items['mathnim.learner'].value).toBe('v2');
     expect((await state(req('me/state'), e)).status).toBe(401);
+  });
+});
+
+describe('learning events', () => {
+  it('appends each event once, with its columns, and refuses what is not one', async () => {
+    const e = env();
+    const cookie = await sign_in(e);
+    const post = (list: unknown[]) => events(req('me/events', { body: { events: list }, cookie }), e);
+    const answered = { id: 'a1', t: 1000, course: 'geometry', lesson: 'eigen-pca', step: 'det-q', verb: 'answered', object: 'determinant', result: { correct: false, misconception: 'det-formula-only', attempt: 1, duration_ms: 5200.4, response: { type: 'choice', id: 'b' } } };
+    const asked = { id: 'q1', t: 2000, lesson: 'eigen-pca', step: 'det', verb: 'asked', data: { q: 'Why area?', a: 'Because...' } };
+    let r = await post([answered, asked, { id: 'x', t: 3000, lesson: 'eigen-pca', verb: 'hacked' }, { t: 4000, lesson: 'eigen-pca', verb: 'viewed' }]);
+    expect(await r.json()).toEqual({ ok: true, kept: 2 });
+    // sent again (a retry): stored once
+    await post([answered]);
+    const rows = (await e.DB!.prepare('SELECT * FROM events ORDER BY t').all<Record<string, unknown>>()).results;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ course: 'geometry', lesson: 'eigen-pca', step: 'det-q', verb: 'answered', skill: 'determinant', correct: 0, misconception: 'det-formula-only', attempt: 1, duration_ms: 5200 });
+    expect(JSON.parse(rows[0].data as string)).toEqual({ result: { response: { type: 'choice', id: 'b' } } });
+    expect(JSON.parse(rows[1].data as string)).toEqual({ data: { q: 'Why area?', a: 'Because...' } });
+    expect((await events(req('me/events', { body: { events: [answered] } }), e)).status).toBe(401);
+    expect((await post(Array.from({ length: 201 }, (_, i) => ({ ...asked, id: `n${i}` })))).status).toBe(400);
   });
 });
 

@@ -89,7 +89,8 @@ structured log line per call.
 | `POST /api/auth/start` `{email, lang?}` | Mails a six-digit code (Resend). 10 minutes, 5 tries, one per 45 s and 10 a day per address |
 | `POST /api/auth/verify` `{email, code}` | `{user}` and the session cookie `mn_sid` (HttpOnly, 60 days); creates the account on first sign-in |
 | `GET /api/auth/me`, `POST /api/auth/logout` | `{user \| null}`; sign out |
-| `GET`/`PUT /api/me/state` | The signed-in learner's records (`mathnim.*` in localStorage except settings), newest value per record wins |
+| `GET`/`PUT /api/me/state` | The signed-in learner's records (`mathnim.*` in localStorage except settings and the event log), newest value per record wins |
+| `POST /api/me/events` `{events: [...]}` | The signed-in learner's learning events (≤ 200 per request), appended to the D1 table `events`: answered, hinted, explored, viewed and left a step (with the time on it), asked the tutor (question and answer, words only), set a preference... Each has an id made from its content in the browser, so a resent event is stored once. Columns for analytics (`lesson`, `step`, `verb`, `skill`, `correct`, `misconception`, `duration_ms`, `attempt`), the rest JSON in `data`; example queries at the top of `server/events.ts`. Personalisation (what the tutor is told about a learner) is to read from here |
 | `/api/studio/*` | Courses made from uploaded slides and practice exams: courses, files (PDF ≤ 32 MB), steps (NDJSON while a step runs), `catalog`, `lessons/<course>/<lesson>`. Contract at the top of `server/studio/routes.ts`; the steps in `server/studio/pipeline.ts` |
 
 The teacher view, from a terminal:

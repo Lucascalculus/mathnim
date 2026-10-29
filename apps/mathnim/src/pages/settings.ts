@@ -4,6 +4,7 @@
 // this browser's records asks first.
 import { esc, t } from '@mathnim/present';
 import { lang_switch } from '../lang_switch';
+import { log } from '../store';
 import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
 
 // the lesson narrator keeps its own switches under this key (see Narrator)
@@ -126,6 +127,7 @@ export function settings_panel(): HTMLElement {
     } catch {
       /* no storage */
     }
+    log.emit({ verb: 'set', lesson: '', object: 'narration', data: { value: on } });
   };
   $('clear').onclick = () => {
     if (!confirm(t('clear_confirm'))) return;

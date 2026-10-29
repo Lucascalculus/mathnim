@@ -4,7 +4,9 @@ import { COURSES, all_skills, course_of, type Course } from './course';
 
 export const learner = new LearnerModel(local_store('mathnim.learner'), all_skills());
 export const log = new EventLog();
-log.add_sink(local_event_sink('mathnim.events'));
+// (not the tutor's answers: they are kept as notes, and would fill the browser's storage; see account.ts)
+const keep_local = local_event_sink('mathnim.events');
+log.add_sink((e) => e.verb !== 'asked' && keep_local(e));
 
 const LAST = 'mathnim.last';
 const get = (k: string): string | null => {

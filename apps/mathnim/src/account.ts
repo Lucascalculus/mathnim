@@ -2,8 +2,9 @@
 // and their records kept in step with the server (server/sync.ts) so progress,
 // notes and reviews follow them to another device. Nothing changes for a
 // learner who does not sign in: everything stays in this browser.
-import { all_skills } from './course';
-import { learner } from './store';
+import { load_events, type LearningEvent } from '@mathnim/core';
+import { all_skills, course_of } from './course';
+import { learner, log } from './store';
 
 export interface Me {
   id: string;
@@ -80,6 +81,14 @@ export async function verify_code(email: string, code: string): Promise<{ error?
 }
 export async function sign_out(): Promise<void> {
   await push().catch(() => undefined);
+  await push_events().catch(() => undefined);
+  // what could not be sent stays unsent: it must not go to whoever signs in next here
+  write_outbox([]);
+  try {
+    localStorage.removeItem(BACKFILLED);
+  } catch {
+    /* no storage */
+  }
   await call('auth/logout', { method: 'POST', body: '{}' }).catch(() => undefined);
   me = null;
   changed();
@@ -92,7 +101,8 @@ export async function sign_out(): Promise<void> {
 const META = 'mathnim.sync';
 const MAX_VALUE = 1024 * 1024;
 type Meta = Record<string, { h: number; t: number }>;
-const syncable = (k: string) => k.startsWith('mathnim.') && k !== 'mathnim.settings' && !k.startsWith('mathnim.sync') && !k.startsWith('mathnim.generated.');
+// (the event log goes to its own table, below)
+const syncable = (k: string) => k.startsWith('mathnim.') && k !== 'mathnim.settings' && k !== 'mathnim.events' && !k.startsWith('mathnim.sync') && !k.startsWith('mathnim.generated.');
 function hash(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
@@ -161,13 +171,91 @@ async function push(): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------- learning events
+// Every learning event of a signed-in learner also goes to the account (/api/me/events, server/events.ts),
+// where one table keeps them all: what personalisation reads and analytics query. They wait in
+// mathnim.sync.events until sent; at the first sign-in in a browser, its earlier log goes up too. Each
+// event's id is made from its content, so one sent twice is stored once. The tutor's own log of its
+// pictures stays here: a question and its answer go as one 'asked' event, words only.
+const OUTBOX = 'mathnim.sync.events';
+const OUTBOX_MAX = 3000;
+/** The user whose earlier events this browser has queued already. */
+const BACKFILLED = 'mathnim.sync.backfilled';
+type WireEvent = LearningEvent & { id: string; course?: string };
+
+function wire(e: LearningEvent): WireEvent | null {
+  if (e.verb === 'interacted' && (e.object === 'ask' || e.object === 'answer')) return null;
+  return { id: `${e.t.toString(36)}-${hash(JSON.stringify(e)).toString(36)}`, course: e.lesson ? course_of(e.lesson)?.id : undefined, ...e };
+}
+function read_outbox(): WireEvent[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(OUTBOX) ?? '[]');
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+function write_outbox(list: WireEvent[]): void {
+  try {
+    if (list.length) localStorage.setItem(OUTBOX, JSON.stringify(list.slice(-OUTBOX_MAX)));
+    else localStorage.removeItem(OUTBOX);
+  } catch {
+    /* full or blocked: these are lost, the next ones may fit */
+  }
+}
+function queue(list: WireEvent[]): void {
+  if (!list.length) return;
+  const all = read_outbox();
+  const ids = new Set(all.map((x) => x.id));
+  write_outbox([...all, ...list.filter((x) => !ids.has(x.id))]);
+}
+log.add_sink((e) => {
+  const w = me && wire(e);
+  if (w) queue([w]);
+});
+/** At the first sign-in in this browser: its log so far, learnt before signing in. */
+function backfill(): void {
+  if (!me) return;
+  try {
+    if (localStorage.getItem(BACKFILLED) === me.id) return;
+    queue(load_events('mathnim.events').map(wire).filter((x): x is WireEvent => !!x));
+    localStorage.setItem(BACKFILLED, me.id);
+  } catch {
+    /* no storage */
+  }
+}
+/** Send the queued events, a batch at a time (small enough to go as the page closes when it is hidden). */
+async function push_events(closing = false): Promise<void> {
+  for (let round = 0; round < 20 && me; round++) {
+    const all = read_outbox();
+    if (!all.length) return;
+    const batch: WireEvent[] = [];
+    let size = 0;
+    for (const x of all) {
+      const n = JSON.stringify(x).length;
+      if (batch.length >= 200 || (batch.length && size + n > (closing ? 60_000 : 400_000))) break;
+      batch.push(x);
+      size += n;
+    }
+    const r = await call('me/events', { method: 'POST', body: JSON.stringify({ events: batch }), keepalive: closing });
+    if (!r.ok) return;
+    const sent = new Set(batch.map((x) => x.id));
+    write_outbox(read_outbox().filter((x) => !sent.has(x.id)));
+    if (closing) return;
+  }
+}
+
 let timer = 0;
 async function sync(): Promise<void> {
   await pull();
   await push();
+  backfill();
+  await push_events();
   if (!timer) {
     // while signed in: every half minute, and when the page is hidden (closing a tab, switching apps)
-    timer = window.setInterval(() => void push().catch(() => undefined), 30_000);
-    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && void push().catch(() => undefined));
+    // (as the page closes both start at once: it may be gone before the first one answers)
+    const both = (closing: boolean) => void (closing ? Promise.all([push(), push_events(true)]) : push().then(() => push_events())).catch(() => undefined);
+    timer = window.setInterval(() => both(false), 30_000);
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && both(true));
   }
 }

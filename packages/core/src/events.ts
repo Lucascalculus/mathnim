@@ -3,7 +3,10 @@
 // computed later; sinks decide where events go.
 
 export type Verb =
-  | 'started' | 'completed' | 'viewed' | 'answered' | 'hinted' | 'revealed' | 'explored' | 'interacted' | 'seeked' | 'paused' | 'resumed' | 'replayed' | 'detected';
+  | 'started' | 'completed' | 'viewed' | 'answered' | 'hinted' | 'revealed' | 'explored' | 'interacted' | 'seeked' | 'paused' | 'resumed' | 'replayed' | 'detected'
+  // left a step (result.duration_ms: how long it was on screen); asked the tutor (data: the question and its answer, words only);
+  // set a preference (object: what, data.value)
+  | 'left' | 'asked' | 'set';
 
 export interface LearningEvent {
   t: number; // epoch ms

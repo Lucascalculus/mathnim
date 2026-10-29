@@ -316,6 +316,7 @@ class Note {
       past.append(c);
     });
     this.turns_shown = saved?.turns.length ?? 0;
+    this.logged = this.turns_shown;
     this.panel = new AskPanel(el.querySelector<HTMLElement>('.note-panel')!, {
       provider, validate: worker_validator(), log, lesson: rail.lesson.id, thread: true, read_aloud: false,
       placeholder: phrase ? t('ask_short') : t('ask_more'), history: saved?.turns,
@@ -344,6 +345,7 @@ class Note {
         this.busy = false;
         el.classList.remove('busy');
         this.save();
+        this.log_turn();
         rail.layout();
       },
     });
@@ -378,6 +380,19 @@ class Note {
         m.addEventListener('click', () => this.fold(false, true));
       }
     }
+  }
+  /** Turns of this conversation already in the learning log (those of an earlier visit were logged then). */
+  private logged = 0;
+  /**
+   * A question and its answer go to the learning log ('asked', synced to the account for personalisation):
+   * words only, the answer cut to 4 KB; the pictures stay out.
+   */
+  private log_turn(): void {
+    const turns = this.panel.transcript();
+    if (turns.length <= this.logged) return; // (no answer came)
+    const { q, a } = turns[turns.length - 1];
+    this.logged = turns.length;
+    log.emit({ verb: 'asked', lesson: this.rail.lesson.id, step: this.key.split('#')[0], data: { q, a: a.slice(0, 4000), selected: this.phrase || undefined, turn: turns.length } });
   }
   /** A card left without an answer gets one short line; `done` checks at once, else only if nothing has come yet. */
   private no_answer(card: HTMLElement, done = false): void {

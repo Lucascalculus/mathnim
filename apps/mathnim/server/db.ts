@@ -14,6 +14,8 @@ export interface SqlDb {
   prepare(sql: string): SqlStmt;
   /** Several statements separated by semicolons (schema setup). */
   exec(sql: string): Promise<unknown>;
+  /** Bound statements run in one transaction (one round trip on D1). */
+  batch(stmts: SqlStmt[]): Promise<unknown[]>;
 }
 /** R2, the part we use. */
 export interface BlobStore {
@@ -42,6 +44,9 @@ CREATE INDEX IF NOT EXISTS studio_courses_owner ON studio_courses (owner);
 CREATE TABLE IF NOT EXISTS studio_files (id TEXT PRIMARY KEY, course_id TEXT NOT NULL, kind TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, size INTEGER NOT NULL, blob TEXT NOT NULL, remote TEXT, created INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS studio_files_course ON studio_files (course_id);
 CREATE TABLE IF NOT EXISTS studio_parts (course_id TEXT NOT NULL, key TEXT NOT NULL, json TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (course_id, key));
+CREATE TABLE IF NOT EXISTS events (user_id TEXT NOT NULL, id TEXT NOT NULL, t INTEGER NOT NULL, course TEXT, lesson TEXT NOT NULL, step TEXT, verb TEXT NOT NULL, skill TEXT, correct INTEGER, misconception TEXT, duration_ms INTEGER, attempt INTEGER, data TEXT, PRIMARY KEY (user_id, id));
+CREATE INDEX IF NOT EXISTS events_user_t ON events (user_id, t);
+CREATE INDEX IF NOT EXISTS events_step ON events (lesson, step, verb);
 `;
 
 /** Columns added after a table was first made: added where missing (an error means it is there already). */

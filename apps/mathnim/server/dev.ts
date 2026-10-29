@@ -20,6 +20,7 @@ import { handle, limit_for, RateLimiter, type KVLike, type Note, type TextCache 
 import { providers, type ProvidersEnv } from './providers';
 import { ReplayModel } from './studio/model';
 import { MAX_FILE, studio } from './studio/routes';
+import { events } from './events';
 import { state } from './sync';
 import { tts, type TtsHandlerEnv } from './tts/handler';
 import type { Connect, WsLike } from './tts/protocol';
@@ -230,7 +231,22 @@ export function d1_of(db: NodeSqlite): SqlDb {
       run: async () => db.prepare(sql).run(...args()),
     };
   };
-  return { prepare: (sql) => stmt(sql), exec: async (sql) => db.exec(sql) };
+  return {
+    prepare: (sql) => stmt(sql),
+    exec: async (sql) => db.exec(sql),
+    batch: async (stmts) => {
+      db.exec('BEGIN');
+      try {
+        const out: unknown[] = [];
+        for (const st of stmts) out.push(await st.run());
+        db.exec('COMMIT');
+        return out;
+      } catch (e) {
+        db.exec('ROLLBACK');
+        throw e;
+      }
+    },
+  };
 }
 
 /** R2's interface over a folder. */
@@ -282,6 +298,7 @@ export function dev_api(o: DevOptions): Middleware {
     [/^\/api\/deepseek\/(.*)$/, 'deepseek', (req, m, note) => deepseek(req, ds_env, m[1].replace(/\/$/, ''), { limiter: limits.deepseek, answers }, note)],
     [/^\/api\/auth\/(.*)$/, 'auth', async (req, m, note) => auth(req, await data_env(), m[1].replace(/\/$/, ''), { limiter: limiter('auth'), dev: true, generate: true }, note)],
     [/^\/api\/me\/state\/?$/, 'me/state', async (req) => state(req, await data_env())],
+    [/^\/api\/me\/events\/?$/, 'me/events', async (req) => events(req, await data_env())],
     [/^\/api\/studio\/(.*)$/, 'studio', async (req, m, note) => studio(req, await data_env(), m[1].replace(/\/$/, ''), studio_deps, note)],
   ];
   return (req, res, next) => {

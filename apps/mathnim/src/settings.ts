@@ -2,6 +2,7 @@
 import type { Lang } from '@mathnim/core';
 import { set_ui_lang, t } from '@mathnim/present';
 import { ensure_cjk_font } from './cjk_font';
+import { log } from './store';
 import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, recorded_text_answers, type Provider } from '@mathnim/ai';
 
 /**
@@ -52,6 +53,7 @@ export async function set_language(lang: Lang): Promise<void> {
   } catch {
     /* no storage: this session only */
   }
+  log.emit({ verb: 'set', lesson: '', object: 'lang', data: { value: lang } });
   // the canvas needs a Chinese font before visuals are drawn in Chinese (without one they stay English)
   if (lang === 'zh') await ensure_cjk_font();
   set_ui_lang(lang);
