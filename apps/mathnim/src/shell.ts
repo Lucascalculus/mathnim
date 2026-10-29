@@ -6,7 +6,7 @@ import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
 import { load_settings } from './settings';
 import { settings_panel } from './pages/settings';
-import { accounts_available, current_user, sign_out, studio_available } from './account';
+import { accounts_available, current_user, on_account_late, sign_out, studio_available } from './account';
 import { login_form } from './login';
 import { SHEET } from './sheet';
 import { PROGRESS_CSS } from './progress_mark';
@@ -376,6 +376,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     };
   };
   let current: Route = parse(location.pathname);
+  // the server answered who is signed in only after the page was up: draw the account entry now
+  on_account_late(() => render_nav());
   const render_nav = () => {
     const lang = ui_lang();
     const me = current_user();

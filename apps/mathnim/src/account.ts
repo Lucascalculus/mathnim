@@ -40,21 +40,45 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<{ ok: bool
   return { ok: r.ok, status: r.status, data };
 }
 
-/** Who is signed in (once, at start). */
-export async function load_me(): Promise<Me | null> {
+/** Ask the server who is signed in; false when it did not answer (slow or offline), so nothing is known yet. */
+async function ask_me(timeout_ms: number): Promise<boolean> {
   try {
-    const r = await call<{ user: Me | null; mail?: boolean; studio?: boolean; generate?: boolean }>('auth/me', { signal: AbortSignal.timeout(4000) });
+    const r = await call<{ user: Me | null; mail?: boolean; studio?: boolean; generate?: boolean }>('auth/me', { signal: AbortSignal.timeout(timeout_ms) });
     studio = r.ok && !!r.data.studio;
     generate = r.ok && !!r.data.generate;
     // sign-in is offered once the server can mail codes (a signed-in learner keeps their account regardless)
     available = r.ok && 'user' in r.data && (r.data.mail !== false || !!r.data.user);
     me = r.ok ? r.data.user ?? null : null;
+    return true;
   } catch {
     available = false;
     me = null;
+    return false;
   }
-  if (me) await sync().catch(() => undefined);
-  return me;
+}
+const late = new Set<() => void>();
+/** Called when the server answered only after the page was up: the account entry is drawn then (the page stays). */
+export function on_account_late(f: () => void): () => void {
+  late.add(f);
+  return () => late.delete(f);
+}
+/** Who is signed in (at start). A server that does not answer in time is asked again in the background, so a slow
+ *  start never hides the account for the whole visit. */
+export async function load_me(): Promise<Me | null> {
+  if (await ask_me(4000)) {
+    if (me) await sync().catch(() => undefined);
+    return me;
+  }
+  void (async () => {
+    for (const wait of [2000, 6000, 20000]) {
+      await new Promise((r) => setTimeout(r, wait));
+      if (!(await ask_me(15000))) continue;
+      if (me) await sync().catch(() => undefined);
+      late.forEach((f) => f());
+      return;
+    }
+  })();
+  return null;
 }
 
 /** Ask for a code by mail. On the dev server without mail, the code comes back (`dev_code`). */
