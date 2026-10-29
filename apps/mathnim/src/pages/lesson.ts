@@ -82,18 +82,21 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
       : undefined,
     // a passage selected on the page: asked about on the card
     help: (ask) => rail.open(ask),
+    // phones: the lesson bar's Ask opens the conversation over the page
+    ask: () => rail.toggle_sheet(),
   });
   rail.attach(view);
   // the outline of the course with this lesson's steps (docked on wide screens)
   const outline = course ? mount_outline(layout, host, { course, current: cl, lesson, view }) : null;
-  // the head of the lesson, one line: the outline button, "<course> ›" back to the course page, the title, the progress
+  // the head of the lesson: "<course> ›" back to the course page, then the title; the outline button and the progress
+  // are in the lesson bar at the foot of the screen
   if (course) {
     const crumb = document.createElement('nav');
     crumb.className = 'crumb';
     crumb.innerHTML = `<a href="${course_path(course)}">${math_html(tr(course.title, ui_lang()))}</a>`;
     view.el.head.prepend(crumb);
   }
-  if (outline) view.el.head.prepend(outline.toggle);
+  if (outline) (view.el.bar_start ?? view.el.head).prepend(outline.toggle);
   (window as any).mathnim_view = view; // for debugging in the console
   // a link to a step opens it; otherwise the lesson resumes where the learner left it
   // (not awaited: the page hands back its cleanup at once, so leaving mid-scene stops it)

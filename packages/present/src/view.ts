@@ -77,6 +77,8 @@ export interface ViewOptions {
    * and there is no "Explain this" button (the element is the way to ask).
    */
   rail?: HTMLElement;
+  /** The app's way to ask on phones (its conversation opens over the page): an "Ask" button in the lesson bar. */
+  ask?: () => void;
 }
 
 const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): HTMLElementTagNameMap[K] => {
@@ -230,11 +232,33 @@ export class LessonView {
         /* no storage */
       }
     } else {
-      // where am I: the lesson's chapters as segments, filled as far as the learner has come, after the title
-      this.el.where = h('div', 'mn-where');
-      head.append(this.el.where);
       left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page);
-      app.append(head, left, side);
+      // the way through the lesson, in one place on every step: a bar at the foot of the screen with (the app's
+      // outline button,) the progress, back, and one button that is always the way on (sync_go)
+      this.el.where = h('div', 'mn-where');
+      this.el.bar_start = h('div', 'mn-lb-start');
+      const back = h('button', 'mn-ghost mn-lb-back', CORNERS + icon('arrow_left'));
+      back.setAttribute('aria-label', t('previous_step'));
+      back.title = t('previous_step');
+      back.onclick = () => this.back();
+      this.el.go = h('button', 'mn-btn primary mn-go', esc(t('continue')));
+      this.el.go.onclick = () => this.go_target?.click();
+      const inner = h('div', 'mn-lessonbar-in');
+      inner.append(this.el.bar_start, this.el.where, h('span', 'mn-lb-gap'));
+      if (o.ask) {
+        const ask = h('button', 'mn-btn mn-lb-ask', esc(t('ask_short')));
+        ask.onclick = () => o.ask!();
+        inner.append(ask);
+      }
+      inner.append(back, this.el.go);
+      const lbar = h('nav', 'mn-lessonbar');
+      lbar.setAttribute('aria-label', t('lesson_progress'));
+      lbar.append(inner);
+      app.classList.add('mn-has-lessonbar');
+      app.append(head, left, side, lbar);
+      // the step's own ways on (Next step, Check, Continue) keep their logic, hidden; the bar's button stands for them
+      this.go_watch = new MutationObserver(() => this.queue_go());
+      for (const el of [this.el.actions, this.el.page]) this.go_watch.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden'] });
     }
     if (o.dev) app.append((this.el.dev = h('div', 'mn-dev', 'dev: linter + scene description')));
     root.append(app);
@@ -421,15 +445,47 @@ export class LessonView {
       next.click();
       return;
     }
-    const steps = this.lesson.steps;
-    const before = steps.slice(0, this.runtime.index).filter((s) => !s.branch_only);
-    const prev = before[before.length - 1];
-    if (!prev) return;
-    e.preventDefault();
-    void this.runtime.goto(prev.id);
+    if (this.back()) e.preventDefault();
   };
   private primary(): HTMLButtonElement | null {
-    return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)') ?? this.el.bar.querySelector('.mn-btn.primary:not(:disabled)');
+    return this.el.actions.querySelector('.mn-btn.primary:not(:disabled)');
+  }
+  /** Back to the step before (branch-only detours are skipped); false at the first step. */
+  private back(): boolean {
+    const before = this.lesson.steps.slice(0, this.runtime.index).filter((s) => !s.branch_only);
+    const prev = before[before.length - 1];
+    if (!prev) return false;
+    void this.runtime.goto(prev.id);
+    return true;
+  }
+  // ---------------------------------------------------------------- the lesson bar's button
+  private go_watch: MutationObserver | null = null;
+  private go_target: HTMLButtonElement | null = null;
+  private go_queued = false;
+  private queue_go(): void {
+    if (this.go_queued) return;
+    this.go_queued = true;
+    queueMicrotask(() => {
+      this.go_queued = false;
+      this.sync_go();
+    });
+  }
+  /**
+   * The bar's one button is the step's way on, whatever the step: the next line of a derivation while lines are
+   * left, Check while a question waits for an answer, then Continue (greyed while it is not open yet, e.g. a world
+   * before its goal). It clicks the step's own button, so every step keeps its logic.
+   */
+  private sync_go(): void {
+    const go = this.el.go as HTMLButtonElement | undefined;
+    if (!go || this.destroyed) return;
+    const line = this.el.page.querySelector<HTMLButtonElement>('.mn-next-step:not([hidden]):not(:disabled)');
+    const next = this.el.actions.querySelector<HTMLButtonElement>('[data-next]') ?? this.el.page.querySelector<HTMLButtonElement>('[data-next]');
+    const check = this.el.actions.querySelector<HTMLButtonElement>('[data-role=check]:not(:disabled)');
+    const target = line ?? (next && !next.disabled ? next : null) ?? check ?? next;
+    this.go_target = target;
+    const label = target?.textContent?.trim() || t('continue');
+    if (go.textContent !== label) go.textContent = label;
+    go.disabled = !target || target.disabled;
   }
 
   // ---------------------------------------------------------------- runtime events
@@ -479,13 +535,9 @@ export class LessonView {
         if (s.kind === 'scene') {
           const cont = this.button(t('continue'), () => this.runtime.next(), true);
           cont.dataset.next = '';
-          // (in the essay view the play button replays an ended scene, and Continue ends the player's row, where the
-          // eyes are; the game keeps its Replay and its tray)
-          if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()), cont);
-          else {
-            cont.classList.add('mn-next');
-            this.el.bar.append(cont);
-          }
+          // (in the essay view the play button replays an ended scene; the game keeps its Replay)
+          if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()));
+          this.el.actions.append(cont);
           if (s.narration) set_math(this.el.prompt, this.runtime.text(s.narration));
         }
         break;
@@ -675,6 +727,7 @@ export class LessonView {
       if (!p.done && s && !s.branch_only && i > p.furthest) this.save_progress({ furthest: i, done: false });
     }
     this.unwatch?.();
+    this.go_watch?.disconnect();
     this.stop_ahead?.();
     this.narrator.dispose();
     this.runtime.dispose();
@@ -687,7 +740,6 @@ export class LessonView {
     this.root.innerHTML = '';
   }
   private reset_panel(): void {
-    this.el.bar.querySelector('.mn-next')?.remove();
     this.cue?.dispose();
     this.cue = null;
     this.pending_cue = null;
@@ -1332,8 +1384,13 @@ export class LessonView {
     const next = this.o.next;
     const go = (href: string) => (this.o.navigate ? this.o.navigate(href) : location.assign(href));
     const back = this.button(t('back_to_course'), () => go(this.o.back ?? '/'), !next);
-    if (!next) return [back];
-    return [this.button(t('next_lesson', { title: this.tr(next.title) }), () => go(next.href), true), back];
+    if (!next) {
+      back.dataset.next = '';
+      return [back];
+    }
+    const on = this.button(t('next_lesson', { title: this.tr(next.title) }), () => go(next.href), true);
+    on.dataset.next = '';
+    return [on, back];
   }
   /** The game view's last card: all the stars, and the ideas that came up. */
   private game_over(ideas: string[]): void {

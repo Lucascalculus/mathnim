@@ -67,7 +67,7 @@ const CSS = `
 .ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.22);z-index:28;opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
 .ol-backdrop.open{opacity:1;visibility:visible;transition:opacity .28s}
 @media (prefers-reduced-motion:reduce){.outline,.ol-backdrop{transition:none!important}}
-@media (max-width:640px){.mn-head .crumb{display:none}}
+@media (max-width:640px){.mn-head .crumb{display:none}.mn-lessonbar .ol-toggle span{display:none}.mn-lessonbar .ol-toggle{padding:6px 9px}}
 `;
 let injected = false;
 

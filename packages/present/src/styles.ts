@@ -120,7 +120,9 @@ export const CSS = `
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
 @media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px;flex-wrap:wrap}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}
- .mn-head .mn-where{flex-basis:100%;margin-left:0}.mn-head .mn-segs{flex:1;width:auto}.mn-app .mn-bar .mn-next{flex:1 1 100%;margin:6px 0 0}}
+ .mn-lessonbar .mn-lessonbar-in{padding:8px 12px calc(8px + env(safe-area-inset-bottom));gap:8px}
+ .mn-lessonbar .mn-where{flex:1;min-width:0}.mn-lessonbar .mn-segs{flex:1;width:auto}.mn-lessonbar .mn-where-n{display:none}
+ .mn-lessonbar .mn-lb-gap,.mn-lessonbar .mn-lb-back{display:none}.mn-lessonbar .mn-lb-ask{display:inline-block;padding:9px 12px}.mn-lessonbar .mn-go{min-width:0;padding-inline:16px}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -339,8 +341,18 @@ export const CSS = `
 .mn-seg{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden;min-width:6px}
 .mn-seg i{display:block;height:100%;background:color-mix(in srgb,var(--mn-accent) 55%,var(--mn-faint));transition:width .4s}
 .mn-seg.here i{background:var(--mn-accent)}
-/* Continue ends the player's row on a scene, at the figure's right edge */
-.mn-bar .mn-next{margin-left:8px;flex:none}
+/* the lesson bar: at the foot of the screen on every step (essay view), the way through the lesson in one place */
+.mn-lessonbar{position:fixed;left:0;right:0;bottom:0;z-index:22;background:color-mix(in srgb,var(--mn-bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--mn-border)}
+.mn-lessonbar-in{max-width:1500px;margin:0 auto;box-sizing:border-box;padding:10px 24px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px}
+.mn-lb-start{display:flex;align-items:center}.mn-lb-start:empty{display:none}
+.mn-lb-gap{flex:1}
+.mn-lessonbar .mn-where{margin:0}
+.mn-go{min-width:132px;justify-content:center}
+.mn-go:disabled{background:var(--mn-faint);border-color:var(--mn-faint);color:var(--mn-muted);cursor:default;opacity:1}
+.mn-lb-ask{display:none}
+.mn-app.mn-has-lessonbar{padding-bottom:84px}
+/* the step's own ways on keep their logic but are not shown: the bar's button stands for them */
+.mn-has-lessonbar :is(.mn-actions [data-next],.mn-actions [data-role=check],.mn-page-next,.mn-next-step){display:none!important}
 /* step dots: done = filled, now = accent with a ring, upcoming = outline only */
 .mn-more{position:relative;flex:none}
 .mn-more>summary{list-style:none}

@@ -116,12 +116,14 @@ const CSS = `
 .rail-talk .rail-q::before{content:'→';position:absolute;left:0;font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mn-accent)}
 .rail-talk .mn-ask form .mn-input{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
 }
-/* phones: the line at the bottom of the screen; the conversation opens above it */
+/* phones: the conversation opens over the page from the lesson bar's Ask, just above the bar (toggle_sheet) */
 @media (max-width:900px){
  .mn-app.mn-textstep .mn-side.mn-railed{min-height:0}
+ .mn-has-lessonbar .rail-talk:not(.open){display:none!important}
+ .mn-has-lessonbar .rail-talk{bottom:calc(57px + env(safe-area-inset-bottom))!important;border-top:1px solid var(--mn-border);box-shadow:0 -12px 30px -18px rgba(0,0,0,.25)}
  .rail-talk,.mn-app:not(.mn-textstep) .rail-talk{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:25;margin:0;padding:8px 18px calc(10px + env(safe-area-inset-bottom));max-height:min(64vh,560px);overflow:auto;background:color-mix(in srgb,var(--mn-bg) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--mn-border)}
  .rail-talk:not(:focus-within) .rail-qs{display:none}
- .mn-app.mn-has-rail{padding-bottom:76px}
+ .mn-app.mn-has-rail:not(.mn-has-lessonbar){padding-bottom:76px}
 }
 @media (prefers-reduced-motion:reduce){.mn-rail *,.rail-note,.mn-para,.mn-echo{animation:none!important;transition:none!important}}
 `;
@@ -484,6 +486,7 @@ export class AskRail {
       const q = this.line.value.trim();
       if (!q) return;
       this.line.value = '';
+      this.talk.classList.remove('open'); // (phones: the note opens in the text)
       this.ask_here(q);
     };
     this.ro = new ResizeObserver(() => this.layout());
@@ -542,6 +545,19 @@ export class AskRail {
     this.view = null;
   }
 
+  /** Phones: open or close the conversation over the page (the lesson bar's Ask); it closes when the learner leaves it. */
+  toggle_sheet(): void {
+    const open = !this.talk.classList.contains('open');
+    this.talk.classList.toggle('open', open);
+    if (!open) return;
+    this.line.focus();
+    const close = (e: Event) => {
+      if (this.talk.contains(e.target as Node) || (e.target as Element).closest?.('.mn-lb-ask')) return;
+      this.talk.classList.remove('open');
+      document.removeEventListener('pointerdown', close, true);
+    };
+    document.addEventListener('pointerdown', close, true);
+  }
   /** What the tutor knows (a note's sentence comes with its own questions). */
   context(): AskContext {
     return this.view ? lesson_context(this.cl, this.view) : {};

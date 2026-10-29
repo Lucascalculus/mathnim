@@ -36,6 +36,8 @@ const DICT: Record<string, Entry> = {
   narration_toggle: { en: 'Narration on or off', zh: '打开或关闭旁白' },
   replay: { en: 'Replay', zh: '重播' },
   continue: { en: 'Continue', zh: '继续' },
+  previous_step: { en: 'Previous step', zh: '上一步' },
+  lesson_progress: { en: 'Lesson progress', zh: '课程进度' },
   kind_derive: { en: 'derivation', zh: '推导' },
   kind_code: { en: 'code walkthrough', zh: '代码讲解' },
   locked: { en: 'locked', zh: '未解锁' },
