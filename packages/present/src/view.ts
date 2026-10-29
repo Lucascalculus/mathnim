@@ -14,8 +14,8 @@ import { export_video } from 'manim-web/ext/export';
 import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import {
-  EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, tr,
-  type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Response, type RuntimeEvent, type TextStep, type Vars,
+  BEAT, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, beat_times, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, tr, unbeat,
+  type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Recording, type Response, type RuntimeEvent, type TextStep, type Vars,
 } from '@mathnim/core';
 import { drag_hint, plural_s, t, ui_lang } from './i18n';
 import { CORNERS, icon } from './icons';
@@ -348,6 +348,7 @@ export class LessonView {
   // ---------------------------------------------------------------- player + bar
   private bind_player(p: ScenePlayer): void {
     this.o.on_player?.(p);
+    this.step_player = p;
     const seek = this.el.seek as HTMLInputElement;
     // (the figure's notes are known once it is built: its first frame)
     let noted = false;
@@ -355,6 +356,7 @@ export class LessonView {
       if (!noted) {
         noted = true;
         this.el.aside.textContent = asides(p);
+        this.time_picture(); // (its frames are known now)
       }
       if (!p.duration) return;
       seek.value = String(Math.round((t / p.duration) * 1000));
@@ -364,6 +366,19 @@ export class LessonView {
     };
     p.set_rate(this.rate);
     if (this.o.dev) queueMicrotask(() => this.dev_report(p));
+  }
+  /** The player of the step on screen (bind_player), and a scene's narration with the recording it is said with. */
+  private step_player: ScenePlayer | null = null;
+  private timing: { text: string; rec: Recording } | null = null;
+  /** A step's narration: said without its beats; a scene with beats (§) has its picture wait for the voice at each. */
+  private say_narration(text: string): void {
+    const timed = this.scene_step && text.includes(BEAT);
+    void this.narrator.say(unbeat(text), timed ? (rec) => ((this.timing = { text, rec }), this.time_picture()) : undefined);
+  }
+  /** The picture waits for the voice (ScenePlayer.wait_for), once both the recording and the step's scene are in. */
+  private time_picture(): void {
+    const p = this.step_player, tm = this.timing;
+    if (p?.loaded && tm) p.wait_for(beat_times(tm.text, tm.rec), tm.rec.duration);
   }
   private shown_ended = false;
   /** A scene that has ended offers its whole narration (show_text) in place of the subtitle. */
@@ -411,7 +426,7 @@ export class LessonView {
     p.seek_frame(0);
     p.play();
     this.show_playing(true);
-    if (s?.kind === 'scene' && s.narration) void this.narrator.say(this.runtime.text(s.narration));
+    if (s?.kind === 'scene' && s.narration) this.say_narration(this.runtime.text(s.narration));
     this.runtime.log.emit({ verb: 'replayed', lesson: this.lesson.id, step: s?.id });
   }
   private bind_controls(): void {
@@ -591,10 +606,12 @@ export class LessonView {
         // on interactive steps the instructions are in the panel: speak them, but keep the figure clear
         this.el.aside.textContent = ''; // (the step's own figure says its own, when it loads)
         this.scene_step = s.kind === 'scene';
+        this.step_player = null; // (the step's own comes with its scene)
+        this.timing = null;
         this.app.classList.toggle('mn-scenestep', this.scene_step);
         this.show_ended(false);
         this.show_text(false);
-        set_math(this.el.transcript, this.scene_step && s.narration ? this.runtime.text(s.narration) : '');
+        set_math(this.el.transcript, this.scene_step && s.narration ? unbeat(this.runtime.text(s.narration)) : '');
         if (this.el.fulltext) this.el.fulltext.hidden = !(this.scene_step && s.narration);
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
@@ -610,7 +627,7 @@ export class LessonView {
         // narration is for "videos": scenes and worlds are spoken, and in a game the character speaks the questions too;
         // text pages are read silently, and so are questions in the essay view
         hush_all(this.narrator); // (a tutor's answer read aloud on the last step stops with it)
-        if (s.narration && is_voiced(s, this.game ? 'game' : 'essay')) void this.narrator.say(this.runtime.text(s.narration));
+        if (s.narration && is_voiced(s, this.game ? 'game' : 'essay')) this.say_narration(this.runtime.text(s.narration));
         else {
           this.narrator.stop();
           this.el.caption.textContent = '';
@@ -624,7 +641,7 @@ export class LessonView {
           // (in the essay view the play button replays an ended scene; the game keeps its Replay)
           if (this.game) this.el.actions.append(this.button(t('replay'), () => this.replay()));
           this.el.actions.append(cont);
-          if (s.narration) set_math(this.el.prompt, this.runtime.text(s.narration));
+          if (s.narration) set_math(this.el.prompt, unbeat(this.runtime.text(s.narration)));
         }
         break;
       }

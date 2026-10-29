@@ -79,6 +79,25 @@ course's `unit.ts`. Within a lesson, a good default arc is:
 Break the arc when the idea asks for it. Look at the reference lessons below
 before writing your first one.
 
+**Time each scene to its voice.** A narrated scene shows each thing as the
+voice talks about it, never a finished figure under a voice that is still
+explaining it. Write the narration first, in parts, one per thing the picture
+does; then:
+
+- put `§` in the narration where the picture's next part should start, in both
+  languages (`'…at time zero. § Executed blindly, …'`, `'…的计划。§闭着眼睛…'`);
+- call `this.next_section()` in the scene at the same places, in the same order.
+
+The picture then waits at each section until the voice reaches its `§`, and
+holds its last frame until the voice ends. The waits are worked out from the
+recording when it plays, so any voice, speed or language lines up, and a new
+voice needs no change. `§` is not said or shown and does not change the
+recording. Animations should take no longer than the words they go with
+(the picture waits for the voice, never the other way round). `npm run doctor`
+checks one `§` per section in each language, and warns when a scene without
+beats has a voice that runs on past its picture. Do this for new scenes; the
+scenes made before it (October 2026) keep their own timing.
+
 **Parallel work.** With several agents, give each one lesson and a brief
 (template below); keep shared files (`course.ts`, packages, index files) with
 one owner, and have agents send registrations rather than edit shared files.

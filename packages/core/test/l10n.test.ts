@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LessonRuntime, caption_cues, case_position, describe_step, expected_answer, grade, grade_blank, is_bilingual, lesson_langs, lesson_strings,
   narration_lines, speakable_markup, spoken_lang, to_spoken, tr, type DeriveStep, type Lesson, type RuntimeEvent,
+  beat_times, narration_key, unbeat,
 } from '../src';
 
 const derive: DeriveStep = {
@@ -179,5 +180,27 @@ describe('narration in two languages', () => {
     expect(to_spoken('KL 散度')).toBe('KL 散度'); // abbreviations are not spelled out in Chinese
     expect(speakable_markup('$\\frac{1}{2}$ 和 $\\beta^2$', 'zh')).toMatch(/2 分之 1 .*β 的平方/);
     expect(to_spoken('The KL term')).toBe('The K-L term'); // English is unchanged
+  });
+});
+
+describe('beats: the picture waits for the voice', () => {
+  it('are not said, shown or part of the key', () => {
+    expect(unbeat('two seconds ahead: § the dashed curve')).toBe('two seconds ahead: the dashed curve');
+    expect(unbeat('两秒钟：§虚线是它的预测')).toBe('两秒钟：虚线是它的预测');
+    expect(narration_key('ahead: § the curve')).toBe(narration_key('ahead: the curve'));
+    expect(to_spoken('the § curve')).toBe('the curve');
+  });
+  it('fall where this voice says the word after them, whatever its pace', () => {
+    const text = 'Plan twenty steps. § Apply only the first. § Then plan again.';
+    const plain = unbeat(text);
+    for (const pace of [0.3, 0.55]) {
+      const words = plain.split(' ').map((w, i) => [i * pace, i * pace + pace * 0.9, w.replace(/[.]/g, '')] as [number, number, string]);
+      const rec = { text: plain, duration: words.length * pace, words };
+      expect(beat_times(text, rec)).toEqual([3 * pace, 7 * pace]); // "Apply" is word 3, "Then" word 7
+    }
+    const zh = '先规划二十步。§只执行第一步。';
+    const chars = [...unbeat(zh)].filter((c) => !/[。]/.test(c));
+    const rec = { text: unbeat(zh), duration: chars.length * 0.25, words: chars.map((c, i) => [i * 0.25, i * 0.25 + 0.2, c] as [number, number, string]) };
+    expect(beat_times(zh, rec)).toEqual([6 * 0.25]); // after 先规划二十步
   });
 });

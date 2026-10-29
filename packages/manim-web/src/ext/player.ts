@@ -58,6 +58,8 @@ export class ScenePlayer {
   private f_start = 0;
   private audio: AudioPlayback | null = null;
   private live_loop = 0;
+  /** Frames the picture holds still after each segment (wait_for); empty for none. */
+  private holds: number[] = [];
 
   constructor(scene: Scene, canvas: HTMLCanvasElement | OffscreenCanvas, opts: PlayerOptions = {}) {
     this.scene = scene;
@@ -71,18 +73,60 @@ export class ScenePlayer {
   async load(): Promise<this> {
     await preload({ tex: this.opts.tex }); // Text/TeX are built synchronously in construct()
     await this.scene.render();
-    let f = 0;
-    this.seg_starts = this.scene.segments.map((s) => {
-      const start = f;
-      f += s.n_frames;
-      return start;
-    });
-    this.total_frames = f;
+    this.lay_out();
     this.loaded = true;
     if (this.opts.audio !== false && this.scene.sounds.length && typeof AudioContext !== 'undefined') this.audio = new AudioPlayback(this.scene.sounds);
     await this.audio?.load();
     this.seek_frame(0);
     return this;
+  }
+  /** Where each segment starts on the timeline: its frames, then the frames it holds still (wait_for). */
+  private lay_out(): void {
+    let f = 0;
+    this.seg_starts = this.scene.segments.map((s, i) => {
+      const start = f;
+      f += s.n_frames + (this.holds[i] ?? 0);
+      return start;
+    });
+    this.total_frames = f;
+  }
+  /**
+   * Let the picture wait for a voice. Section k of the scene (begun by its k-th next_section()) starts no earlier
+   * than at[k-1] seconds, the picture holding the frame before it until then; after its last frame it holds until
+   * `end`. The timeline (duration, time, seek_time) then runs on the voice's clock. Call again with other times (a
+   * different voice) or with nothing to drop the waits; the picture stays where it is.
+   */
+  wait_for(at: number[] = [], end = 0): void {
+    const segs = this.scene.segments;
+    if (!segs.length) return;
+    const [si, j] = this.frame >= 0 && this.frame < this.total_frames ? this.locate(this.frame) : [-1, 0];
+    const holds = segs.map(() => 0);
+    let base = 0, held = 0; // frames of the segments so far, and of the holds before them
+    const starts = segs.map((sg) => {
+      const b = base;
+      base += sg.n_frames;
+      return b;
+    });
+    const firsts = this.scene.sections.slice(1).map((sec) => segs.findIndex((sg) => sg.t0 >= sec.time - 1e-6));
+    firsts.forEach((first, k) => {
+      if (k >= at.length || first <= 0) return;
+      const wait = Math.round(at[k] * this.fps) - (starts[first] + held);
+      if (wait > 0) {
+        holds[first - 1] += wait;
+        held += wait;
+      }
+    });
+    holds[segs.length - 1] += Math.max(0, Math.round(end * this.fps) - (base + held));
+    this.holds = holds;
+    this.lay_out();
+    // the same picture as before, on the new timeline
+    if (si >= 0) {
+      this.frame = this.seg_starts[si] + j;
+      if (this.playing) {
+        this.t_start = performance.now();
+        this.f_start = this.frame;
+      }
+    }
   }
   get duration(): number {
     return this.total_frames * this.dt;

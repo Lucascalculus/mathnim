@@ -12,5 +12,5 @@ export * from './learner/review';
 export * from './learner/model';
 export { LessonRuntime, GAME_FLOW, LINEAR_FLOW, type FlowPolicy, type RuntimeEvent, type RuntimeOptions } from './runtime';
 export * from './world';
-export { caption_cues, merge_recordings, narration_key, speakable_markup, spoken_lang, to_spoken, tts_parts, type Cue, type Recording, type TtsReply } from './narration';
+export { BEAT, beat_times, unbeat, caption_cues, merge_recordings, narration_key, speakable_markup, spoken_lang, to_spoken, tts_parts, type Cue, type Recording, type TtsReply } from './narration';
 export * from './content';

@@ -49,6 +49,15 @@ Frame counts follow Manim exactly (`ceil(run_time·fps)` per animation,
 `int(duration·fps)` for frozen waits), so `seek_time(t)` shows the frame
 Manim would have written at `t`.
 
+**Waiting for a voice.** `player.wait_for(at, end)` holds the picture before
+each section (begun by `next_section()`) until `at[k]` seconds, and on its last
+frame until `end`; the timeline (`duration`, `time`, `seek_time`) then runs on
+the voice's clock, and the picture stays where it is when the waits change.
+A picture that is already late never waits. Lessons get `at` from the narration's
+beats (`§`) and the recording's word timings (`beat_times` in
+`@mathnim/core`), so the same scene lines up with any voice
+(docs/COURSE-PLAYBOOK.md, "Time each scene to its voice").
+
 **Recording skips to the last frames.** Recording only needs each segment's
 starting state, so a segment with no stop condition and no updater that takes
 `dt` runs just its last 3 frames (`Scene.LAST_FRAMES`) instead of all of them

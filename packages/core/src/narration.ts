@@ -1,9 +1,40 @@
 // Narration lines as data: the key that names a recorded line, and caption
 // cues timed by the recording's word boundaries (no DOM).
-/** Stable key of a narration line (FNV-1a 64-bit, hex); gen_narration uses the same. */
+/**
+ * A beat in a scene's narration: "§" where the scene's next section (Scene.next_section) should start. The picture
+ * waits there until the voice gets to it (ScenePlayer.wait_for, timed by beat_times from the recording itself, so any
+ * voice, speed or language lines up). Beats are not said or shown, and do not change a line's recording.
+ */
+export const BEAT = '§';
+/** A line as it is said and shown: without its beats ("ahead: § the" -> "ahead: the"; "两秒：§虚线" -> "两秒：虚线"). */
+export const unbeat = (text: string): string => (text.includes(BEAT) ? text.replace(/(\s*)§(\s*)/g, (_m, a: string, b: string) => (a || b ? ' ' : '')).trim() : text);
+/**
+ * When this recording's voice reaches each beat of `text` (seconds): the start of the word the beat stands before,
+ * found by its share of the line's spoken letters and digits (the words a voice reports are its own, so they are
+ * matched by share rather than by spelling).
+ */
+export function beat_times(text: string, rec: Recording): number[] {
+  const parts = text.split(BEAT);
+  if (parts.length < 2) return [];
+  const lang = spoken_lang(unbeat(text));
+  const letters = (s: string) => s.replace(/[^\p{L}\p{N}]/gu, '').length;
+  const total = letters(to_spoken(unbeat(text), lang)) || 1;
+  const sizes = rec.words.map((w) => letters(w[2]));
+  const said = sizes.reduce((a, b) => a + b, 0) || 1;
+  const out: number[] = [];
+  for (let k = 1; k < parts.length; k++) {
+    const share = letters(to_spoken(unbeat(parts.slice(0, k).join(BEAT)), lang)) / total;
+    let i = 0;
+    for (let acc = 0; i < sizes.length && acc / said < share - 1e-6; i++) acc += sizes[i];
+    out.push(i < rec.words.length ? rec.words[i][0] : rec.duration);
+  }
+  return out;
+}
+
+/** Stable key of a narration line (FNV-1a 64-bit, hex); gen_narration uses the same. Beats do not count. */
 export function narration_key(text: string): string {
   let h = 0xcbf29ce484222325n;
-  for (const b of new TextEncoder().encode(text)) {
+  for (const b of new TextEncoder().encode(unbeat(text))) {
     h ^= BigInt(b);
     h = (h * 0x100000001b3n) & 0xffffffffffffffffn;
   }
@@ -86,6 +117,7 @@ const ZH_SYMBOLS: [string, string][] = [
  * (the Chinese voices read LoRA, KL, β natively) and name symbols in Chinese.
  */
 export function to_spoken(text: string, lang: 'en' | 'zh' = spoken_lang(text)): string {
+  text = unbeat(text);
   if (lang === 'zh') {
     let z = speakable_markup(text, 'zh');
     for (const [a, b] of ZH_SYMBOLS) z = z.split(a).join(b);

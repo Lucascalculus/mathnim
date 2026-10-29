@@ -110,8 +110,11 @@ export class Narrator {
     for (const f of this.done_waiters.splice(0)) f();
   }
 
-  /** Show and speak a line. Resolves when it has finished (or was replaced). */
-  async say(text: string): Promise<void> {
+  /**
+   * Show and speak a line. Resolves when it has finished (or was replaced). `on_take` hears of the recording before
+   * it plays (a scene times its picture by it: beats).
+   */
+  async say(text: string, on_take?: (rec: Recording) => void): Promise<void> {
     if (this.dead) return;
     this.stop();
     const my = ++this.token;
@@ -120,7 +123,10 @@ export class Narrator {
     if (!take && my === this.token && this.live && this.enabled) take = await live_take(this.live, text);
     if (my !== this.token) return;
     // the subtitle shows a phrase at a time, with the voice; only a line with no recording is shown whole, to read
-    if (take) return this.play(take, text, my);
+    if (take) {
+      on_take?.(take.rec);
+      return this.play(take, text, my);
+    }
     this.caption.textContent = text;
     if (this.enabled && this.system_voice && typeof speechSynthesis !== 'undefined') {
       const u = new SpeechSynthesisUtterance(to_spoken(text));

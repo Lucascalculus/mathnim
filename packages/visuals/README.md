@@ -74,6 +74,9 @@ The contract (`src/visual.ts`):
    an empty group in its place. Labels on things (an axis, a curve, a value)
    stay in the picture.
 9. **Name the key objects** (`m.name = 'matrix'`) and list them in `ids`.
+   A scene a lesson narrates marks its parts with `this.next_section()`, one
+   per `§` of the narration (docs/COURSE-PLAYBOOK.md, "Time each scene to its
+   voice"): the picture waits there for the voice.
 10. Register it in `src/index.ts` and run the checks.
 
 Pitfalls met while writing the linear algebra set:
