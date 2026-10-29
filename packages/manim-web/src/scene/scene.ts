@@ -308,6 +308,13 @@ export class Scene implements SceneLike {
     this.segments.push(seg);
     if (frozen) {
       this.time += n * dt;
+    } else if (this.ends_without_frames()) {
+      // only the last frames: an updater that reads another's state lags it by a frame, and
+      // these leave the chain where frame-by-frame recording leaves it
+      for (let i = 0; i < n; i++) {
+        if (i >= n - Scene.LAST_FRAMES) this.update_to_time(i * dt);
+        this.time += dt; // (the same sum as frame by frame)
+      }
     } else {
       let frames = 0;
       for (let i = 0; i < n; i++) {
@@ -319,6 +326,17 @@ export class Scene implements SceneLike {
       seg.n_frames = frames;
     }
     this.finish_animations();
+  }
+  static LAST_FRAMES = 3;
+  /**
+   * Web: recording keeps only the snapshot at the start of each segment (the
+   * player computes the frames as it plays them), so a segment can skip to its
+   * last frames, like manim's skip_animations, when nothing depends on the frames
+   * in between: no stop condition and no updater that takes dt. Simulating every
+   * frame of a 20 s scene froze the page for most of a second when a step opened.
+   */
+  protected ends_without_frames(): boolean {
+    return !this.stop_condition && !this.always_update_mobjects && !this.updaters.length && !this.get_mobject_family_members().some((m) => m.has_time_based_updater());
   }
   finish_animations(): void {
     for (const a of this.animations!) {
