@@ -120,9 +120,8 @@ export const CSS = `
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}
 @media (max-width:900px){.mn-app{grid-template-columns:minmax(0,1fr)}.mn-side{grid-row:auto;grid-column:1}}
 @media (max-width:640px){.mn-app{padding:0;gap:12px}.mn-bar .mn-more{display:none}.mn-bar{gap:6px;flex-wrap:wrap}.mn-play{width:40px;height:40px}.mn-ghost{width:40px;height:40px}.mn-speed{width:44px}
- .mn-lessonbar .mn-lessonbar-in{padding:8px 12px calc(8px + env(safe-area-inset-bottom));gap:8px}
- .mn-lessonbar .mn-where{flex:1;min-width:0}.mn-lessonbar .mn-segs{flex:1;width:auto}.mn-lessonbar .mn-where-n{display:none}
- .mn-lessonbar .mn-lb-gap,.mn-lessonbar .mn-lb-back{display:none}.mn-lessonbar .mn-lb-ask{display:inline-block;padding:9px 12px}.mn-lessonbar .mn-go{min-width:0;padding-inline:16px}}
+ .mn-lessonbar .mn-where{flex:1;min-width:0;margin:0 4px}.mn-lessonbar .mn-segs{flex:1;width:auto}.mn-lessonbar .mn-where-n{display:none}
+ .mn-lessonbar .mn-lb-gap{display:none}.mn-lessonbar .mn-go{min-width:0}}
 /* ---- game view: a character speaks above a full-width stage, levels with stars, a tray below */
 .mn-app.mn-game{grid-template-columns:minmax(0,1fr)}
 .mn-game .mn-side{grid-row:auto;grid-column:1}
@@ -341,16 +340,25 @@ export const CSS = `
 .mn-seg{height:4px;border-radius:2px;background:var(--mn-faint);overflow:hidden;min-width:6px}
 .mn-seg i{display:block;height:100%;background:color-mix(in srgb,var(--mn-accent) 55%,var(--mn-faint));transition:width .4s}
 .mn-seg.here i{background:var(--mn-accent)}
-/* the lesson bar: at the foot of the screen on every step (essay view), the way through the lesson in one place */
+/* the lesson bar: at the foot of the screen on every step (essay view), the way through the lesson in one place.
+   Its row lines up with the lesson's column (the side column's width is left free), so the way on ends where the
+   content ends. One set of buttons for every screen: 40 px tall, 10 px corners, outlined or (the way on) solid */
 .mn-lessonbar{position:fixed;left:0;right:0;bottom:0;z-index:22;background:color-mix(in srgb,var(--mn-bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--mn-border)}
-.mn-lessonbar-in{max-width:1500px;margin:0 auto;box-sizing:border-box;padding:10px 24px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px}
+.mn-lessonbar-in{max-width:1500px;margin:0 auto;box-sizing:border-box;padding:10px 40px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
+.mn-lb-main{display:flex;align-items:center;gap:8px;min-width:0}
 .mn-lb-start{display:flex;align-items:center}.mn-lb-start:empty{display:none}
 .mn-lb-gap{flex:1}
 .mn-lessonbar .mn-where{margin:0}
-.mn-go{min-width:132px;justify-content:center}
+.mn-lessonbar .mn-btn{box-sizing:border-box;height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.mn-lessonbar .mn-btn:not(.primary){background:var(--mn-panel);border-color:var(--mn-border);color:var(--mn-fg)}
+.mn-lessonbar .mn-btn:not(.primary):hover{border-color:color-mix(in srgb,var(--mn-fg) 35%,var(--mn-border))}
+.mn-lessonbar .mn-btn.primary:not(:disabled):hover{background:color-mix(in srgb,var(--mn-fg) 86%,var(--mn-bg))}
+.mn-lessonbar .mn-ib{width:40px;padding:0}
+.mn-go{min-width:140px}
 .mn-go:disabled{background:var(--mn-faint);border-color:var(--mn-faint);color:var(--mn-muted);cursor:default;opacity:1}
-.mn-lb-ask{display:none}
+.mn-lessonbar .mn-lb-ask{display:none}
 .mn-app.mn-has-lessonbar{padding-bottom:84px}
+@media (max-width:900px){.mn-lessonbar-in{grid-template-columns:minmax(0,1fr);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}.mn-lessonbar .mn-lb-ask{display:inline-flex}}
 /* the step's own ways on keep their logic but are not shown: the bar's button stands for them */
 .mn-has-lessonbar :is(.mn-actions [data-next],.mn-actions [data-role=check],.mn-page-next,.mn-next-step){display:none!important}
 /* step dots: done = filled, now = accent with a ring, upcoming = outline only */

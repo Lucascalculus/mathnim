@@ -67,7 +67,11 @@ const CSS = `
 .ol-backdrop{position:fixed;inset:0;background:rgba(20,22,26,.22);z-index:28;opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
 .ol-backdrop.open{opacity:1;visibility:visible;transition:opacity .28s}
 @media (prefers-reduced-motion:reduce){.outline,.ol-backdrop{transition:none!important}}
-@media (max-width:640px){.mn-head .crumb{display:none}.mn-lessonbar .ol-toggle span{display:none}.mn-lessonbar .ol-toggle{padding:6px 9px}}
+/* in the lesson bar: one of its buttons (present's .mn-lessonbar .mn-btn: 40 px, 10 px corners, outlined) */
+.mn-lessonbar .ol-toggle{box-sizing:border-box;height:40px;padding:0 14px;border-radius:10px;gap:8px;font-size:14px;font-weight:600;color:var(--mn-fg);border-color:var(--mn-border);background:var(--mn-panel)}
+.mn-lessonbar .ol-toggle:hover{color:var(--mn-fg);border-color:color-mix(in srgb,var(--mn-fg) 35%,var(--mn-border))}
+.mn-lessonbar .ol-toggle svg{width:16px;height:16px}
+@media (max-width:640px){.mn-head .crumb{display:none}.mn-lessonbar .ol-toggle span{display:none}.mn-lessonbar .ol-toggle{width:40px;padding:0;justify-content:center}}
 `;
 let injected = false;
 

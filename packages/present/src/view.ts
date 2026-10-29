@@ -235,22 +235,26 @@ export class LessonView {
       left.append(stage, this.el.caption, this.el.transcript, bar, this.el.page);
       // the way through the lesson, in one place on every step: a bar at the foot of the screen with (the app's
       // outline button,) the progress, back, and one button that is always the way on (sync_go)
+      // laid out by reach: the rare ways (outline, back) at the left, the progress between, the way on alone at the
+      // right edge of the lesson's column (where reading ends and the pointer or the right thumb rests), large
       this.el.where = h('div', 'mn-where');
       this.el.bar_start = h('div', 'mn-lb-start');
-      const back = h('button', 'mn-ghost mn-lb-back', CORNERS + icon('arrow_left'));
+      const back = h('button', 'mn-btn mn-ib mn-lb-back', icon('arrow_left'));
       back.setAttribute('aria-label', t('previous_step'));
       back.title = t('previous_step');
       back.onclick = () => this.back();
       this.el.go = h('button', 'mn-btn primary mn-go', esc(t('continue')));
       this.el.go.onclick = () => this.go_target?.click();
-      const inner = h('div', 'mn-lessonbar-in');
-      inner.append(this.el.bar_start, this.el.where, h('span', 'mn-lb-gap'));
+      const main = h('div', 'mn-lb-main');
+      main.append(this.el.bar_start, back, h('span', 'mn-lb-gap'), this.el.where, h('span', 'mn-lb-gap'));
       if (o.ask) {
         const ask = h('button', 'mn-btn mn-lb-ask', esc(t('ask_short')));
         ask.onclick = () => o.ask!();
-        inner.append(ask);
+        main.append(ask);
       }
-      inner.append(back, this.el.go);
+      main.append(this.el.go);
+      const inner = h('div', 'mn-lessonbar-in');
+      inner.append(main);
       const lbar = h('nav', 'mn-lessonbar');
       lbar.setAttribute('aria-label', t('lesson_progress'));
       lbar.append(inner);
@@ -484,7 +488,9 @@ export class LessonView {
     const target = line ?? (next && !next.disabled ? next : null) ?? check ?? next;
     this.go_target = target;
     const label = target?.textContent?.trim() || t('continue');
-    if (go.textContent !== label) go.textContent = label;
+    // (an arrow when it moves on: a line of the derivation or the next step; Check has none)
+    const html = esc(label) + (target && target === check ? '' : icon('arrow_right', 16));
+    if (go.innerHTML !== html) go.innerHTML = html;
     go.disabled = !target || target.disabled;
   }
 
