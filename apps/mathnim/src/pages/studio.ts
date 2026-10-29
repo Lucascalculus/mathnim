@@ -13,7 +13,6 @@ import { backlink } from '../backlink';
 import { lesson_path } from '../course';
 import { login_form } from '../login';
 import { navigate, type Route } from '../router';
-import { SHEET } from '../sheet';
 import { load_studio_courses, studio_slug } from '../studio_courses';
 
 const CSS = `
@@ -26,8 +25,9 @@ const CSS = `
 .studio-lead{margin:-6px 0 0;color:var(--mn-muted);font-size:15px;line-height:1.6}
 .studio-gate{width:min(440px,100%);box-sizing:border-box;align-self:center;margin-top:40px;display:flex;flex-direction:column;gap:14px;padding:26px}
 .studio-gate h1{font-size:24px}
-/* the sheet files are dropped on: crop marks that close in while files are held over it */
-.sheet{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;${SHEET};border-radius:4px;transition:background-color .2s}
+/* the sheet files are dropped on: a dot grid whose crop marks close in while files are held over it (or when pointed at) */
+.sheet{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;border-radius:2px;--g:color-mix(in srgb,var(--mn-fg) 16%,transparent);background:radial-gradient(var(--g) 1px,transparent 1.3px) 0 0/14px 14px,var(--mn-bg);transition:background-color .2s}
+.sheet:hover,.sheet.over{--g:color-mix(in srgb,var(--mn-fg) 26%,transparent)}
 .sheet>i{position:absolute;width:14px;height:14px;border:0 solid var(--mn-fg);transition:inset .35s cubic-bezier(.3,1.5,.5,1)}
 .sheet>i:nth-child(1){left:0;top:0;border-left-width:1.5px;border-top-width:1.5px}
 .sheet>i:nth-child(2){right:0;top:0;border-right-width:1.5px;border-top-width:1.5px}
