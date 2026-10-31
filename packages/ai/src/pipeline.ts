@@ -34,18 +34,22 @@ export function parse_answer(text: string): AnswerJSON {
   return obj;
 }
 
-function problems(v: ValidationResult | null, checks: ReturnType<typeof run_checks>, parse_error?: string): string | null {
+function problems(v: ValidationResult | null, checks: ReturnType<typeof run_checks>, parse_error?: string, layout = true): string | null {
   const out: string[] = [];
   if (parse_error) out.push(`- The reply could not be parsed: ${parse_error}`);
   if (v && !v.ok) out.push(`- Running the code failed: ${v.error}${v.stack ? `\n${v.stack}` : ''}`);
-  for (const i of v?.issues ?? []) if (i.severity === 'error') out.push(`- Layout (${i.rule}${i.time !== undefined ? ` at ${i.time.toFixed(1)}s` : ''}): ${i.message}`);
+  if (layout) for (const i of v?.issues ?? []) if (i.severity === 'error') out.push(`- Layout (${i.rule}${i.time !== undefined ? ` at ${i.time.toFixed(1)}s` : ''}): ${i.message}`);
   for (const c of checks) if (!c.ok) out.push(`- The number "${c.label}" is ${c.value} in your text but ${c.got} when computed.`);
   return out.length ? out.join('\n') : null;
 }
 
 export async function ask(
   question: string,
-  o: { provider: Provider; validate: Validator; context?: AskContext; extra?: ScenePromptExtra; max_attempts?: number; on_status?: (s: AskStatus) => void; signal?: AbortSignal },
+  o: {
+    provider: Provider; validate: Validator; context?: AskContext; extra?: ScenePromptExtra; max_attempts?: number; on_status?: (s: AskStatus) => void; signal?: AbortSignal;
+    /** Take a scene that runs and gets its numbers right even if the layout checker finds overlaps (no repair round for those). */
+    lenient_layout?: boolean;
+  },
 ): Promise<AskResult> {
   const t0 = performance.now();
   const system = system_prompt();
@@ -66,8 +70,8 @@ export async function ask(
     o.on_status?.({ phase: 'validating', attempt });
     const validation = await o.validate(answer.code);
     const check_results = run_checks(answer.checks);
-    const issue = problems(validation, check_results);
-    const result: AskResult = { ...answer, attempts: attempt, validation, check_results, verified: !issue, provider: o.provider.name, ms: performance.now() - t0 };
+    const issue = problems(validation, check_results, undefined, !o.lenient_layout);
+    const result: AskResult = { ...answer, attempts: attempt, validation, check_results, verified: !problems(validation, check_results), provider: o.provider.name, ms: performance.now() - t0 };
     if (!issue) {
       o.on_status?.({ phase: 'done', attempt });
       return result;

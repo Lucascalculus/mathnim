@@ -1,7 +1,7 @@
 // The fast, personal text answer. It streams within a second or two, long
 // before the animated scene is ready: a one-line diagnosis of what this
 // student is confused about, then a short answer written for them.
-import type { AskContext } from './prompt';
+import { UNANSWERED, type AskContext } from './prompt';
 import type { Provider, Reasoning, Usage } from './provider';
 
 /** Everything known about the student when they ask (all optional). */
@@ -37,6 +37,7 @@ export function context_block(ctx: StudentContext = {}, o: { max_screen?: number
   if (ctx.recent?.length) lines.push(`Earlier questions:\n${ctx.recent.map((r) => `- Q: ${r.q}\n  A: ${r.a}`).join('\n')}`);
   if (ctx.on_screen) lines.push(`On screen now:\n${o.max_screen ? ctx.on_screen.slice(0, o.max_screen) : ctx.on_screen}`);
   if (ctx.selected) lines.push(`The student selected this passage and asks about it: "${ctx.selected.slice(0, 1200)}"`);
+  if (ctx.unanswered) lines.push(UNANSWERED);
   if (ctx.language) lines.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) lines.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);
   return lines.join('\n');

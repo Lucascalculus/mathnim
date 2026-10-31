@@ -19,7 +19,7 @@ import type { ScenePlayer } from 'manim-web/ext/player';
 import type { Scene } from 'manim-web';
 import { type EventLog } from '@mathnim/core';
 import { CueGuide, Narrator, define_ui, drag_hint, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
-import type { Params } from '@mathnim/visuals';
+import { get_visual, type Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
 import type { AskContext } from '../prompt';
@@ -117,9 +117,15 @@ define_ui({
   ask_no_picture: { en: 'No picture this time ({m}).', zh: '这次没有图（{m}）。' },
   ask_scene_failed: { en: 'The scene could not be shown: {m}', zh: '这个场景无法显示：{m}' },
   ask_failed: { en: 'The answer could not be written. Please try again.', zh: '没能写出回答，请再试一次。' },
+  ask_too_long: { en: 'it took too long', zh: '画得太久了' },
   ask_no_recording: { en: 'No recorded answer for this question. Add an API key in Settings to ask anything.', zh: '这个问题没有录好的回答。在设置里添加 API key 后就可以随便问了。' },
 });
 const FREEFORM_PHASE = () => t('ask_freeform');
+/** A drawn picture gets this long, then the question goes without one (it keeps drawing while the learner reads on). */
+const MAX_PICTURE_MS = 120_000;
+
+/** A picture as kept with a conversation: a ready-made visual and its parameters, or a drawn scene's code. */
+export type SavedPicture = { visual: string; params: Params; caption?: string } | { code: string; title: string; caption?: string };
 
 export interface AskPanelOptions {
   provider: () => Provider;
@@ -149,8 +155,15 @@ export interface AskPanelOptions {
   extra?: () => Partial<AskContext> | undefined;
   /** What an empty input asks, when something gives it meaning (e.g. a selected passage); null: nothing. */
   empty_question?: () => string | null;
-  /** Called with each new answer card (e.g. to scroll it into view). */
-  on_card?: (card: HTMLElement) => void;
+  /** Called with each new answer card and its question (e.g. to scroll it into view). */
+  on_card?: (card: HTMLElement, question: string) => void;
+  /**
+   * A question's picture is ready, to keep with the conversation. Called even when the card has left the page (the
+   * learner went on reading): the picture is drawn to the end, and shown when they come back.
+   */
+  on_picture?: (question: string, picture: SavedPicture) => void;
+  /** Everything for a question is done: its words, and its picture or the decision that there is none. */
+  on_settled?: (card: HTMLElement, question: string) => void;
   /** An earlier conversation to continue (its turns are context for the next question; the app shows them). */
   history?: { q: string; a: string }[];
   /** Called once a card's answer can be read: its words are in (streamed), or the whole answer is (offline). */
@@ -244,6 +257,10 @@ export class AskPanel {
   transcript(): { q: string; a: string }[] {
     return [...this.history];
   }
+  /** A turn answered elsewhere (the same conversation, finished while the learner read another page): context from now on. */
+  remember(q: string, a: string): void {
+    this.history.push({ q, a });
+  }
   /** Take the answers off the panel (their pictures stopped); the conversation's history stays as context. */
   clear(): void {
     this.stop_reading();
@@ -301,6 +318,14 @@ export class AskPanel {
 
   // ---------------------------------------------------------------- asking
   async ask(question: string, extra?: Partial<AskContext>): Promise<AskResult | VisualAnswer | null> {
+    let card: HTMLElement | null = null;
+    try {
+      return await this.answer(question, extra, (c) => (card = c));
+    } finally {
+      if (card) this.o.on_settled?.(card, question);
+    }
+  }
+  private async answer(question: string, extra: Partial<AskContext> | undefined, made: (card: HTMLElement) => void): Promise<AskResult | VisualAnswer | null> {
     for (const p of this.players) p.pause();
     this.stop_reading();
     const card = document.createElement('div');
@@ -322,7 +347,8 @@ export class AskPanel {
     card.append(body);
     if (this.o.thread) this.list.append(card);
     else this.list.prepend(card);
-    this.o.on_card?.(card);
+    made(card);
+    this.o.on_card?.(card, question);
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'ask', data: { question } });
     const provider = this.o.provider();
     let diagnosed: () => void = () => {};
@@ -376,6 +402,12 @@ export class AskPanel {
     if (!c.fast) return this.freeform(c, null).finally(done);
     if (this.o.visuals === false) return this.freeform(c, null);
     return this.visual_first(c);
+  }
+
+  /** Draw a kept picture (an earlier visit's answer) into an answer's body. */
+  async show_saved(body: HTMLElement, pic: SavedPicture): Promise<void> {
+    const player = await draw_saved(body, pic);
+    if (player) this.players.push(player);
   }
 
   /** A placeholder that counts the seconds until the picture is there. */
@@ -433,8 +465,17 @@ export class AskPanel {
     // a picture is coming: its placeholder appears only now
     const wait = this.placeholder(c);
     if (route.kind === 'visual') {
+      const kept: SavedPicture = { visual: route.visual.name, params: route.params, caption: plan!.plan?.caption || undefined };
+      // (the learner went on reading: keep the choice, draw it when they come back)
+      if (!c.picture.isConnected) {
+        this.o.on_picture?.(c.question, kept);
+        return { visual: route.visual.name, params: route.params, plan: plan! };
+      }
       wait.dataset.phase = t('ask_building');
-      if (await this.show_visual(c, route, plan!, wait)) return { visual: route.visual.name, params: route.params, plan: plan! };
+      if (await this.show_visual(c, route, plan!, wait)) {
+        this.o.on_picture?.(c.question, kept);
+        return { visual: route.visual.name, params: route.params, plan: plan! };
+      }
       route = { kind: 'freeform', reason: 'invalid', detail: `${route.visual.name} could not be built` };
     }
     wait.remove();
@@ -477,7 +518,7 @@ export class AskPanel {
     }
     c.picture.append(controls);
     const v = route.visual;
-    this.attach_controls(player, controls, v.explore ? (scene, ui) => {
+    attach_controls(player, controls, v.explore ? (scene, ui) => {
       player.show_end();
       v.explore!(scene, ui, route.params);
     } : null, visual_accent());
@@ -527,40 +568,6 @@ export class AskPanel {
     for (const f of qs) chips.append(this.chip(f));
     c.body.append(chips);
   }
-  /** Replay, and the scene's handles once it has played. */
-  private attach_controls(player: ScenePlayer, controls: HTMLElement, setup: ((scene: Scene, ui: Interaction) => void) | null, color: string): void {
-    let ui: Interaction | null = null;
-    let aff: AffordanceLayer | null = null;
-    let cue: CueGuide | null = null;
-    const hint = document.createElement('span');
-    hint.className = 'mn-help';
-    const explorable = () => {
-      if (!setup || ui) return;
-      ui = new Interaction(player);
-      setup(player.scene, ui);
-      player.start_live();
-      aff = new AffordanceLayer(ui, { color, hint: drag_hint(ui.handles) });
-      cue = new CueGuide(aff, ui); // one pulsing control at a time
-      setTimeout(() => aff?.coach(cue?.target()), 400);
-      hint.innerHTML = t('visual_explore');
-    };
-    player.opts.on_end = explorable;
-    const replay = document.createElement('button');
-    replay.className = 'mn-btn';
-    replay.textContent = t('replay');
-    replay.onclick = () => {
-      ui?.dispose();
-      ui = null;
-      cue?.dispose();
-      cue = null;
-      aff?.dispose();
-      aff = null;
-      player.stop_live();
-      player.seek_frame(0);
-      player.play();
-    };
-    controls.append(replay, hint);
-  }
 
   /**
    * The free-form scene (generated code, sandboxed and checked): the only
@@ -580,19 +587,28 @@ export class AskPanel {
       else status.textContent = { thinking: t('ask_thinking'), validating: t('ask_checking_scene', { n: st.attempt }), repairing: t('ask_fixing_scene', { n: st.attempt }), done: '' }[st.phase];
     };
     let r: AskResult;
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(new Error(t('ask_too_long'))), MAX_PICTURE_MS);
     try {
-      r = await ask(c.question, { provider: c.provider, validate: this.o.validate, context: c.context, extra: fast ? { diagnosis: c.diagnosis, text_shown: true } : {}, on_status: say });
+      // with the words on screen the picture only illustrates them: a scene that runs and has its numbers right is
+      // shown at once (one repair at most), not polished for layout first
+      r = await ask(c.question, { provider: c.provider, validate: this.o.validate, context: c.context, extra: fast ? { diagnosis: c.diagnosis, text_shown: true } : {}, on_status: say, signal: stop.signal, ...(fast ? { lenient_layout: true, max_attempts: 2 } : {}) });
     } catch (e) {
       wait?.remove();
-      const raw = (e as Error).message;
+      const raw = stop.signal.aborted ? t('ask_too_long') : (e as Error).message;
       // the offline provider's message, in the learner's language
       const msg = /^No recorded answer/.test(raw) ? t('ask_no_recording') : raw;
       if (fast && (await fast)) picture.innerHTML = `<div class="mn-status">${t('ask_no_picture', { m: esc(msg.slice(0, 120)) })}</div>`;
       else status.textContent = msg;
       return null;
+    } finally {
+      clearTimeout(timer);
     }
     c.timing.picture = performance.now() - c.t0;
     const spoken = fast ? await fast : null;
+    this.o.on_picture?.(c.question, { code: r.code, title: r.title, caption: spoken ? r.explanation : undefined });
+    // (the learner went on reading: it is kept, and drawn when they come back)
+    if (!picture.isConnected) return r;
     wait?.remove();
     status.remove();
     if (!spoken) {
@@ -635,11 +651,98 @@ export class AskPanel {
       const mod = compile_answer(r.code);
       const player = await load_answer(mod, canvas, apply_white);
       this.players.push(player);
-      this.attach_controls(player, controls, mod.setup, '#2563EB');
+      attach_controls(player, controls, mod.setup, '#2563EB');
       player.play();
     } catch (e) {
       caption.insertAdjacentHTML('afterend', `<div class="mn-feedback bad" style="display:block">${t('ask_scene_failed', { m: esc((e as Error).message) })}</div>`);
     }
     return r;
+  }
+}
+
+/** Replay, and the scene's handles once it has played; returns what attaches the handles now. */
+function attach_controls(player: ScenePlayer, controls: HTMLElement, setup: ((scene: Scene, ui: Interaction) => void) | null, color: string): () => void {
+  let ui: Interaction | null = null;
+  let aff: AffordanceLayer | null = null;
+  let cue: CueGuide | null = null;
+  const hint = document.createElement('span');
+  hint.className = 'mn-help';
+  const explorable = () => {
+    if (!setup || ui) return;
+    ui = new Interaction(player);
+    setup(player.scene, ui);
+    player.start_live();
+    aff = new AffordanceLayer(ui, { color, hint: drag_hint(ui.handles) });
+    cue = new CueGuide(aff, ui); // one pulsing control at a time
+    setTimeout(() => aff?.coach(cue?.target()), 400);
+    hint.innerHTML = t('visual_explore');
+  };
+  player.opts.on_end = explorable;
+  const replay = document.createElement('button');
+  replay.className = 'mn-btn';
+  replay.textContent = t('replay');
+  replay.onclick = () => {
+    ui?.dispose();
+    ui = null;
+    cue?.dispose();
+    cue = null;
+    aff?.dispose();
+    aff = null;
+    player.stop_live();
+    player.seek_frame(0);
+    player.play();
+  };
+  controls.append(replay, hint);
+  return explorable;
+}
+
+/** Draw a kept picture (an earlier visit's answer, or one placed in the text) into `body`, as it ended, ready to explore. */
+export async function draw_saved(body: HTMLElement, pic: SavedPicture): Promise<ScenePlayer | null> {
+  const picture = document.createElement('div');
+  picture.className = 'mn-picture';
+  const canvas = document.createElement('canvas');
+  canvas.className = 'mn-answer';
+  canvas.width = 1280;
+  canvas.height = 720;
+  const stage = document.createElement('div');
+  stage.style.position = 'relative';
+  stage.append(canvas);
+  const caption = document.createElement('div');
+  caption.className = 'mn-caption-text';
+  caption.innerHTML = pic.caption ? math_html(pic.caption) : '';
+  const controls = document.createElement('div');
+  controls.className = 'mn-actions';
+  if ('code' in pic) {
+    const h = document.createElement('h3');
+    h.innerHTML = math_html(pic.title);
+    picture.append(h);
+  }
+  picture.append(stage, caption, controls);
+  body.append(picture);
+  try {
+    if ('visual' in pic) {
+      const v = get_visual(pic.visual);
+      if (!v) throw new Error(`no visual ${pic.visual}`);
+      const player = await load_visual(v, pic.params, canvas);
+      const explore = attach_controls(player, controls, v.explore ? (scene, ui) => {
+        player.show_end();
+        v.explore!(scene, ui, pic.params);
+      } : null, visual_accent());
+      // (seen before: shown as it ended, ready to explore; Replay plays it again)
+      player.show_end();
+      explore();
+      return player;
+    } else {
+      const mod = compile_answer(pic.code);
+      const player = await load_answer(mod, canvas, apply_white);
+      const explore = attach_controls(player, controls, mod.setup, '#2563EB');
+      player.show_end();
+      explore();
+      return player;
+    }
+  } catch (e) {
+    console.warn('kept picture could not be drawn', e);
+    picture.remove();
+    return null;
   }
 }

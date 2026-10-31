@@ -13,6 +13,7 @@ import { ready_visuals } from '../cjk_font';
 import { enable_dom_tex } from '../tex_dom';
 import { has_model, load_settings, provider } from '../settings';
 import { AskRail } from '../side_chat';
+import { with_added_pages } from '../added';
 import { learner, log, remember_last } from '../store';
 import { is_relocalizing } from '../shell';
 import { text_grader, visual_resolver } from '../lesson_services';
@@ -38,8 +39,10 @@ export async function lesson_page(root: HTMLElement, route: Route): Promise<() =
     if (location.pathname !== here) return () => {}; // the learner went elsewhere meanwhile
     root.innerHTML = '';
   }
-  const lesson = playable(cl);
-  if (!lesson) return generate_view(root, cl);
+  const base = playable(cl);
+  if (!base) return generate_view(root, cl);
+  // with the pages the tutor wrote for this learner, in place
+  const lesson = with_added_pages(base);
   // (Chinese labels need their font, loaded the first time a visual is drawn; prompts and options need MathJax)
   await Promise.all([ready_visuals(), enable_dom_tex()]);
   if (location.pathname !== here) return () => {};

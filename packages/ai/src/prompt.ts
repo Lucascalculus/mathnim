@@ -39,6 +39,9 @@ export function system_prompt(): string {
 }
 
 /** What is known about the student when they ask (all optional). */
+/** Said to the tutor while the question on screen is still unanswered. */
+export const UNANSWERED = 'The student has not answered the question on screen yet. Help them understand what it asks and the ideas it needs, but do not give the answer: no final number, no right option, no worked solution.';
+
 export interface AskContext {
   lesson?: string;
   /** The step on screen, e.g. 'Slice and rearrange (explore)'. */
@@ -60,6 +63,8 @@ export interface AskContext {
   topics?: string[];
   /** A passage the student selected on the page and asks about. */
   selected?: string;
+  /** The step is a question the student has not answered yet: help them understand it without giving the answer away. */
+  unanswered?: boolean;
 }
 export interface ScenePromptExtra {
   /** The tutor's one-line reading of the question (from the fast text answer). */
@@ -76,6 +81,7 @@ export function user_prompt(question: string, ctx: AskContext = {}, extra: Scene
   if (ctx.misconceptions?.length) parts.push(`Mistakes shown: ${ctx.misconceptions.join(' | ')}`);
   if (ctx.on_screen) parts.push(`On screen now:\n${ctx.on_screen}`);
   if (ctx.selected) parts.push(`The student selected this passage and asks about it: "${ctx.selected}"`);
+  if (ctx.unanswered) parts.push(UNANSWERED);
   if (ctx.language) parts.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) parts.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);
   if (extra.diagnosis) parts.push(`What the student most likely needs: ${extra.diagnosis}`);

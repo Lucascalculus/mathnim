@@ -92,6 +92,13 @@ The tutorials in `docs/lessons/llm-finetuning/labs/*.md` each have `## 中文` a
   - the top bar is the logo and two tools held by faint crop marks: the account and the settings. The language moved into the settings (a first visit is in English);
   - signed out, the account is a blank sheet (a 3x3 dot grid); signed in, the initial in the tutor's serif. Its card is a lab pass on the engineering sheet: email, then a six-digit code; signing in stamps it ADMITTED;
   - courses made from uploaded slides live at `/studio` (home has a quiet link under the courses). Until a model is connected the page says it is in testing and the button to make a course is off.
+- **2026-10-31, the margin (Lucas's list):**
+  - "问这句" works on every step: a text page (any block: paragraphs, a derivation's lines, the exam paper, callouts, table rows), a question (prompt, feedback, hints) and a video (caption, transcript). Before a question is answered the tutor is told not to give the answer away;
+  - a note holds only the conversation, headed "ASK · 0n" like the line's: the passage is marked in the text, not copied into the note (only a passage no longer on screen, such as a passed caption, is quoted);
+  - every note has a small × to delete it (its conversation and its mark);
+  - a question goes on being answered when the learner reads on: its words and picture are kept with the conversation and shown when they come back; pictures are kept and redrawn (as they ended, ready to explore). A drawn picture gets at most 2 minutes, and with the words on screen a scene that runs with the right numbers is shown without a layout repair round (at most one repair);
+  - under an answer on a text page: "加到正文" puts it (question, answer, picture) in the text under its passage, for this learner only; × takes it out;
+  - after an answer the model may judge that the question shows a gap the lesson takes for granted and offer a whole page ("加这一页" / "不用了"). On yes the page is written in the lesson's text format, added after the step for this learner, and opened; the margin on it says "为你加的一页 · 删掉这一页". Learner additions live in `apps/mathnim/src/added.ts` (mathnim.added.*, mathnim.pages.*, synced with the account). Offering a whole course is not built.
 - **Course page prerequisites:** one or two lines of prerequisites, which expand to a short list of starter links. No self-test.
 - **Not now:** splitting the math course into geometry and linear algebra.
 - **Learner-facing cleanup:**

@@ -70,7 +70,7 @@ export interface ViewOptions {
    * "Explain this": a small button on every step, and on text pages a button by selected text.
    * Called with the selected passage, if any; the app opens its chat beside the lesson.
    */
-  help?: (ask: { selected?: string }) => void;
+  help?: (ask: { selected?: string; at?: Element }) => void;
   /**
    * The app's own element for the side column (e.g. a chat with the tutor), kept below the step's panel.
    * With it, a text page's side holds only this element: the page's way on moves to the end of the page,
@@ -1420,7 +1420,7 @@ export class LessonView {
     };
     return a;
   }
-  /** On a text page, selecting a passage offers "Ask about this" next to it. */
+  /** Selecting a passage anywhere in the lesson's words (a text page, a question, a video's caption) offers "Ask about this" next to it. */
   private unwatch: (() => void) | null = null;
   private watch_selection(): void {
     const btn = h('button', 'mn-askhere', esc(t('ask_here')));
@@ -1428,6 +1428,8 @@ export class LessonView {
     btn.hidden = true;
     document.body.append(btn);
     let passage = '';
+    // the element the passage starts in: the app anchors its note there
+    let at: Element | null = null;
     const formula = (n: Node) => (n instanceof Element ? n : n.parentElement)?.closest<HTMLElement>('.mn-math');
     const place = () => {
       const sel = document.getSelection();
@@ -1440,13 +1442,17 @@ export class LessonView {
       }
       const text = range ? reading(range.cloneContents()).text : '';
       if (!text) range = null;
-      // only text read on a page of this lesson (not the panel, not a code editor's input)
-      const inside = range && this.el.page.contains(range.commonAncestorContainer) && !(range.commonAncestorContainer as Element).closest?.('textarea,input');
+      // only text read in this lesson: a text page, a question's prompt, feedback and hints, a video's caption,
+      // transcript and note (not the margin, not an input)
+      const readable = [this.el.page, this.el.prompt, this.el.feedback, this.el.hints, this.el.caption, this.el.transcript, this.el.aside];
+      const inside = range && readable.some((el) => el.contains(range!.commonAncestorContainer)) && !(range.commonAncestorContainer as Element).closest?.('textarea,input');
       if (!inside || text.length < 2) {
         btn.hidden = true;
         return;
       }
       passage = text.slice(0, 1200);
+      const start = range!.startContainer;
+      at = start instanceof Element ? start : start.parentElement;
       const r = range!.getBoundingClientRect();
       const touch = matchMedia('(pointer: coarse)').matches;
       btn.hidden = false;
@@ -1475,7 +1481,7 @@ export class LessonView {
     });
     btn.onclick = () => {
       btn.hidden = true;
-      this.o.help?.({ selected: passage });
+      this.o.help?.({ selected: passage, at: at ?? undefined });
     };
     document.addEventListener('selectionchange', later);
     addEventListener('scroll', place, { passive: true });
