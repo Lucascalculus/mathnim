@@ -1,6 +1,7 @@
-// A page the tutor adds to a lesson for one learner. After an answer, a quick call asks whether the question shows a
-// gap that one more page of the lesson should fill (most questions are answered by the answer itself); if so the
-// learner is asked, and on yes the page is written: the lesson's own text format (headings, paragraphs, lists,
+// What the tutor adds to a lesson for one learner. An answer the learner keeps becomes a small edit to the text:
+// a sentence or two in the text's own voice, inserted after the passage asked about (or nothing, when the text
+// already says it). Rarely, a question shows a whole idea the lesson takes for granted: a quick call says so, the
+// learner is asked, and on yes a page is written in the lesson's own text format (headings, paragraphs, lists,
 // formulas, tables, callouts), checked here before the app adds it.
 import type { Block } from '@mathnim/core';
 import type { Message, Provider } from './provider';
@@ -27,9 +28,11 @@ export interface WrittenPage {
 const context = (a: PageAsk) =>
   `LESSON: ${a.lesson}\nPAGE ON SCREEN: ${a.page}\n${a.on_screen ? `\n${a.on_screen.slice(0, 2400)}\n` : ''}\nTHE LEARNER ASKED: ${a.question}\nTHE TUTOR ANSWERED: ${a.answer.slice(0, 1500)}`;
 
-const PROPOSE_RULES = `You decide whether a learner's question shows a gap that a whole extra page of the lesson should fill.
-Most questions are answered well by the tutor's answer: then reply {"page": null}.
-Propose a page only when the question shows the learner is missing an idea the lesson assumes or skips (a prerequisite, a step taken for granted), and explaining it properly needs a full page with its own intuition and an example, not a sentence or two.
+const PROPOSE_RULES = `You decide whether a learner's question needs a whole extra page in the lesson. Almost always it does not: the tutor's answer, or a sentence or two added to the text, closes the gap. Reply {"page": null} unless ALL of these hold:
+- the question shows the learner is missing a whole idea the lesson takes for granted (a prerequisite, such as what a derivative or an integral is), not a detail of this page;
+- explaining it properly needs its own page (why it matters, its intuition, an example, the idea itself); a paragraph would not do;
+- the tutor's answer did not already explain it.
+A question about this page's own reasoning, a step, a number, a word, or "why" is never a reason for a page.
 Reply with JSON only: {"page": null} or {"page": {"title": "<the page's title>", "why": "<one short sentence to the learner: what the page would explain>"}}.`;
 
 /** Would a whole page help? null when the answer is enough (the usual case). */
@@ -38,6 +41,24 @@ export async function propose_page(provider: Provider, a: PageAsk, signal?: Abor
   const page = (JSON.parse(raw) as { page?: unknown }).page as Partial<PageProposal> | null | undefined;
   if (!page || typeof page.title !== 'string' || !page.title.trim()) return null;
   return { title: page.title.trim().slice(0, 120), why: typeof page.why === 'string' ? page.why.trim().slice(0, 300) : '' };
+}
+
+const FIT_RULES = `You make one small edit to a lesson's text so that it answers what a learner just asked, in the text's own voice.
+You get the page, the passage the question is about, the question and the tutor's answer.
+Write what to insert right after that passage: usually one or two sentences, at most three (about 60 words; in Chinese about 120 characters). It must read as part of the text and continue its logic: no "you asked", no "note:", no heading, no question and answer, nothing the page already says. Use the page's own notation and numbers; inline TeX between $...$ (a literal dollar is \\$). Keep only what closes the gap the question shows; the rest stays in the tutor's answer.
+If the page already says it clearly, reply {"text": ""}.
+Reply with JSON only: {"text": "..."}`;
+
+/** A sentence or two to insert after the passage asked about, in the text's voice; '' when the text already says it. */
+export async function fit_into_text(provider: Provider, a: PageAsk & { passage: string }, signal?: AbortSignal): Promise<string> {
+  const content = `${context(a)}\n\nTHE PASSAGE ASKED ABOUT: ${a.passage.slice(0, 1200)}\n\nWrite in ${a.language}.`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const raw = await provider.complete({ system: FIT_RULES, messages: [{ role: 'user', content }], json: true, reasoning: 'low', max_tokens: 600 }, signal);
+    const text = String((JSON.parse(raw) as { text?: unknown }).text ?? '').trim().replace(/^["“]|["”]$/g, '');
+    if (!text) return '';
+    if (dollars_ok(text) && text.length <= 700) return text;
+  }
+  throw new Error('the edit could not be written');
 }
 
 const WRITE_RULES = `You write one page of a lesson for a learner who asked a question the lesson did not answer well enough.

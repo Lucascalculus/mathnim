@@ -10,7 +10,7 @@ export { compile_answer, load_answer, run_checks, type AnswerModule } from './ru
 export { RECORDED, recorded_question, recorded_responses, type RecordedAnswer } from './recorded';
 export { RECORDED_TEXT, recorded_text_answers, type RecordedText } from './recorded_text';
 export { AskPanel, draw_saved, type AskPanelOptions, type SavedPicture, type VisualAnswer } from './ui/ask_panel';
-export { propose_page, write_page, check_page, type PageAsk, type PageProposal, type WrittenPage } from './page_gen';
+export { fit_into_text, propose_page, write_page, check_page, type PageAsk, type PageProposal, type WrittenPage } from './page_gen';
 export { C as PALETTE } from './palette';
 export { apply_white } from './theme';
 export { generate_lesson, lesson_from_generated, plan_prompt, parse_plan, type SyllabusEntry, type LessonPlan, type GeneratedLesson, type GenerateStatus, type PlanStep } from './generate';

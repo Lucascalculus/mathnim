@@ -1,18 +1,17 @@
-// What a learner adds to a lesson from the tutor: an answer placed in the page's text under the passage it is about,
-// and whole pages the tutor wrote for them (on their yes). Both are kept in this browser like notes (and go up to the
-// account with the other mathnim.* records); nobody else sees them.
+// What a learner adds to a lesson from the tutor: an answer kept as a small edit to the page's text (a sentence or
+// two after the passage it is about, written in the text's voice), and whole pages the tutor wrote for them (on
+// their yes). Both are kept in this browser like notes (and go up to the account with the other mathnim.* records);
+// nobody else sees them.
 import type { Block, Lesson, ReadStep } from '@mathnim/core';
-import type { SavedPicture } from '@mathnim/ai';
 
-/** An answer placed in the text: after the block `at` of its step (found again by its first words, `head`). */
+/** An edit to the text: `text` inserted after the block `at` of its step (found again by its first words, `head`); `q` asked for it. */
 export interface AddedAnswer {
   id: string;
   step: string;
   at: number;
   head: string;
   q: string;
-  a: string;
-  pic?: SavedPicture;
+  text: string;
   ink: number;
 }
 /** A page written for this learner, after the step `after`. */

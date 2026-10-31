@@ -10,17 +10,17 @@
 // only the conversation. Notes reopen to go on asking, are kept, and can be
 // deleted. A question goes on being answered when the learner reads on (its
 // words, its picture): what arrives is kept and shown when they come back.
-// Under an answer on a text page: put it in the page's text. When a question
-// shows a gap the lesson takes for granted, the tutor offers to write a whole
-// page for this learner (added after the step, on their yes).
+// Under an answer on a text page: keep it in the page, as a sentence or two
+// written into the text after the passage (not the answer copied in). Rarely,
+// when a question shows a whole idea the lesson takes for granted, the tutor
+// offers to write a page for this learner (added after the step, on their yes).
 // On phones the line sits at the bottom of the screen and the conversation
 // opens above it; notes sit under their paragraph.
 // The question goes out with the lesson, the step, what is on screen, the
 // selected sentence and the learner's recent mistakes; answers stream.
-import { AskPanel, RECORDED, RECORDED_TEXT, draw_saved, propose_page, recorded_question, worker_validator, write_page, type AskContext, type PageProposal, type SavedPicture } from '@mathnim/ai';
+import { AskPanel, RECORDED, RECORDED_TEXT, fit_into_text, propose_page, recorded_question, worker_validator, write_page, type AskContext, type PageProposal, type SavedPicture } from '@mathnim/ai';
 import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
 import { esc, math_html, reading, t, ui_lang, type LessonView } from '@mathnim/present';
-import type { ScenePlayer } from 'manim-web/ext/player';
 import { add_answer, add_page, added_answers, added_pages, is_added_page, remove_answer, remove_page, type AddedAnswer } from './added';
 import { lesson_path, type CourseLesson } from './course';
 import { navigate } from './router';
@@ -150,13 +150,10 @@ const CSS = `
 .page-offer-why{font:15px/1.65 ${SERIF};color:var(--mn-fg)}
 .page-offer-acts{display:flex;gap:16px;margin-top:4px}
 .page-offer .note-act.yes{color:var(--mn-accent);font-style:normal;font-weight:600}
-/* an answer the learner put in the page: in the text, in its question's ink */
-.mn-added{position:relative;margin:.4em 0 1.1em;padding:10px 30px 8px 16px;border-left:3px solid var(--ink);background:color-mix(in srgb,var(--ink) 14%,transparent);border-radius:0 10px 10px 0}
-.mn-added.fresh{animation:rail-in .45s ease-out both}
-.mn-added-q{font:italic 15px/1.6 ${SERIF};margin-bottom:4px}
-.mn-added-a{line-height:1.7}
-.mn-added .mn-picture{margin-top:10px}
-.mn-added canvas.mn-answer{width:100%;aspect-ratio:16/9;display:block;border-radius:10px;background:#fff;border:1px solid var(--mn-border)}
+/* an edit the learner kept in the page: it reads as the text, marked only by a thin stroke of its question's ink */
+.mn-added{position:relative;margin:0 0 1em;padding:0 26px 0 12px;border-left:2px solid var(--ink)}
+.mn-added>p{margin:0}
+.mn-added.fresh{animation:ink-in .9s ease-out both}
 /* a page written for this learner: said in the margin, with a way to take it out */
 .rail-added{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 10px;font:italic 14px/1.5 ${SERIF};color:var(--mn-muted)}
 .rail-added[hidden]{display:none}
@@ -557,7 +554,7 @@ class Note {
       for (const el of body.querySelectorAll(':scope > .note-acts, :scope > .page-offer')) body.append(el);
     }
   }
-  /** Under an answer: put it in the page's text (a text page only), or take it out again. */
+  /** Under an answer: keep it in the page as a small edit to the text (a text page only), or take it out again. */
   private actions(card: HTMLElement, turn: Turn): void {
     if (!this.rail.on_text_page() || card.querySelector('.note-acts')) return;
     const row = document.createElement('div');
@@ -571,15 +568,20 @@ class Note {
       b.textContent = placed ? t('in_page') : t('add_to_page');
       b.classList.toggle('done', placed);
     };
-    b.onclick = (e) => {
+    b.onclick = async (e) => {
       e.stopPropagation();
-      const placed = added_answers(this.rail.lesson.id).some((x) => x.id === id);
-      if (placed) this.rail.unplace(id);
-      else {
-        const kept = load_notes(this.rail.lesson.id)[this.key]?.turns.find((x) => x.q === turn.q);
-        this.rail.place({ id, q: turn.q, a: kept?.a || turn.a, pic: kept?.pic, ink: this.ink }, this.para);
+      if (b.disabled) return;
+      if (added_answers(this.rail.lesson.id).some((x) => x.id === id)) {
+        this.rail.unplace(id);
+        return show();
       }
+      b.disabled = true;
+      b.textContent = t('fitting_text');
+      const said = await this.rail.place({ id, q: turn.q, ink: this.ink }, turn, this.para);
+      b.disabled = false;
       show();
+      // (nothing to add: the text already says it; or it could not be written)
+      if (said) b.textContent = said;
     };
     show();
     row.append(b);
@@ -674,8 +676,6 @@ export class AskRail {
   private unlisten: (() => void)[] = [];
   /** A selected sentence (not on a paragraph) attached to the next question. */
   private quote = '';
-  /** Pictures of answers placed in the page (stopped when the page changes). */
-  private placed_players: ScenePlayer[] = [];
 
   constructor(private cl: CourseLesson, readonly lesson: Lesson) {
     if (!injected) {
@@ -764,7 +764,6 @@ export class AskRail {
     this.ro.disconnect();
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
-    this.stop_placed();
     this.el.remove();
     this.view = null;
   }
@@ -803,16 +802,35 @@ export class AskRail {
     this.layout();
   }
 
-  // ---------------------------------------------------------------- answers placed in the page
-  /** Put an answer in the page's text, under the passage it is about (or the paragraph it was asked beside). */
-  place(a: Omit<AddedAnswer, 'step' | 'at' | 'head'>, block: HTMLElement | null): void {
+  // ---------------------------------------------------------------- answers kept in the page
+  /**
+   * Keep an answer in the page: the model writes the sentence or two the text was missing, in its own voice, and it
+   * goes in after the passage asked about (or the paragraph it was asked beside). Returns what to say instead when
+   * nothing went in (the text already says it, or it could not be written).
+   */
+  async place(a: Pick<AddedAnswer, 'id' | 'q' | 'ink'>, turn: Turn, block: HTMLElement | null): Promise<string | null> {
     const s = this.view?.runtime.step;
     const paras = this.paras();
     const at = block && paras.includes(block) ? block : paras[paras.length - 1];
-    if (!s || !at) return;
-    const answer: AddedAnswer = { ...a, step: s.id, at: paras.indexOf(at), head: read_of(at).slice(0, 16) };
+    if (!s || !at || !has_model()) return t('page_failed_short');
+    const passage = read_of(at);
+    let text: string;
+    try {
+      text = await fit_into_text(provider(), {
+        lesson: tr(this.lesson.title, ui_lang()), page: tr(s.title, ui_lang()), on_screen: this.context().on_screen,
+        question: turn.q, answer: turn.a, passage, language: /[\u4e00-\u9fff]/.test(passage) ? 'Simplified Chinese' : 'English',
+      });
+    } catch (e) {
+      console.warn('edit to the text', e);
+      return t('page_failed_short');
+    }
+    if (!text) return t('page_has_it');
+    // (the learner may have gone on to another page meanwhile: it is kept, and shown there)
+    const answer: AddedAnswer = { ...a, text, step: s.id, at: paras.indexOf(at), head: passage.slice(0, 16) };
     add_answer(this.lesson.id, answer);
-    this.show_placed(answer, at, true);
+    log.emit({ verb: 'interacted', lesson: this.lesson.id, step: s.id, object: 'added_text', data: { q: a.q, text } });
+    if (at.isConnected) this.show_placed(answer, at, true);
+    return null;
   }
   unplace(id: string): void {
     remove_answer(this.lesson.id, id);
@@ -825,14 +843,14 @@ export class AskRail {
     box.className = `mn-added${fresh ? ' fresh' : ''}`;
     box.dataset.added = a.id;
     box.style.setProperty('--ink', INKS[a.ink % INKS.length]);
-    box.innerHTML = `<button type="button" class="note-x" aria-label="${esc(t('remove_from_page'))}" title="${esc(t('remove_from_page'))}">×</button><div class="mn-added-q"><span class="ink-q">${math_html(a.q)}</span></div><div class="mn-added-a">${math_html(a.a)}</div>`;
-    box.querySelector<HTMLElement>('.ink-q')!.style.setProperty('--ink', INKS[a.ink % INKS.length]);
+    // (an edit kept before edits were written for the text held the whole answer: shown as it was)
+    const legacy = a as AddedAnswer & { a?: string };
+    box.innerHTML = `<button type="button" class="note-x" aria-label="${esc(t('remove_from_page'))}" title="${esc(t('remove_from_page'))}">×</button><p>${math_html(a.text ?? legacy.a ?? '')}</p>`;
     box.querySelector<HTMLButtonElement>('.note-x')!.onclick = () => {
       this.unplace(a.id);
       this.refresh_acts(); // (the note's button offers it again)
     };
     put_under(box, block);
-    if (a.pic) void draw_saved(box, a.pic).then((p) => p && this.placed_players.push(p));
     this.layout();
   }
   /** The notes' "add to the page" buttons, after an answer was taken out of the page from the page itself. */
@@ -848,13 +866,6 @@ export class AskRail {
         b.classList.toggle('done', placed);
       }
     }
-  }
-  private stop_placed(): void {
-    for (const p of this.placed_players) {
-      p.pause();
-      p.stop_live();
-    }
-    this.placed_players = [];
   }
 
   // ---------------------------------------------------------------- a page for this learner
@@ -965,7 +976,6 @@ export class AskRail {
   private on_step(): void {
     for (const n of this.notes.values()) n.destroy();
     this.notes.clear();
-    this.stop_placed();
     this.ro.disconnect();
     this.qs.replaceChildren();
     this.quote = '';
