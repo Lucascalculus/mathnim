@@ -23,7 +23,8 @@ on_ui_lang(visual_lang);
 const start_lang = load_settings().lang;
 // (the Chinese font for the visuals is not waited for here: a page loads it when it draws one, see ready_visuals)
 // the account (and its progress) and the courses made from uploads come first: routes and the learner model need them
-const account = load_me().catch(() => null).then(load_studio_courses);
+// (asked side by side: the catalog only needs the session cookie, not the answer about who is signed in)
+const account = Promise.all([load_me().catch(() => null), load_studio_courses()]);
 // (MathJax is not waited for: the pages with formulas wait for it themselves, see tex_dom.ts)
 Promise.allSettled([detect_server_providers(), account]).finally(() => {
   visual_lang(start_lang);

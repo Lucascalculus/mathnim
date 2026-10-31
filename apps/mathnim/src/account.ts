@@ -270,15 +270,31 @@ async function push_events(closing = false): Promise<void> {
 }
 
 let timer = 0;
+let sending: Promise<void> | null = null;
+/** This browser's changed records, then its queued events, up to the account (one run at a time). */
+function send(): Promise<void> {
+  return (sending ??= (async () => {
+    try {
+      await push();
+      backfill();
+      await push_events();
+    } finally {
+      sending = null;
+    }
+  })());
+}
+/**
+ * Take the account's records in (they decide what the page shows), then send this browser's in the background:
+ * the page does not wait for them. After a first sign-in in a browser its whole earlier log goes up, which takes
+ * many requests; waiting for them left the first page blank for seconds.
+ */
 async function sync(): Promise<void> {
   await pull();
-  await push();
-  backfill();
-  await push_events();
+  void send().catch(() => undefined);
   if (!timer) {
     // while signed in: every half minute, and when the page is hidden (closing a tab, switching apps)
     // (as the page closes both start at once: it may be gone before the first one answers)
-    const both = (closing: boolean) => void (closing ? Promise.all([push(), push_events(true)]) : push().then(() => push_events())).catch(() => undefined);
+    const both = (closing: boolean) => void (closing ? Promise.all([push(), push_events(true)]) : send()).catch(() => undefined);
     timer = window.setInterval(() => both(false), 30_000);
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && both(true));
   }

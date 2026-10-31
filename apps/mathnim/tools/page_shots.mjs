@@ -5,6 +5,7 @@
 //   { "mouse": [["mousePressed", x, y, waitMs], ...] }   real mouse events
 //   { "wait": ms }
 //   { "shot": "name", "clip": [x, y, w, h] }   save <outdir>/<name>.png (clip in page coordinates)
+//   { "api_delay": ms }   from now on hold every /api/ request this long, as a distant server would (0: off)
 // Usage:
 //   node tools/page_shots.mjs <url> <outdir> <width> <height> <steps.json>   (DPR=2 for a retina screen)
 // A fresh browser profile each run (empty localStorage): seed state with an "eval" step, then reload.
@@ -48,7 +49,7 @@ for (let i = 0; i < 80 && !targets; i++) {
 }
 const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => (ws.onopen = r));
-let id = 0;
+let id = 0, api_delay = 0;
 const pending = new Map();
 const logs = [];
 ws.onmessage = (m) => {
@@ -57,6 +58,7 @@ ws.onmessage = (m) => {
     pending.get(d.id)(d.result ?? d.error);
     pending.delete(d.id);
   } else if (d.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(d.params.type)) logs.push(`${d.params.type}: ${d.params.args.map((a) => a.value ?? a.description).join(' ')}`);
+  else if (d.method === 'Fetch.requestPaused') setTimeout(() => void send('Fetch.continueRequest', { requestId: d.params.requestId }), api_delay);
   else if (d.method === 'Runtime.exceptionThrown') logs.push(`exception: ${d.params.exceptionDetails.exception?.description ?? d.params.exceptionDetails.text}`);
 };
 const send = (method, params = {}) => new Promise((r) => {
@@ -79,6 +81,10 @@ for (const s of steps) {
       await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', buttons: type === 'mouseReleased' ? 0 : 1, clickCount: 1 });
       if (ms) await sleep(ms);
     }
+  }
+  if (s.api_delay !== undefined) {
+    api_delay = s.api_delay;
+    await send(api_delay ? 'Fetch.enable' : 'Fetch.disable', api_delay ? { patterns: [{ urlPattern: '*/api/*' }] } : {});
   }
   if (s.wait) await sleep(s.wait);
   if (s.shot) {

@@ -39,16 +39,18 @@ export async function state(request: Request, env: AuthEnv): Promise<Response> {
   }
   if (!Array.isArray(items) || items.length > MAX_ITEMS) return error(400, `items: an array of at most ${MAX_ITEMS}.`);
   const count = (await db.prepare('SELECT COUNT(*) AS n FROM user_state WHERE user_id = ?').bind(user.id).first<{ n: number }>())?.n ?? 0;
-  let kept = 0;
+  const rows = [];
   for (const it of items as { key?: unknown; value?: unknown; t?: unknown }[]) {
     if (!syncable_key(it?.key) || typeof it.value !== 'string' || it.value.length > MAX_VALUE || typeof it.t !== 'number' || !Number.isFinite(it.t)) continue;
-    if (count + kept >= MAX_KEYS) break;
+    if (count + rows.length >= MAX_KEYS) break;
     // only a newer value replaces the stored one (two devices, last writer wins per record)
-    await db
-      .prepare('INSERT INTO user_state (user_id, key, value, t) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, t = excluded.t WHERE excluded.t > user_state.t')
-      .bind(user.id, it.key, it.value, Math.min(it.t, Date.now() + 60_000))
-      .run();
-    kept++;
+    rows.push(
+      db
+        .prepare('INSERT INTO user_state (user_id, key, value, t) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, t = excluded.t WHERE excluded.t > user_state.t')
+        .bind(user.id, it.key, it.value, Math.min(it.t, Date.now() + 60_000)),
+    );
   }
-  return json(200, { ok: true, kept });
+  // one round trip to the database for the whole batch (a first sign-in sends up to a hundred records at once)
+  if (rows.length) await db.batch(rows);
+  return json(200, { ok: true, kept: rows.length });
 }
