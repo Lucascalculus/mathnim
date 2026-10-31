@@ -166,7 +166,7 @@ define_ui({
   status_offline: { en: 'Offline demo mode: suggested questions and the "Inscribed angles" lesson replay recorded AI answers.', zh: '离线演示模式：推荐问题和"圆周角"一课会重放录好的 AI 回答。' },
   status_online: { en: 'Questions and new lessons are answered by {p}.', zh: '提问和新课程由 {p} 回答。' },
   provider: { en: 'Provider', zh: '服务商' },
-  provider_gift: { en: "Lucas's gift for u", zh: 'PHL 的礼物' },
+  provider_gift: { en: "Lucas's agent", zh: 'PHL 的礼物' },
   provider_custom: { en: 'Set by hand', zh: '手动指定' },
   api_key: { en: 'API key', zh: 'API 密钥' },
   model_name: { en: 'Model', zh: '模型' },
