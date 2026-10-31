@@ -76,6 +76,8 @@ export class BlockRenderer {
   headings: { id: string; text: string; level: number }[] = [];
   visuals: Extract<Block, { type: 'visual' }>[] = [];
   codes: { label: string; lang: string; code: string }[][] = [];
+  /** Each question's right option and its words, rendered here so the behaviour only shows them. */
+  quizzes: { right: number; feedback: string[]; explain: string }[] = [];
   words = 0;
   figures = 0;
   formulas = 0;
@@ -149,10 +151,20 @@ export class BlockRenderer {
       }
       case 'details':
         return `<details class="mn-details"><summary><span>${this.prose(b.summary)}</span></summary><div class="mn-details-body">${b.blocks.map((x) => this.block(x)).join('')}</div></details>`;
-      case 'table':
-        return `<div class="mn-table-wrap" tabindex="0"><table class="mn-table"><thead><tr>${b.head.map((x) => `<th scope="col">${this.prose(x)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((x) => `<td>${this.prose(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      case 'table': {
+        // three columns or more stack into one card per row on a phone, each value beside its column's name
+        const stack = b.head.length >= 3;
+        const heads = b.head.map((x) => this.prose(x));
+        const cell = (x: L10n, j: number) => (stack && j ? `<td><span class="mn-td-h" aria-hidden="true">${heads[j]}</span><span>${this.prose(x)}</span></td>` : `<td>${this.prose(x)}</td>`);
+        return `<div class="mn-table-wrap${stack ? ' mn-stack' : ''}" tabindex="0"><table class="mn-table"><thead><tr>${heads.map((x) => `<th scope="col">${x}</th>`).join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody></table></div>`;
+      }
       case 'cite':
         return ''; // listed under "Sources" at the end of the page
+      case 'quiz': {
+        const k = this.quizzes.push({ right: b.options.findIndex((o) => o.correct), feedback: b.options.map((o) => (o.feedback ? this.prose(o.feedback) : '')), explain: b.explain ? this.prose(b.explain) : '' }) - 1;
+        const opts = b.options.map((o, i) => `<button type="button" class="mn-quiz-opt" data-i="${i}"><span class="mn-key">${'ABCDEFGH'[i]}</span><span>${this.prose(o.label)}</span></button>`).join('');
+        return `<div class="mn-quiz" data-quiz="${k}" role="group"><div class="mn-quiz-q"><span class="mn-quiz-icon" aria-hidden="true">?</span><div>${this.prose(b.prompt)}</div></div><div class="mn-quiz-opts">${opts}</div><div class="mn-quiz-fb" aria-live="polite" hidden></div></div>`;
+      }
     }
   }
 
@@ -270,6 +282,26 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): VisualS
       li?.classList.add('mn-flash');
       setTimeout(() => li?.classList.remove('mn-flash'), 1600);
     };
+  });
+  // questions: a wrong pick says why and stays open; the right one closes the question and explains
+  root.querySelectorAll<HTMLElement>('.mn-quiz').forEach((box) => {
+    const q = r.quizzes[+box.dataset.quiz!];
+    const fb = box.querySelector<HTMLElement>('.mn-quiz-fb')!;
+    const opts = [...box.querySelectorAll<HTMLButtonElement>('.mn-quiz-opt')];
+    opts.forEach((btn, i) => {
+      btn.onclick = () => {
+        const right = i === q.right;
+        btn.classList.add(right ? 'good' : 'bad');
+        btn.disabled = true;
+        if (right) {
+          opts.forEach((o) => (o.disabled = true));
+          box.classList.add('mn-quiz-done');
+        }
+        fb.className = `mn-quiz-fb ${right ? 'good' : 'bad'}`;
+        fb.innerHTML = right ? `<strong>${esc(t('correct', undefined, ctx.lang))}</strong> ${q.explain}` : q.feedback[i] || esc(t('not_yet', undefined, ctx.lang));
+        fb.hidden = false;
+      };
+    });
   });
   root.querySelectorAll<HTMLImageElement>('.mn-fig img').forEach((img) => {
     img.onerror = () => {

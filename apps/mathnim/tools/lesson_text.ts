@@ -33,6 +33,11 @@ function blocks(bs: Block[], depth = 0): void {
       case 'details': out.push(`${pad}<details> ${L(b.summary)}`); blocks(b.blocks, depth + 1); break;
       case 'table': out.push(`${pad}| ${b.head.map(L).join(' | ')} |`); for (const r of b.rows) out.push(`${pad}| ${r.map(L).join(' | ')} |`); break;
       case 'cite': out.push(`${pad}[^${b.key}]: ${L(b.text)}`); break;
+      case 'quiz':
+        out.push(`${pad}[quiz] ${L(b.prompt)}`);
+        b.options.forEach((o, i) => out.push(`${pad}  ${o.correct ? '✓' : ' '} ${'ABCDEFGH'[i]}. ${L(o.label)}${o.feedback ? `  — ${L(o.feedback)}` : ''}`));
+        if (b.explain) out.push(`${pad}  → ${L(b.explain)}`);
+        break;
     }
   }
 }

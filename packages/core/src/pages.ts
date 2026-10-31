@@ -36,6 +36,13 @@ function block_strings(b: Block, at: string, out: LessonString[]): void {
     case 'details': add('summary', b.summary, 'label'); return b.blocks.forEach((c, i) => block_strings(c, `${at}.blocks[${i}]`, out));
     case 'table': b.head.forEach((x, i) => add(`head[${i}]`, x, 'label')); return b.rows.forEach((r, i) => r.forEach((x, j) => add(`rows[${i}][${j}]`, x, 'label')));
     case 'cite': return void add('text', b.text, 'label');
+    case 'quiz':
+      add('prompt', b.prompt);
+      b.options.forEach((o, i) => {
+        add(`options[${i}].label`, o.label, 'label');
+        add(`options[${i}].feedback`, o.feedback);
+      });
+      return void add('explain', b.explain);
   }
 }
 
@@ -185,6 +192,7 @@ export function describe_step(s: Step, lang: Lang): string {
         case 'details': out.push(`[details: ${tr(b.summary, lang)}]`); blocks(b.blocks); break;
         case 'table': out.push([b.head, ...b.rows].map((r) => r.map((x) => tr(x, lang)).join(' | ')).join('\n')); break;
         case 'cite': out.push(`[source ${b.key}] ${tr(b.text, lang)}`); break;
+        case 'quiz': out.push(`[question] ${tr(b.prompt, lang)}\n${b.options.map((o, i) => `${'ABCDEFGH'[i]}. ${tr(o.label, lang)}${o.correct ? ' (right)' : ''}`).join('\n')}`); break;
       }
     }
   };

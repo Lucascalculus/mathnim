@@ -64,6 +64,8 @@ export type Block =
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
   | { type: 'table'; head: L10n[]; rows: L10n[][] }
+  /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `explain`. */
+  | { type: 'quiz'; prompt: L10n; options: { label: L10n; correct?: boolean; feedback?: L10n }[]; explain?: L10n }
   /** A source reference shown as a footnote. */
   | { type: 'cite'; key: string; text: L10n; url: string };
 

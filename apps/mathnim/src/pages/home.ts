@@ -44,7 +44,7 @@ function course_card(c: Course): string {
   return `
     <article class="card course-card${c.generated ? ' gen' : ''}"${accent(c)}>${c.generated ? '<i></i><i></i><i></i><i></i>' : ''}
       <a class="course-link" href="${course_path(c)}">
-        ${c.generated ? `<span class="gen-label">${esc(t('gen_label', { d: c.generated.decks, n: c.generated.lessons }))}</span>` : ''}
+        ${c.generated ? `<span class="gen-label">${esc(c.generated.note ? tr(c.generated.note, ui_lang()) : t('gen_label', { d: c.generated.decks, n: c.generated.lessons }))}</span>` : ''}
         ${cover(c)}
         <div class="course-name">${math_html(tr(c.title, lang))}</div>
         ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
@@ -111,7 +111,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
         <div class="hero-text">
           ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
           <h1>${math_html(tr(c.title, lang))}</h1>
-          ${c.generated ? `<p class="gen-tag">${esc(t('gen_tag', { d: c.generated.decks, e: c.generated.exams }))}</p>` : ''}
+          ${c.generated ? `<p class="gen-tag">${esc(c.generated.note ? tr(c.generated.note, ui_lang()) : t('gen_tag', { d: c.generated.decks, e: c.generated.exams }))}</p>` : ''}
           
           ${go ? `<div class="row hero-go">
             <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>

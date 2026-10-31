@@ -10,6 +10,15 @@ things up in `docs/CAPABILITIES.md`.
 ## Always
 
 - **讲明白 is the acceptance criterion** (TASTE §1). Everything else serves it.
+- **Designed for this learner's need, not from a template** (a hard rule, Lucas,
+  2026-10-31). Start every course by writing down who it is for, the situation
+  they are in (a first course, a quick review before an exam, a reference for
+  work...) and what they need most in it; then choose the structure that serves
+  that, and innovate where the usual arc does not fit. The source's order (a
+  textbook's chapters, an exam's questions) and this playbook's default arc are
+  starting points, not the plan. For a quick review, for instance: no
+  "answer it first" questions up front; the map, the method and the traps
+  first, practice at the end.
 - **Bilingual**, Chinese written natively; one light theme; narration only on
   scene steps (TASTE §9–10).
 - **Sources**: every factual claim traces to a research note with a verified
@@ -78,6 +87,15 @@ course's `unit.ts`. Within a lesson, a good default arc is:
 
 Break the arc when the idea asks for it. Look at the reference lessons below
 before writing your first one.
+
+Inside a text page, a **small question** (a `quiz` block: one right option, a
+reason on every wrong one) can catch a classic mistake right where the idea is
+explained, without stopping the reading. Use it for a trap a learner really
+falls into, about one per lesson, not as a quiz on everything. A worked
+derivation can leave one simple line for the learner to fill in (`blank`);
+when that line is a long formula, ask a small question in the page instead.
+The ECON90015 demo (`docs/lessons/econ90015/`) is a quick-review course built
+this way.
 
 **Time each scene to its voice.** A narrated scene shows each thing as the
 voice talks about it, never a finished figure under a voice that is still

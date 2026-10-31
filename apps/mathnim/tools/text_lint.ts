@@ -173,6 +173,14 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
         case 'list':
           if (!b.items.length) err(where, 'empty list');
           break;
+        case 'quiz': {
+          const right = b.options.filter((o) => o.correct).length;
+          if (b.options.length < 2) err(where, 'a question needs at least two options');
+          if (right !== 1) err(where, `a question needs exactly one right option (has ${right})`);
+          b.options.forEach((o, k) => !o.correct && !o.feedback && warn(`${where}.options[${k}]`, 'a wrong option without feedback: say why it is wrong'));
+          if (!b.explain) warn(where, 'a question without explain: say why the right option is right');
+          break;
+        }
         case 'callout':
         case 'p':
           break;

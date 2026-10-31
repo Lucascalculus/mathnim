@@ -2085,5 +2085,437 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "econ90015",
+  "title": {
+   "en": "ECON90015 mock exam, explained",
+   "zh": "ECON90015 模考精讲"
+  },
+  "summary": {
+   "en": "Every question of the mock exam worked through, and every idea behind it explained from the ground up: welfare and trade policy, costs and entry, monopoly and taxes, price discrimination, games and oligopoly, the Malthusian trap.",
+   "zh": "把模考的每道题讲透，再把每道题背后的知识从头讲清：福利与贸易政策、成本与进入、垄断与税、价格歧视、博弈与寡头、马尔萨斯陷阱。"
+  },
+  "audience": {
+   "en": "Students about to sit the exam who know university maths but have seen little of the course; a quick review, not a first course.",
+   "zh": "快要考试、会大学数学但没怎么上过这门课的同学；这是快速复习，不是入门课。"
+  },
+  "outcomes": [
+   {
+    "en": "Solve each type of question in the paper with a method you can check",
+    "zh": "每类题都有一个能自检的解法"
+   },
+   {
+    "en": "Explain the idea behind each answer, in the words the examiner expects",
+    "zh": "用阅卷人期待的术语讲清每个答案背后的道理"
+   },
+   {
+    "en": "Recognise the traps and the twists a real exam can add",
+    "zh": "认得出易错点，以及真题可能加的变化"
+   }
+  ],
+  "lang": "en",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "packs": [
+   "econ"
+  ],
+  "origin": {
+   "decks": 0,
+   "exams": 1,
+   "note": {
+    "en": "Written by an AI (Claude) from 1 practice exam · not edited by a person",
+    "zh": "由 AI（Claude）根据 1 份模拟题编写 · 未经人工修改"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "Start here",
+     "zh": "从这里开始"
+    },
+    "lessons": [
+     "econ90015-map"
+    ]
+   },
+   {
+    "title": {
+     "en": "Markets",
+     "zh": "市场"
+    },
+    "lessons": [
+     "econ90015-markets",
+     "econ90015-longrun"
+    ]
+   },
+   {
+    "title": {
+     "en": "Market power",
+     "zh": "市场势力"
+    },
+    "lessons": [
+     "econ90015-monopoly",
+     "econ90015-discrimination",
+     "econ90015-cournot"
+    ]
+   },
+   {
+    "title": {
+     "en": "Growth",
+     "zh": "增长"
+    },
+    "lessons": [
+     "econ90015-malthus"
+    ]
+   },
+   {
+    "title": {
+     "en": "Before the exam",
+     "zh": "考前"
+    },
+    "lessons": [
+     "econ90015-drill"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "econ90015-map",
+    "title": {
+     "en": "The whole exam on one page",
+     "zh": "整张试卷，一页看完"
+    },
+    "summary": {
+     "en": "Six questions, two moves: what each question tests and the idea that unlocks it.",
+     "zh": "六道题，两招：每道题考什么，靠哪个想法解开。"
+    },
+    "minutes": 8,
+    "meta": {
+     "title": {
+      "en": "The whole exam on one page",
+      "zh": "整张试卷，一页看完"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.map",
+       "name": {
+        "en": "Reading the exam",
+        "zh": "读懂这张卷子"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-markets",
+    "title": {
+     "en": "Markets and who gains: the turbine quota (Q1)",
+     "zh": "市场与得失：风机进口配额（第 1 题）"
+    },
+    "summary": {
+     "en": "Demand and supply as values and costs, surplus as areas, externalities, and why a quota on imports costs USF 2000.",
+     "zh": "把需求和供给读成价值和成本，用面积算剩余，外部性，以及进口配额为什么让 USF 亏 2000。"
+    },
+    "minutes": 24,
+    "meta": {
+     "title": {
+      "en": "Markets and who gains: the turbine quota (Q1)",
+      "zh": "市场与得失：风机进口配额（第 1 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.market",
+       "name": {
+        "en": "Supply, demand and equilibrium",
+        "zh": "供给、需求与均衡"
+       }
+      },
+      {
+       "id": "e15.welfare",
+       "name": {
+        "en": "Welfare accounting",
+        "zh": "福利核算"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-longrun",
+    "title": {
+     "en": "Many small firms in the long run (Q5)",
+     "zh": "长期里的完全竞争（第 5 题）"
+    },
+    "summary": {
+     "en": "Cost curves, why free entry pins the price at the bottom of average cost, and how to read an elasticity.",
+     "zh": "成本曲线，为什么自由进入把价格钉在平均成本最低点，以及怎么读弹性。"
+    },
+    "minutes": 18,
+    "meta": {
+     "title": {
+      "en": "Many small firms in the long run (Q5)",
+      "zh": "长期里的完全竞争（第 5 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.longrun",
+       "name": {
+        "en": "Long-run competitive supply",
+        "zh": "长期竞争供给"
+       }
+      },
+      {
+       "id": "e15.elasticity",
+       "name": {
+        "en": "Price elasticity of demand",
+        "zh": "需求价格弹性"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-monopoly",
+    "title": {
+     "en": "One seller, and a tax on its price (Q2)",
+     "zh": "一家独大，再收一道税（第 2 题）"
+    },
+    "summary": {
+     "en": "Where market power comes from, monopoly from MR = MC, its deadweight loss, how a tax tilts or shifts the demand the seller sees, and who really pays.",
+     "zh": "市场势力从哪来，用 MR = MC 解垄断，垄断的无谓损失，税怎样转动或平移卖方看到的需求，以及税到底谁付。"
+    },
+    "minutes": 24,
+    "meta": {
+     "title": {
+      "en": "One seller, and a tax on its price (Q2)",
+      "zh": "一家独大，再收一道税（第 2 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.monopoly",
+       "name": {
+        "en": "Monopoly pricing",
+        "zh": "垄断定价"
+       }
+      },
+      {
+       "id": "e15.tax",
+       "name": {
+        "en": "Tax incidence",
+        "zh": "税负归宿"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-discrimination",
+    "title": {
+     "en": "Different prices for different buyers (Q3)",
+     "zh": "看人定价（第 3 题）"
+    },
+    "summary": {
+     "en": "The three degrees of price discrimination by what the seller knows: third degree (one MR = MC per market), second degree (packages that make each type pick its own), first degree and two-part tariffs, with the profits side by side.",
+     "zh": "按卖方知道多少分出的三级价格歧视：三级（每个市场 MR = MC）、二级（让每类人自己挑套餐）、一级与两部定价，利润并排比较。"
+    },
+    "minutes": 26,
+    "meta": {
+     "title": {
+      "en": "Different prices for different buyers (Q3)",
+      "zh": "看人定价（第 3 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.third",
+       "name": {
+        "en": "Third-degree price discrimination",
+        "zh": "三级价格歧视"
+       }
+      },
+      {
+       "id": "e15.second",
+       "name": {
+        "en": "Second-degree price discrimination (packages)",
+        "zh": "二级价格歧视（套餐）"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-cournot",
+    "title": {
+     "en": "Two firms guessing each other (Q4)",
+     "zh": "两家厂商互相猜（第 4 题）"
+    },
+    "summary": {
+     "en": "Games and Nash equilibrium, best responses, how to draw them, and how Cournot compares with a cartel, a leader (Stackelberg) and competition.",
+     "zh": "博弈与纳什均衡、最优反应、怎么画出来，以及古诺与卡特尔、领导者（斯塔克尔伯格）、完全竞争的比较。"
+    },
+    "minutes": 22,
+    "meta": {
+     "title": {
+      "en": "Two firms guessing each other (Q4)",
+      "zh": "两家厂商互相猜（第 4 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.cournot",
+       "name": {
+        "en": "Cournot competition",
+        "zh": "古诺竞争"
+       }
+      },
+      {
+       "id": "e15.games",
+       "name": {
+        "en": "Nash equilibrium",
+        "zh": "纳什均衡"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-malthus",
+    "title": {
+     "en": "The Malthusian trap (Q6)",
+     "zh": "马尔萨斯陷阱（第 6 题）"
+    },
+    "summary": {
+     "en": "Income per person as a slope, why population returns to the same point after any shock, what to draw for the marks, and what finally broke the trap.",
+     "zh": "人均收入是一条斜率，为什么任何冲击之后人口都回到原点，为拿分要画什么，以及最后是什么打破了陷阱。"
+    },
+    "minutes": 16,
+    "meta": {
+     "title": {
+      "en": "The Malthusian trap (Q6)",
+      "zh": "马尔萨斯陷阱（第 6 题）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.malthus",
+       "name": {
+        "en": "The Malthusian model",
+        "zh": "马尔萨斯模型"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-drill",
+    "title": {
+     "en": "One-page method sheet, and a 20-minute drill",
+     "zh": "一页方法表，加 20 分钟练习"
+    },
+    "summary": {
+     "en": "Every method in one table, then eight questions with new numbers.",
+     "zh": "所有方法一张表，再加八道换了数的题。"
+    },
+    "minutes": 25,
+    "meta": {
+     "title": {
+      "en": "One-page method sheet, and a 20-minute drill",
+      "zh": "一页方法表，加 20 分钟练习"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.drill",
+       "name": {
+        "en": "The whole exam",
+        "zh": "整张试卷"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
  }
 ]

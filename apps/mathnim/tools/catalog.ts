@@ -12,6 +12,7 @@ import { list_visuals } from '@mathnim/visuals';
 import { describe_param } from '../../../packages/visuals/src/params';
 import '@mathnim/visuals/linalg';
 import '@mathnim/visuals/mpc';
+import '@mathnim/visuals/econ';
 import '../../../packages/visuals/src/ft/a/index';
 import '../../../packages/visuals/src/ft/b/index';
 import '../../../packages/visuals/src/ft/c/index';
@@ -139,7 +140,7 @@ out.push(block ? `\`\`\`ts\n${block.getText().slice(0, 2400)}\n\`\`\`` : '_(see 
 h('## Visuals');
 const vs = list_visuals().sort((a, b) => pack_of(a.name).localeCompare(pack_of(b.name)) || a.name.localeCompare(b.name));
 out.push(
-  `${vs.length} parametric visuals (\`packages/visuals\`): each is a scene with checked parameters, used by lessons (scene steps, worlds, \`visual\` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (\`import('@mathnim/visuals/mpc')\`, \`.../ft/<part>\`); the core pack (geometry, linear algebra) loads with the app. New visuals: \`packages/visuals/README.md\`; check them with \`npm run check -w @mathnim/visuals -- --only <names>\` and look at the contact sheets.`,
+  `${vs.length} parametric visuals (\`packages/visuals\`): each is a scene with checked parameters, used by lessons (scene steps, worlds, \`visual\` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (\`import('@mathnim/visuals/mpc')\`, \`.../ft/<part>\`, \`.../econ\` for a demo course through its entry's \`packs\`); the core pack (geometry, linear algebra) loads with the app. New visuals: \`packages/visuals/README.md\`; check them with \`npm run check -w @mathnim/visuals -- --only <names>\` and look at the contact sheets.`,
 );
 let pack = '';
 for (const v of vs) {

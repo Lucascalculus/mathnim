@@ -22,10 +22,17 @@ export interface StudioEntry {
   /** Published as static files (public/demo/<id>/): its lessons load from there. */
   demo?: boolean;
   /** What it was made from. */
-  origin?: { decks: number; exams: number };
+  origin?: { decks: number; exams: number; /** How it was made, said instead of "zero-shot from n decks" (a demo written another way). */ note?: L10n };
   units: { title: L10n; lessons: string[] }[];
   lessons: { id: string; title: L10n; summary: L10n; minutes: number; meta: LessonMeta }[];
+  /** Visual packs its lessons embed (a demo written with interactive figures), loaded before a lesson. */
+  packs?: string[];
 }
+
+/** The packs a course entry may name: each registers its visuals when imported. */
+const PACKS: Record<string, () => Promise<unknown>> = {
+  econ: () => import('@mathnim/visuals/econ'),
+};
 
 export const studio_slug = (id: string) => `course-${id}`;
 const MINE = { en: 'My courses', zh: '我的课程' };
@@ -45,7 +52,7 @@ export function course_of_entry(e: StudioEntry): Course {
     outcomes: e.outcomes.length ? e.outcomes : undefined,
     category: e.mine ? MINE : e.demo ? DEMO : SHARED,
     accent: '#0F766E',
-    generated: { decks: e.origin?.decks ?? 0, exams: e.origin?.exams ?? 0, lessons: e.lessons.length },
+    generated: { decks: e.origin?.decks ?? 0, exams: e.origin?.exams ?? 0, lessons: e.lessons.length, note: e.origin?.note },
     units: e.units.map((u, i) => ({
       id: `u${i + 1}`,
       title: u.title,
@@ -59,7 +66,7 @@ export function course_of_entry(e: StudioEntry): Course {
           minutes: l.minutes,
           meta: l.meta,
           load: async (): Promise<Lesson> => {
-            const r = await fetch(lesson_url(e, l.id), { credentials: 'same-origin' });
+            const [r] = await Promise.all([fetch(lesson_url(e, l.id), { credentials: 'same-origin' }), ...(e.packs ?? []).map((k) => PACKS[k]?.())]);
             if (!r.ok) throw new Error(`lesson ${l.id}: HTTP ${r.status}`);
             return r.json();
           },

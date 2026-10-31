@@ -200,20 +200,47 @@ export type Block =
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
-  | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: string }
+  | { type: 'figure'; src: L10n; alt: L10n; caption?: L10n; credit?: L10n }
+  /** A drawing given as SVG markup (generated courses draw their own diagrams; one per language when it has words); shown as an image, so it runs no code. */
+  | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
   | { type: 'table'; head: L10n[]; rows: L10n[][] }
+  /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `explain`. */
+  | { type: 'quiz'; prompt: L10n; options: { label: L10n; correct?: boolean; feedback?: L10n }[]; explain?: L10n }
   /** A source reference shown as a footnote. */
   | { type: 'cite'; key: string; text: L10n; url: string };
 ```
 
 ## Visuals
 
-57 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+62 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` for a demo course through its entry's `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+
+### econ
+
+- **`econ_cournot`**: Cournot duopoly as best replies (ECON90015 Q4: R1: q1 = 120 − 0.25q2, R2: q2 = 192 − 0.4q1): drag the starting outputs and watch the firms reply in turn, horizontal moves to R1 and vertical moves to R2, closing in on the crossing (80, 160), the Nash equilibrium, with each reply listed.
+  - params: `q1: number in [0, 300] =230 - firm 1's starting output`; `q2: number in [0, 450] =400 - firm 2's starting output`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: economics, oligopoly, cournot, nash equilibrium, best response, reaction function, game theory
+  - used in: _(not yet used by a lesson)_
+- **`econ_malthus`**: The Malthusian trap (ECON90015 Q6: Y = A·3√N, subsistence y* = 1.5): income per person is the slope of the ray from the origin; drag the population along the production curve to see whether births or deaths win and where it returns, and raise the technology A to see more people at the same living standard.
+  - params: `story: one of both|immigration|technology ="both" - what the scene plays: a wave of immigrants returning to N*, better technology (more people, same income per person), or both`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: economics, malthus, growth, population, diminishing returns, subsistence, macroeconomics
+  - used in: _(not yet used by a lesson)_
+- **`econ_monopoly_tax`**: A tax on a monopolist (ECON90015 Q2: demand p = 600 − 2Q, MC = 60 + Q): drag the tax and switch percentage (the demand the seller sees rotates) or per unit (it shifts); the monopolist re-solves MR = MC, and a bar splits the tax per unit between buyers and the monopolist, with output, revenue and the deadweight loss.
+  - params: `kind: one of percent|unit ="percent" - 'percent': buyers pay (1 + τ) times what the seller keeps; 'unit': buyers pay t more`; `size: number in [0, 0.6] =0.25 - the tax the scene ends on: τ = size (0.25 = 25%), or t = 320 × size per unit (0.25 → 80)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: economics, monopoly, tax incidence, ad valorem tax, per-unit tax, marginal revenue, deadweight loss
+  - used in: _(not yet used by a lesson)_
+- **`econ_quota`**: Import quota welfare (ECON90015 Q1: demand p = 60 − Q/2, import supply p = Q/10, external benefit per unit): drag the quota and see the price off demand, the extra paid on units still bought (A), the value and cleaner air lost on units no longer bought (B), and USF social benefit against the quota, with or without selling the import licences.
+  - params: `quota: number in [10, 120] =60 - the quota the scene ends on (units); 100 or more does not bind`; `ext: number in [0, 20] =10 - external benefit to USF per turbine (10 in the exam)`; `licences: boolean =false - start with the import licences sold, so the quota rent stays in USF`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: economics, welfare, quota, trade policy, consumer surplus, externality, quota rent
+  - used in: _(not yet used by a lesson)_
+- **`econ_screening`**: Two packages for two kinds of buyers (ECON90015 Q3b: demands 24 − q and 16 − q, MC = 6): drag the size of the small package and see what the low type pays (area under its demand), the rent the high type must be left (the strip between the demands), and the profit, highest where one more unit earns as much as it costs in rent (q2 = 2).
+  - params: `q2: number in [0, 10] =2 - the size of the small package the scene ends on (2 is best; 10 is where its demand meets MC)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: economics, price discrimination, second degree, screening, information rent, packages, menu pricing
+  - used in: _(not yet used by a lesson)_
 
 ### ft/a
 
@@ -486,7 +513,7 @@ export type Block =
 | `juice` | Game feel for interactive scenes (web extension, see docs/EXTENSIONS.md): snap pulse rings, success particle bursts and counter tweens drawn on an overlay canvas (like AffordanceLayer), and short synthesized WebAudio blips (no audio files). Nothing here knows about goals or scores: a lesson calls `juice.success(p)` when *it* decides something was achieved. | SoundName, set_muted, is_muted, set_volume, set_reduced_motion, prefers_reduced_motion, motion_enabled, ease | `present/src/view.ts` |
 | `lint` | Scene linter (web extension): finds layout problems a viewer would notice - objects off screen, labels overlapping each other or crossing lines, text too small or too low in contrast, crowded frames. Used as the quality gate for generated scenes and in the dev overlay. | LintIssue, LintOptions, class_name, is_text, contrast_ratio, label_of, lint_frame, lint_timeline | `present/src/view.ts` |
 | `marker` | A marker on a number line (web extension, see docs/EXTENSIONS.md): a pin the learner drags along a NumberLine, with a live value label. A thin convenience over Interaction.add_handle. | MarkerOptions, NumberLineMarker | — |
-| `player` | ScenePlayer (web extension): plays a recorded Scene on a canvas. | preload, PlayerOptions, ScenePlayer | `best-angle/theme.ts` |
+| `player` | ScenePlayer (web extension): plays a recorded Scene on a canvas. | preload, voice_waits, PlayerOptions, ScenePlayer | `best-angle/theme.ts` |
 | `py` | Run manim scene code transpiled from Python (tools/py2js.py) - web extension. | runtime, load_transpiled | — |
 | `scrub` | Scrubbable numbers: drag left/right on a number to change it (web extension, see docs/EXTENSIONS.md). Like Bret Victor's "explorable" numbers. | ScrubMath, step_value, scrub_value, ScrubOptions, Scrubber | — |
 | `stamp` | Stamps: tap to place copies of a template in an area (web extension, see docs/EXTENSIONS.md). | stamp_position, can_stamp, fade_family, StampOptions, Stamp | — |
@@ -502,6 +529,7 @@ How lessons are shown: the essay and game views, text pages, narration, cues and
 | `packages/present/src/cue.ts` | One cue at a time. manim-web's AffordanceLayer gives every unused handle a pulsing halo and every kind of item its own lead pulse, so a world with three sliders and a card opens with four rings at once: noisy, and it hides the order of the task. A CueGuide keeps exactly one control "unused" for the layer - the first control of the cue order that the learner has not used yet - and marks the others as used, so they show their plain static ring (handles) or nothing (items), without pulse or label. When the cued control has been used, the cue moves to the next one. The coach demonstration is pointed at the cued control. |
 | `packages/present/src/highlight.ts` | A small syntax highlighter for the code in lessons: python, bash, json, yaml and plain text. It tokenizes with ordered sticky regexes (first match wins, unknown characters are plain) and returns one HTML string per line, so a code page can number lines and highlight ranges. Classes: mn-t-c comment, mn-t-s string, mn-t-n number, mn-t-k keyword, mn-t-l literal (True, null), mn-t-b builtin, mn-t-f function / command, mn-t-d decorator, mn-t-a key or flag, mn-t-v variable. |
 | `packages/present/src/i18n.ts` | The learner's interface language and the one dictionary of UI strings. Lesson content is L10n data resolved with tr(); the chrome around it (buttons, labels, help) is looked up here by key. The app adds its own entries with define_ui() so the shell, its pages and the lesson view share one table. |
+| `packages/present/src/icons.ts` | Line icons for the controls (play, sound, menus, close, arrows): one family, Tabler's outline set (MIT, https://tabler.io/icons), only the ones used, drawn 1.5 px wide at 18 px with round ends, in the colour of the text. The site's own marks (the logo, the account, the crown, the outline's stations, the drawing-sheet corners) are drawn where they are used. |
 | `packages/present/src/index.ts` | @mathnim/present - presenters that put a lesson on screen. The essay view (chaptered scenes, checkpoints, explorations, text pages) is LessonView; the game view is the same class with mode 'game'. |
 | `packages/present/src/math.ts` | Text with inline TeX (`$...$`) in DOM elements. The TeX renderer is pluggable (the app passes manim-web's MathJax adapter); without one the TeX source is shown. |
 | `packages/present/src/narrator.ts` | Narration: pre-generated neural-voice audio (tools/gen_narration.py, edge-tts) with captions timed to its word boundaries. Lines without recorded audio (e.g. freshly generated by the AI) are synthesised on demand by the server (POST /api/tts: the same voice, word boundaries included) when it offers live narration (/api/providers says {tts: true}); otherwise, or when that fails, they are shown as captions only, unless the learner turns on the browser's own voice. |

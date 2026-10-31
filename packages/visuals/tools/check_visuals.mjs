@@ -34,7 +34,7 @@ const stub_missing = {
 // exist (missing relative imports inside them, i.e. files still being written,
 // are stubbed too).
 const visuals_src = pk('visuals/src');
-const LAZY_COURSES = ['ft', 'mpc'];
+const LAZY_COURSES = ['ft', 'mpc', 'econ'];
 const packs = LAZY_COURSES.flatMap((c) => {
   const dir = path.join(visuals_src, c);
   if (!fs.existsSync(dir)) return [];
