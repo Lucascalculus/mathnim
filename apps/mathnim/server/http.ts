@@ -136,6 +136,8 @@ export interface Usage {
 /** What a handler adds to its log line. Never keys, prompts or answers. */
 export interface Note {
   model?: string;
+  /** The tutor's operation (/api/ai). */
+  op?: string;
   usage?: Usage;
   cached?: boolean;
   provider?: string;

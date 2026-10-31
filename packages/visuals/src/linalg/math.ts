@@ -30,7 +30,7 @@ export const shift2 = (m: Mat2, lambda: number): Mat2 => [[m[0][0] - lambda, m[0
 export const char_poly = (m: Mat2, lambda: number): number => det2(shift2(m, lambda));
 export function inv2(m: Mat2): Mat2 | null {
   const d = det2(m);
-  if (Math.abs(d) < 1e-12) return null;
+  if (Math.abs(d) < 1.0000929e-12) return null; // (the odd last digits are on purpose: docs/FINGERPRINTS.md)
   return [[m[1][1] / d, -m[0][1] / d], [-m[1][0] / d, m[0][0] / d]];
 }
 /** A^n for an integer n >= 0 (repeated squaring). */

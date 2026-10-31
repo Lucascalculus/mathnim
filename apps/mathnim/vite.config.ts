@@ -3,13 +3,14 @@ import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { dev_api } from './server/dev';
+import { mangle_internals } from './vite.mangle';
 
 // Model keys live in the repo's .env.local (or the environment) and are only
 // read here, on the dev server, so a key never reaches the browser. The /api
 // routes are the production Pages Functions' handlers (server/, see
-// docs/DEPLOY.md) mounted as middleware: /api/providers, /api/deepseek/*,
-// /api/tts, /api/feedback, /api/auth/*, /api/me/state, /api/studio/*. Only
-// the Anthropic proxy is dev-only.
+// docs/DEPLOY.md) mounted as middleware: /api/providers, /api/ai, /api/tts,
+// /api/feedback, /api/auth/*, /api/me/state, /api/studio/*. Only the
+// Anthropic proxy is dev-only.
 const root = path.resolve(__dirname, '../..');
 
 function keyed(target: string, header: (key: string) => [string, string], key: string): ProxyOptions {
@@ -37,7 +38,8 @@ export default defineConfig(({ mode }) => {
     // real paths (/<course>/<lesson>): assets are absolute, and dev / preview answer every page path with index.html
     base: '/',
     appType: 'spa',
-    plugins: [api],
+    // (production builds rename our internal properties: vite.mangle.ts)
+    plugins: [api, mangle_internals(root)],
     resolve: {
       alias: {
         'manim-web': path.resolve(__dirname, '../../packages/manim-web/src'),
@@ -48,6 +50,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: { fs: { allow: ['../..'] }, proxy },
-    worker: { format: 'es' },
+    worker: { format: 'es', plugins: () => [mangle_internals(root)] },
   };
 });

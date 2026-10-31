@@ -1,21 +1,17 @@
-// /api/deepseek/*: a guarded proxy to api.deepseek.com that adds the key
-// (DEEPSEEK_API_KEY), so it never reaches the browser. The site is public, so
-// the proxy only forwards what the app needs:
-//   - GET models, POST chat/completions; nothing else
-//   - allowed models only (ALLOWED_MODELS, default deepseek-flash; "*" = any)
-//   - max_tokens capped, request body capped
-//   - requests from this site's own pages only (Origin check)
+// DeepSeek with the key (DEEPSEEK_API_KEY), so it never reaches the browser. There is no open proxy: the site asks
+// for the tutor's fixed operations at /api/ai (ai.ts), whose prompts are written on the server, and forward_chat sends
+// them on, guarded:
+//   - requests from this site's own pages only (Origin check, in ai.ts)
+//   - allowed models only (ALLOWED_MODELS, default deepseek-flash), max_tokens capped, request body capped
 //   - per-visitor rate limits: a 10-minute window and a daily cap (best effort)
 // Spend is bounded by the DeepSeek account's prepaid balance; for a hard limit
-// add a Cloudflare rate-limiting rule on /api/deepseek/* as well.
+// add a Cloudflare rate-limiting rule on /api/ai as well.
 //
-// Answer cache (opt in per request with the header `x-mathnim-cache: 1`):
-// an identical request body (same model, prompt, context) is answered from
-// the edge cache for ANSWER_CACHE_TTL seconds (default one day; 0 = off).
-// Every chat response carries `x-mathnim-answer-id` (a hash of the request),
-// which /api/feedback accepts as answer_id; "not helpful" feedback drops the
-// cached answer.
-import { client_ip, error, list, origin_ok, read_text, sha256_hex, too_many, type Note, type Parsed, type RateLimiter, type TextCache, type Usage } from './http';
+// Answer cache (for operations whose answer is the same for everyone, such as the starter questions): an identical
+// request body (same model, prompt, context) is answered from the edge cache for ANSWER_CACHE_TTL seconds (default
+// one day; 0 = off). Every response carries `x-mathnim-answer-id` (a hash of the request), which /api/feedback
+// accepts as answer_id; "not helpful" feedback drops the cached answer.
+import { client_ip, list, sha256_hex, too_many, type Note, type RateLimiter, type TextCache, type Usage } from './http';
 
 export interface DeepseekEnv {
   DEEPSEEK_API_KEY?: string;
@@ -37,23 +33,6 @@ export const MAX_TOKENS = 32000;
 const UPSTREAM = 'https://api.deepseek.com';
 
 export const allowed_models = (spec?: string): string[] => (list(spec).length ? list(spec) : ['deepseek-flash']);
-
-/** Validate a chat/completions body: allowed model, max_tokens capped; asks for usage in streams (for the logs). */
-export function check_chat(text: string, allowed: string[]): Parsed<Record<string, unknown>> {
-  let body: Record<string, unknown>;
-  try {
-    body = JSON.parse(text);
-  } catch {
-    return { ok: false, status: 400, error: 'Invalid JSON.' };
-  }
-  if (!body || typeof body !== 'object' || Array.isArray(body)) return { ok: false, status: 400, error: 'Expected a JSON object.' };
-  if (typeof body.model !== 'string' || !(allowed.includes('*') || allowed.includes(body.model)))
-    return { ok: false, status: 400, error: `Model not allowed here (allowed: ${allowed.join(', ')}).` };
-  if (!Array.isArray(body.messages)) return { ok: false, status: 400, error: 'Expected messages.' };
-  body.max_tokens = Math.min(Number(body.max_tokens) || 8000, MAX_TOKENS);
-  if (body.stream === true && body.stream_options === undefined) body.stream_options = { include_usage: true };
-  return { ok: true, value: body };
-}
 
 /** Token usage from a chat/completions response body (JSON, or the last SSE chunk that has it). */
 export function extract_usage(text: string, sse: boolean): Usage | undefined {
@@ -85,34 +64,23 @@ export function extract_usage(text: string, sse: boolean): Usage | undefined {
 }
 export const answer_cache_key = (id: string) => `answers/${id}`;
 
-export async function deepseek(request: Request, env: DeepseekEnv, path: string, deps: DeepseekDeps, note: Note): Promise<Response> {
-  if (!env.DEEPSEEK_API_KEY) return error(503, 'This deployment has no DeepSeek key.');
-  const route = `${request.method} ${path}`;
-  if (route !== 'GET models' && route !== 'POST chat/completions') return error(404, 'Not available.');
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+/**
+ * Send a chat body (written on the server) to DeepSeek with the key: per-visitor limits, the answer cache when
+ * `cache`, the (possibly streamed) reply passed straight back, its usage logged.
+ */
+export async function forward_chat(request: Request, body: Record<string, unknown>, env: DeepseekEnv, deps: DeepseekDeps, note: Note, o: { cache?: boolean } = {}): Promise<Response> {
   const f = deps.fetch ?? fetch;
   const headers = { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, 'content-type': 'application/json' };
   const limit = () => {
     const v = deps.limiter?.hit(client_ip(request));
     return v && !v.ok ? too_many(v, 'questions') : null;
   };
-  if (request.method === 'GET') {
-    const blocked = limit();
-    if (blocked) return blocked;
-    const r = await f(`${UPSTREAM}/models`, { headers });
-    return new Response(r.body, { status: r.status, headers: { 'content-type': r.headers.get('content-type') ?? 'application/json', 'cache-control': 'no-store' } });
-  }
-
-  const text = await read_text(request, MAX_BODY);
-  if (text === null) return error(413, 'Request too large.');
-  const checked = check_chat(text, allowed_models(env.ALLOWED_MODELS));
-  if (!checked.ok) return error(checked.status, checked.error);
-  const body = checked.value;
+  body.max_tokens = Math.min(Number(body.max_tokens) || 8000, MAX_TOKENS);
   note.model = body.model as string;
   const payload = JSON.stringify(body);
   const answer_id = (await sha256_hex(payload)).slice(0, 32);
   const ttl = Number(env.ANSWER_CACHE_TTL ?? 86_400) || 0;
-  const cache = deps.answers && ttl > 0 && request.headers.get('x-mathnim-cache') === '1' ? deps.answers : null;
+  const cache = deps.answers && ttl > 0 && o.cache ? deps.answers : null;
   if (cache) {
     const hit = await cache.get(answer_cache_key(answer_id)).catch(() => null);
     if (hit) {

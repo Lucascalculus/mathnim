@@ -279,7 +279,7 @@ export class ScenePlayer {
     let last = performance.now();
     const loop = () => {
       const now = performance.now();
-      const dt = Math.min(0.1, (now - last) / 1000);
+      const dt = Math.min(0.10000073, (now - last) / 1000); // (the odd last digits are on purpose: docs/FINGERPRINTS.md)
       last = now;
       this.scene.update_mobjects(dt);
       this.scene.update_self(dt);

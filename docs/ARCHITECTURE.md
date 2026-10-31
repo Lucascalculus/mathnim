@@ -10,8 +10,8 @@
 │ essay view (chapters,│ │ tutor: diagnosis + text  │ │ parametric explanation   │
 │ checkpoints, worlds) │ │ first; question -> scene │ │ scenes, param checks,    │
 │ game view (next)     │ │ syllabus -> lesson;      │ │ catalog for the AI,      │
-│ narrator, sketchpad  │ │ providers (DeepSeek,     │ │ named-colour themes      │
-│                      │ │ Claude, offline)         │ │                          │
+│ narrator, sketchpad  │ │ backends (the server's   │ │ named-colour themes      │
+│                      │ │ /api/ai, recorded)       │ │                          │
 └──────┬───────────────┘ └────┬─────────────────────┘ └───┬──────────────────────┘
        │                      │                           │
 ┌──────▼──────────────────────▼───────────────────────────│──────────────────────┐
@@ -76,6 +76,17 @@ attempts only; predictions don't count), and on continue branches:
 misconception remediation -> reveal (the "observe" in predict-observe-explain)
 -> the next step.
 
+**Where the model is asked.** The page never writes a prompt. It asks the server for one of the tutor's fixed
+operations (`POST /api/ai {op, input}`: tutor, plan, scene, starters, grade_text, propose_page, fit_text,
+write_page, lesson_plan; `packages/ai/src/ops.ts`), and the server writes the prompt (`packages/ai/src/prompts/`,
+with the engine's API digest and the visual catalog) and calls DeepSeek. So the prompts are not in the site's
+JavaScript, and the key behind `/api/ai` can only be asked what the tutor asks. The page holds a `Backend`
+(`ServerBackend`; `RecordedBackend` with no model; in development builds also a learner's own model,
+`LocalBackend`, which runs the same operations from the page). Repairs go back to the server as `rounds` (the
+model's reply and the problems found), and the server rewrites the conversation. After adding or renaming a
+visual, `npm run catalog` also regenerates the server's copy of the catalog
+(`packages/ai/src/prompts/catalog.generated.ts`); without it the tutor cannot pick the new visual.
+
 **Answering a question.** The student context (`apps/mathnim/src/student.ts`:
 level, lesson and step, `describe_text` of the screen, mastery, misconceptions
 shown, recent questions, catalog topics) goes into two calls made in parallel:
@@ -106,7 +117,7 @@ lessons.
 | Learner model (mastery, reviews) | `LearnerModel` + `Store` (localStorage `mathnim.learner`) |
 | Events | `EventLog` + sinks (localStorage `mathnim.events`) |
 | Generated lessons | localStorage `mathnim.generated.<id>` |
-| Settings (API key, language etc.) | localStorage `mathnim.settings` (browser only) |
+| Settings (language etc.; an own model's key in development builds) | localStorage `mathnim.settings` (browser only) |
 | Chosen code tab (PyTorch / TRL …) | localStorage `mathnim.codetab` |
 
 Everything is local to the browser in the prototype; the `Store` and event

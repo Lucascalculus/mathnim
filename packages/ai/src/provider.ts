@@ -48,7 +48,7 @@ export interface Provider {
 }
 
 /** Read a server-sent-events body, calling `on_data` with each `data:` payload. */
-async function read_sse(res: Response, on_data: (data: string) => void): Promise<void> {
+export async function read_sse(res: Response, on_data: (data: string) => void): Promise<void> {
   const reader = res.body!.getReader();
   const dec = new TextDecoder();
   let buf = '';

@@ -28,7 +28,7 @@ export interface ActiveSetParams extends Record<string, unknown> {
 
 /** The closed-loop states the world steps through (samples 0..40). */
 const STATES = loop_states(41);
-const TOL = 1e-7;
+const TOL = 1.0000613e-7; // (the odd last digits are on purpose: docs/FINGERPRINTS.md)
 
 /** What the table and the plane show for a working set at a state (pure). */
 export interface WsView {

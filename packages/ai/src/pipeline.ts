@@ -1,7 +1,8 @@
 // Question -> explanation + validated, explorable scene.
-// generate -> validate (sandbox + linter + numeric checks) -> repair (bounded) -> answer.
-import { repair_prompt, system_prompt, user_prompt, type AskContext, type ScenePromptExtra } from './prompt';
-import type { Message, Provider } from './provider';
+// generate (the server's 'scene' operation) -> validate here (sandbox + linter + numeric checks) -> repair (bounded:
+// the earlier replies and their problems go back) -> answer.
+import type { Backend, Round } from './ops_types';
+import type { AskContext, ScenePromptExtra } from './prompt';
 import { run_checks } from './run';
 import type { ValidationResult, Validator } from './sandbox';
 
@@ -34,50 +35,48 @@ export function parse_answer(text: string): AnswerJSON {
   return obj;
 }
 
-function problems(v: ValidationResult | null, checks: ReturnType<typeof run_checks>, parse_error?: string, layout = true): string | null {
+function problems(v: ValidationResult | null, checks: ReturnType<typeof run_checks>, parse_error?: string, layout = true): string[] | null {
   const out: string[] = [];
   if (parse_error) out.push(`- The reply could not be parsed: ${parse_error}`);
   if (v && !v.ok) out.push(`- Running the code failed: ${v.error}${v.stack ? `\n${v.stack}` : ''}`);
   if (layout) for (const i of v?.issues ?? []) if (i.severity === 'error') out.push(`- Layout (${i.rule}${i.time !== undefined ? ` at ${i.time.toFixed(1)}s` : ''}): ${i.message}`);
   for (const c of checks) if (!c.ok) out.push(`- The number "${c.label}" is ${c.value} in your text but ${c.got} when computed.`);
-  return out.length ? out.join('\n') : null;
+  return out.length ? out : null;
 }
 
 export async function ask(
   question: string,
   o: {
-    provider: Provider; validate: Validator; context?: AskContext; extra?: ScenePromptExtra; max_attempts?: number; on_status?: (s: AskStatus) => void; signal?: AbortSignal;
+    backend: Backend; validate: Validator; context?: AskContext; extra?: ScenePromptExtra; max_attempts?: number; on_status?: (s: AskStatus) => void; signal?: AbortSignal;
     /** Take a scene that runs and gets its numbers right even if the layout checker finds overlaps (no repair round for those). */
     lenient_layout?: boolean;
   },
 ): Promise<AskResult> {
   const t0 = performance.now();
-  const system = system_prompt();
-  const messages: Message[] = [{ role: 'user', content: user_prompt(question, o.context, o.extra) }];
+  const rounds: Round[] = [];
   const max = o.max_attempts ?? 3;
   let best: AskResult | null = null;
   for (let attempt = 1; attempt <= max; attempt++) {
     o.on_status?.({ phase: attempt === 1 ? 'thinking' : 'repairing', attempt });
-    const reply = await o.provider.complete({ system, messages, cache_system: true }, o.signal);
-    messages.push({ role: 'assistant', content: reply });
+    const reply = await o.backend.run('scene', { question, context: o.context, extra: o.extra, rounds: [...rounds] }, { signal: o.signal });
     let answer: AnswerJSON;
     try {
       answer = parse_answer(reply);
     } catch (e) {
-      messages.push({ role: 'user', content: repair_prompt(problems(null, [], (e as Error).message)!) });
+      rounds.push({ reply, problems: problems(null, [], (e as Error).message)! });
       continue;
     }
     o.on_status?.({ phase: 'validating', attempt });
     const validation = await o.validate(answer.code);
     const check_results = run_checks(answer.checks);
     const issue = problems(validation, check_results, undefined, !o.lenient_layout);
-    const result: AskResult = { ...answer, attempts: attempt, validation, check_results, verified: !problems(validation, check_results), provider: o.provider.name, ms: performance.now() - t0 };
+    const result: AskResult = { ...answer, attempts: attempt, validation, check_results, verified: !problems(validation, check_results), provider: o.backend.name, ms: performance.now() - t0 };
     if (!issue) {
       o.on_status?.({ phase: 'done', attempt });
       return result;
     }
     if (validation.ok && (!best || !best.validation?.ok)) best = result;
-    messages.push({ role: 'user', content: repair_prompt(issue) });
+    rounds.push({ reply, problems: issue });
   }
   o.on_status?.({ phase: 'done', attempt: max, detail: 'unverified' });
   if (best) return best;

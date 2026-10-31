@@ -2,8 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { grade_text, parse_text_grade } from '../src/grade_text';
 import type { CompletionRequest, Provider } from '../src/provider';
-import { context_block } from '../src/tutor';
-import { answer_language } from '../src/visual_plan';
+import { LocalBackend } from '../src/local_backend';
+import { answer_language } from '../src/prompts/plan';
+import { context_block } from '../src/prompts/tutor';
 
 describe('grade_text', () => {
   it('asks in JSON mode without thinking and reads which key points were made', async () => {
@@ -15,7 +16,7 @@ describe('grade_text', () => {
         return '```json\n{"made": [true, false, "true"], "feedback": "对了一半：再想想遗忘。"}\n```';
       },
     };
-    const r = await grade_text({ question: 'Why LoRA?', answer: 'cheap', key_points: ['cheap', 'forgets less', 'eval'], model_answer: 'm', language: 'Chinese' }, { provider });
+    const r = await grade_text({ question: 'Why LoRA?', answer: 'cheap', key_points: ['cheap', 'forgets less', 'eval'], model_answer: 'm', language: 'Chinese' }, { backend: new LocalBackend(provider) });
     expect(r).toEqual({ hits: [true, false, true], feedback: '对了一半：再想想遗忘。' });
     expect(req!.json).toBe(true);
     expect(req!.reasoning).toBe('off');

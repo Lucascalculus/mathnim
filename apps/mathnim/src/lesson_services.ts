@@ -3,7 +3,7 @@
 import { grade_text } from '@mathnim/ai';
 import type { TextGrader, VisualResolver } from '@mathnim/present';
 import { check_params, get_visual } from '@mathnim/visuals';
-import { has_model, language_name, provider } from './settings';
+import { backend, has_model, language_name } from './settings';
 
 /** A registered visual with checked parameters, or null when the name is unknown. */
 export const visual_resolver: VisualResolver = (name, params) => {
@@ -16,5 +16,5 @@ export const visual_resolver: VisualResolver = (name, params) => {
 /** The AI grader when a model is available (offline: undefined, the learner assesses their own answer). */
 export function text_grader(): TextGrader | undefined {
   if (!has_model()) return undefined;
-  return (q) => grade_text({ question: q.question, answer: q.answer, key_points: q.key_points, model_answer: q.model_answer, language: language_name(q.lang) }, { provider: provider() });
+  return (q) => grade_text({ question: q.question, answer: q.answer, key_points: q.key_points, model_answer: q.model_answer, language: language_name(q.lang) }, { backend: backend() });
 }

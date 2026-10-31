@@ -11,7 +11,7 @@
 //   fallback no visual fits / the plan failed: the free-form scene pipeline runs
 //            in the background and its picture is swapped in (a minute or two)
 // Offline (recorded answers, no streaming) the free-form path runs as before;
-// a recorded answer in words only (provider.text_answer) is shown like a
+// a recorded answer in words only (backend.text_answer) is shown like a
 // streamed one, without a picture.
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { Interaction } from 'manim-web/ext/interact';
@@ -23,7 +23,7 @@ import { get_visual, type Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
 import type { AskContext } from '../prompt';
-import type { Provider, Reasoning } from '../provider';
+import type { Backend } from '../ops_types';
 import { compile_answer, load_answer } from '../run';
 import type { Validator } from '../sandbox';
 import { apply_white } from '../theme';
@@ -128,23 +128,17 @@ const MAX_PICTURE_MS = 120_000;
 export type SavedPicture = { visual: string; params: Params; caption?: string } | { code: string; title: string; caption?: string };
 
 export interface AskPanelOptions {
-  provider: () => Provider;
+  /** Where the questions go (the site's server; recorded answers offline). */
+  backend: () => Backend;
   validate: Validator;
   context?: () => AskContext;
   suggestions?: string[];
   log?: EventLog;
   lesson?: string;
-  /** Answer with a ready-made visual when one fits (default true; needs a streaming provider). */
+  /** Answer with a ready-made visual when one fits (default true; needs a streaming backend). */
   visuals?: boolean;
   /** Start the picture plan together with the text ('parallel', default) or once the diagnosis is known (it is then sent along). */
   plan_start?: 'parallel' | 'after_diagnosis';
-  /**
-   * Thinking for the text answer (default 'low'). Measured with deepseek-flash on three lesson questions:
-   * first word after 2.2-4.8 s with the model's default (high), 1.5-1.8 s with 'low', 0.8-1.3 s with 'off'.
-   */
-  text_reasoning?: Reasoning;
-  /** Thinking for the picture plan (default 'off': 1.1-1.7 s; 'high' took 2.8-3.6 s and chose the same visuals). */
-  plan_reasoning?: Reasoning;
   /** A "Read aloud" button on answers (default true). */
   read_aloud?: boolean;
   /** The input's placeholder (default: "Ask about this…"). */
@@ -186,7 +180,7 @@ interface Card {
   text: HTMLElement;
   say_row: HTMLElement;
   picture: HTMLElement;
-  provider: Provider;
+  backend: Backend;
   context: AskContext;
   timing: { text_first?: number; text_done?: number; plan?: number; build?: number; picture?: number };
   /** The streamed text answer (null: offline, the scene's explanation is the answer). */
@@ -350,24 +344,24 @@ export class AskPanel {
     made(card);
     this.o.on_card?.(card, question);
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'ask', data: { question } });
-    const provider = this.o.provider();
+    const backend = this.o.backend();
     let diagnosed: () => void = () => {};
     const c: Card = {
-      question, t0: performance.now(), body, status, text, say_row, picture, provider,
+      question, t0: performance.now(), body, status, text, say_row, picture, backend,
       context: { ...this.o.context?.(), ...extra, recent: this.history.slice(-3).map((h) => ({ q: h.q, a: h.a.slice(0, 240) })) },
       timing: {}, fast: null, got_diagnosis: new Promise<void>((res) => (diagnosed = res)), spoken: { text: '', caption: '' },
     };
 
     const done = () => this.o.on_done?.(card);
     // offline, a question answered in words only: shown like a streamed answer, no picture
-    const recorded = provider.stream ? undefined : provider.text_answer?.(question);
+    const recorded = backend.stream ? undefined : backend.text_answer?.(question);
     if (recorded) return this.recorded_text(c, recorded).finally(done);
 
     // 1. the personal text answer, streamed (only for models that can stream; offline answers come whole)
     status.textContent = t('ask_thinking');
-    c.fast = provider.stream
+    c.fast = backend.stream
       ? explain(question, {
-          provider, context: c.context, reasoning: this.o.text_reasoning ?? 'low',
+          backend, context: c.context,
           on_diagnosis: (d) => {
             c.diagnosis = d;
             diagnosed();
@@ -436,7 +430,7 @@ export class AskPanel {
     this.read_button(c);
     this.history.push({ q: c.question, a: r.text });
     this.followups(c, r.followups);
-    this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.provider.name, picture: 'none', recorded: true } });
+    this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.backend.name, picture: 'none', recorded: true } });
     return null;
   }
 
@@ -446,7 +440,7 @@ export class AskPanel {
     let plan: PlanResult | null = null;
     let route: PictureRoute;
     try {
-      plan = await plan_visual(c.question, { provider: c.provider, context: c.context, diagnosis: c.diagnosis, reasoning: this.o.plan_reasoning });
+      plan = await plan_visual(c.question, { backend: c.backend, context: c.context, diagnosis: c.diagnosis });
       route = decide(plan);
     } catch (e) {
       console.warn('picture plan failed', e);
@@ -459,7 +453,7 @@ export class AskPanel {
       if (!x) c.status.textContent = t('ask_failed');
       else c.status.remove();
       this.followups(c, plan?.plan?.followups);
-      this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.provider.name, picture: 'none', ...c.timing, diagnosis: c.diagnosis } });
+      this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.backend.name, picture: 'none', ...c.timing, diagnosis: c.diagnosis } });
       return null;
     }
     // a picture is coming: its placeholder appears only now
@@ -528,7 +522,7 @@ export class AskPanel {
 
     const params = Object.entries(route.params).map(([k, x]) => `${k} = ${esc(JSON.stringify(x))}`).join(', ');
     const d = this.details(c, [
-      `${c.provider.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`,
+      `${c.backend.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`,
       t('ask_ready_made', { v: esc(v.name), c: plan.calls.map((x) => secs(x.ms)).join(' + '), r: plan.repaired ? t('ask_one_repair') : '', b: secs(c.timing.build) }),
       params ? t('ask_parameters', { p: params }) : '',
       plan.notes.length ? t('ask_adjusted', { p: esc(plan.notes.join('; ')) }) : '',
@@ -538,7 +532,7 @@ export class AskPanel {
     void c.fast!.then((x) => {
       if (x) {
         // the text finished after the picture: complete the timings
-        d.querySelector('div')!.innerHTML = `${c.provider.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`;
+        d.querySelector('div')!.innerHTML = `${c.backend.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`;
         if (c.diagnosis) d.insertAdjacentHTML('beforeend', `<div>${t('ask_read_as', { d: math_html(c.diagnosis) })}</div>`);
       } else {
         // no text answer: the caption has to do
@@ -548,7 +542,7 @@ export class AskPanel {
         this.read_button(c);
         this.history.push({ q: c.question, a: caption_md });
       }
-      this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.provider.name, picture: 'visual', visual: v.name, repaired: plan.repaired, ...c.timing, diagnosis: c.diagnosis } });
+      this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: c.backend.name, picture: 'visual', visual: v.name, repaired: plan.repaired, ...c.timing, diagnosis: c.diagnosis } });
     });
     return true;
   }
@@ -592,7 +586,7 @@ export class AskPanel {
     try {
       // with the words on screen the picture only illustrates them: a scene that runs and has its numbers right is
       // shown at once (one repair at most), not polished for layout first
-      r = await ask(c.question, { provider: c.provider, validate: this.o.validate, context: c.context, extra: fast ? { diagnosis: c.diagnosis, text_shown: true } : {}, on_status: say, signal: stop.signal, ...(fast ? { lenient_layout: true, max_attempts: 2 } : {}) });
+      r = await ask(c.question, { backend: c.backend, validate: this.o.validate, context: c.context, extra: fast ? { diagnosis: c.diagnosis, text_shown: true } : {}, on_status: say, signal: stop.signal, ...(fast ? { lenient_layout: true, max_attempts: 2 } : {}) });
     } catch (e) {
       wait?.remove();
       const raw = stop.signal.aborted ? t('ask_too_long') : (e as Error).message;

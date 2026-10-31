@@ -11,10 +11,13 @@
 //   - accounts and uploaded courses are kept in <cache_dir>/mathnim.sqlite (Node's SQLite, the same SQL as D1)
 //     and the uploaded files in <cache_dir>/files/ (instead of D1 and R2); without RESEND_API_KEY the
 //     sign-in code is printed and returned instead of mailed;
-//   - course generation hands each step to <cache_dir>/studio/ (ReplayModel) unless a model is plugged in.
+//   - course generation hands each step to <cache_dir>/studio/ (ReplayModel) unless a model is plugged in;
+//   - DEV_MODEL_URL (an OpenAI-compatible server, e.g. http://localhost:5190) answers /api/ai instead of DeepSeek,
+//     with no key sent to it: for trying the tutor where DeepSeek cannot be reached.
 import { auth, type AuthEnv } from './auth';
 import type { BlobStore, SqlDb, SqlStmt } from './db';
-import { deepseek, type DeepseekEnv } from './deepseek';
+import { ai } from './ai';
+import type { DeepseekEnv } from './deepseek';
 import { feedback, type FeedbackEnv } from './feedback';
 import { handle, limit_for, RateLimiter, type KVLike, type Note, type TextCache } from './http';
 import { providers, type ProvidersEnv } from './providers';
@@ -281,7 +284,9 @@ export function dev_api(o: DevOptions): Middleware {
   const answers = env.ANSWER_CACHE_TTL ? new MemoryCache() : null;
   const tts_cache = new FileCache(o.fs, `${o.cache_dir}/tts`);
   const kv = new FileKV(o.fs, `${o.cache_dir}/feedback.json`);
-  const ds_env: DeepseekEnv = { ...env, ALLOWED_MODELS: env.ALLOWED_MODELS || '*' };
+  const stand_in = env.DEV_MODEL_URL?.replace(/\/$/, '');
+  const ds_env: DeepseekEnv = { ...env, ALLOWED_MODELS: env.ALLOWED_MODELS || '*', ...(stand_in ? { DEEPSEEK_API_KEY: 'stand-in' } : {}) };
+  const model_fetch: typeof fetch | undefined = stand_in ? (url, init) => fetch(String(url).replace(/^https:\/\/api\.deepseek\.com/, stand_in), init) : undefined;
   const fb_env: FeedbackEnv = { FEEDBACK: kv, ADMIN_TOKEN: env.ADMIN_TOKEN, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS };
   const blobs = o.bin_fs ? new FileBlobs(o.bin_fs, `${o.cache_dir}/files`) : undefined;
   let db: Promise<SqlDb | undefined> | null = null;
@@ -292,10 +297,10 @@ export function dev_api(o: DevOptions): Middleware {
   const studio_deps = { model: new ReplayModel(o.fs, `${o.cache_dir}/studio`), blob_path: blobs && ((k: string) => blobs.path(k)) };
 
   const routes: [RegExp, string, (req: Request, m: RegExpExecArray, note: Note) => Promise<Response>][] = [
-    [/^\/api\/providers\/?$/, 'providers', async () => providers(env as ProvidersEnv, !!env.ANTHROPIC_API_KEY)],
+    [/^\/api\/providers\/?$/, 'providers', async () => providers({ ...env, ...ds_env } as ProvidersEnv, !!env.ANTHROPIC_API_KEY)],
     [/^\/api\/tts\/?$/, 'tts', (req, _m, note) => tts(req, env as TtsHandlerEnv, { connect: node_connect, cache: tts_cache, limiter: limits.tts }, note)],
     [/^\/api\/feedback\/?$/, 'feedback', (req, _m, note) => feedback(req, fb_env, { limiter: limits.feedback, answers }, note)],
-    [/^\/api\/deepseek\/(.*)$/, 'deepseek', (req, m, note) => deepseek(req, ds_env, m[1].replace(/\/$/, ''), { limiter: limits.deepseek, answers }, note)],
+    [/^\/api\/ai\/?$/, 'ai', (req, _m, note) => ai(req, ds_env, { limiter: limits.deepseek, answers, fetch: model_fetch }, note)],
     [/^\/api\/auth\/(.*)$/, 'auth', async (req, m, note) => auth(req, await data_env(), m[1].replace(/\/$/, ''), { limiter: limiter('auth'), dev: true, generate: true }, note)],
     [/^\/api\/me\/state\/?$/, 'me/state', async (req) => state(req, await data_env())],
     [/^\/api\/me\/events\/?$/, 'me/events', async (req) => events(req, await data_env())],
@@ -314,7 +319,7 @@ export function dev_api(o: DevOptions): Middleware {
           res.statusCode = 413;
           return res.end('{"error":"Request too large."}');
         }
-        const route = name === 'deepseek' || name === 'auth' ? `${name}/${m[1]}` : name;
+        const route = name === 'auth' ? `${name}/${m[1]}` : name;
         await send(res, await handle(route, request, {}, (note) => run(request, m, note)));
       })().catch((e) => {
         if (!res.headersSent) next(e);

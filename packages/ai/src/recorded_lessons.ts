@@ -1,6 +1,6 @@
 // A recorded lesson generation (plan + scenes) for "Inscribed angles", so the
 // syllabus -> lesson flow works offline. Served by MockProvider.
-import { plan_prompt, type LessonPlan, type SyllabusEntry } from './generate';
+import type { LessonPlan, SyllabusEntry } from './generate';
 import { RECORDED } from './recorded';
 
 export const INSCRIBED_ENTRY: SyllabusEntry = {
@@ -114,10 +114,12 @@ export const INSCRIBED_PLAN: LessonPlan = {
   ],
 };
 
-/** MockProvider responses for generating INSCRIBED_ENTRY offline. */
+/** Generating INSCRIBED_ENTRY offline: the recorded plan, by the syllabus entry's id. */
+export const recorded_lesson_plans = (): Record<string, string> => ({ [INSCRIBED_ENTRY.id]: JSON.stringify(INSCRIBED_PLAN) });
+
+/** The recorded generated lesson's scenes, by their question (a scene's title and brief). */
 export function recorded_lesson_responses(key: (q: string) => string): Record<string, string> {
   const out: Record<string, string> = {};
-  out[key(plan_prompt(INSCRIBED_ENTRY))] = JSON.stringify(INSCRIBED_PLAN);
   const code: Record<string, string> = { setup: SETUP_CODE, reveal: RECORDED[1].code, semicircle: SEMICIRCLE_CODE };
   for (const s of INSCRIBED_PLAN.steps) {
     if (s.kind !== 'scene') continue;

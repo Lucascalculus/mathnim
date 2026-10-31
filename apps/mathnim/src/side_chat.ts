@@ -24,7 +24,7 @@ import { esc, math_html, reading, t, ui_lang, type LessonView } from '@mathnim/p
 import { add_answer, add_page, added_answers, added_pages, is_added_page, remove_answer, remove_page, type AddedAnswer } from './added';
 import { lesson_path, type CourseLesson } from './course';
 import { navigate } from './router';
-import { has_model, provider } from './settings';
+import { backend, has_model } from './settings';
 import { SHEET } from './sheet';
 import { log } from './store';
 import { lesson_context } from './student';
@@ -190,10 +190,7 @@ async function starters(cl: CourseLesson, lesson: Lesson, s: Step, view: LessonV
     /* none kept */
   }
   const page = is_text_step(s) ? describe_step(s, lang) : [s.narration ? view.runtime.text(s.narration) : '', view.runtime.step === s ? view.root.querySelector('.mn-side .mn-prompt')?.textContent ?? '' : ''].join('\n');
-  const zh = lang === 'zh';
-  const system = `You write the two questions a curious, sharp learner would most want to ask right after reading one page of a lesson. Each question: in ${zh ? 'Simplified Chinese, at most 18 characters' : 'English, at most 10 words'}; about something specific on this page; asks why, what for, or what would happen, not for a definition; not a quiz question. Reply with JSON only: {"questions": ["...", "..."]}`;
-  const content = `LESSON: ${tr(lesson.title, lang)}\nPAGE: ${tr(s.title, lang)}\n\n${page.slice(0, 2600)}`;
-  const raw = await provider().complete({ system, messages: [{ role: 'user', content }], json: true, reasoning: 'off', max_tokens: 240, shared: true });
+  const raw = await backend().run('starters', { lesson: tr(lesson.title, lang), page: tr(s.title, lang), text: page.slice(0, 2600), lang });
   const qs = (JSON.parse(raw).questions as unknown[]).filter((q): q is string => typeof q === 'string' && q.trim().length > 1).map((q) => q.trim()).slice(0, 2);
   try {
     localStorage.setItem(key, JSON.stringify(qs));
@@ -415,7 +412,7 @@ class Note {
       this.wait_for(q, c);
     }
     this.panel = new AskPanel(el.querySelector<HTMLElement>('.note-panel')!, {
-      provider, validate: worker_validator(), log, lesson, thread: true, read_aloud: false,
+      backend, validate: worker_validator(), log, lesson, thread: true, read_aloud: false,
       placeholder: this.turns_shown ? t('ask_more') : t('ask_short'), history: (saved?.turns ?? []).filter((x) => x.a).map(({ q, a }) => ({ q, a })),
       context: (): AskContext => rail.context(),
       // a note's passage goes with every question asked in it
@@ -816,7 +813,7 @@ export class AskRail {
     const passage = read_of(at);
     let text: string;
     try {
-      text = await fit_into_text(provider(), {
+      text = await fit_into_text(backend(), {
         lesson: tr(this.lesson.title, ui_lang()), page: tr(s.title, ui_lang()), on_screen: this.context().on_screen,
         question: turn.q, answer: turn.a, passage, language: /[\u4e00-\u9fff]/.test(passage) ? 'Simplified Chinese' : 'English',
       });
@@ -883,7 +880,7 @@ export class AskRail {
     };
     let offer: PageProposal | null = null;
     try {
-      offer = await propose_page(provider(), ask);
+      offer = await propose_page(backend(), ask);
     } catch (e) {
       console.warn('page proposal', e);
     }
@@ -902,7 +899,7 @@ export class AskRail {
       row.querySelector('.page-offer-acts')!.innerHTML = `<span class="ai-wait">${esc(t('writing_page'))}</span>`;
       this.layout();
       try {
-        const page = await write_page(provider(), { ...ask, title: offer!.title });
+        const page = await write_page(backend(), { ...ask, title: offer!.title });
         const id = `added-${Date.now().toString(36)}`;
         add_page(this.lesson.id, { id, after: s.id, title: page.title, blocks: page.blocks, q: turn.q });
         log.emit({ verb: 'interacted', lesson: this.lesson.id, step: s.id, object: 'added_page', data: { q: turn.q, title: page.title } });

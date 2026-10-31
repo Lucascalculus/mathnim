@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node tools/fingerprints.mjs --expect dist",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p server",
     "test": "vitest run --config test/vitest.config.ts",

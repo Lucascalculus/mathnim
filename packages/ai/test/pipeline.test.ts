@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
 import { lint_timeline } from 'manim-web/ext/lint';
 import { ask, parse_answer } from '../src/pipeline';
+import { LocalBackend } from '../src/local_backend';
 import type { Provider } from '../src/provider';
 import { compile_answer, load_answer, run_checks } from '../src/run';
 import type { Validator } from '../src/sandbox';
@@ -35,7 +36,7 @@ describe('ask pipeline', () => {
         return replies.shift()!;
       },
     };
-    const r = await ask('draw a circle', { provider, validate: inline, max_attempts: 5 });
+    const r = await ask('draw a circle', { backend: new LocalBackend(provider), validate: inline, max_attempts: 5 });
     expect(r.verified).toBe(true);
     expect(r.attempts).toBe(5);
     expect(seen[1]).toMatch(/could not be parsed/);

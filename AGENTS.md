@@ -16,7 +16,7 @@ learner genuinely understand (讲明白)?
 | write a visual | `packages/visuals/README.md` and a kit such as `docs/lessons/mpc/KIT.md` |
 | change the site (pages, margin, settings) | `docs/SITE-STRUCTURE.md`, `docs/ARCHITECTURE.md` |
 | set up, add a lesson, conventions | `docs/DEVELOPMENT.md` |
-| deploy | `docs/DEPLOY.md` |
+| deploy | `docs/DEPLOY.md` (the AI route, what the build does to the code; marks in the code: `docs/FINGERPRINTS.md`) |
 | pick up where work stopped | `docs/CHECKPOINT.md` and the course's `docs/lessons/<course>/` notes |
 
 Two skills package the usual work: `/new-course` (plan and build a course with
@@ -45,7 +45,7 @@ node apps/mathnim/tools/beats.mjs <lesson-id>[/<step-id>]   # a narrated scene a
 npm run check -w @mathnim/visuals -- --only <names>   # a visual: checks + contact sheets (look at them)
 node apps/mathnim/tools/lesson_text.mjs <lesson-id> zh # a lesson as the student reads it
 node apps/mathnim/tools/page_shots.mjs <url> <out> <w> <h> <steps.json>   # click through the site headlessly
-npm run catalog                   # regenerate docs/CAPABILITIES.md after adding a visual, field or module
+npm run catalog                   # after adding a visual, field or module: docs/CAPABILITIES.md and the tutor's catalog on the server
 ```
 
 ## Ground rules

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { CompletionRequest, Provider } from '../src/provider';
-import { explain, split_reply, tutor_prompt } from '../src/tutor';
+import { LocalBackend } from '../src/local_backend';
+import { tutor_prompt } from '../src/prompts/tutor';
+import { explain, split_reply } from '../src/tutor';
 
 describe('split_reply', () => {
   it('holds back until the diagnosis line is complete', () => {
@@ -40,7 +42,7 @@ describe('explain', () => {
     };
     const seen: string[] = [];
     let diag = '';
-    const r = await explain('why is the area not 2πr?', { provider, on_text: (a) => seen.push(a), on_diagnosis: (d) => (diag = d) });
+    const r = await explain('why is the area not 2πr?', { backend: new LocalBackend(provider), on_text: (a) => seen.push(a), on_diagnosis: (d) => (diag = d) });
     expect(diag).toBe('confuses crust and area');
     expect(seen[0]).toBe('The crust is a **length**');
     expect(r.text).toBe('The crust is a **length**, the area is inside.');

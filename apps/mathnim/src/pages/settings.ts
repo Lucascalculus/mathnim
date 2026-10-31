@@ -5,7 +5,7 @@
 import { esc, t } from '@mathnim/present';
 import { lang_switch } from '../lang_switch';
 import { log } from '../store';
-import { active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
+import { OWN_MODELS, active_provider, load_settings, provider_label, save_settings, server_providers, type ProviderChoice, type Settings } from '../settings';
 
 // the lesson narrator keeps its own switches under this key (see Narrator)
 const NARRATION = 'mathnim.narration';
@@ -47,7 +47,7 @@ const CSS = `
 `;
 let injected = false;
 
-/** The panel: narration, the AI in use (the rest under Advanced), clearing this browser's records. */
+/** The panel: narration, the AI in use (a learner's own model under Advanced, in development builds), clearing this browser's records. */
 export function settings_panel(): HTMLElement {
   if (!injected) {
     injected = true;
@@ -66,7 +66,7 @@ export function settings_panel(): HTMLElement {
     <div class="set-row"><div class="set-what"><b>${esc(t('narration'))}</b><small>${esc(t('narration_help'))}</small></div>
       <button type="button" class="set-switch" role="switch" id="set-voice" aria-checked="${narration_on()}" aria-label="${esc(t('narration'))}"></button></div>
     <div class="set-row"><div class="set-what"><b>AI</b><small id="set-status"></small></div></div>
-    <details class="set-adv"><summary><div class="set-what"><b>${esc(t('advanced'))}</b><small>${esc(t('advanced_help'))}</small></div>${chev}</summary>
+    <details class="set-adv"${OWN_MODELS ? '' : ' hidden'}><summary><div class="set-what"><b>${esc(t('advanced'))}</b><small>${esc(t('advanced_help'))}</small></div>${chev}</summary>
       <div class="set-fields">
         <label class="set-field">${esc(t('provider'))}<select class="mn-input" id="set-provider">
           ${opt('gift', t('provider_gift'))}

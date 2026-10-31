@@ -549,12 +549,24 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 
 | module | what it is |
 |---|---|
+| `packages/ai/src/backend.ts` | Where the page sends the tutor's operations (ops_types.ts). In production: the site's server (/api/ai), which writes the prompts and calls the model. Offline: recorded answers for known questions (a demo without a model). In a development build a model called from the page can run them too (local_backend.ts, never in production pages). |
 | `packages/ai/src/generate.ts` | Syllabus entry -> complete lesson: plan the steps (predict, watch, practise), then generate and validate each scene with the same pipeline as questions. |
 | `packages/ai/src/grade_text.ts` | Free-text answers checked against a rubric's key points by the active model (JSON mode, thinking off): which key points the answer makes, and one sentence of feedback in the learner's language. The lesson view falls back to self-assessment when there is no model or the call fails. |
-| `packages/ai/src/index.ts` | @mathnim/ai - answer questions with explanations and validated manim-web scenes. |
+| `packages/ai/src/index.ts` | @mathnim/ai - answer questions with explanations and validated manim-web scenes. The prompts are not exported: they are the server's (ops.ts, prompts/), and pages reach them through a Backend (backend.ts). Tools and tests that run the operations themselves import local_backend.ts. |
+| `packages/ai/src/local_backend.ts` | Development and tools: the tutor's operations run with a model called from here (a learner's own key in a development build, a fake in tests), the prompts written here (ops.ts). Production pages never load this module. |
+| `packages/ai/src/ops.ts` | The fixed operations behind /api/ai: what each one asks the model. The server runs them (apps/mathnim/server/ai.ts); in development a model called from the page can run them too (local_backend.ts). Production pages never load this module: the prompts and the engine's API digest stay on the server. Inputs come from the browser, so parse_op checks them and cuts every text to size before a prompt is written. |
+| `packages/ai/src/ops_types.ts` | The fixed operations the tutor asks a model for. The page sends an operation and its inputs; the server (apps/mathnim/server/ai.ts) writes the prompt (ops.ts) and calls the model, so the prompts never reach the browser and the model behind /api/ai can only be asked these things. |
+| `packages/ai/src/page_gen.ts` | What the tutor adds to a lesson for one learner. An answer the learner keeps becomes a small edit to the text: a sentence or two in the text's own voice, inserted after the passage asked about (or nothing, when the text already says it). Rarely, a question shows a whole idea the lesson takes for granted: a quick call says so, the learner is asked, and on yes a page is written in the lesson's own text format (headings, paragraphs, lists, formulas, tables, callouts), checked here before the app adds it. The prompts are the server's (prompts/page.ts). |
 | `packages/ai/src/palette.ts` | Colours generated scenes use (white theme). Passed to generated code as `C`. |
-| `packages/ai/src/pipeline.ts` | Question -> explanation + validated, explorable scene. generate -> validate (sandbox + linter + numeric checks) -> repair (bounded) -> answer. |
-| `packages/ai/src/prompt.ts` | The instructions given to the model. Stable parts (rules, API digest, examples) form a cacheable system prompt; the question and context go in the user message. |
+| `packages/ai/src/pipeline.ts` | Question -> explanation + validated, explorable scene. generate (the server's 'scene' operation) -> validate here (sandbox + linter + numeric checks) -> repair (bounded: the earlier replies and their problems go back) -> answer. |
+| `packages/ai/src/prompt.ts` | What the tutor is told about the student and the page with a question (all optional). The prompts themselves are written on the server (prompts/, ops.ts) and never reach the browser. |
+| `packages/ai/src/prompts/grade.ts` | Free-text grading's instructions (server only: ops.ts). |
+| `packages/ai/src/prompts/lesson.ts` | A generated lesson's plan (server only: ops.ts): its steps, scenes briefed for the animator. |
+| `packages/ai/src/prompts/page.ts` | The instructions for what the tutor adds to a lesson (server only: ops.ts): whether a question needs a whole page, a sentence or two fitted into the text, and the page itself. |
+| `packages/ai/src/prompts/plan.ts` | The picture plan's instructions (server only: ops.ts): pick a ready-made visual from the catalog and set its parameters, or say that words are enough. The catalog blocks come from prompts/catalog.generated.ts (written by `npm run catalog` from the visuals' registry). |
+| `packages/ai/src/prompts/scene.ts` | The drawn scene's instructions (server only: ops.ts). Stable parts (rules, API digest, examples) form a cacheable system prompt; the question and context go in the user message. |
+| `packages/ai/src/prompts/starters.ts` | The two questions at the top of a page's margin (server only: ops.ts). |
+| `packages/ai/src/prompts/tutor.ts` | The tutor's text answer: its rules and the CONTEXT block (server only: ops.ts). The picture plan uses the same CONTEXT block. |
 | `packages/ai/src/provider.ts` | Language-model providers. The pipeline only needs `complete()`. |
 | `packages/ai/src/recorded.ts` | Recorded answers for the suggested questions of "The best angle to shoot". They are served by MockProvider when no API key is set, and double as the worked examples in the prompt (so they must pass the same validation). |
 | `packages/ai/src/recorded_lessons.ts` | A recorded lesson generation (plan + scenes) for "Inscribed angles", so the syllabus -> lesson flow works offline. Served by MockProvider. |
@@ -582,7 +594,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 | `npm run deploy` | npm run build && cd apps/mathnim && wrangler pages deploy dist --project-name mathnim --branch main --commit-dirty=true |
 | `npm run catalog` | npm run catalog -w mathnim -- |
 | `npm run dev -w mathnim` | vite |
-| `npm run build -w mathnim` | vite build |
+| `npm run build -w mathnim` | vite build && node tools/fingerprints.mjs --expect dist |
 | `npm run preview -w mathnim` | vite preview |
 | `npm run typecheck -w mathnim` | tsc --noEmit && tsc --noEmit -p server |
 | `npm run test -w mathnim` | vitest run --config test/vitest.config.ts |

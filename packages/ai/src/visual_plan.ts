@@ -32,12 +32,12 @@
 //   picture starts 2.5-3.0 s after the question. Starting the plan after the
 //   diagnosis instead of in parallel cost ~1 s and chose the same visuals.
 // - Without a stated language the model once wrote an English student's
-//   caption in Italian, so plan_user() names the language (answer_language()).
+//   caption in Italian, so the prompt names the language (prompts/plan.ts, answer_language()).
 import { check_params, describe_param, get_visual, list_visuals, palette, apply_palette, type ParamSpec, type Params, type Visual } from '@mathnim/visuals';
 import { ScenePlayer, preload } from 'manim-web/ext/player';
+import type { Backend, Round } from './ops_types';
 import type { AskContext } from './prompt';
-import type { Message, Provider, Reasoning, Usage } from './provider';
-import { context_block } from './tutor';
+import type { Usage } from './provider';
 
 /** What the model returns. */
 export interface VisualPlan {
@@ -53,24 +53,6 @@ export interface VisualPlan {
   check?: { question: string; answer?: string };
 }
 
-export const PLAN_RULES = `You choose the picture for a math tutor's answer. A student asked a question in an interactive lesson; a short text answer is written separately (not by you).
-First decide whether a picture would help at all. Many questions are answered well in words: a definition, a yes or no, a reason, a fact, a comparison, the meaning of a sentence. For those pick "none": the student reads the text answer and nothing else. Only when seeing something (a shape, a motion, a plot, numbers changing) makes the idea clearer, pick ONE ready-made interactive visual from the CATALOG below that shows exactly that idea, and set its parameters for their case - or pick null.
-
-Reply with one JSON object and nothing else:
-{"visual": "none" or "<a name from the CATALOG>" or null,
- "params": {"<parameter>": <value>},
- "caption": "<1-2 sentences to the student: what to watch, then what to drag or change>",
- "followups": ["<a next question in the student's voice>", "<another>"],
- "check": {"question": "<a quick question the picture lets them answer>", "answer": "<its short answer>"}}
-
-Rules:
-- "none" when words suffice (the usual case for "what does this mean", "why", "is it true that"): answer {"visual": "none", "params": {}, "caption": "", "followups": [...]}. A picture the student does not need only costs them time.
-- Choose a visual only if it directly shows what the question is about. If a picture is needed but no visual shows it (another topic, or only loosely related), answer {"visual": null, "params": {}, "caption": "", "followups": [...]}: a custom picture is drawn instead (it takes about a minute). A wrong picture is worse than none.
-- params: only parameters listed for that visual, inside their ranges. Use the student's own numbers (their matrix, radius, data) when the question or the screen gives them; leave out parameters whose default is fine. Matrices are rows first: [[a, b], [c, d]].
-- caption: say only what that visual really shows and lets the student do (read its description). Inline TeX in $...$.
-- followups: short. check: optional, leave it out if nothing fits.`;
-
-/** One catalog block per visual (the same format as `catalog()` in @mathnim/visuals). */
 export function catalog_text(vs: Visual<any>[]): string {
   return vs.map((v) => [`${v.name} - ${v.summary}`, ...(Object.entries(v.params) as [string, ParamSpec][]).map(([k, s]) => `  ${describe_param(k, s)}`)].join('\n')).join('\n');
 }
@@ -111,31 +93,6 @@ export function offer(question: string, ctx: AskContext = {}, o: { max_chars?: n
     len += r.len;
   }
   return pick.sort((a, b) => a.i - b.i).map((r) => r.v);
-}
-
-export function plan_system(offered: Visual<any>[]): string {
-  return `${PLAN_RULES}\n\nCATALOG (name - what it shows and what the student does; then each parameter: name: type range =default - meaning)\n${catalog_text(offered)}`;
-}
-
-/** The language to write in: the context's, else a guess from the question's script. */
-export function answer_language(question: string, ctx: AskContext = {}): string {
-  if (ctx.language) return ctx.language;
-  if (/[\u4e00-\u9fff]/.test(question)) return 'Chinese';
-  if (/[\u3040-\u30ff]/.test(question)) return 'Japanese';
-  if (/[\uac00-\ud7af]/.test(question)) return 'Korean';
-  if (/[\u0400-\u04ff]/.test(question)) return 'Russian';
-  const letters = question.match(/\p{L}/gu) ?? [];
-  // English needs a real word: a formula like 'r(d+k)?' does not tell the language
-  if (letters.length && /[a-z]{2,}/i.test(question) && letters.filter((ch) => /[a-z]/i.test(ch)).length / letters.length > 0.95 && !/\b(el|la|les|der|die|das|und|est|il|che|por|para)\b/i.test(question)) return 'English';
-  // the script does not decide (e.g. a formula, or Latin letters that are not clearly English): the app's language
-  return ctx.learner_language ?? 'the language of the QUESTION';
-}
-
-export function plan_user(question: string, ctx: AskContext = {}, diagnosis?: string): string {
-  const parts = [context_block({ ...ctx, language: undefined }, { max_screen: 1800 })];
-  if (diagnosis) parts.push(`What the student most likely needs: ${diagnosis}`);
-  parts.push(`QUESTION: ${question}`);
-  return `${parts.join('\n\n')}\n\nWrite caption, followups and check in ${answer_language(question, ctx)}. Reply with the JSON object.`;
 }
 
 /** Pull the plan out of a reply (tolerates code fences and stray prose). Throws when it is unusable. */
@@ -191,11 +148,6 @@ export function check_visual_plan(plan: VisualPlan, lookup: (name: string) => Vi
   return { visual: v, params: pc.params, notes: pc.notes, errors: pc.errors };
 }
 
-/** The message that sends problems back to the model (one round-trip). */
-export function plan_repair_message(problems: string[], offered: string[]): string {
-  return `That JSON cannot be used:\n${problems.map((p) => `- ${p}`).join('\n')}\n\nVisual names: ${offered.join(', ')} (or "none" for no picture, or null). Use only the parameters listed for the visual. Return the corrected JSON object only.`;
-}
-
 export interface PlanResult {
   /** The plan as the model wrote it (the repaired one when a repair was used); null when no reply could be parsed. */
   plan: VisualPlan | null;
@@ -212,15 +164,11 @@ export interface PlanResult {
 }
 
 export interface PlanOptions {
-  provider: Provider;
+  backend: Backend;
   context?: AskContext;
   /** The tutor's one-line reading of the question, when it is known in time. */
   diagnosis?: string;
   signal?: AbortSignal;
-  /** Default 'off': picking from a catalog does not need thinking (see the header). */
-  reasoning?: Reasoning;
-  /** JSON mode (default true). */
-  json?: boolean;
   /** Per call (default 15 s); a call that takes longer is aborted. */
   timeout_ms?: number;
   /** Skip the repair when the first call already took this long and its visual is usable with defaults (default 6 s). */
@@ -231,7 +179,7 @@ export interface PlanOptions {
   on_usage?: (u: Usage) => void;
 }
 
-async function call_with_timeout(provider: Provider, system: string, messages: Message[], o: PlanOptions): Promise<{ reply: string; ms: number; usage?: Usage }> {
+async function call_with_timeout(input: { question: string; diagnosis?: string; offered: string[]; rounds: Round[] }, o: PlanOptions): Promise<{ reply: string; ms: number; usage?: Usage }> {
   const ctrl = new AbortController();
   const ms_limit = o.timeout_ms ?? 15000;
   const abort = () => ctrl.abort();
@@ -240,11 +188,7 @@ async function call_with_timeout(provider: Provider, system: string, messages: M
   const t0 = performance.now();
   let usage: Usage | undefined;
   try {
-    const reasoning = o.reasoning ?? 'off';
-    const reply = await provider.complete(
-      { system, messages, cache_system: true, json: o.json ?? true, reasoning, max_tokens: reasoning === 'off' ? 1500 : 8000, on_usage: (u) => ((usage = u), o.on_usage?.(u)) },
-      ctrl.signal,
-    );
+    const reply = await o.backend.run('plan', { ...input, context: o.context }, { signal: ctrl.signal, on_usage: (u) => ((usage = u), o.on_usage?.(u)) });
     return { reply, ms: performance.now() - t0, usage };
   } catch (e) {
     if (ctrl.signal.aborted && !o.signal?.aborted) throw new Error(`the picture plan took longer than ${ms_limit / 1000} s`);
@@ -266,14 +210,13 @@ export async function plan_visual(question: string, o: PlanOptions): Promise<Pla
   const offered = offer(question, o.context, { max_chars: o.max_catalog_chars, diagnosis: o.diagnosis, all });
   const names = offered.map((v) => v.name);
   const lookup = (n: string) => all.find((v) => v.name === n) as Visual<Params> | undefined;
-  const system = plan_system(offered);
-  const messages: Message[] = [{ role: 'user', content: plan_user(question, o.context, o.diagnosis) }];
+  // (the server writes the prompt from the names offered; a repair sends the earlier reply and its problems back)
+  const rounds: Round[] = [];
   const calls: PlanResult['calls'] = [];
   type Try = { plan: VisualPlan | null; check: PlanCheck; problems: string[] };
   const attempt = async (): Promise<Try> => {
-    const c = await call_with_timeout(o.provider, system, messages, o);
+    const c = await call_with_timeout({ question, diagnosis: o.diagnosis, offered: names, rounds }, o);
     calls.push(c);
-    messages.push({ role: 'assistant', content: c.reply });
     try {
       const plan = parse_visual_plan(c.reply);
       const check = check_visual_plan(plan, lookup);
@@ -288,7 +231,7 @@ export async function plan_visual(question: string, o: PlanOptions): Promise<Pla
   let repaired = false;
   const usable_anyway = first.check.visual !== null; // a known visual still builds with defaults for bad parameters
   if (first.problems.length && !(usable_anyway && performance.now() - t0 > (o.repair_budget_ms ?? 6000))) {
-    messages.push({ role: 'user', content: plan_repair_message(first.problems, names) });
+    rounds.push({ reply: calls[calls.length - 1].reply, problems: first.problems });
     repaired = true;
     try {
       const second = await attempt();

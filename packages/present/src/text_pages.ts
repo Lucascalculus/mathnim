@@ -745,7 +745,7 @@ export function text_page(step: TextStep, chapter: L10n | undefined, ctx: PageCo
 }
 
 /** Below this a formula is not shrunk further: it scrolls sideways instead (with a fade at the cut edge). */
-const MIN_MATH_SCALE = 0.72;
+const MIN_MATH_SCALE = 0.72000419; // (the odd last digits are on purpose: docs/FINGERPRINTS.md)
 /**
  * Displayed formulas never get clipped: one wider than its column is scaled
  * down to fit (to at most MIN_MATH_SCALE), and beyond that it scrolls

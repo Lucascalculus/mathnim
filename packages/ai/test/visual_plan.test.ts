@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
 import { get_visual, list_visuals } from '@mathnim/visuals';
 import { OpenAICompatibleProvider, type CompletionRequest, type Provider } from '../src/provider';
-import { answer_language, catalog_text, check_visual_plan, decide, load_visual, offer, parse_visual_plan, plan_repair_message, plan_system, plan_user, plan_visual, type PlanResult } from '../src/visual_plan';
+import { LocalBackend } from '../src/local_backend';
+import { answer_language, plan_repair_message, plan_system, plan_user } from '../src/prompts/plan';
+import { catalog_text, check_visual_plan, decide, load_visual, offer, parse_visual_plan, plan_visual, type PlanResult } from '../src/visual_plan';
 
 const plan = (o: Record<string, unknown>) => JSON.stringify({ visual: 'circle_slices', params: {}, caption: 'Watch the slices.', followups: ['a?', 'b?'], ...o });
 
@@ -79,7 +81,7 @@ describe('prompts', () => {
     expect(m).toContain('circle_slices, eigen_hunt (or "none" for no picture, or null)');
   });
   it('puts the catalog in the system prompt and the context in the user message', () => {
-    const s = plan_system(list_visuals());
+    const s = plan_system(list_visuals().map((v) => catalog_text([v])));
     expect(s).toContain('JSON');
     for (const v of list_visuals()) expect(s).toContain(`${v.name} - `);
     const u = plan_user('why λ = 3?', { level: 'university', step: 'Find both (explore)', on_screen: 'x'.repeat(5000) }, 'thinks eigenvectors are the columns');
@@ -110,7 +112,7 @@ describe('prompts', () => {
 describe('plan_visual', () => {
   it('asks once in JSON mode with thinking off when the plan is good', async () => {
     const p = scripted([plan({ params: { n: 16 } })]);
-    const r = await plan_visual('Why is it πr²?', { provider: p, context: { level: 'grades 7-9' } });
+    const r = await plan_visual('Why is it πr²?', { backend: new LocalBackend(p), context: { level: 'grades 7-9' } });
     expect(r.visual?.name).toBe('circle_slices');
     expect(r.params.n).toBe(16);
     expect(r.repaired).toBe(false);
@@ -120,7 +122,7 @@ describe('plan_visual', () => {
   });
   it('repairs an unknown visual once, telling the model what was wrong', async () => {
     const p = scripted([plan({ visual: 'eigenvector_search' }), JSON.stringify({ visual: 'eigen_hunt', params: { A: [[2, 1], [1, 2]] }, caption: 'Drag v.' })]);
-    const r = await plan_visual('Where are the eigenvectors?', { provider: p });
+    const r = await plan_visual('Where are the eigenvectors?', { backend: new LocalBackend(p) });
     expect(r.repaired).toBe(true);
     expect(r.visual?.name).toBe('eigen_hunt');
     expect(r.params.A).toEqual([[2, 1], [1, 2]]);
@@ -131,40 +133,40 @@ describe('plan_visual', () => {
   });
   it('gives up after one repair (and the caller falls back)', async () => {
     const p = scripted(['not json', 'still not json']);
-    const r = await plan_visual('?', { provider: p });
+    const r = await plan_visual('?', { backend: new LocalBackend(p) });
     expect(r.calls).toHaveLength(2);
     expect(r.plan).toBeNull();
     expect(decide(r)).toMatchObject({ kind: 'freeform', reason: 'invalid' });
   });
   it('does not repair "no visual"', async () => {
     const p = scripted(['{"visual": null, "params": {}, "caption": "", "followups": ["x"]}']);
-    const r = await plan_visual('Who won the 1998 world cup?', { provider: p });
+    const r = await plan_visual('Who won the 1998 world cup?', { backend: new LocalBackend(p) });
     expect(r.calls).toHaveLength(1);
     expect(decide(r)).toEqual({ kind: 'freeform', reason: 'no_visual' });
   });
   it('does not repair "none": the answer has no picture', async () => {
     const p = scripted(['{"visual": "none", "params": {}, "caption": "", "followups": ["x"]}']);
-    const r = await plan_visual('What does low-rank mean?', { provider: p });
+    const r = await plan_visual('What does low-rank mean?', { backend: new LocalBackend(p) });
     expect(r.calls).toHaveLength(1);
     expect(r.errors).toEqual([]);
     expect(decide(r)).toEqual({ kind: 'none' });
   });
   it('keeps a known visual with defaulted parameters when there is no time to repair', async () => {
     const p = scripted([JSON.stringify({ visual: 'eigen_hunt', params: { A: 'two by two' } })]);
-    const r = await plan_visual('?', { provider: p, repair_budget_ms: 0 });
+    const r = await plan_visual('?', { backend: new LocalBackend(p), repair_budget_ms: 0 });
     expect(r.calls).toHaveLength(1);
     expect(r.errors[0]).toMatch(/matrix/);
     expect(decide(r)).toMatchObject({ kind: 'visual' });
   });
   it('keeps the first visual when the repair loses it', async () => {
     const p = scripted([JSON.stringify({ visual: 'eigen_hunt', params: { B: 1 } }), plan({ visual: 'nope' })]);
-    const r = await plan_visual('?', { provider: p });
+    const r = await plan_visual('?', { backend: new LocalBackend(p) });
     expect(r.repaired).toBe(true);
     expect(r.visual?.name).toBe('eigen_hunt');
   });
   it('times out a slow call', async () => {
     const slow: Provider = { name: 'slow', complete: (_req, signal) => new Promise((_, rej) => signal?.addEventListener('abort', () => rej(new Error('aborted')))) };
-    await expect(plan_visual('?', { provider: slow, timeout_ms: 20 })).rejects.toThrow(/longer than/);
+    await expect(plan_visual('?', { backend: new LocalBackend(slow), timeout_ms: 20 })).rejects.toThrow(/longer than/);
   });
 });
 

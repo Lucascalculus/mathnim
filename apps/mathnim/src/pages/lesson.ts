@@ -11,7 +11,7 @@ import { mount_outline } from '../outline';
 import { navigate, type Route } from '../router';
 import { ready_visuals } from '../cjk_font';
 import { enable_dom_tex } from '../tex_dom';
-import { has_model, load_settings, provider } from '../settings';
+import { backend, has_model, load_settings } from '../settings';
 import { AskRail } from '../side_chat';
 import { with_added_pages } from '../added';
 import { learner, log, remember_last } from '../store';
@@ -142,7 +142,7 @@ function generate_view(root: HTMLElement, cl: CourseLesson): () => void {
     };
     try {
       const g = await generate_lesson(e, {
-        provider: provider(), validate: worker_validator(), signal: ctrl.signal,
+        backend: backend(), validate: worker_validator(), signal: ctrl.signal,
         on_status: (s) => {
           if (s.phase === 'planning') put(t('gen_planning'));
           else if (s.phase === 'scene') put(t('gen_scene', { i: s.index + 1, n: s.total, title: s.title, what: { thinking: t('gen_writing'), validating: t('gen_checking', { a: s.inner.attempt }), repairing: t('gen_fixing', { a: s.inner.attempt }), done: t('gen_ok') }[s.inner.phase] }), s.inner.phase !== 'thinking');

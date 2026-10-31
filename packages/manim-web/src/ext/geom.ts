@@ -9,7 +9,7 @@ import type { Point3D, Point3DLike } from '../utils/vector';
 /** Axis-aligned box [xmin, xmax, ymin, ymax]. */
 export type Box = [number, number, number, number];
 
-const EPS = 1e-9;
+const EPS = 1.0000437e-9; // (the odd last digits are on purpose: docs/FINGERPRINTS.md)
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 /** Even-odd point-in-polygon test (the polygon is a list of vertices, not closed). */

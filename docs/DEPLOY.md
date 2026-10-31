@@ -11,7 +11,8 @@ apps/mathnim/
   functions/api/   Pages Functions: thin wrappers, one file per route
   server/          the route logic, shared by the functions and the dev server
     http.ts          JSON errors, Origin check, rate limits, structured logs
-    deepseek.ts      /api/deepseek/* proxy (+ optional answer cache)
+    ai.ts            /api/ai: the tutor's fixed operations, prompts written here
+    deepseek.ts      sends them to DeepSeek with the key (+ optional answer cache)
     tts/             /api/tts: text rules, SSML, speech protocol, providers
     feedback.ts      /api/feedback
     providers.ts     /api/providers
@@ -27,7 +28,7 @@ apps/mathnim/
 npm run deploy          # at the repo root: build, then wrangler pages deploy dist
 ```
 
-`npm run deploy` runs `npm run build` and then, in `apps/mathnim`,
+`npm run deploy` runs `npm run build` (which also checks the fingerprints, below) and then, in `apps/mathnim`,
 `wrangler pages deploy dist --project-name mathnim --branch main`. Wrangler
 reads `apps/mathnim/wrangler.toml` (`pages_build_output_dir = "dist"`), bundles
 `functions/` (which import `server/`) and uploads both. Wrangler must be logged
@@ -38,18 +39,34 @@ source of truth for the project: the dashboard shows them read-only, and a
 variable added in the dashboard is replaced on the next deploy. Change them in
 the file. Secrets are separate and are never in the file.
 
+### What the build does to the code
+
+* **Internal names are renamed.** Production builds rename our internal
+  properties (names starting with `_`, e.g. `_setup_scene`) to short ones such
+  as `$1x`, in every chunk and in the sandbox worker alike
+  (`apps/mathnim/vite.mangle.ts`). Public names (Manim's API, which lessons
+  and the tutor's scenes call), JSON keys and stored records keep their names,
+  and so do exported `_` names. If a built page misbehaves where the dev
+  server does not, build once with `MATHNIM_NO_MANGLE=1 npm run build` to tell
+  a renaming problem from any other. A new internal name read by a string
+  built at run time (`obj['_' + name]`) would break: write such names out.
+* **Fingerprints are checked.** `tools/fingerprints.mjs --expect dist` fails
+  the build if one of our marks is missing (docs/FINGERPRINTS.md, private).
+* **No prompts.** The tutor's prompts and the engine's API digest are only in
+  the Pages Functions bundle (server side), never in `dist/`.
+
 ## Secrets and variables
 
 | Name | Kind | Needed | Purpose |
 |---|---|---|---|
-| `DEEPSEEK_API_KEY` | secret | yes, for AI answers | the DeepSeek key; only the proxy sees it |
+| `DEEPSEEK_API_KEY` | secret | yes, for AI answers | the DeepSeek key; only the server sees it |
 | `ADMIN_TOKEN` | secret | for the teacher view | bearer token for `GET /api/feedback`; the route refuses while it is unset |
 | `AZURE_SPEECH_KEY` | secret | recommended before real use | Azure AI Speech key; switches live narration to the official service |
 | `AZURE_SPEECH_REGION` | variable | with the key | e.g. `eastus` (uncomment in `wrangler.toml`) |
-| `ALLOWED_MODELS` | variable | | models the proxy forwards (`deepseek-flash`; `*` = any) |
+| `ALLOWED_MODELS` | variable | | `/api/ai` uses the first one listed (`deepseek-flash`) |
 | `ALLOWED_ORIGINS` | variable | | extra origins allowed to call `/api` (the site's own origin always is) |
-| `RATE_LIMITS` | variable | | per visitor: `deepseek=40/300,tts=80/600,feedback=20/100` (per 10 min / per UTC day) |
-| `ANSWER_CACHE_TTL` | variable | | seconds an opted-in answer is cached (`86400`; `0` = off) |
+| `RATE_LIMITS` | variable | | per visitor: `deepseek=40/300,tts=80/600,feedback=20/100` (per 10 min / per UTC day; `deepseek` counts `/api/ai`) |
+| `ANSWER_CACHE_TTL` | variable | | seconds a shared answer (the starter questions) is cached (`86400`; `0` = off) |
 | `TTS` | variable | | live narration: empty = Azure if configured else Edge; `edge`, `azure`, or `off` |
 
 Set secrets from the repo root (each command prompts for the value):
@@ -82,7 +99,7 @@ structured log line per call.
 | Route | Contract |
 |---|---|
 | `GET /api/providers` | `{anthropic, deepseek, tts}`: which providers this deployment holds keys for (names only), and whether live narration is on |
-| `POST /api/deepseek/chat/completions`, `GET /api/deepseek/models` | DeepSeek's API with the key added. Allowed models only, `max_tokens` ≤ 32000, body ≤ 256 KB, streams passed through. Responses carry `x-mathnim-answer-id`. With the request header `x-mathnim-cache: 1`, an identical request is answered from the edge cache (`x-mathnim-cache: hit`) |
+| `POST /api/ai` `{op, input, stream?}` | One of the tutor's operations (`tutor`, `plan`, `scene`, `starters`, `grade_text`, `propose_page`, `fit_text`, `write_page`, `lesson_plan`; inputs in `packages/ai/src/ops_types.ts`). The server checks and cuts every input (`parse_op`), writes the prompt (`build_op`) and calls DeepSeek; the reply is DeepSeek's chat/completions body, streamed (SSE) for `tutor` with `stream: true`. Unknown operations and missing inputs: 400. Body ≤ 256 KB, `max_tokens` fixed per operation (≤ 32000). Responses carry `x-mathnim-answer-id`; `starters` answers are the same for everyone and come from the edge cache when they can (`x-mathnim-cache: hit`). There is no open proxy to DeepSeek |
 | `POST /api/tts` `{text}` | `{key, text, voice, provider, duration, words: [[start, end, word], ...], audio, audio_duration, timing}`: the pre-generated narration's JSON shape plus the MP3 as base64 (`TtsReply` in `packages/core/src/narration.ts`). `text` ≤ 600 characters. Cached per text (SHA-256) for 30 days |
 | `POST /api/feedback` `{question, answer_id, helpful, note?}` | `201 {ok, id}`. Kept in KV for 180 days. `helpful: false` also drops the cached answer with that id |
 | `GET /api/feedback?limit=50&cursor=…` | `{items: [{id, t, client, question, answer_id, helpful, note?}], cursor?}`, newest first; needs `Authorization: Bearer <ADMIN_TOKEN>` |
@@ -164,7 +181,7 @@ markup is read as words first (`$\frac{1}{2} b h$` → "1 over 2 b h", `**bold**
   address; raise the limits if a class hits them. TTS counts only uncached lines.
 * **Hard limit**: once the custom domain is on a Cloudflare zone, add a
   rate-limiting rule (Security → WAF → Rate limiting rules) for
-  `/api/deepseek/*` and `/api/tts`, e.g. 60 requests per minute per IP.
+  `/api/ai` and `/api/tts`, e.g. 60 requests per minute per IP.
 * **Spend**: DeepSeek is prepaid; the balance is the ceiling. Keep it small.
 * **Body sizes**: chat 256 KB, TTS 8 KB (600 characters of text), feedback 16 KB.
 
@@ -189,11 +206,11 @@ Every API call writes one JSON line to the console, for example:
 
 ```json
 {"t":"2026-09-30T00:31:33.487Z","level":"info","route":"tts","method":"POST","status":200,"ms":779,"client":"a504e85d","provider":"edge","chars":24}
-{"t":"…","level":"info","route":"deepseek/chat/completions","method":"POST","status":200,"ms":412,"total_ms":9120,"client":"…","model":"deepseek-flash","usage":{"prompt":5210,"completion":880,"total":6090,"cache_hit":4096}}
+{"t":"…","level":"info","route":"ai","method":"POST","status":200,"ms":412,"total_ms":9120,"client":"…","op":"tutor","model":"deepseek-flash","usage":{"prompt":5210,"completion":880,"total":6090,"cache_hit":4096}}
 ```
 
 `ms` is the time to the response headers, `total_ms` until a streamed answer
-finished; `usage` is DeepSeek's token count (streams are asked to include
+finished; `op` is the tutor's operation; `usage` is DeepSeek's token count (streams are asked to include
 it). `client` is a hash of the address and the day, not the address. Keys,
 prompts and answers are never logged. Watch them live with:
 
@@ -219,10 +236,11 @@ AZURE_SPEECH_KEY=...       # optional, with AZURE_SPEECH_REGION
 TTS=off                    # optional: no live narration
 DEV_RATE_LIMITS=1          # optional: apply the production rate limits
 ANSWER_CACHE_TTL=3600      # optional: turn the answer cache on (off in dev)
+DEV_MODEL_URL=http://localhost:5190   # optional: an OpenAI-compatible stand-in answers /api/ai (no key sent to it)
 ```
 
-Differences from production, on purpose: rate limits are off, any model is
-allowed unless `ALLOWED_MODELS` is set, the answer cache is off unless
+Differences from production, on purpose: rate limits are off, `/api/ai` uses
+`deepseek-flash` unless `ALLOWED_MODELS` names another, the answer cache is off unless
 `ANSWER_CACHE_TTL` is set, and state lives in
 `apps/mathnim/node_modules/.cache/mathnim/` (`feedback.json`, `tts/`). Live
 narration in dev needs Node 22+ (global `WebSocket` with headers).

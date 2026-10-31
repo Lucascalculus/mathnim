@@ -3,12 +3,15 @@ import type { Lang } from '@mathnim/core';
 import { set_ui_lang, t } from '@mathnim/present';
 import { ensure_cjk_font } from './cjk_font';
 import { log } from './store';
-import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, recorded_lesson_responses, recorded_responses, recorded_text_answers, type Provider } from '@mathnim/ai';
+import { AnthropicProvider, MockProvider, OpenAICompatibleProvider, RecordedBackend, ServerBackend, recorded_lesson_plans, recorded_lesson_responses, recorded_responses, recorded_text_answers, type Backend, type Provider } from '@mathnim/ai';
 
 /**
  * Where answers come from: 'gift' is the model this site offers (DeepSeek, its key held by the server; nothing to set),
  * or the learner's own: GPT, Claude, or any OpenAI-compatible endpoint ('custom'). Their keys stay in this browser.
+ * A learner's own model is called from the page with the prompts written in the page, so it exists in development
+ * builds only (OWN_MODELS): production pages send the tutor's operations to the server, which keeps the prompts.
  */
+export const OWN_MODELS = import.meta.env.DEV;
 export type ProviderChoice = 'gift' | 'openai' | 'anthropic' | 'custom';
 export interface Settings {
   provider: ProviderChoice;
@@ -76,6 +79,7 @@ export const server_providers = () => ({ ...server });
 /** What answers right now: the choice, or recorded offline answers when it cannot (no server key, no key typed). */
 export type ActiveProvider = 'deepseek' | 'openai' | 'anthropic' | 'custom' | 'offline';
 export function active_provider(s = load_settings()): ActiveProvider {
+  if (!OWN_MODELS) return server.deepseek ? 'deepseek' : 'offline';
   switch (s.provider) {
     case 'openai':
       return s.openai_key ? 'openai' : 'offline';
@@ -93,22 +97,32 @@ export function provider_label(p: ActiveProvider, s = load_settings()): string {
   return { deepseek: t('provider_gift'), openai: 'GPT', anthropic: 'Claude', custom: s.custom_model || t('provider_custom'), offline: t('offline_answers') }[p];
 }
 
-let mock: MockProvider | null = null;
-/** The configured model, or recorded answers when none is available. */
-export function provider(): Provider {
+let recorded: RecordedBackend | null = null;
+/** Where the tutor's questions go: the site's server, recorded answers when it has no model, or (development) the learner's own model. */
+export function backend(): Backend {
   const s = load_settings();
-  switch (active_provider(s)) {
-    case 'deepseek':
-      return new OpenAICompatibleProvider({ name: 'deepseek', base_url: '/api/deepseek', model: s.deepseek_model || DEFAULTS.deepseek_model, default_max_tokens: 32000 });
+  const p = active_provider(s);
+  if (p === 'deepseek') return new ServerBackend();
+  // recorded answers: scenes for the geometry lessons, words only for a few lesson questions (the "explain this" chat)
+  if (p === 'offline') return (recorded ??= new RecordedBackend({ ...recorded_responses(MockProvider.key), ...recorded_lesson_responses(MockProvider.key) }, recorded_text_answers(MockProvider.key), recorded_lesson_plans()));
+  if (import.meta.env.DEV) {
+    // the learner's own model, with the prompts written in the page (this code is not in production builds)
+    const own = own_provider(p, s);
+    let local: Promise<Backend> | null = null;
+    const load = () => (local ??= import('../../../packages/ai/src/local_backend').then((m) => new m.LocalBackend(own)));
+    return { name: own.name, stream: !!own.stream, run: (op, input, o) => load().then((b) => b.run(op, input, o)) };
+  }
+  return new ServerBackend();
+}
+/** A learner's own model (development builds). */
+function own_provider(p: ActiveProvider, s: Settings): Provider {
+  switch (p) {
     case 'openai':
       return new OpenAICompatibleProvider({ name: 'openai', base_url: 'https://api.openai.com/v1', api_key: s.openai_key, model: s.openai_model || DEFAULTS.openai_model });
     case 'custom':
       return new OpenAICompatibleProvider({ name: 'custom', base_url: s.custom_url, api_key: s.custom_key || undefined, model: s.custom_model });
     case 'anthropic':
-      return new AnthropicProvider({ api_key: s.api_key || undefined, model: s.model, base_url: s.base_url || (server.anthropic ? '/api/anthropic' : undefined) });
     default:
-      // recorded answers: scenes for the geometry lessons, words only for a few lesson questions (the "explain this" chat)
-      mock ??= new MockProvider({ ...recorded_responses(MockProvider.key), ...recorded_lesson_responses(MockProvider.key) }, undefined, recorded_text_answers(MockProvider.key));
-      return mock;
+      return new AnthropicProvider({ api_key: s.api_key || undefined, model: s.model, base_url: s.base_url || (server.anthropic ? '/api/anthropic' : undefined) });
   }
 }
