@@ -387,7 +387,7 @@ export const CSS = `
 .mn-lang-note{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--mn-faint);color:var(--mn-muted)}
 .mn-game .mn-page{width:min(100%,880px);margin:0 auto}
 @media (max-width:640px){.mn-page{font-size:16.5px;border-radius:12px}.mn-dline{grid-template-columns:22px minmax(0,1fr);gap:8px;padding:6px 4px}.mn-dnum{width:22px;height:22px;font-size:11px}
- .mn-dcontrols{padding-left:0}.mn-drow{flex-direction:column;align-items:stretch;gap:4px}.mn-drow .mn-dtex{flex:none}.mn-why-btn{align-self:flex-start;margin-left:0}.mn-code{font-size:12.5px}.mn-callout{font-size:15.5px}.mn-dtex{font-size:16px}}
+ .mn-dcontrols{padding-left:0}.mn-drow{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:4px}.mn-drow .mn-dtex{flex:none}.mn-why-btn{align-self:flex-start;margin-left:0}.mn-code{font-size:12.5px}.mn-callout{font-size:15.5px}.mn-dtex{font-size:16px}}
 /* ---- orientation and the overflow menu */
 /* the lesson's progress after its title: its chapters as segments, filled as far as the learner has come */
 .mn-where{margin-left:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mn-muted);font-variant-numeric:tabular-nums}
