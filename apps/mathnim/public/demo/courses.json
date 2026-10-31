@@ -2093,25 +2093,25 @@
    "zh": "ECON90015 模考精讲"
   },
   "summary": {
-   "en": "Every question of the mock exam worked through, and every idea behind it explained from the ground up: welfare and trade policy, costs and entry, monopoly and taxes, price discrimination, games and oligopoly, the Malthusian trap.",
-   "zh": "把模考的每道题讲透，再把每道题背后的知识从头讲清：福利与贸易政策、成本与进入、垄断与税、价格歧视、博弈与寡头、马尔萨斯陷阱。"
+   "en": "The mock exam question by question: each question as printed, every idea it needs taught from the beginning, every line of the solution explained, then a full-mark answer, the wider topic and practice.",
+   "zh": "一道题一道题地讲这份模考：先看题目原文，再把它需要的每个想法从头讲起，解法每一行都讲明白，最后是满分答案、这类题的全貌和练习。"
   },
   "audience": {
-   "en": "Students about to sit the exam who know university maths but have seen little of the course; a quick review, not a first course.",
-   "zh": "快要考试、会大学数学但没怎么上过这门课的同学；这是快速复习，不是入门课。"
+   "en": "Students preparing for the exam who know university maths (derivatives, solving equations) but have not taken the course.",
+   "zh": "准备考试、会大学数学（求导、解方程）但没上过这门课的同学。"
   },
   "outcomes": [
    {
-    "en": "Solve each type of question in the paper with a method you can check",
-    "zh": "每类题都有一个能自检的解法"
+    "en": "Understand every idea behind the six questions, from the ground up",
+    "zh": "从头弄懂六道题背后的每个想法"
    },
    {
-    "en": "Explain the idea behind each answer, in the words the examiner expects",
-    "zh": "用阅卷人期待的术语讲清每个答案背后的道理"
+    "en": "Solve each type of question with a method you can check, and write it the way the examiner expects",
+    "zh": "每类题都有能自检的解法，并按阅卷人期待的方式写出来"
    },
    {
-    "en": "Recognise the traps and the twists a real exam can add",
-    "zh": "认得出易错点，以及真题可能加的变化"
+    "en": "Handle the twists a real exam can add",
+    "zh": "应对真题可能加的各种变化"
    }
   ],
   "lang": "en",
@@ -2183,18 +2183,18 @@
    {
     "id": "econ90015-map",
     "title": {
-     "en": "The whole exam on one page",
-     "zh": "整张试卷，一页看完"
+     "en": "Start here: the exam, and how we will learn it",
+     "zh": "从这里开始：这张试卷，以及我们怎么学"
     },
     "summary": {
-     "en": "Six questions, two moves: what each question tests and the idea that unlocks it.",
-     "zh": "六道题，两招：每道题考什么，靠哪个想法解开。"
+     "en": "What the six questions are about, why the lessons come in this order, and the two ideas that run through almost every mark.",
+     "zh": "六道题各讲什么，课为什么按这个顺序排，以及贯穿几乎每一分的两个想法。"
     },
-    "minutes": 8,
+    "minutes": 10,
     "meta": {
      "title": {
-      "en": "The whole exam on one page",
-      "zh": "整张试卷，一页看完"
+      "en": "Start here: the exam, and how we will learn it",
+      "zh": "从这里开始：这张试卷，以及我们怎么学"
      },
      "mode": "essay",
      "langs": [
@@ -2223,10 +2223,10 @@
      "zh": "市场与得失：风机进口配额（第 1 题）"
     },
     "summary": {
-     "en": "Demand and supply as values and costs, surplus as areas, externalities, and why a quota on imports costs USF 2000.",
-     "zh": "把需求和供给读成价值和成本，用面积算剩余，外部性，以及进口配额为什么让 USF 亏 2000。"
+     "en": "Demand as values and supply as costs, how a market finds its price, what a quota does to it, and how to count in dollars who gains and who loses.",
+     "zh": "把需求读成价值、把供给读成成本，市场怎么定出价格，配额对它做了什么，以及怎么用钱算清谁得谁失。"
     },
-    "minutes": 24,
+    "minutes": 50,
     "meta": {
      "title": {
       "en": "Markets and who gains: the turbine quota (Q1)",
@@ -2268,10 +2268,10 @@
      "zh": "长期里的完全竞争（第 5 题）"
     },
     "summary": {
-     "en": "Cost curves, why free entry pins the price at the bottom of average cost, and how to read an elasticity.",
-     "zh": "成本曲线，为什么自由进入把价格钉在平均成本最低点，以及怎么读弹性。"
+     "en": "A firm's costs (total, average, marginal), how a firm that cannot move the price decides how much to make, why entry and exit pin the long-run price at the bottom of average cost, and what an elasticity measures.",
+     "zh": "厂商的成本（总成本、平均成本、边际成本），影响不了价格的厂商怎么决定产量，进入和退出为什么把长期价格钉在平均成本最低点，以及弹性衡量的是什么。"
     },
-    "minutes": 18,
+    "minutes": 40,
     "meta": {
      "title": {
       "en": "Many small firms in the long run (Q5)",
@@ -2313,10 +2313,10 @@
      "zh": "一家独大，再收一道税（第 2 题）"
     },
     "summary": {
-     "en": "Where market power comes from, monopoly from MR = MC, its deadweight loss, how a tax tilts or shifts the demand the seller sees, and who really pays.",
-     "zh": "市场势力从哪来，用 MR = MC 解垄断，垄断的无谓损失，税怎样转动或平移卖方看到的需求，以及税到底谁付。"
+     "en": "Why a single seller earns less from one more sale than its price, how it picks its output with MR = MC, how a tax changes the demand it sees, and who really pays the tax.",
+     "zh": "为什么独家卖方多卖一个赚到的比价格少，它怎样用 MR = MC 定产量，税怎样改变它看到的需求，以及税到底谁付。"
     },
-    "minutes": 24,
+    "minutes": 50,
     "meta": {
      "title": {
       "en": "One seller, and a tax on its price (Q2)",
@@ -2358,10 +2358,10 @@
      "zh": "看人定价（第 3 题）"
     },
     "summary": {
-     "en": "The three degrees of price discrimination by what the seller knows: third degree (one MR = MC per market), second degree (packages that make each type pick its own), first degree and two-part tariffs, with the profits side by side.",
-     "zh": "按卖方知道多少分出的三级价格歧视：三级（每个市场 MR = MC）、二级（让每类人自己挑套餐）、一级与两部定价，利润并排比较。"
+     "en": "When a seller can charge buyers differently, by group (third degree) or by letting them choose from a menu of packages (second degree), and why the high type keeps an information rent.",
+     "zh": "卖家什么时候能向不同买家收不同的价：按组别（三级），或者让买家从一份套餐菜单里自己挑（二级），以及为什么高需求类型能留下信息租金。"
     },
-    "minutes": 26,
+    "minutes": 50,
     "meta": {
      "title": {
       "en": "Different prices for different buyers (Q3)",
@@ -2403,10 +2403,10 @@
      "zh": "两家厂商互相猜（第 4 题）"
     },
     "summary": {
-     "en": "Games and Nash equilibrium, best responses, how to draw them, and how Cournot compares with a cartel, a leader (Stackelberg) and competition.",
-     "zh": "博弈与纳什均衡、最优反应、怎么画出来，以及古诺与卡特尔、领导者（斯塔克尔伯格）、完全竞争的比较。"
+     "en": "Games and Nash equilibrium, a firm's best reply to its rival's output, how to draw and solve the two replies, and how Cournot compares with a cartel, a leader and competition.",
+     "zh": "博弈与纳什均衡，厂商对对手产量的最优反应，怎样画出并解出两条反应函数，以及古诺与卡特尔、领导者、完全竞争的比较。"
     },
-    "minutes": 22,
+    "minutes": 45,
     "meta": {
      "title": {
       "en": "Two firms guessing each other (Q4)",
@@ -2448,10 +2448,10 @@
      "zh": "马尔萨斯陷阱（第 6 题）"
     },
     "summary": {
-     "en": "Income per person as a slope, why population returns to the same point after any shock, what to draw for the marks, and what finally broke the trap.",
-     "zh": "人均收入是一条斜率，为什么任何冲击之后人口都回到原点，为拿分要画什么，以及最后是什么打破了陷阱。"
+     "en": "Diminishing returns, income per person as the slope of a ray, why population returns to the same point after a wave of immigrants, and what to draw and write for the marks.",
+     "zh": "边际收益递减，人均收入是一条射线的斜率，为什么一波移民之后人口会回到原处，以及为拿分要画什么、写什么。"
     },
-    "minutes": 16,
+    "minutes": 30,
     "meta": {
      "title": {
       "en": "The Malthusian trap (Q6)",
@@ -2481,18 +2481,18 @@
    {
     "id": "econ90015-drill",
     "title": {
-     "en": "One-page method sheet, and a 20-minute drill",
-     "zh": "一页方法表，加 20 分钟练习"
+     "en": "Every method on one page, and a drill",
+     "zh": "所有方法一页纸，再加一组练习"
     },
     "summary": {
-     "en": "Every method in one table, then eight questions with new numbers.",
-     "zh": "所有方法一张表，再加八道换了数的题。"
+     "en": "A review sheet of every method in the course, then eight questions with new numbers to do under time.",
+     "zh": "把整门课的方法汇成一张复习表，再做八道换了数的限时题。"
     },
-    "minutes": 25,
+    "minutes": 30,
     "meta": {
      "title": {
-      "en": "One-page method sheet, and a 20-minute drill",
-      "zh": "一页方法表，加 20 分钟练习"
+      "en": "Every method on one page, and a drill",
+      "zh": "所有方法一页纸，再加一组练习"
      },
      "mode": "essay",
      "langs": [

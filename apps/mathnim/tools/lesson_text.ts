@@ -33,6 +33,7 @@ function blocks(bs: Block[], depth = 0): void {
       case 'details': out.push(`${pad}<details> ${L(b.summary)}`); blocks(b.blocks, depth + 1); break;
       case 'table': out.push(`${pad}| ${b.head.map(L).join(' | ')} |`); for (const r of b.rows) out.push(`${pad}| ${r.map(L).join(' | ')} |`); break;
       case 'cite': out.push(`${pad}[^${b.key}]: ${L(b.text)}`); break;
+      case 'paper': out.push(`${pad}[paper: ${L(b.title)}]`); b.paras.forEach((x) => out.push(`${pad}  | ${L(x)}`)); break;
       case 'quiz':
         out.push(`${pad}[quiz] ${L(b.prompt)}`);
         b.options.forEach((o, i) => out.push(`${pad}  ${o.correct ? '✓' : ' '} ${'ABCDEFGH'[i]}. ${L(o.label)}${o.feedback ? `  — ${L(o.feedback)}` : ''}`));
@@ -50,7 +51,7 @@ function step(s: Step, i: number): void {
     case 'read': blocks(s.blocks); break;
     case 'derive':
       if (s.intro) out.push(L(s.intro));
-      s.lines.forEach((l, j) => out.push(`${j === s.blank?.line ? '▢ ' : ''}$$ ${l.tex} $$${l.why ? '  — ' + L(l.why) : ''}`));
+      s.lines.forEach((l, j) => out.push(`${l.say ? L(l.say) + '\n' : ''}${j === s.blank?.line ? '▢ ' : ''}$$ ${l.tex} $$${l.why ? '  — ' + L(l.why) : ''}`));
       if (s.blank?.prompt) out.push(`(blank) ${L(s.blank.prompt)}`);
       if (s.outro) out.push(L(s.outro));
       break;

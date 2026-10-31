@@ -181,6 +181,9 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           if (!b.explain) warn(where, 'a question without explain: say why the right option is right');
           break;
         }
+        case 'paper':
+          if (!b.paras.length) err(where, 'a paper block with no text');
+          break;
         case 'callout':
         case 'p':
           break;

@@ -9,51 +9,57 @@ then `node apps/mathnim/tools/demo_check.mjs econ90015`, and for the figures
 
 ## Who it is for, and what they need
 
-- **Who**: a student about to sit this exam who has university maths
-  (calculus, solving equations) but has seen little of the course.
-- **Situation**: a quick review before the exam, not a first course.
-- **Needs, in order**: the whole exam on one page; for each kind of question a
-  method that reliably earns the marks, explained in the maths they know; the
-  traps that lose marks; the twists a real exam can add (the numbers will be
-  different); practice with new numbers at the end.
+- **Who**: a student preparing for this exam who has university maths
+  (derivatives, solving equations) but has not taken the course.
+- **What they need** (Lucas, 2026-10-31): to genuinely understand every idea
+  behind these questions, taught from the beginning. Time is not the limit:
+  the text is as long as the explanation needs, never shortened for speed.
 
-## Structure (and why it is not the exam's)
+## Structure: the learner's path through each question
 
-The goal (Lucas, 2026-10-31): a learner who barely knows the course sees, as
-fully and as fast as possible, every idea behind these questions, each one
-explained clearly; about 48 hours of review.
+An earlier version opened every lesson with "answers at a glance" and taught
+the ideas before the student had seen the question, with derivations that were
+bare lists of equations. Lucas rejected it: a student who has not seen the
+question gets nothing from its answers, and cannot learn from two or three
+lines and an unexplained formula. Every lesson now follows the learner:
 
-- By idea, not by question number: markets (Q1, Q5), market power (Q2, Q3, Q4),
-  growth (Q6), so each lesson builds on the last; a map first, a method sheet
-  and a timed drill last.
-- Every lesson has the same five parts: **In short** (the answers, and the few
-  ideas the question needs), **The ideas** (each from the ground up), **Worked
-  solution** (line by line, one simple line left to fill in), **The wider
-  topic** (what else this kind of question asks, worked with the same numbers:
-  tariffs and quota rent, Pigou, shutdown and entry, elasticity and spending,
-  monopoly deadweight loss and incidence, first degree and two-part tariffs,
-  games and the prisoner's dilemma, Stackelberg, cartel, Bertrand, Malthusian
-  shocks), and **Your turn** (two or three questions with new numbers).
-- No "answer it first" questions up front. Small questions in the page
-  (`quiz` blocks) catch one classic trap per idea where it is explained; they
-  never block reading.
-- Five interactive figures (`packages/visuals/src/econ/`, loaded through the
-  course entry's `packs`), each where dragging shows something the text cannot:
-  the quota's areas and USF's welfare against the quota (`econ_quota`), a tax
-  that rotates or shifts the monopolist's demand and who pays (`econ_monopoly_tax`),
-  package 2's size against the information rent (`econ_screening`), best replies
-  closing in on the Cournot equilibrium (`econ_cournot`), and population along the
-  production curve with technology (`econ_malthus`). Q5 has a static entry diagram
-  instead: its cost function only makes sense near the minimum, so a slider for
-  the number of firms would show things the model cannot back.
-- Exam vocabulary in English stays visible in the Chinese text (the exam is in
-  English).
-- Beyond the exam, only where it deepens the idea: in Q1 the free-market
-  quantity is exactly USF's optimum (the externality and USF's buying power
-  cancel); in Q2 a percentage tax raises more than a per-unit tax of the same
-  size; in Q3 the profits of uniform, third-, second- and first-degree pricing
-  side by side; in Q4 cartel, Stackelberg, Cournot and competition with Q4's
-  own numbers.
+1. **The question, as printed** (a `paper` block: the exam's English, the
+   Chinese translation under it in the Chinese course), then a slow read: the
+   story, what each formula and symbol says, what each part asks, which ideas
+   it will need. No answers.
+2. **Part by part.** Each part quotes its own wording again, then teaches the
+   idea it needs from the ground up (why we need it, a concrete case with the
+   question's numbers, the picture, then the formula and what each symbol in it
+   means), then solves the part as a derivation whose every line is said in
+   words above it (`say` on derivation lines; `why` stays for a deeper reason).
+   One key step is left to the student (`blank`), and a small question in the
+   page (`quiz`) catches a classic trap where the idea is taught.
+3. **On the exam paper**: a full-mark answer in English (a `paper` block with
+   `answer`), with a word on where the marks are.
+4. **The wider topic**: what else the exam can ask (tariffs and licences,
+   externalities, the short run and shutdown, monopoly deadweight loss and the
+   Lerner rule, tax incidence, first degree and two-part tariffs, games,
+   Stackelberg, cartel and Bertrand, Malthusian shocks), each taught, not listed.
+5. **Your turn**: practice with new numbers.
+
+Lessons go by idea, not question number, so each builds on the last: a short
+start page (what each question is about as a story, why this order, the two
+ideas that run through the paper), then markets (Q1), firms and costs (Q5),
+one seller (Q2), many prices (Q3), two sellers (Q4), the whole economy (Q6),
+and a method sheet with a timed drill to review.
+
+Derivation lines are kept short enough to show at full size on a phone (about
+40 characters of visible formula); a longer step is split into two lines.
+
+Five interactive figures (`packages/visuals/src/econ/`, loaded through the
+course entry's `packs`), each placed where dragging shows what words cannot:
+the quota's areas and USF's welfare against the quota (`econ_quota`), a tax
+that rotates or shifts the monopolist's demand and who pays (`econ_monopoly_tax`),
+package 2's size against the information rent (`econ_screening`), best replies
+closing in on the Cournot equilibrium (`econ_cournot`), and population along the
+production curve with technology (`econ_malthus`). Q5 has a static entry diagram
+instead: its cost function only makes sense near the minimum, so a slider for
+the number of firms would show things the model cannot back.
 
 ## Answers (checked twice: each by a second method)
 

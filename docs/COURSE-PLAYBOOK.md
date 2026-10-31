@@ -94,8 +94,16 @@ explained, without stopping the reading. Use it for a trap a learner really
 falls into, about one per lesson, not as a quiz on everything. A worked
 derivation can leave one simple line for the learner to fill in (`blank`);
 when that line is a long formula, ask a small question in the page instead.
-The ECON90015 demo (`docs/lessons/econ90015/`) is a quick-review course built
-this way.
+
+
+**A course built on an exam** starts each lesson with the question as printed
+(a `paper` block: the paper's own language, the translation under it), never
+with its answers, then goes part by part: the idea the part needs, from the
+ground up, then the solution. In every derivation, say each step in words
+above its line (`say`): what it does and what its new symbols mean; a learner
+new to the subject cannot learn from a bare list of equations. Close with a
+full-mark answer as written on the paper. The ECON90015 demo
+(`docs/lessons/econ90015/`) is built this way.
 
 **Time each scene to its voice.** A narrated scene shows each thing as the
 voice talks about it, never a finished figure under a voice that is still

@@ -66,6 +66,11 @@ export type Block =
   | { type: 'table'; head: L10n[]; rows: L10n[][] }
   /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `explain`. */
   | { type: 'quiz'; prompt: L10n; options: { label: L10n; correct?: boolean; feedback?: L10n }[]; explain?: L10n }
+  /**
+   * Text as it stands on an exam paper (a question as set, or a full-mark answer), in the paper's
+   * own language `lang`; a learner reading another language sees the translation under it.
+   */
+  | { type: 'paper'; title: L10n; lang: Lang; paras: L10n[]; answer?: boolean }
   /** A source reference shown as a footnote. */
   | { type: 'cite'; key: string; text: L10n; url: string };
 
@@ -74,11 +79,14 @@ export interface ReadContent {
   kind: 'read';
   blocks: Block[];
 }
-/** A derivation revealed line by line; each line may explain why it holds; one line can be a fill-in check. */
+/**
+ * A derivation revealed line by line. Each line may say in words what it does and what its symbols
+ * mean (`say`, shown above it) and why it holds (`why`, behind a button); one line can be a fill-in check.
+ */
 export interface DeriveContent {
   kind: 'derive';
   intro?: L10n;
-  lines: { tex: string; why?: L10n }[];
+  lines: { tex: string; say?: L10n; why?: L10n }[];
   /** Hide line `line` (0-based index into `lines`) and ask for it (graded with the expression grader). */
   blank?: { line: number; answer: string; variables?: string[]; prompt?: L10n; /** Sampling ranges for the equivalence test, e.g. { p: [0.05, 0.95] } (default [0.5, 4] for `variables`). */ ranges?: Record<string, [number, number]> };
   outro?: L10n;

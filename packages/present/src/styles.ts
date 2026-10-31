@@ -316,6 +316,14 @@ export const CSS = `
 .mn-prose .mn-sources-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 .6em;color:var(--mn-muted)}
 .mn-sources ol{padding-left:1.5em;margin:0}.mn-sources li{margin:.35em 0;border-radius:6px;transition:background .4s}
 .mn-flash{background:color-mix(in srgb,var(--mn-warn) 20%,transparent)}
+/* text as it stands on an exam paper: the examiner's words, set apart from ours */
+.mn-paper{margin:1.3em 0;border:1px solid var(--mn-border);border-left:4px solid var(--mn-fg);border-radius:4px 12px 12px 4px;background:var(--mn-panel);padding:14px 18px 6px}
+.mn-paper-answer{border-left-color:var(--mn-good)}
+.mn-paper-title{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mn-muted);margin-bottom:8px}
+.mn-paper-text p,.mn-paper-tr p{margin:0 0 .7em}
+.mn-paper-text{font-family:Georgia,'Times New Roman',serif;font-size:1.02em;line-height:1.6}
+.mn-paper-tr{border-top:1px dashed var(--mn-border);margin-top:4px;padding-top:10px;color:var(--mn-muted)}
+.mn-paper-tr-h{font-size:12px;font-weight:700;margin-bottom:6px}
 /* derivations: one line at a time, each with its "why" */
 .mn-dlines{list-style:none;padding:0;margin:1.2em auto;display:flex;flex-direction:column;gap:4px}
 .mn-dline{display:grid;grid-template-columns:26px minmax(0,1fr);gap:12px;align-items:start;padding:8px 10px;border-radius:12px;transition:background .4s}
@@ -324,6 +332,7 @@ export const CSS = `
 @keyframes mn-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .mn-dnum{width:26px;height:26px;border-radius:50%;background:var(--mn-faint);color:var(--mn-muted);display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:7px}
 .mn-dbody{min-width:0}
+.mn-dsay{line-height:1.65;margin:2px 0 4px}
 .mn-drow{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
 .mn-dtex{flex:1 1 220px;min-width:0;overflow-x:auto;overflow-y:hidden;padding:4px 0;font-size:18px}
 .mn-dtex .mn-math{text-align:left!important}

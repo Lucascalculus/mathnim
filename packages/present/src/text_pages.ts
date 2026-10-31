@@ -83,9 +83,9 @@ export class BlockRenderer {
   formulas = 0;
   constructor(readonly lang: Lang) {}
 
-  /** Prose (L10n) as HTML: TeX, emphasis, `code`, links, footnote markers. */
-  prose(s: L10n | undefined): string {
-    const text = tr(s, this.lang);
+  /** Prose (L10n) as HTML: TeX, emphasis, `code`, links, footnote markers (in `lang`, the page's by default). */
+  prose(s: L10n | undefined, lang: Lang = this.lang): string {
+    const text = tr(s, lang);
     this.count(text);
     return math_html(text, { footnote: (key) => this.ref(key) });
   }
@@ -160,6 +160,12 @@ export class BlockRenderer {
       }
       case 'cite':
         return ''; // listed under "Sources" at the end of the page
+      case 'paper': {
+        // the paper's own words first (the learner answers in them), then the translation in the page's language
+        const paras = (l: Lang) => b.paras.map((x) => `<p>${this.prose(x, l)}</p>`).join('');
+        const tr_html = b.lang === this.lang ? '' : `<div class="mn-paper-tr" lang="${lang_attr(this.lang)}"><div class="mn-paper-tr-h">${esc(t('paper_translation', undefined, this.lang))}</div>${paras(this.lang)}</div>`;
+        return `<section class="mn-paper${b.answer ? ' mn-paper-answer' : ''}"><div class="mn-paper-title">${this.prose(b.title)}</div><div class="mn-paper-text" lang="${lang_attr(b.lang)}">${paras(b.lang)}</div>${tr_html}</section>`;
+      }
       case 'quiz': {
         const k = this.quizzes.push({ right: b.options.findIndex((o) => o.correct), feedback: b.options.map((o) => (o.feedback ? this.prose(o.feedback) : '')), explain: b.explain ? this.prose(b.explain) : '' }) - 1;
         const opts = b.options.map((o, i) => `<button type="button" class="mn-quiz-opt" data-i="${i}"><span class="mn-key">${'ABCDEFGH'[i]}</span><span>${this.prose(o.label)}</span></button>`).join('');
@@ -498,6 +504,7 @@ export function derive_page(step: DeriveStep, chapter: L10n | undefined, ctx: Pa
     num.setAttribute('aria-hidden', 'true');
     const body = h('div', 'mn-dbody');
     li.append(num, body);
+    if (L.say) body.append(h('div', 'mn-dsay', r.prose(L.say)));
     if (blank && i === blank.line && !state.blank) {
       body.append(blank_ui(li));
       return li;

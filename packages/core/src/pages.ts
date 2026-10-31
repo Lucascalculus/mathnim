@@ -36,6 +36,7 @@ function block_strings(b: Block, at: string, out: LessonString[]): void {
     case 'details': add('summary', b.summary, 'label'); return b.blocks.forEach((c, i) => block_strings(c, `${at}.blocks[${i}]`, out));
     case 'table': b.head.forEach((x, i) => add(`head[${i}]`, x, 'label')); return b.rows.forEach((r, i) => r.forEach((x, j) => add(`rows[${i}][${j}]`, x, 'label')));
     case 'cite': return void add('text', b.text, 'label');
+    case 'paper': add('title', b.title, 'label'); return b.paras.forEach((x, i) => add(`paras[${i}]`, x));
     case 'quiz':
       add('prompt', b.prompt);
       b.options.forEach((o, i) => {
@@ -91,7 +92,10 @@ export function step_strings(s: Step, at = s.id): LessonString[] {
       break;
     case 'derive':
       add('intro', s.intro);
-      s.lines.forEach((l, i) => add(`lines[${i}].why`, l.why));
+      s.lines.forEach((l, i) => {
+        add(`lines[${i}].say`, l.say);
+        add(`lines[${i}].why`, l.why);
+      });
       add('blank.prompt', s.blank?.prompt);
       add('outro', s.outro);
       break;
@@ -192,6 +196,7 @@ export function describe_step(s: Step, lang: Lang): string {
         case 'details': out.push(`[details: ${tr(b.summary, lang)}]`); blocks(b.blocks); break;
         case 'table': out.push([b.head, ...b.rows].map((r) => r.map((x) => tr(x, lang)).join(' | ')).join('\n')); break;
         case 'cite': out.push(`[source ${b.key}] ${tr(b.text, lang)}`); break;
+        case 'paper': out.push(`[on the exam paper: ${tr(b.title, lang)}]\n${b.paras.map((x) => tr(x, b.lang)).join('\n')}`); break;
         case 'quiz': out.push(`[question] ${tr(b.prompt, lang)}\n${b.options.map((o, i) => `${'ABCDEFGH'[i]}. ${tr(o.label, lang)}${o.correct ? ' (right)' : ''}`).join('\n')}`); break;
       }
     }
@@ -199,7 +204,7 @@ export function describe_step(s: Step, lang: Lang): string {
   if (s.kind === 'read') blocks(s.blocks);
   else if (s.kind === 'derive') {
     if (s.intro) out.push(tr(s.intro, lang));
-    s.lines.forEach((l, i) => out.push(`(${i + 1}) $$${l.tex}$$${l.why ? ` - ${tr(l.why, lang)}` : ''}`));
+    s.lines.forEach((l, i) => out.push(`(${i + 1}) ${l.say ? `${tr(l.say, lang)} ` : ''}$$${l.tex}$$${l.why ? ` - ${tr(l.why, lang)}` : ''}`));
     if (s.outro) out.push(tr(s.outro, lang));
   } else if (s.kind === 'code') {
     if (s.intro) out.push(tr(s.intro, lang));

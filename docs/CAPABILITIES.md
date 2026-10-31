@@ -33,7 +33,7 @@ A derivation revealed line by line, each line with an optional "why"; may hold o
 |---|---|---|
 | `skill?` | `string` | Skill credited (first attempt) by the fill-in line. |
 | `intro?` | `L10n` |  |
-| `lines` | `{ tex: string; why?: L10n }[]` |  |
+| `lines` | `{ tex: string; say?: L10n; why?: L10n }[]` |  |
 | `blank?` | `{ line: number; answer: string; variables?: string[]; prompt?: L10n; /** Sampling ranges f` | Hide line `line` (0-based index into `lines`) and ask for it (graded with the expression grader). |
 | `outro?` | `L10n` |  |
 
@@ -211,6 +211,11 @@ export type Block =
   | { type: 'table'; head: L10n[]; rows: L10n[][] }
   /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `explain`. */
   | { type: 'quiz'; prompt: L10n; options: { label: L10n; correct?: boolean; feedback?: L10n }[]; explain?: L10n }
+  /**
+   * Text as it stands on an exam paper (a question as set, or a full-mark answer), in the paper's
+   * own language `lang`; a learner reading another language sees the translation under it.
+   */
+  | { type: 'paper'; title: L10n; lang: Lang; paras: L10n[]; answer?: boolean }
   /** A source reference shown as a footnote. */
   | { type: 'cite'; key: string; text: L10n; url: string };
 ```

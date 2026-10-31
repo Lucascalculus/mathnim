@@ -18,8 +18,9 @@ Step is one of:
   {"kind": "read", "id": string, "chapter"?: string, "title": string, "blocks": [Block, ...]}
       A text page: one idea per page. "chapter" starts a new chapter (later steps inherit it).
   {"kind": "derive", "id": string, "chapter"?: string, "title": string, "intro"?: string,
-   "lines": [{"tex": string, "why"?: string}, ...], "outro"?: string}
-      A derivation revealed line by line; "why" says why each line follows.
+   "lines": [{"tex": string, "say"?: string, "why"?: string}, ...], "outro"?: string}
+      A derivation revealed line by line. "say" puts the step in words above the line (what it does,
+      what its symbols mean); "why" gives a further reason, shown on request.
   {"kind": "checkpoint", "id": string, "chapter"?: string, "title": string, "skill": string,
    "purpose": "predict" | "practice" | "check", "prompt": string, "question": Question,
    "hints"?: [string, ...], "explain"?: string, "auto_advance"?: boolean}
@@ -221,6 +222,7 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
       if (lines.length < 2) err(at, 'lines: at least 2');
       lines.forEach((l, k) => {
         if (!obj(l) || typeof l.tex !== 'string' || !l.tex.trim()) return err(`${at}.lines[${k}]`, 'tex is required');
+        str(l.say, `${at}.lines[${k}].say`, false);
         str(l.why, `${at}.lines[${k}].why`, false);
       });
       delete s.blank;
@@ -266,7 +268,7 @@ export function lesson_digest(l: Lesson): string {
     if (s.kind === 'read') blocks(s.blocks);
     else if (s.kind === 'derive') {
       if (s.intro) out.push(String(s.intro));
-      s.lines.forEach((x, i) => out.push(`(${i + 1}) $$${x.tex}$$${x.why ? ` - ${x.why}` : ''}`));
+      s.lines.forEach((x, i) => out.push(`(${i + 1}) ${x.say ? `${x.say} ` : ''}$$${x.tex}$$${x.why ? ` - ${x.why}` : ''}`));
       if (s.outro) out.push(String(s.outro));
     } else if (s.kind === 'checkpoint') {
       const c = s as CheckpointStep;
