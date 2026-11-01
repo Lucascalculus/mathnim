@@ -212,8 +212,8 @@ data centre per 30 days (cache), so live narration costs little even on Azure.
 visitors (everyone, from `/api/hit`), learning (signed-in learners' events: per course, lesson and page,
 first-try answers, misconceptions, where learners stopped), the AI (calls, tokens and cost per route, every
 question asked with its answer, feedback), and accounts (each learner's record, uploaded courses), each
-exportable as CSV. Every call of a paid route (`ai`, `tts`, `feedback`, `auth/start`, `auth/verify`,
-`studio/*`) adds to a row of the D1 table `usage` per day, route, operation and model once it has finished
+exportable as CSV. Every call of a paid route (`ai`, `tts`, `feedback`, `auth/start`, `auth/verify`, and
+a `studio/*` step a model ran) adds to a row of the D1 table `usage` per day, route, operation and model once it has finished
 (`record_usage`, called by `handle()`); the cost uses DeepSeek's prices at that hour (`PRICES` in
 `server/stats.ts`: update them when DeepSeek changes theirs; Chinese public holidays, off-peak for DeepSeek,
 are counted as peak). The tables are made on first use, like the others.

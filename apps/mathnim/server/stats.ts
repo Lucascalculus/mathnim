@@ -4,7 +4,7 @@
 //     same person is one visitor within a day and cannot be followed across days. Robots and admins are not counted.
 //       POST {path, ref?, lang?, w?} -> 204
 //   - the cost of the server's routes: every call of a route that costs money or mail (the tutor, narration,
-//     sign-in codes, feedback) adds to a row per day, route, operation and model, with the tokens and the price
+//     sign-in codes, feedback, a course-making step) adds to a row per day, route, operation and model, with the tokens and the price
 //     at that hour (record_usage, called by handle() in http.ts once the call has finished).
 // Days are the site's local days (STATS_TZ, default Melbourne), so "today" ends at the owner's midnight.
 import { session_user, type AuthEnv } from './auth';
@@ -143,12 +143,16 @@ export function call_cost(model: string | undefined, u: LogLine['usage'], t: num
   return is_peak(t) ? usd : usd / 2;
 }
 
-/** The routes counted: the ones that cost money or mail. Page views, sync and the data centre itself are not. */
-export const COUNTED = (route: string) => route === 'ai' || route === 'tts' || route === 'feedback' || route === 'auth/start' || route === 'auth/verify' || route.startsWith('studio/');
+/**
+ * The calls counted: the ones that cost money or mail. Of the upload routes only a step a model ran (the rest, e.g.
+ * the catalog every page asks for, cost nothing); page views, sync and the data centre itself are not counted.
+ */
+export const COUNTED = (line: Pick<LogLine, 'route' | 'model'>) =>
+  ['ai', 'tts', 'feedback', 'auth/start', 'auth/verify'].includes(line.route) || (line.route.startsWith('studio/') && !!line.model);
 
 /** Add one finished call to its row of the day. */
 export async function record_usage(db: SqlDb, line: LogLine, tz = DEFAULT_TZ): Promise<void> {
-  if (!COUNTED(line.route)) return;
+  if (!COUNTED(line)) return;
   const t = Date.parse(line.t) || Date.now();
   const u = line.usage ?? {};
   const failed = line.status >= 500 || !!line.error ? 1 : 0;

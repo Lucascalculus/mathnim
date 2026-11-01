@@ -112,6 +112,7 @@ describe('what the routes cost', () => {
       });
     await handle('ai', req('ai', { body: {} }), { record }, async (note) => ((note.op = 'tutor'), (note.model = 'deepseek-flash'), new Response('{}', { status: 429 })));
     await handle('me/state', req('me/state'), { record }, async () => new Response('{}'));
+    await handle('studio/catalog', req('studio/catalog'), { record }, async () => new Response('{}')); // asked by every page, costs nothing
     await new Promise((r) => setTimeout(r, 0));
     const rows = (await e.DB!.prepare('SELECT * FROM usage').all<Record<string, number | string>>()).results;
     expect(rows.length).toBe(1);
