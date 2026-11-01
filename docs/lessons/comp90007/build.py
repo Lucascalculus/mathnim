@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-# Builds the final-exam unit of the Internet Technologies demo course (COMP90007, course id 5hujdkdkkm;
-# README.md here): nine lessons as Mathnim lesson JSON in apps/mathnim/public/demo/5hujdkdkkm/, which
-# replace the course's last unit in apps/mathnim/public/demo/courses.json. The other units (generated
-# from the lecture slides) are left as they are.
+# Builds the final-exam units of the Internet Technologies demo course (COMP90007, course id 5hujdkdkkm;
+# README.md here) as Mathnim lesson JSON in apps/mathnim/public/demo/5hujdkdkkm/: the sample questions of
+# the review lectures (this file), the practice exam (practice.py) and the classic hard problems (hard.py).
+# They replace the course's exam units
+# in apps/mathnim/public/demo/courses.json; the other units (generated from the lecture slides) are left
+# as they are.
 #   python3 docs/lessons/comp90007/build.py && node apps/mathnim/tools/demo_check.mjs 5hujdkdkkm
 import json
 import os
@@ -42,13 +44,14 @@ def esc(s):
 
 
 def rich(s, size):
-    """Escaped text where X_{y} writes y as a subscript."""
+    """Escaped text where X_{y} writes y as a subscript and X^{y} as a superscript."""
     out, i = '', 0
     s = esc(s)
     while i < len(s):
-        if s.startswith('_{', i):
+        if s.startswith('_{', i) or s.startswith('^{', i):
             j = s.index('}', i)
-            out += f'<tspan baseline-shift="sub" font-size="{round(size * 0.72)}">{s[i + 2:j]}</tspan>'
+            shift = 'sub' if s[i] == '_' else 'super'
+            out += f'<tspan baseline-shift="{shift}" font-size="{round(size * 0.72)}">{s[i + 2:j]}</tspan>'
             i = j + 1
         else:
             out += s[i]
@@ -1461,29 +1464,35 @@ UNIT = T('Final exam: the sample questions, explained', '期末复习：样题�
 
 
 def build():
+    from practice import PRACTICE_LESSONS, PRACTICE_UNIT  # imported here: they draw with this file's helpers
+    from hard import HARD_LESSONS, HARD_UNIT
     out_dir = os.path.join(DEMO, CID)
+    units = []
     entries = []
-    for make in LESSONS:
-        L = make()
-        lesson = {'id': L['id'], 'mode': 'essay', 'title': L['title'], 'description': L['description'], 'minutes': L['minutes'],
-                  'skills': L['skills'], 'misconceptions': L.get('misconceptions', []), 'steps': L['steps']}
-        with open(os.path.join(out_dir, f'{L["id"]}.json'), 'w', encoding='utf8') as f:
-            json.dump(lesson, f, ensure_ascii=False, separators=(',', ':'))
-        entries.append({'id': L['id'], 'title': L['title'], 'summary': L['description'], 'minutes': L['minutes'],
-                        'meta': {'title': L['title'], 'mode': 'essay', 'langs': ['en', 'zh'], 'has_scene': False,
-                                 'kinds': sorted({s['kind'] for s in L['steps']}), 'skills': L['skills']}})
+    for title, makers in ((UNIT, LESSONS), (PRACTICE_UNIT, PRACTICE_LESSONS), (HARD_UNIT, HARD_LESSONS)):
+        ids = []
+        for make in makers:
+            L = make()
+            lesson = {'id': L['id'], 'mode': 'essay', 'title': L['title'], 'description': L['description'], 'minutes': L['minutes'],
+                      'skills': L['skills'], 'misconceptions': L.get('misconceptions', []), 'steps': L['steps']}
+            with open(os.path.join(out_dir, f'{L["id"]}.json'), 'w', encoding='utf8') as f:
+                json.dump(lesson, f, ensure_ascii=False, separators=(',', ':'))
+            entries.append({'id': L['id'], 'title': L['title'], 'summary': L['description'], 'minutes': L['minutes'],
+                            'meta': {'title': L['title'], 'mode': 'essay', 'langs': ['en', 'zh'], 'has_scene': False,
+                                     'kinds': sorted({s['kind'] for s in L['steps']}), 'skills': L['skills']}})
+            ids.append(L['id'])
+        units.append({'title': title, 'lessons': ids})
     path = os.path.join(DEMO, 'courses.json')
     with open(path, encoding='utf8') as f:
         courses = json.load(f)
     course = next(c for c in courses if c['id'] == CID)
-    ids = {e['id'] for e in entries}
-    drop = set(OLD) | ids
-    # the generated units stay; the exam unit (its last) is replaced
-    course['units'] = [u for u in course['units'] if not set(u['lessons']) & drop] + [{'title': UNIT, 'lessons': [e['id'] for e in entries]}]
+    drop = set(OLD) | {e['id'] for e in entries}
+    # the generated units stay; the exam units (the last ones) are replaced
+    course['units'] = [u for u in course['units'] if not set(u['lessons']) & drop] + units
     course['lessons'] = [l for l in course['lessons'] if l['id'] not in drop] + entries
     course['packs'] = ['it']
-    course['origin']['note'] = T('Generated from 20 lecture decks; the final-exam unit written by an AI (Claude) from the sample questions of the two review lectures · not edited by a person',
-                                 '根据 20 份课件生成；期末复习单元由 AI（Claude）根据两节复习课的样题编写 · 未经人工修改')
+    course['origin']['note'] = T('Generated from 20 lecture decks; the final-exam units written by an AI (Claude) from the sample questions of the two review lectures, the practice exam and the slides\' worked examples · not edited by a person',
+                                 '根据 20 份课件生成；期末复习单元由 AI（Claude）根据两节复习课的样题、模拟卷和课件中的例题编写 · 未经人工修改')
     with open(path, 'w', encoding='utf8') as f:
         json.dump(courses, f, ensure_ascii=False, indent=1)
     print(f'{len(entries)} lessons -> {out_dir}; the course now has {len(course["lessons"])} lessons in {len(course["units"])} units')
