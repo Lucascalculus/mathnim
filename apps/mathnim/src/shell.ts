@@ -10,6 +10,7 @@ import { accounts_available, current_user, on_account_late, sign_out, studio_ava
 import { login_form } from './login';
 import { SHEET } from './sheet';
 import { PROGRESS_CSS } from './progress_mark';
+import { count_view } from './hit';
 
 const CSS = `
 body{margin:0;background:#fbfbfa}
@@ -399,7 +400,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       return;
     }
     acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase(), me.admin)}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
-      <div class="pass-links">${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
+      <div class="pass-links">${me.admin ? `<a href="/admin">${esc(t('ad_title'))}</a>` : ''}${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
     acct_pop.querySelector<HTMLButtonElement>('.pass-out')!.onclick = () => {
       close_account();
       void sign_out();
@@ -468,6 +469,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       return;
     }
     cleanup = done;
+    count_view(location.pathname);
     // an anchor in the address (e.g. /llm-finetuning#labs) is scrolled to once the page is there
     if (!keep_scroll && location.hash.length > 1 && !location.hash.startsWith('#/')) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   };

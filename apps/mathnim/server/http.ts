@@ -21,6 +21,8 @@ export interface TextCache {
 /** Keeps work alive after the response (Workers' ctx.waitUntil). */
 export interface Ctx {
   waitUntil?(p: Promise<unknown>): void;
+  /** Keeps the finished call's line too: what the call cost goes to the data centre (server/stats.ts). */
+  record?(line: LogLine): Promise<unknown>;
 }
 /** The context a Pages Function receives (the part we use). */
 export interface PagesContext<E> extends Ctx {
@@ -115,6 +117,7 @@ export const LIMITS: Record<string, Limit> = {
   tts: { per_window: 80, per_day: 600 }, // uncached sentences only
   feedback: { per_window: 20, per_day: 100 },
   auth: { per_window: 10, per_day: 40 }, // sign-in codes asked for
+  hit: { per_window: 300, per_day: 3000 }, // page views (a page each; beyond this it is not a person reading)
 };
 export function limit_for(route: string, spec?: string): Limit {
   const base = LIMITS[route] ?? { per_window: 60, per_day: 600 };
@@ -183,14 +186,18 @@ export async function handle(route: string, request: Request, ctx: Ctx, run: (no
     };
     if (after) line.total_ms = Date.now() - t0;
     log_sink(line);
+    return ctx.record?.(line).catch((e) => log_sink({ ...line, level: 'error', error: `record: ${String((e as Error)?.message ?? e).slice(0, 180)}` }));
   };
   if (note.after) {
     const done = note.after.then(write, (e) => {
       note.error ??= String((e as Error)?.message ?? e).slice(0, 200);
-      write();
+      return write();
     });
     ctx.waitUntil?.(done);
-  } else write();
+  } else {
+    const recorded = write();
+    if (recorded) ctx.waitUntil?.(recorded);
+  }
   return res;
 }
 

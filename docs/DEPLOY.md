@@ -15,6 +15,8 @@ apps/mathnim/
     deepseek.ts      sends them to DeepSeek with the key (+ optional answer cache)
     tts/             /api/tts: text rules, SSML, speech protocol, providers
     feedback.ts      /api/feedback
+    stats.ts         /api/hit (page views) and what each paid call cost (the data centre's own records)
+    admin.ts         /api/admin/*: the data centre's numbers, for admins
     providers.ts     /api/providers
     workers.ts       Cloudflare adapters (websocket, Cache API, limiter per isolate)
     dev.ts           the same routes as Vite middleware (Node adapters)
@@ -68,6 +70,8 @@ the file. Secrets are separate and are never in the file.
 | `RATE_LIMITS` | variable | | per visitor: `deepseek=40/300,tts=80/600,feedback=20/100` (per 10 min / per UTC day; `deepseek` counts `/api/ai`) |
 | `ANSWER_CACHE_TTL` | variable | | seconds a shared answer (the starter questions) is cached (`86400`; `0` = off) |
 | `TTS` | variable | | live narration: empty = Azure if configured else Edge; `edge`, `azure`, or `off` |
+| `ADMIN_EMAILS` | variable | for the data centre and publishing | who is an admin (comma-separated): the data centre at `/admin`, publishing uploaded courses |
+| `STATS_TZ` | variable | | the data centre's days (default `Australia/Melbourne`): "today" ends at this zone's midnight |
 
 Set secrets from the repo root (each command prompts for the value):
 
@@ -108,6 +112,8 @@ structured log line per call.
 | `GET /api/auth/me`, `POST /api/auth/logout` | `{user \| null}`; sign out |
 | `GET`/`PUT /api/me/state` | The signed-in learner's records (`mathnim.*` in localStorage except settings and the event log), newest value per record wins |
 | `POST /api/me/events` `{events: [...]}` | The signed-in learner's learning events (≤ 200 per request), appended to the D1 table `events`: answered, hinted, explored, viewed and left a step (with the time on it), asked the tutor (question and answer, words only), set a preference... Each has an id made from its content in the browser, so a resent event is stored once. Columns for analytics (`lesson`, `step`, `verb`, `skill`, `correct`, `misconception`, `duration_ms`, `attempt`), the rest JSON in `data`; example queries at the top of `server/events.ts`. Personalisation (what the tutor is told about a learner) is to read from here |
+| `POST /api/hit` `{path, ref?, lang?, w?}` | `204`. One page view for the data centre, sent by every page, signed in or not. Kept in D1 (`hits`): the page (no query; uploads as `/studio/*`), where the visit came from (on its first page), country (Cloudflare's), phone / tablet / computer, language, signed in or not, and a visitor tag: a hash of the address and browser with a salt made each day and deleted the next, so a person is one visitor within a day and cannot be followed across days. No cookie, no address. Robots (by user agent) and admins are not counted |
+| `GET /api/admin/<section>?days=` | The data centre's numbers (`overview`, `traffic`, `learning`, `lesson`, `questions`, `ai`, `feedback`, `users`, `user`, `uploads`, `export?kind=events\|hits\|usage\|users` as CSV), for a signed-in admin only (`ADMIN_EMAILS`). Contract at the top of `server/admin.ts` |
 | `/api/studio/*` | Courses made from uploaded slides and practice exams: courses, files (PDF ≤ 32 MB), steps (NDJSON while a step runs), `catalog`, `lessons/<course>/<lesson>`. Contract at the top of `server/studio/routes.ts`; the steps in `server/studio/pipeline.ts` |
 
 The teacher view, from a terminal:
@@ -199,6 +205,18 @@ markup is read as words first (`$\frac{1}{2} b h$` → "1 over 2 b h", `**bold**
 
 A lesson line is 100-200 characters and is synthesised once per Cloudflare
 data centre per 30 days (cache), so live narration costs little even on Azure.
+
+## The data centre
+
+`/admin` (a link on an admin's pass) shows what the site keeps, by the site's local days (`STATS_TZ`):
+visitors (everyone, from `/api/hit`), learning (signed-in learners' events: per course, lesson and page,
+first-try answers, misconceptions, where learners stopped), the AI (calls, tokens and cost per route, every
+question asked with its answer, feedback), and accounts (each learner's record, uploaded courses), each
+exportable as CSV. Every call of a paid route (`ai`, `tts`, `feedback`, `auth/start`, `auth/verify`,
+`studio/*`) adds to a row of the D1 table `usage` per day, route, operation and model once it has finished
+(`record_usage`, called by `handle()`); the cost uses DeepSeek's prices at that hour (`PRICES` in
+`server/stats.ts`: update them when DeepSeek changes theirs; Chinese public holidays, off-peak for DeepSeek,
+are counted as peak). The tables are made on first use, like the others.
 
 ## Logs
 

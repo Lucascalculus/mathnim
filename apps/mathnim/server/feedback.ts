@@ -96,8 +96,13 @@ async function review(request: Request, env: FeedbackEnv): Promise<Response> {
   if (!token || !same_secret(token, env.ADMIN_TOKEN)) return error(401, 'Admin token required.', { 'www-authenticate': 'Bearer' });
   if (!env.FEEDBACK) return error(503, 'Feedback storage is not configured.');
   const url = new URL(request.url);
-  const page = await env.FEEDBACK.list({ prefix: 'fb:', limit: parse_limit(url.searchParams.get('limit')), cursor: url.searchParams.get('cursor') ?? undefined });
-  const values = await Promise.all(page.keys.map((k) => env.FEEDBACK!.get(k.name)));
+  return json(200, await list_feedback(env.FEEDBACK, parse_limit(url.searchParams.get('limit')), url.searchParams.get('cursor') ?? undefined));
+}
+
+/** A page of feedback, newest first (also read by the data centre, server/admin.ts). */
+export async function list_feedback(kv: KVLike, limit: number, cursor?: string): Promise<{ items: FeedbackItem[]; cursor?: string }> {
+  const page = await kv.list({ prefix: 'fb:', limit, cursor });
+  const values = await Promise.all(page.keys.map((k) => kv.get(k.name)));
   const items: FeedbackItem[] = [];
   for (const v of values) {
     try {
@@ -106,5 +111,5 @@ async function review(request: Request, env: FeedbackEnv): Promise<Response> {
       /* skip a damaged record */
     }
   }
-  return json(200, { items, ...(page.list_complete ? {} : { cursor: page.cursor }) });
+  return { items, ...(page.list_complete ? {} : { cursor: page.cursor }) };
 }

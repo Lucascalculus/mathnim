@@ -19,11 +19,13 @@ import type { BlobStore, SqlDb, SqlStmt } from './db';
 import { ai } from './ai';
 import type { DeepseekEnv } from './deepseek';
 import { feedback, type FeedbackEnv } from './feedback';
-import { handle, limit_for, RateLimiter, type KVLike, type Note, type TextCache } from './http';
+import { handle, limit_for, RateLimiter, type KVLike, type LogLine, type Note, type TextCache } from './http';
 import { providers, type ProvidersEnv } from './providers';
 import { ReplayModel } from './studio/model';
 import { MAX_FILE, studio } from './studio/routes';
 import { events } from './events';
+import { admin } from './admin';
+import { hit, record_usage, type StatsEnv } from './stats';
 import { state } from './sync';
 import { tts, type TtsHandlerEnv } from './tts/handler';
 import type { Connect, WsLike } from './tts/protocol';
@@ -280,7 +282,7 @@ export function dev_api(o: DevOptions): Middleware {
   const env = o.env;
   const limited = env.DEV_RATE_LIMITS === '1';
   const limiter = (route: string) => (limited ? new RateLimiter(limit_for(route, env.RATE_LIMITS)) : null);
-  const limits = { deepseek: limiter('deepseek'), tts: limiter('tts'), feedback: limiter('feedback') };
+  const limits = { deepseek: limiter('deepseek'), tts: limiter('tts'), feedback: limiter('feedback'), hit: limiter('hit') };
   const answers = env.ANSWER_CACHE_TTL ? new MemoryCache() : null;
   const tts_cache = new FileCache(o.fs, `${o.cache_dir}/tts`);
   const kv = new FileKV(o.fs, `${o.cache_dir}/feedback.json`);
@@ -290,9 +292,9 @@ export function dev_api(o: DevOptions): Middleware {
   const fb_env: FeedbackEnv = { FEEDBACK: kv, ADMIN_TOKEN: env.ADMIN_TOKEN, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS };
   const blobs = o.bin_fs ? new FileBlobs(o.bin_fs, `${o.cache_dir}/files`) : undefined;
   let db: Promise<SqlDb | undefined> | null = null;
-  const data_env = async (): Promise<AuthEnv> => {
+  const data_env = async (): Promise<StatsEnv> => {
     db ??= o.sqlite ? o.fs.mkdir(o.cache_dir, { recursive: true }).then(() => d1_of(o.sqlite!(`${o.cache_dir}/mathnim.sqlite`))) : Promise.resolve(undefined);
-    return { DB: await db, FILES: blobs, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS, RESEND_API_KEY: env.RESEND_API_KEY, MAIL_FROM: env.MAIL_FROM, ADMIN_EMAILS: env.ADMIN_EMAILS };
+    return { DB: await db, FILES: blobs, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS, RESEND_API_KEY: env.RESEND_API_KEY, MAIL_FROM: env.MAIL_FROM, ADMIN_EMAILS: env.ADMIN_EMAILS, STATS_TZ: env.STATS_TZ };
   };
   const studio_deps = { model: new ReplayModel(o.fs, `${o.cache_dir}/studio`), blob_path: blobs && ((k: string) => blobs.path(k)) };
 
@@ -305,7 +307,14 @@ export function dev_api(o: DevOptions): Middleware {
     [/^\/api\/me\/state\/?$/, 'me/state', async (req) => state(req, await data_env())],
     [/^\/api\/me\/events\/?$/, 'me/events', async (req) => events(req, await data_env())],
     [/^\/api\/studio\/(.*)$/, 'studio', async (req, m, note) => studio(req, await data_env(), m[1].replace(/\/$/, ''), studio_deps, note)],
+    [/^\/api\/hit\/?$/, 'hit', async (req, _m, note) => hit(req, await data_env(), { limiter: limits.hit }, note)],
+    [/^\/api\/admin\/(.*)$/, 'admin', async (req, m) => admin(req, { ...(await data_env()), FEEDBACK: kv }, m[1].replace(/\/$/, ''))],
   ];
+  // what the paid routes cost goes to the local database too, as in production
+  const record = async (line: LogLine) => {
+    const d = (await data_env()).DB;
+    if (d) await record_usage(d, line, env.STATS_TZ || undefined);
+  };
   return (req, res, next) => {
     const path = (req.url ?? '/').split('?')[0];
     for (const [re, name, run] of routes) {
@@ -320,7 +329,7 @@ export function dev_api(o: DevOptions): Middleware {
           return res.end('{"error":"Request too large."}');
         }
         const route = name === 'auth' ? `${name}/${m[1]}` : name;
-        await send(res, await handle(route, request, {}, (note) => run(request, m, note)));
+        await send(res, await handle(route, request, { record }, (note) => run(request, m, note)));
       })().catch((e) => {
         if (!res.headersSent) next(e);
       });

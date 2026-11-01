@@ -1,6 +1,7 @@
 // Cloudflare Workers adapters (used by functions/api/*): outbound websockets
 // and the Cache API. Types are declared here so no Workers type package is needed.
-import { error, handle, LIMITS, limit_for, RateLimiter, type Ctx, type Note, type PagesContext, type TextCache } from './http';
+import { error, handle, LIMITS, limit_for, RateLimiter, type Note, type PagesContext, type TextCache } from './http';
+import { usage_recorder, type StatsEnv } from './stats';
 import type { Connect, WsLike } from './tts/protocol';
 
 interface WorkersSocket extends WsLike {
@@ -49,9 +50,9 @@ export function limiter(route: keyof typeof LIMITS, env: { RATE_LIMITS?: string 
   return l;
 }
 
-/** Wrap a handler as a Pages Function: logging, waitUntil, and a 405 for other methods. */
+/** Wrap a handler as a Pages Function: logging, what the call cost (with a database), waitUntil, and a 405 for other methods. */
 export function pages<E>(route: string | ((c: PagesContext<E>) => string), methods: string[], run: (c: PagesContext<E>, note: Note) => Promise<Response>) {
   return (c: PagesContext<E>): Promise<Response> =>
-    handle(typeof route === 'string' ? route : route(c), c.request, c as Ctx, (note) =>
+    handle(typeof route === 'string' ? route : route(c), c.request, { waitUntil: (p) => c.waitUntil?.(p), record: usage_recorder(c.env as StatsEnv) }, (note) =>
       methods.includes(c.request.method) ? run(c, note) : Promise.resolve(error(405, `Use ${methods.join(' or ')}.`, { allow: methods.join(', ') })));
 }

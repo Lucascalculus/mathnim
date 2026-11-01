@@ -1,4 +1,4 @@
-// Storage for accounts and uploaded courses: a SQL database (Cloudflare D1 in
+// Storage for accounts, uploaded courses and the site's statistics: a SQL database (Cloudflare D1 in
 // production, Node's built-in SQLite in dev, the same SQL in both) and a blob
 // store for the uploaded files (R2 in production, files in dev). Only the
 // parts we use are typed here, so no Workers or Node type package is needed.
@@ -47,6 +47,11 @@ CREATE TABLE IF NOT EXISTS studio_parts (course_id TEXT NOT NULL, key TEXT NOT N
 CREATE TABLE IF NOT EXISTS events (user_id TEXT NOT NULL, id TEXT NOT NULL, t INTEGER NOT NULL, course TEXT, lesson TEXT NOT NULL, step TEXT, verb TEXT NOT NULL, skill TEXT, correct INTEGER, misconception TEXT, duration_ms INTEGER, attempt INTEGER, data TEXT, PRIMARY KEY (user_id, id));
 CREATE INDEX IF NOT EXISTS events_user_t ON events (user_id, t);
 CREATE INDEX IF NOT EXISTS events_step ON events (lesson, step, verb);
+CREATE INDEX IF NOT EXISTS events_t ON events (t);
+CREATE TABLE IF NOT EXISTS hits (t INTEGER NOT NULL, day TEXT NOT NULL, tag TEXT NOT NULL, path TEXT NOT NULL, ref TEXT, country TEXT, device TEXT, lang TEXT, member INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS hits_day ON hits (day);
+CREATE TABLE IF NOT EXISTS salts (day TEXT PRIMARY KEY, salt TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS usage (day TEXT NOT NULL, route TEXT NOT NULL, op TEXT NOT NULL DEFAULT '', model TEXT NOT NULL DEFAULT '', calls INTEGER NOT NULL DEFAULT 0, errors INTEGER NOT NULL DEFAULT 0, limited INTEGER NOT NULL DEFAULT 0, cached INTEGER NOT NULL DEFAULT 0, prompt INTEGER NOT NULL DEFAULT 0, cache_hit INTEGER NOT NULL DEFAULT 0, completion INTEGER NOT NULL DEFAULT 0, chars INTEGER NOT NULL DEFAULT 0, ms INTEGER NOT NULL DEFAULT 0, cost REAL NOT NULL DEFAULT 0, PRIMARY KEY (day, route, op, model));
 `;
 
 /** Columns added after a table was first made: added where missing (an error means it is there already). */
