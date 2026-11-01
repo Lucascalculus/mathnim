@@ -32,6 +32,7 @@ export interface StudioEntry {
 /** The packs a course entry may name: each registers its visuals when imported. */
 const PACKS: Record<string, () => Promise<unknown>> = {
   econ: () => import('@mathnim/visuals/econ'),
+  it: () => import('@mathnim/visuals/it'),
 };
 
 export const studio_slug = (id: string) => `course-${id}`;

@@ -222,7 +222,7 @@ export type Block =
 
 ## Visuals
 
-62 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` for a demo course through its entry's `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+64 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
 
 ### econ
 
@@ -374,6 +374,17 @@ export type Block =
 - **`circle_slices`**: Cut a circle into n slices and line them up into a near-rectangle r high and πr wide, so A = πr·r = πr². Student drags "slices" and "line up" sliders.
   - params: `n: integer in [4, 60] =24 - number of slices in the explanation (even)`; `r: number in [1, 2.1] =1.6 - radius in scene units`; `show_formula: boolean =true - derive A = πr·r = πr² next to the shape`
   - topics: geometry, circles, area, pi
+  - used in: _(not yet used by a lesson)_
+
+### it
+
+- **`it_mac_load`**: Contention against collision-free under rising load (COMP90007 review, practice exam Q5): drag the offered load G and compare slotted ALOHA (S = G·e^−G, at best 37%, then collisions take over) with the bit-map protocol (carries all offered traffic until the channel is full); bars show the channel time spent on frames, collisions, empty slots and reservations.
+  - params: `load: number in [0.1, 4] =3 - the offered load G the scene ends on (frames per frame time); 3 is high load, 0.3 light load`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: networks, mac sublayer, aloha, slotted aloha, bit-map protocol, contention, collision-free, channel efficiency
+  - used in: _(not yet used by a lesson)_
+- **`it_tahoe`**: TCP congestion window round by round (COMP90007 review Q3: Tahoe, threshold 10 KB, timeout at 16 KB): slow start, additive increase, the loss, the new threshold at half the window and the restart from 1; drag the moment of the loss, switch to Reno and to three duplicate ACKs (fast recovery from the threshold).
+  - params: `loss: integer in [12, 20] =16 - the congestion window (KB, segments of 1 KB) when the loss happens; even values, 16 in the exam`; `reno: boolean =false - TCP Reno instead of Tahoe`; `dupack: boolean =false - the loss is signalled by three duplicate ACKs instead of a timeout (matters only for Reno)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: networks, tcp, congestion control, slow start, additive increase, tcp tahoe, tcp reno, aimd
   - used in: _(not yet used by a lesson)_
 
 ### linalg

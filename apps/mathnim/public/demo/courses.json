@@ -30,7 +30,11 @@
   "ready": false,
   "origin": {
    "decks": 20,
-   "exams": 2
+   "exams": 2,
+   "note": {
+    "en": "Generated from 20 lecture decks; the final-exam unit written by an AI (Claude) from the sample questions of the two review lectures · not edited by a person",
+    "zh": "根据 20 份课件生成；期末复习单元由 AI（Claude）根据两节复习课的样题编写 · 未经人工修改"
+   }
   },
   "units": [
    {
@@ -102,11 +106,19 @@
    },
    {
     "title": {
-     "en": "Final exam practice: from the shared channel to DNS to cryptography",
-     "zh": "期末模拟：从共用信道到 DNS 到密码"
+     "en": "Final exam: the sample questions, explained",
+     "zh": "期末复习：样题精讲"
     },
     "lessons": [
-     "5hujdkdkkm-practice"
+     "5hujdkdkkm-exam-start",
+     "5hujdkdkkm-exam-mac",
+     "5hujdkdkkm-exam-transport",
+     "5hujdkdkkm-exam-tahoe",
+     "5hujdkdkkm-exam-web",
+     "5hujdkdkkm-exam-mail",
+     "5hujdkdkkm-exam-cipher",
+     "5hujdkdkkm-exam-auth",
+     "5hujdkdkkm-exam-drill"
     ]
    }
   ],
@@ -1969,20 +1981,20 @@
     }
    },
    {
-    "id": "5hujdkdkkm-practice",
+    "id": "5hujdkdkkm-exam-start",
     "title": {
-     "en": "Final exam practice: from the shared channel to DNS to cryptography",
-     "zh": "期末模拟：从共用信道到 DNS 到密码"
+     "en": "Start here: the sample questions, and how we will learn them",
+     "zh": "从这里开始：这些样题，以及我们怎么学"
     },
     "summary": {
-     "en": "Fifteen exam-style questions to check whether you can connect the whole course: the shared channel, TCP and congestion control, DNS, HTTP, email, and finally cryptography and authentication.",
-     "zh": "用十五道考试风格的题，检查你能不能把整门课连起来：共用信道、TCP 与拥塞控制、DNS、HTTP、邮件，最后到密码与认证。"
+     "en": "What the ten sample questions of the review lectures ask, why the lessons come in this order, and the two habits that earn the marks in a short answer.",
+     "zh": "复习课的十道样题各问什么，课为什么按这个顺序排，以及简答题拿分的两个习惯。"
     },
-    "minutes": 60,
+    "minutes": 10,
     "meta": {
      "title": {
-      "en": "Final exam practice: from the shared channel to DNS to cryptography",
-      "zh": "期末模拟：从共用信道到 DNS 到密码"
+      "en": "Start here: the sample questions, and how we will learn them",
+      "zh": "从这里开始：这些样题，以及我们怎么学"
      },
      "mode": "essay",
      "langs": [
@@ -1991,8 +2003,45 @@
      ],
      "has_scene": false,
      "kinds": [
-      "read",
-      "checkpoint"
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "it-exam.map",
+       "name": {
+        "en": "Reading the exam",
+        "zh": "读懂考题"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-mac",
+    "title": {
+     "en": "A busy shared channel: contention or collision-free? (R1 · 1)",
+     "zh": "忙碌的共享信道：竞争还是无冲突？（复1 · 1）"
+    },
+    "summary": {
+     "en": "Why stations on one channel need rules, what contention and collision-free protocols each waste, how that waste changes with the load, and a full-mark answer.",
+     "zh": "共用一条信道为什么需要规则，竞争协议和无冲突协议各自浪费在哪，浪费怎样随负载变化，以及一份满分答案。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "A busy shared channel: contention or collision-free? (R1 · 1)",
+      "zh": "忙碌的共享信道：竞争还是无冲突？（复1 · 1）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
      ],
      "skills": [
       {
@@ -2003,10 +2052,61 @@
        }
       },
       {
+       "id": "8zg9fk.adaptive-tree-walk",
+       "name": {
+        "en": "The adaptive tree walk",
+        "zh": "自适应树遍历协议 (adaptive tree walk)"
+       }
+      },
+      {
+       "id": "8zg9fk.maca-wireless",
+       "name": {
+        "en": "MACA (RTS/CTS) on wireless LANs",
+        "zh": "无线局域网的 MACA (RTS/CTS)"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-transport",
+    "title": {
+     "en": "Reaching a process, and RPC over UDP or TCP (R2 · 1, 2)",
+     "zh": "找到一个进程，以及 RPC 用 UDP 还是 TCP（复2 · 1、2）"
+    },
+    "summary": {
+     "en": "Why an IP address is not enough to reach a program, what ports and sockets add, what UDP and TCP each promise, and why idempotence decides the RPC question.",
+     "zh": "为什么光有 IP 地址找不到一个程序，端口和套接字补上了什么，UDP 和 TCP 各承诺了什么，以及为什么幂等性决定了 RPC 那道题。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Reaching a process, and RPC over UDP or TCP (R2 · 1, 2)",
+      "zh": "找到一个进程，以及 RPC 用 UDP 还是 TCP（复2 · 1、2）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
        "id": "uk72ey.addressing",
        "name": {
         "en": "Transport-layer addressing: TSAP, NSAP and ports",
         "zh": "传输层寻址：TSAP、NSAP 与端口 (addressing: TSAP, NSAP, port)"
+       }
+      },
+      {
+       "id": "uk72ey.sockets",
+       "name": {
+        "en": "Socket programming and Berkeley sockets",
+        "zh": "套接字编程与 Berkeley 套接字 (socket programming)"
        }
       },
       {
@@ -2022,12 +2122,43 @@
         "en": "TCP's service model and connection features",
         "zh": "TCP 的服务模型与连接特性 (TCP service model and connection features)"
        }
-      },
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-tahoe",
+    "title": {
+     "en": "Congestion control: TCP Tahoe after a timeout (R2 · 3)",
+     "zh": "拥塞控制：TCP Tahoe 超时之后（复2 · 3）"
+    },
+    "summary": {
+     "en": "Why TCP limits its own speed, how slow start and additive increase grow the window, what Tahoe does on a timeout, the four round trips worked line by line, and how Reno differs.",
+     "zh": "TCP 为什么要自己限速，慢启动和加法增大怎样让窗口变大，Tahoe 遇到超时怎么做，逐行算出那四个往返，以及 Reno 有什么不同。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Congestion control: TCP Tahoe after a timeout (R2 · 3)",
+      "zh": "拥塞控制：TCP Tahoe 超时之后（复2 · 3）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
       {
-       "id": "fvccxy.tahoe-reno",
+       "id": "fvccxy.congestion-principle",
        "name": {
-        "en": "TCP Tahoe and TCP Reno",
-        "zh": "TCP Tahoe 与 TCP Reno (TCP Tahoe and TCP Reno)"
+        "en": "The idea of congestion control and TCP's signal: loss as a signal, AIMD",
+        "zh": "拥塞控制的思路与 TCP 的信号 (congestion control principle, loss as signal, AIMD)"
        }
       },
       {
@@ -2038,6 +2169,51 @@
        }
       },
       {
+       "id": "fvccxy.additive-increase",
+       "name": {
+        "en": "Additive increase",
+        "zh": "加法增 (additive increase)"
+       }
+      },
+      {
+       "id": "fvccxy.tahoe-reno",
+       "name": {
+        "en": "TCP Tahoe and TCP Reno",
+        "zh": "TCP Tahoe 与 TCP Reno (TCP Tahoe and TCP Reno)"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-web",
+    "title": {
+     "en": "Opening a web page: with no DNS, and over one connection (R2 · 4, 5)",
+     "zh": "打开一个网页：没有 DNS，以及只用一条连接（复2 · 4、5）"
+    },
+    "summary": {
+     "en": "What DNS does and what still works without it; how a page is fetched over TCP, what a persistent connection saves in round trips, and the catch of deciding when to close it.",
+     "zh": "DNS 做什么，没了它还有什么能用；网页是怎样通过 TCP 取回来的，持久连接省下多少往返，以及什么时候关连接这个难处。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Opening a web page: with no DNS, and over one connection (R2 · 4, 5)",
+      "zh": "打开一个网页：没有 DNS，以及只用一条连接（复2 · 4、5）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
        "id": "bsjyg8.dns-purpose",
        "name": {
         "en": "What DNS is for: translating domain names to IP addresses (name resolution)",
@@ -2045,10 +2221,68 @@
        }
       },
       {
+       "id": "bsjyg8.dns-resolution",
+       "name": {
+        "en": "The DNS name resolution process and caching",
+        "zh": "DNS 解析过程与缓存 (DNS name resolution process and caching)"
+       }
+      },
+      {
+       "id": "bsjyg8.dns-zones",
+       "name": {
+        "en": "Zones and zone name servers, and why not centralise",
+        "zh": "区与区名字服务器，为什么不集中 (zones, zone name servers, why not centralise)"
+       }
+      },
+      {
+       "id": "r96uqr.non-persistent-http",
+       "name": {
+        "en": "Non-persistent HTTP and round-trip time (RTT)",
+        "zh": "非持久 HTTP 与往返时间 (non-persistent HTTP, RTT)"
+       }
+      },
+      {
        "id": "r96uqr.persistent-http-pipelining",
        "name": {
         "en": "Persistent HTTP and pipelining",
         "zh": "持久 HTTP 与流水线 (persistent HTTP, pipelining)"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-mail",
+    "title": {
+     "en": "Email and multimedia: SMTP, and lossy compression (R2 · 6, 7)",
+     "zh": "邮件与多媒体：SMTP 与有损压缩（复2 · 6、7）"
+    },
+    "summary": {
+     "en": "How an email travels and what an SMTP conversation looks like, which gives its strength and its weakness; what lossy compression gives up and why multimedia needs it; then MIME, mailboxes and streaming.",
+     "zh": "一封邮件怎么走、一次 SMTP 对话长什么样，它的优点和缺点就在里面；有损压缩放弃了什么，多媒体为什么离不开它；再看 MIME、收信和流媒体。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Email and multimedia: SMTP, and lossy compression (R2 · 6, 7)",
+      "zh": "邮件与多媒体：SMTP 与有损压缩（复2 · 6、7）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "4ndan6.email-architecture",
+       "name": {
+        "en": "Email architecture: user agents and mail transfer agents (MTA)",
+        "zh": "电子邮件的架构：用户代理与邮件传输代理 (email architecture, user agent, MTA)"
        }
       },
       {
@@ -2059,10 +2293,61 @@
        }
       },
       {
+       "id": "4ndan6.message-format-mime",
+       "name": {
+        "en": "Message format and MIME",
+        "zh": "邮件格式与 MIME (message format, MIME)"
+       }
+      },
+      {
        "id": "4ndan6.multimedia-compression",
        "name": {
         "en": "Multimedia compression: lossless vs. lossy",
         "zh": "多媒体压缩：无损与有损 (compression, lossless vs lossy)"
+       }
+      },
+      {
+       "id": "4ndan6.jitter-buffer",
+       "name": {
+        "en": "Jitter and client-side buffering (playout buffer)",
+        "zh": "抖动与客户端缓冲 (jitter, playout buffer)"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-cipher",
+    "title": {
+     "en": "Encrypting a file you read from the middle: cipher modes (R1 · 2)",
+     "zh": "从中间读的加密文件：密码的工作模式（复1 · 2）"
+    },
+    "summary": {
+     "en": "What a block cipher does to a file, why plain ECB leaks patterns, why chained modes make random access hard, how counter mode makes every block independent, and the one rule counter mode must never break.",
+     "zh": "分组密码怎样处理一个文件，为什么直接用 ECB 会泄露规律，为什么链式模式让随机访问变难，计数器模式怎样让每一块各自独立，以及计数器模式绝不能破的那条规矩。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Encrypting a file you read from the middle: cipher modes (R1 · 2)",
+      "zh": "从中间读的加密文件：密码的工作模式（复1 · 2）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "3kgkap.symmetric-des-aes",
+       "name": {
+        "en": "Symmetric-key algorithms: DES and AES",
+        "zh": "对称密钥算法：DES 与 AES (symmetric-key algorithms, DES, AES)"
        }
       },
       {
@@ -2073,18 +2358,115 @@
        }
       },
       {
+       "id": "3kgkap.keystream-reuse",
+       "name": {
+        "en": "Keystream reuse attack",
+        "zh": "密钥流重用攻击 (keystream reuse attack)"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-auth",
+    "title": {
+     "en": "Proving who is on the other end: public-key authentication (R1 · 3)",
+     "zh": "证明对面是谁：公钥认证（复1 · 3）"
+    },
+    "summary": {
+     "en": "What public and private keys make possible, why a challenge must be a fresh random number, the seven messages one at a time, and what goes wrong if the directory can be faked.",
+     "zh": "公钥和私钥让什么成为可能，为什么挑战必须是新鲜的随机数，七条消息一条一条地看，以及目录被冒充时会出什么事。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Proving who is on the other end: public-key authentication (R1 · 3)",
+      "zh": "证明对面是谁：公钥认证（复1 · 3）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "3kgkap.public-key-basics",
+       "name": {
+        "en": "The idea of public-key cryptography: public and private keys (asymmetric keys)",
+        "zh": "公钥密码的思路：公钥与私钥 (public-key cryptography, asymmetric keys)"
+       }
+      },
+      {
        "id": "3kgkap.authentication-protocols",
        "name": {
         "en": "Authentication protocols: challenge-response and public-key authentication",
         "zh": "认证协议：质询—应答与公钥认证 (authentication, challenge-response)"
        }
+      },
+      {
+       "id": "3kgkap.certificates-pki",
+       "name": {
+        "en": "Public key management: certificates, CA, PKI",
+        "zh": "公钥管理：证书与公钥基础设施 (certificates, CA, PKI)"
+       }
+      },
+      {
+       "id": "3kgkap.diffie-hellman-mitm",
+       "name": {
+        "en": "Diffie-Hellman key exchange and man-in-the-middle attacks",
+        "zh": "Diffie-Hellman 密钥交换与中间人攻击 (Diffie-Hellman key exchange)"
+       }
       }
+     ]
+    }
+   },
+   {
+    "id": "5hujdkdkkm-exam-drill",
+    "title": {
+     "en": "Every answer pattern on one page, and a drill",
+     "zh": "所有答题套路一页纸，再加一组练习"
+    },
+    "summary": {
+     "en": "What each kind of question needs in its answer and the slip that loses the mark, then ten quick questions to do under time.",
+     "zh": "每类题的答案里必须有什么、丢分的常见错，再做十道限时小题。"
+    },
+    "minutes": 25,
+    "meta": {
+     "title": {
+      "en": "Every answer pattern on one page, and a drill",
+      "zh": "所有答题套路一页纸，再加一组练习"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
      ],
-     "checkpoints": 15
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "it-exam.drill",
+       "name": {
+        "en": "The sample questions, all together",
+        "zh": "所有样题合在一起"
+       }
+      }
+     ]
     }
    }
   ],
-  "demo": true
+  "demo": true,
+  "packs": [
+   "it"
+  ]
  },
  {
   "id": "econ90015",

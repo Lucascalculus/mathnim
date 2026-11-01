@@ -103,7 +103,12 @@ ground up, then the solution. In every derivation, say each step in words
 above its line (`say`): what it does and what its new symbols mean; a learner
 new to the subject cannot learn from a bare list of equations. Close with a
 full-mark answer as written on the paper. The ECON90015 demo
-(`docs/lessons/econ90015/`) is built this way.
+(`docs/lessons/econ90015/`) is built this way, and so is the final-exam unit
+of the Internet Technologies demo (`docs/lessons/comp90007/`), where the
+questions are short answers: there the answer is built link by link (the
+choice, the condition, the mechanism, the contrast), a `blank` is used only
+where there is a calculation, and practice includes answers in the learner's
+own words. Their build scripts share `docs/lessons/lesson_kit.py`.
 
 **Time each scene to its voice.** A narrated scene shows each thing as the
 voice talks about it, never a finished figure under a voice that is still
