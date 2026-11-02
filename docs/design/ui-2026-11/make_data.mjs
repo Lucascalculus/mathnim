@@ -1,0 +1,72 @@
+// The design previews' data (data.js): the real courses, units, lessons, minutes and thumbnails, with a made-up
+// learner part-way through three of them. Run from the repo root: node docs/design/ui-2026-11/make_data.mjs
+import fs from 'node:fs';
+
+const manifest = (file) => {
+  const src = fs.readFileSync(file, 'utf8');
+  const start = src.indexOf('= {', src.indexOf('export const MANIFEST')) + 2;
+  const end = src.indexOf('\n};', start) + 2;
+  return JSON.parse(src.slice(start, end));
+};
+const zh = (x) => (typeof x === 'string' ? x : x?.zh ?? x?.en ?? '');
+const thumb = (id) => (fs.existsSync(`apps/mathnim/public/thumbs/${id}.zh.webp`) ? `/apps/mathnim/public/thumbs/${id}.zh.webp` : fs.existsSync(`apps/mathnim/public/thumbs/${id}.en.webp`) ? `/apps/mathnim/public/thumbs/${id}.en.webp` : null);
+const lessons = (list) => list.map((l) => ({ id: l.id, title: zh(l.title), summary: zh(l.summary), minutes: l.minutes, thumb: thumb(l.id) }));
+
+const ft = manifest('apps/mathnim/src/lessons/ft/manifest.generated.ts');
+const mpc = manifest('apps/mathnim/src/lessons/mpc/manifest.generated.ts');
+const demo = JSON.parse(fs.readFileSync('apps/mathnim/public/demo/courses.json', 'utf8'));
+const fromDemo = (id) => {
+  const c = demo.find((x) => x.id === id);
+  const by = new Map(c.lessons.map((l) => [l.id, l]));
+  return { units: c.units.map((u) => ({ title: zh(u.title), lessons: lessons(u.lessons.map((id) => by.get(id))) })), title: zh(c.title), summary: zh(c.summary) };
+};
+
+const courses = [
+  { id: 'llm-finetuning', title: '大模型微调', short: '微调', category: 'AI', accent: '#7C3AED', cover: '/apps/mathnim/public/courses/llm-finetuning/map.zh.webp',
+    summary: '提示词、RAG、SFT、LoRA、偏好与强化学习：什么时候用哪一种，以及它们各自怎么工作。',
+    units: ft.units.map((u) => ({ title: zh(u.title).replace(/^微调 · /, ''), lessons: lessons(u.lessons) })) },
+  { id: 'mpc', title: '模型预测控制', short: 'MPC', category: 'AI', accent: '#0F766E', cover: '/apps/mathnim/public/courses/mpc/horizon.zh.webp',
+    audience: '懂线性代数和微积分的大学生与工程师',
+    outcomes: ['说清 MPC 在做什么：用模型预测未来、解一个优化问题、只执行第一步、下一刻重来', '把一个带约束的控制问题写成二次规划，并用代码解出来', '判断什么时候该用 MPC 而不是 PID 或 LQR，懂稳定、可行和实时的取舍'],
+    prereq: { line: '会线性代数（矩阵、特征值）和微积分就够了，懂一点最小二乘更好。', links: ['Brunton：Control Bootcamp', 'Boyd：《凸优化》第 4 章', 'Rawlings：《模型预测控制》'] },
+    summary: '预测、代价、约束、二次规划、稳定与可行、非线性 MPC：让一辆小车在限制之内停到墙边。',
+    units: mpc.units.map((u) => ({ title: zh(u.title), lessons: lessons(u.lessons) })) },
+  { id: 'math', title: '在运动中学几何', short: '几何', category: '中学数学', accent: '#2563EB', cover: '/apps/mathnim/public/thumbs/pizza.en.webp',
+    summary: '圆的面积、圆与角、特征向量：亲手拖动，看着结论自己长出来。',
+    units: [
+      { title: '圆与面积', lessons: [{ id: 'pizza-game', title: '披萨店', summary: '一张 16 寸还是两张 8 寸？把圆切开拼成长方形。', minutes: 15, thumb: thumb('pizza-game') }] },
+      { title: '线性代数（大学）', lessons: [{ id: 'eigen-pca', title: '特征向量与 PCA', summary: '把矩阵握在手里，看清特征向量为什么正是 PCA 需要的。', minutes: 20, thumb: thumb('eigen-pca') }] },
+      { title: '角与圆', lessons: [{ id: 'best-angle', title: '最佳射门角', summary: '边锋插上：球门在哪里看起来最宽？圆给出答案。', minutes: 15, thumb: thumb('best-angle') }] },
+    ] },
+  { id: '5hujdkdkkm', category: '由课件生成', accent: '#B45309', ...fromDemo('5hujdkdkkm'), title: 'Internet Technologies' },
+  { id: 'econ90015', category: '由课件生成', accent: '#BE123C', ...fromDemo('econ90015'), title: 'ECON90015 模考精讲' },
+];
+
+// a learner part-way through three courses (done lessons, then the current one)
+const progress = { mpc: { done: 1, current: 'mpc-m2-model', step: 4, steps: 14 }, 'llm-finetuning': { done: 4, current: 'ft-b1-sft-mechanics', step: 7, steps: 16 }, econ90015: { done: 9, current: 'econ90015-pq-games', step: 3, steps: 11 } };
+for (const c of courses) {
+  const all = c.units.flatMap((u) => u.lessons);
+  const p = progress[c.id];
+  all.forEach((l, i) => (l.status = !p ? 'new' : i < p.done ? 'done' : l.id === p.current ? 'current' : 'new'));
+  c.lessonCount = all.length;
+  c.minutes = all.reduce((n, l) => n + (l.minutes || 0), 0);
+  if (p) c.progress = p;
+}
+
+// one real step of MPC lesson 2's first page, for the lesson previews
+const lesson = {
+  course: 'mpc', id: 'mpc-m2-model', title: '模型：从物理到预测', chapter: '模型', step: 4, steps: 14,
+  chapters: [{ title: '小车', steps: 3 }, { title: '模型', steps: 4 }, { title: '预测', steps: 4 }, { title: '小结', steps: 3 }],
+  stepTitle: '把一秒切成一小步',
+  figure: thumb('mpc-m2-model'),
+  paras: [
+    '控制器每 0.1 秒做一次决定。在两次决定之间，加速度 a 保持不变：这就是“零阶保持”。所以我们不需要知道小车在每一瞬间的样子，只要知道它在每一个 0.1 秒的格点上在哪里、跑多快。',
+    '把位置 p 和速度 v 放在一起，叫作状态 x。物理告诉我们：一小步之后，速度增加 a·Δt，位置增加 v·Δt 再加上 ½a·Δt²。这两句话写成矩阵，就是 x₊ = A x + B a。',
+    '这不是近似。加速度在一小步里不变，这两个式子就是精确的：模型和现实在每个格点上完全重合。这也是为什么 MPC 可以放心地往前算好几十步。',
+  ],
+  equation: 'x₊ = A x + B a,   A = [1 Δt; 0 1],   B = [½Δt²; Δt]',
+  asks: ['为什么零阶保持下离散化是精确的？', 'A 里的 Δt 从哪里来？'],
+  note: { q: '如果 Δt 变成 0.5 秒，预测会更不准吗？', a: '不会更不准，模型在格点上依然精确。变的是控制器反应的机会：每 0.5 秒才能改一次加速度，小车在两次决定之间只能按旧计划走，靠近墙时就更难刹得刚好。' },
+};
+fs.writeFileSync('docs/design/ui-2026-11/data.js', `// Generated by make_data.mjs - the real courses, with a made-up learner.\nwindow.MN = ${JSON.stringify({ courses, lesson }, null, 1)};\n`);
+console.log(courses.map((c) => `${c.id}: ${c.units.length} units, ${c.lessonCount} lessons, ${c.minutes} min`).join('\n'));
