@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mathnim · 三个方向</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* The note that comes with the three previews: what each direction is, where it comes from, what it risks, and which
+   parts to keep. Set with the previews' own system so it reads as one of them. */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+header { padding: 56px 0 48px; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: end; }
+header .mono { color: var(--muted); }
+header h1 { font-size: 52px; line-height: 1.08; letter-spacing: -.04em; margin: 18px 0 0; font-weight: 700; }
+header p { color: var(--ink2); font-size: 16px; line-height: 1.8; }
+header p a { text-decoration: underline; text-decoration-color: var(--hair2); text-underline-offset: 3px; }
+.sys { border-top: 1px solid var(--ink); padding: 16px 0 56px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.sys > .mono { grid-column: 1 / -1; color: var(--muted); }
+.sys b { display: block; font-size: 17px; margin-bottom: 6px; letter-spacing: -.01em; }
+.sys p { color: var(--ink2); font-size: 14.5px; line-height: 1.75; }
+.dir { border-top: 1px solid var(--ink); padding: 16px 0 72px; }
+.dir .head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: start; }
+.dir .head .mono { color: var(--muted); }
+.dir h2 { margin: 14px 0 12px; font-size: 40px; letter-spacing: -.03em; line-height: 1.1; }
+.dir h2 a:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.dir .idea { font-size: 19px; line-height: 1.7; }
+.dir .from { color: var(--muted); font-size: 14px; line-height: 1.7; margin-top: 12px; }
+.dir dl { margin: 0; display: grid; grid-template-columns: 56px 1fr; gap: 10px 16px; font-size: 14.5px; line-height: 1.7; color: var(--ink2); }
+.dir dt { font: 500 11px/2.2 var(--mono); letter-spacing: .07em; color: var(--muted); }
+.dir dd { margin: 0; }
+.shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, .42fr); gap: 16px; margin-top: 32px; align-items: start; }
+.shots a { display: block; }
+.shots img { width: 100%; box-shadow: 0 0 0 1px var(--hair); background: var(--white); }
+.shots span { display: block; margin-top: 8px; color: var(--muted); }
+.rec { border-top: 1px solid var(--ink); padding: 16px 0 120px; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; }
+.rec > div > .mono { color: var(--accent); }
+.rec h2 { font-size: 30px; letter-spacing: -.02em; line-height: 1.25; margin: 14px 0 18px; }
+.rec ol { margin: 0; padding: 0; list-style: none; counter-reset: o; }
+.rec li { counter-increment: o; position: relative; padding: 12px 0 12px 30px; border-top: 1px solid var(--hair); font-size: 15.5px; line-height: 1.75; }
+.rec li::before { content: counter(o, decimal-leading-zero); position: absolute; left: 0; top: 12px; font: 500 11.5px/2.3 var(--mono); color: var(--accent); }
+.rec li b { font-weight: 650; }
+.rec .side p { color: var(--ink2); font-size: 14.5px; line-height: 1.8; margin-bottom: 14px; }
+.rec .side .mono { color: var(--muted); display: block; margin-bottom: 8px; }
+@media (max-width: 900px) {
+  .wrap { padding: 0 20px; }
+  header, .dir .head, .rec { grid-template-columns: 1fr; gap: 24px; }
+  header h1 { font-size: 36px; }
+  .sys { grid-template-columns: 1fr; }
+  .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><span class="mono">Mathnim 下一代界面 · 2026-11-02 · 预览</span><h1>同一套材料，三种组织方式</h1></div>
+    <p>三个方向共用一套设计系统，各自把“图是展品、课是一段路、问过的留在原处”里的一件做到最强。数据是真实的课程、真实的图（从课的场景按 1920 × 1080 重新渲染）和 MPC 第 2 课的真实文字；学习进度是虚构的。理论和案例见 <a href="research.md">research.md</a>。左下角的条可以在方向和页面之间切换。</p>
+  </header>
+
+  <section class="sys">
+    <span class="mono">三个方向共用</span>
+    <div><b>纸是方的，手是圆的</b><p>正文、图、图版用直角和十字裁切线；能按的东西浮在上面，用胶囊和同心圆角。方与圆的对比本身就分开了“内容”和“操作”，不用底色和边框。没有模糊玻璃。</p></div>
+    <div><b>图版是细节，不是缩略图</b><p>每课的图取颜色最集中的那一块（16:10），按原图三倍分辨率渲染，所以小卡片上也读得清；没有场景的课，用它的标题排成一块字版。</p></div>
+    <div><b>颜色分量相等，动效是弹簧</b><p>五门课的强调色在 OKLCH 里同一明度、相近彩度，只换色相。所有过渡用 Apple 的时长 / 回弹弹簧（换算成 CSS linear()）；步与步之间，向前从右进、向后从左进。</p></div>
+  </section>
+
+  <section class="dir" style="--accent:#755cb4">
+    <div class="head">
+      <div><span class="mono">方向一</span><h2><a href="exhibit.html#/">展厅</a></h2><p class="idea">图是展品。首页是能一眼看见所有课的中庭，课程页是一次展览的平面，课时是一个房间：图在最亮处，说明挂在旁边，导师在页边。</p><p class="from">来自：Kahn 的埃克塞特图书馆与金贝尔美术馆、斯卡帕的古堡博物馆、贝耶勒基金会、Ciechanowski 与 Distill</p></div>
+      <dl><dt>最强</dt><dd>图被认真安放：白色图版、一道光一样的阴影、一行说明；课程页顶部的“平面图”按时长画出每一课；课程页上的图版读得清。</dd><dt>风险</dt><dd>白盒子式的冷；课与课之间的叙事较弱；手机上整图偏小，需要点开放大。</dd></dl>
+    </div>
+    <div class="shots">
+      <a href="exhibit.html#/"><img src="shots/exhibit-1440-home.webp" alt=""><span class="mono">首页</span></a>
+      <a href="exhibit.html#/course/mpc"><img src="shots/exhibit-1440-course.webp" alt=""><span class="mono">课程</span></a>
+      <a href="exhibit.html#/lesson/6"><img src="shots/exhibit-1440-lesson6.webp" alt=""><span class="mono">课时 · 演示</span></a>
+      <a href="exhibit.html#/lesson/6"><img src="shots/exhibit-390-lesson6.webp" alt=""><span class="mono">手机</span></a>
+    </div>
+  </section>
+
+  <section class="dir" style="--accent:#008679">
+    <div class="head">
+      <div><span class="mono">方向二</span><h2><a href="atlas.html#/">路线</a></h2><p class="idea">课是一段路。线长就是时长；课程页从“出发”一路走到“到达”，单元是街区，旁边跟着一张小地图；进了课时，同一条路继续成为步骤：过去的调暗，当下点亮，下一步露出一角。</p><p class="from">来自：Beck 的地铁图（留下问题要的）、Lynch 的城市意象、Cullen 的序列视觉、留园的入口、萨尔克的那条线、Mela 的烹饪模式</p></div>
+      <dl><dt>最强</dt><dd>回答“我在哪、还有多少、下一步是什么”最清楚；课程页对 45 课的大课也成立；课时左边的步骤栏让人永远知道位置。</dd><dt>风险</dt><dd>线画多了就成了装饰；地铁图在课程网站上不少见，要靠“线长 = 时长”和两端撑住，而不是靠地铁的样子。</dd></dl>
+    </div>
+    <div class="shots">
+      <a href="atlas.html#/"><img src="shots/atlas-1440-home.webp" alt=""><span class="mono">首页</span></a>
+      <a href="atlas.html#/course/mpc"><img src="shots/atlas-1440-course.webp" alt=""><span class="mono">课程</span></a>
+      <a href="atlas.html#/lesson/8"><img src="shots/atlas-1440-lesson8.webp" alt=""><span class="mono">课时 · 阅读</span></a>
+      <a href="atlas.html#/lesson/6"><img src="shots/atlas-390-lesson6.webp" alt=""><span class="mono">手机</span></a>
+    </div>
+  </section>
+
+  <section class="dir" style="--accent:#316fbb">
+    <div class="head">
+      <div><span class="mono">方向三</span><h2><a href="lens.html#/">镜头</a></h2><p class="idea">内容铺满，操作都在一只浮在下方的“手”里，它随页面变形：首页是继续，课程页是返回和继续，课时是步骤、播放、问和继续。问题从选中的句子里长出来，收起时折回成句末的编号；课时从课程页上它的那一格放大出来。</p><p class="from">来自：Apple 新设计体系的两层结构与“从源头长出”、灵动岛、iA Writer 的专注、照片 App 的沉浸谱</p></div>
+      <dl><dt>最强</dt><dd>图最大、干扰最少；所有操作一个地方，手机上一只拇指够得着；提问最直接（选中即问）。可以试：在课时页选中一句话，点“问”；点手里的步骤条。</dd><dt>风险</dt><dd>很依赖动效和细节，做不好就是廉价的仿玻璃；首页的“全部课程”是一张张小图，信息气味弱于前两个方向。</dd></dl>
+    </div>
+    <div class="shots">
+      <a href="lens.html#/"><img src="shots/lens-1440-home.webp" alt=""><span class="mono">首页</span></a>
+      <a href="lens.html#/course/mpc"><img src="shots/lens-1440-course.webp" alt=""><span class="mono">课程</span></a>
+      <a href="lens.html#/lesson/6"><img src="shots/lens-1440-lesson6.webp" alt=""><span class="mono">课时 · 演示</span></a>
+      <a href="lens.html#/lesson/6"><img src="shots/lens-390-lesson6.webp" alt=""><span class="mono">手机</span></a>
+    </div>
+  </section>
+
+  <section class="rec" style="--accent:#16181b">
+    <div><span class="mono">建议</span><h2>不选一个，按地方取最强的那一半</h2>
+      <ol>
+        <li><b>课程页用“路线”。</b>从出发走到到达、线长等于时长、单元是街区、旁边一张随滚动的小地图：对 8 课和 45 课的课都成立，最能回答“我在哪、还有多少”。</li>
+        <li><b>图的安放用“展厅”。</b>细节图版、白底加一道光的阴影、一行说明；课时里图得到最多的光，说明紧挨着它。</li>
+        <li><b>操作用“镜头”的一只手。</b>手机上继续、问、步骤都在拇指下；场景里播放器进到手里，页面上只剩图和那句话。桌面上保留页边的“问”（展厅 / 路线的做法），因为大屏有地方让问题和正文同高。</li>
+        <li><b>首页用“展厅”的目录行加“路线”的线。</b>每门课一行：图、名字、一句话，右边是它的进度和继续；线长等于时长，作为全部课程的总览。</li>
+        <li><b>课时的位置感用“路线”的步骤栏</b>（桌面在左，手机收进手里），步与步之间按方向滑动。</li>
+      </ol>
+    </div>
+    <div class="side">
+      <span class="mono">还没做的</span>
+      <p>图是静态的截图：真正的课里它在动、能拖。手机上把图点开到全屏（沉浸的那一档）还没做。英文版没有排。</p>
+      <p>没有接入站点代码：这是放在 docs/design/ui-2026-11/ 的独立预览，用仓库根目录的静态服务器打开（.claude/launch.json 里的 design-preview）。</p>
+      <span class="mono">下一步</span>
+      <p>你选定（或改动）组合以后，我先把一个页面在真实站点里做出来（建议课时页，因为九成的时间在那里），桌面和手机都验过，再推到其余两页。</p>
+    </div>
+  </section>
+</div>
+<script src="data.js"></script>
+<script src="base.js"></script>
+<script>UI.switcher('');</script>
+</body>
+</html>

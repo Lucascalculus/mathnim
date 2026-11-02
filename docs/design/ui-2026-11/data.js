@@ -6,8 +6,8 @@ window.MN = {
    "title": "大模型微调",
    "short": "微调",
    "category": "AI",
-   "accent": "#7C3AED",
-   "cover": "/apps/mathnim/public/courses/llm-finetuning/map.zh.webp",
+   "accent": "#755cb4",
+   "cover": "../../../apps/mathnim/public/courses/llm-finetuning/map.zh.webp",
    "summary": "提示词、RAG、SFT、LoRA、偏好与强化学习：什么时候用哪一种，以及它们各自怎么工作。",
    "units": [
     {
@@ -18,7 +18,13 @@ window.MN = {
        "title": "让模型做事的五种办法",
        "summary": "什么时候不该微调；上下文与权重；手里的信号如何决定方法；微调什么时候真的省钱。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/ft-a1.zh.webp",
+       "thumb": "hi/ft-a1.zh.webp",
+       "crop": [
+        0.1875,
+        0.0185,
+        0.5,
+        0.5556
+       ],
        "status": "done"
       },
       {
@@ -26,7 +32,13 @@ window.MN = {
        "title": "RAG：把知识放进上下文",
        "summary": "向量、关键词与融合；用真实检索结果看预算下的块大小；重排；评测检索；RAG 在哪里失败。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-a2.zh.webp",
+       "thumb": "hi/ft-a2.zh.webp",
+       "crop": [
+        0.0938,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "done"
       },
       {
@@ -34,7 +46,13 @@ window.MN = {
        "title": "微调检索器（选学）",
        "summary": "该微调 RAG 的哪一部分；对比损失及其梯度；悄悄伤害它的假负例。",
        "minutes": 15,
-       "thumb": "/apps/mathnim/public/thumbs/ft-a2b.zh.webp",
+       "thumb": "hi/ft-a2b.zh.webp",
+       "crop": [
+        0.1875,
+        0.0926,
+        0.5,
+        0.5556
+       ],
        "status": "done"
       }
      ]
@@ -47,15 +65,27 @@ window.MN = {
        "title": "SFT：同一个损失，对准该学的 token",
        "summary": "聊天模板、损失掩码、结束 token、打包与平均：是什么决定了 SFT 学到什么。",
        "minutes": 33,
-       "thumb": "/apps/mathnim/public/thumbs/ft-b1-sft-mechanics.zh.webp",
-       "status": "done"
+       "thumb": "hi/ft-b1-sft-mechanics.zh.webp",
+       "crop": [
+        0.0312,
+        0.0556,
+        0.5,
+        0.5556
+       ],
+       "status": "current"
       },
       {
        "id": "ft-b2-data-sources",
        "title": "SFT 的数据从哪来",
        "summary": "人工、强模型、模型自己、老师模型、原始文本：合成数据、拒绝采样、蒸馏、继续预训练、工具调用数据。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/ft-b2-data-sources.zh.webp",
+       "thumb": "hi/ft-b2-data-sources.zh.webp",
+       "crop": [
+        0.0104,
+        0.0556,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -63,7 +93,13 @@ window.MN = {
        "title": "训练曲线与评测",
        "summary": "为什么 loss 更低不等于更好，怎样读曲线，评测的四层、大模型评委，以及一次评测的噪声有多大。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-b3-training-eval.zh.webp",
+       "thumb": "hi/ft-b3-training-eval.zh.webp",
+       "crop": [
+        0.2604,
+        0.0556,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -71,7 +107,13 @@ window.MN = {
        "title": "遗忘",
        "summary": "微调为什么会弄坏原有能力，什么能预测忘多少（相对基座的 KL），以及怎样减少遗忘。",
        "minutes": 22,
-       "thumb": "/apps/mathnim/public/thumbs/ft-b4-forgetting.zh.webp",
+       "thumb": "hi/ft-b4-forgetting.zh.webp",
+       "crop": [
+        0,
+        0.3889,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -84,7 +126,13 @@ window.MN = {
        "title": "中场选择练习",
        "summary": "用目前学过的几条路练习选择：上下文、RAG、编码器分类模型、SFT、继续预训练。",
        "minutes": 10,
-       "thumb": "/apps/mathnim/public/thumbs/ft-f0.zh.webp",
+       "thumb": "hi/ft-f0.zh.webp",
+       "crop": [
+        0.0208,
+        0.4259,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -97,7 +145,13 @@ window.MN = {
        "title": "显存账",
        "summary": "微调时显存里放了什么，怎样估算，哪种技巧省哪一块。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-c1-memory.zh.webp",
+       "thumb": "hi/ft-c1-memory.zh.webp",
+       "crop": [
+        0.2812,
+        0.3519,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -105,7 +159,13 @@ window.MN = {
        "title": "LoRA：只学一个低秩的修正",
        "summary": "冻结模型，只学 ΔW = BA：几何直觉、参数量、真实改动的奇异值谱、配置，以及什么时候不够用。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/ft-c2-lora.zh.webp",
+       "thumb": "hi/ft-c2-lora.zh.webp",
+       "crop": [
+        0.0729,
+        0.037,
+        0.5781,
+        0.6389
+       ],
        "status": "new"
       },
       {
@@ -113,7 +173,13 @@ window.MN = {
        "title": "QLoRA 与上线",
        "summary": "NF4、按块缩放与双重量化；合并与多适配器服务；QLoRA、PTQ 与 QAT 的区别。",
        "minutes": 32,
-       "thumb": "/apps/mathnim/public/thumbs/ft-c3-qlora-serving.zh.webp",
+       "thumb": "hi/ft-c3-qlora-serving.zh.webp",
+       "crop": [
+        0.0938,
+        0.2778,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -126,7 +192,13 @@ window.MN = {
        "title": "为什么要偏好，以及奖励模型",
        "summary": "模仿说不出来的东西，\"A 比 B 好\"怎样变成奖励（Bradley–Terry），以及实践中奖励信号从哪来。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-d1.zh.webp",
+       "thumb": "hi/ft-d1.zh.webp",
+       "crop": [
+        0.0417,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -134,7 +206,13 @@ window.MN = {
        "title": "从策略梯度到 PPO",
        "summary": "用一个不能求导的分数来训练：REINFORCE、基线，以及 PPO 的概率比和截断——GRPO 正是由这些部件搭成的。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-d2a.zh.webp",
+       "thumb": "hi/ft-d2a.zh.webp",
+       "crop": [
+        0.2292,
+        0.3333,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -142,7 +220,13 @@ window.MN = {
        "title": "KL 约束下的最优策略与 RLHF",
        "summary": "为什么学来的奖励需要缰绳，\"奖励 − β·KL\"的精确最优解，看得见的奖励投机，以及 RLHF 的代价。",
        "minutes": 28,
-       "thumb": "/apps/mathnim/public/thumbs/ft-d2b.zh.webp",
+       "thumb": "hi/ft-d2b.zh.webp",
+       "crop": [
+        0.1875,
+        0.1481,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -150,7 +234,13 @@ window.MN = {
        "title": "DPO：推导与几何",
        "summary": "从 KL 最优解推出 DPO，它的梯度在做什么，以及为什么损失在降、被选回答却可能失去概率。",
        "minutes": 34,
-       "thumb": "/apps/mathnim/public/thumbs/ft-d3.zh.webp",
+       "thumb": "hi/ft-d3.zh.webp",
+       "crop": [
+        0.1562,
+        0.2407,
+        0.6562,
+        0.7222
+       ],
        "status": "new"
       },
       {
@@ -159,6 +249,7 @@ window.MN = {
        "summary": "变体一张表看完，造出教对东西的偏好对，离线与迭代，以及在 SFT、DPO、RLVR 之间怎么选。",
        "minutes": 32,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -171,7 +262,13 @@ window.MN = {
        "title": "可验证奖励与 GRPO",
        "summary": "答案能用程序检查时：采样一组，每次尝试和组平均比，修好会出的毛病（零方差组、长度偏差），再写一个不容易被钻空子的评分器。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/ft-e1-rlvr-grpo.zh.webp",
+       "thumb": "hi/ft-e1-rlvr-grpo.zh.webp",
+       "crop": [
+        0.25,
+        0.1296,
+        0.5781,
+        0.6389
+       ],
        "status": "new"
       },
       {
@@ -179,7 +276,13 @@ window.MN = {
        "title": "推理模型的完整配方",
        "summary": "DeepSeek-R1 是怎么训出来的，每个阶段为什么存在；结果奖励与过程奖励；用 pass@k 衡量；强化学习是教会还是磨尖；实际跑强化学习要注意什么。",
        "minutes": 31,
-       "thumb": "/apps/mathnim/public/thumbs/ft-e2-reasoning-recipe.zh.webp",
+       "thumb": "hi/ft-e2-reasoning-recipe.zh.webp",
+       "crop": [
+        0.1979,
+        0.3333,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -187,7 +290,13 @@ window.MN = {
        "title": "蒸馏与合并",
        "summary": "向老师学的三种方式，KL 方向为什么重要，在线蒸馏与多老师蒸馏，蒸馏什么时候胜过强化学习，简讲模型合并，以及遗忘。",
        "minutes": 31,
-       "thumb": "/apps/mathnim/public/thumbs/ft-e3-distill-merge.zh.webp",
+       "thumb": "hi/ft-e3-distill-merge.zh.webp",
+       "crop": [
+        0.0521,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -200,7 +309,13 @@ window.MN = {
        "title": "怎么选：决策框架与案例研讨",
        "summary": "把整门课收成一张决策图，用在十一类真实项目上：从需求推到方法、数据、风险和评测。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/ft-f1.zh.webp",
+       "thumb": "hi/ft-f1.zh.webp",
+       "crop": [
+        0.2917,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -209,7 +324,7 @@ window.MN = {
    "lessonCount": 20,
    "minutes": 588,
    "progress": {
-    "done": 4,
+    "done": 3,
     "current": "ft-b1-sft-mechanics",
     "step": 7,
     "steps": 16
@@ -220,8 +335,8 @@ window.MN = {
    "title": "模型预测控制",
    "short": "MPC",
    "category": "AI",
-   "accent": "#0F766E",
-   "cover": "/apps/mathnim/public/courses/mpc/horizon.zh.webp",
+   "accent": "#008679",
+   "cover": "../../../apps/mathnim/public/courses/mpc/horizon.zh.webp",
    "audience": "懂线性代数和微积分的大学生与工程师",
    "outcomes": [
     "说清 MPC 在做什么：用模型预测未来、解一个优化问题、只执行第一步、下一刻重来",
@@ -246,7 +361,13 @@ window.MN = {
        "title": "往前看再动手",
        "summary": "只对误差做反应为什么守不住限制；MPC 的循环（规划 N 步、执行第一步、重新规划）；以及要往前看多远。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m1-lookahead.zh.webp",
+       "thumb": "hi/mpc-m1-lookahead.zh.webp",
+       "crop": [
+        0.4583,
+        0.1111,
+        0.5,
+        0.5556
+       ],
        "status": "done"
       },
       {
@@ -254,7 +375,13 @@ window.MN = {
        "title": "模型：从物理到预测",
        "summary": "把小车精确离散化，用 X = Φx₀ + ΓU 预测整个计划，并看清线性预测为什么让 MPC 成为 QP。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m2-model.zh.webp",
+       "thumb": "hi/mpc-m2-model.zh.webp",
+       "crop": [
+        0.1562,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "current"
       },
       {
@@ -262,7 +389,13 @@ window.MN = {
        "title": "代价：想要什么",
        "summary": "权重是价格，不是上限：Q 和 R 各买到什么，为什么无约束的计划就是固定的反馈增益，时域和终端代价怎样通向 LQR。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m3-cost.zh.webp",
+       "thumb": "hi/mpc-m3-cost.zh.webp",
+       "crop": [
+        0.0938,
+        0.2963,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -275,7 +408,13 @@ window.MN = {
        "title": "约束：把限制写进去",
        "summary": "限制把 MPC 变成二次规划：最好的计划在最小的代价椭圆碰到允许多边形的地方；截断不等于求解；控制律变成分段仿射的。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m4-constraints.zh.webp",
+       "thumb": "hi/mpc-m4-constraints.zh.webp",
+       "crop": [
+        0.0625,
+        0.2593,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -283,7 +422,13 @@ window.MN = {
        "title": "求解：每一步都要解得够快",
        "summary": "QP 每个采样都要重解，最慢的那次也得按时：稠密与稀疏两种写法，有效集法、内点法和 ADMM，从上一份计划热启动，以及求解器迟到时怎么办。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m5-solving.zh.webp",
+       "thumb": "hi/mpc-m5-solving.zh.webp",
+       "crop": [
+        0.0625,
+        0.2593,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       },
       {
@@ -291,7 +436,13 @@ window.MN = {
        "title": "稳定与可行：短视的代价",
        "summary": "为什么短时域每个 QP 都有解却还是撞墙；终端集怎样让之后的每个 QP 都有解；终端代价又补上了什么；以及扰动可能打破的限制怎样用软约束处理。",
        "minutes": 30,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m6-feasibility.zh.webp",
+       "thumb": "hi/mpc-m6-feasibility.zh.webp",
+       "crop": [
+        0.3438,
+        0.1111,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -304,7 +455,13 @@ window.MN = {
        "title": "模型不准时",
        "summary": "模型不知道的恒定推力为什么怎么调都留下偏差，把它估计出来为什么就能消掉（积分作用），卡尔曼滤波补上了什么，管道 MPC 怎样在变化的推力下守住硬约束。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m7-disturbances.zh.webp",
+       "thumb": "hi/mpc-m7-disturbances.zh.webp",
+       "crop": [
+        0.2604,
+        0.1296,
+        0.5781,
+        0.6389
+       ],
        "status": "new"
       },
       {
@@ -312,7 +469,13 @@ window.MN = {
        "title": "非线性 MPC 与怎么选",
        "summary": "模型非线性时怎么办：打靶法、一次解一个 QP（SQP）、为什么实时迭代从上一个计划出发时每个采样只需一个 QP、工具与真实应用，以及在 PID、LQR、MPC、非线性 MPC 和强化学习之间做选择的卡片。",
        "minutes": 35,
-       "thumb": "/apps/mathnim/public/thumbs/mpc-m8-nmpc.zh.webp",
+       "thumb": "hi/mpc-m8-nmpc.zh.webp",
+       "crop": [
+        0.2604,
+        0.4444,
+        0.5,
+        0.5556
+       ],
        "status": "new"
       }
      ]
@@ -323,7 +486,7 @@ window.MN = {
    "progress": {
     "done": 1,
     "current": "mpc-m2-model",
-    "step": 4,
+    "step": 6,
     "steps": 14
    }
   },
@@ -332,8 +495,8 @@ window.MN = {
    "title": "在运动中学几何",
    "short": "几何",
    "category": "中学数学",
-   "accent": "#2563EB",
-   "cover": "/apps/mathnim/public/thumbs/pizza.en.webp",
+   "accent": "#316fbb",
+   "cover": "hi/pizza.en.webp",
    "summary": "圆的面积、圆与角、特征向量：亲手拖动，看着结论自己长出来。",
    "units": [
     {
@@ -344,7 +507,7 @@ window.MN = {
        "title": "披萨店",
        "summary": "一张 16 寸还是两张 8 寸？把圆切开拼成长方形。",
        "minutes": 15,
-       "thumb": "/apps/mathnim/public/thumbs/pizza-game.en.webp",
+       "thumb": "hi/pizza-game.en.webp",
        "status": "new"
       }
      ]
@@ -357,7 +520,7 @@ window.MN = {
        "title": "特征向量与 PCA",
        "summary": "把矩阵握在手里，看清特征向量为什么正是 PCA 需要的。",
        "minutes": 20,
-       "thumb": "/apps/mathnim/public/thumbs/eigen-pca.en.webp",
+       "thumb": "hi/eigen-pca.en.webp",
        "status": "new"
       }
      ]
@@ -370,7 +533,7 @@ window.MN = {
        "title": "最佳射门角",
        "summary": "边锋插上：球门在哪里看起来最宽？圆给出答案。",
        "minutes": 15,
-       "thumb": "/apps/mathnim/public/thumbs/best-angle.en.webp",
+       "thumb": "hi/best-angle.en.webp",
        "status": "new"
       }
      ]
@@ -382,7 +545,7 @@ window.MN = {
   {
    "id": "5hujdkdkkm",
    "category": "由课件生成",
-   "accent": "#B45309",
+   "accent": "#a25a00",
    "units": [
     {
      "title": "网络与分层",
@@ -393,6 +556,7 @@ window.MN = {
        "summary": "两台电脑怎样把一条消息送到对方手里？为什么要把这件事拆成一层一层来做？",
        "minutes": 55,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -401,6 +565,7 @@ window.MN = {
        "summary": "为什么要先约定一个标准的分层？OSI 为什么输给了 TCP/IP？这门课用哪一个？",
        "minutes": 50,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -414,6 +579,7 @@ window.MN = {
        "summary": "浏览器发出的比特，在线缆和空气里到底是什么？走多快、多远、靠什么载体？",
        "minutes": 65,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -422,6 +588,7 @@ window.MN = {
        "summary": "一条信道最多能传多快？很多人共用它时怎么分？",
        "minutes": 45,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -430,6 +597,7 @@ window.MN = {
        "summary": "一帧数据从网卡送到隔壁那台机器，丢了、坏了、发太快了，怎么办？",
        "minutes": 50,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -438,6 +606,7 @@ window.MN = {
        "summary": "接收方拿到一长串比特，怎么知道一帧从哪开始、到哪结束，又怎么知道有没有比特被翻转？",
        "minutes": 75,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -446,6 +615,7 @@ window.MN = {
        "summary": "很多台机器共用一条线或同一片空气，谁先说话？冲突了怎么办？",
        "minutes": 75,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -459,6 +629,7 @@ window.MN = {
        "summary": "两台主机隔着许多互不相同的网络，包怎样一路到达？网络层该多聪明？",
        "minutes": 70,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -467,6 +638,7 @@ window.MN = {
        "summary": "路由器怎么只记『一个网络』而不是几十亿台主机？地址块怎么切、怎么合？",
        "minutes": 65,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -475,6 +647,7 @@ window.MN = {
        "summary": "地址不够怎么办？路由器是怎么知道往哪走最好的？",
        "minutes": 85,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -488,6 +661,7 @@ window.MN = {
        "summary": "网络层只管尽力送，应用凭什么放心地收发数据？",
        "minutes": 70,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -496,6 +670,7 @@ window.MN = {
        "summary": "什么时候该用 UDP，什么时候该用 TCP？TCP 是怎样做到可靠的？",
        "minutes": 70,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -504,6 +679,7 @@ window.MN = {
        "summary": "每个发送方都想发得快，网络为什么会崩？TCP 只靠丢包怎样自己踩刹车？",
        "minutes": 60,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -517,6 +693,7 @@ window.MN = {
        "summary": "你输入 www.google.com，机器怎么知道该找哪个 IP？为什么这本『电话簿』不放在一台机器里？",
        "minutes": 55,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -525,6 +702,7 @@ window.MN = {
        "summary": "打开一个有 11 个对象的页面要等几个往返？HTTP 怎样记住你是谁？",
        "minutes": 55,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -533,6 +711,7 @@ window.MN = {
        "summary": "一封信怎样跨过两台服务器到达收信人？一段视频怎样边下边播还不卡？",
        "minutes": 70,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -546,6 +725,7 @@ window.MN = {
        "summary": "安全到底要保护什么？一条加密的消息凭什么别人读不懂？",
        "minutes": 55,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -554,6 +734,7 @@ window.MN = {
        "summary": "两个没见过面的人，怎样安全地约定密钥、确认对方、证明消息出自谁？",
        "minutes": 85,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -562,6 +743,7 @@ window.MN = {
        "summary": "安全措施该放在协议栈的哪一层？各管哪几条性质？",
        "minutes": 55,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -575,6 +757,7 @@ window.MN = {
        "summary": "复习课的十道样题各问什么，课为什么按这个顺序排，以及简答题拿分的两个习惯。",
        "minutes": 10,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -583,6 +766,7 @@ window.MN = {
        "summary": "共用一条信道为什么需要规则，竞争协议和无冲突协议各自浪费在哪，浪费怎样随负载变化，以及一份满分答案。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -591,6 +775,7 @@ window.MN = {
        "summary": "为什么光有 IP 地址找不到一个程序，端口和套接字补上了什么，UDP 和 TCP 各承诺了什么，以及为什么幂等性决定了 RPC 那道题。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -599,6 +784,7 @@ window.MN = {
        "summary": "TCP 为什么要自己限速，慢启动和加法增大怎样让窗口变大，Tahoe 遇到超时怎么做，逐行算出那四个往返，以及 Reno 有什么不同。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -607,6 +793,7 @@ window.MN = {
        "summary": "DNS 做什么，没了它还有什么能用；网页是怎样通过 TCP 取回来的，持久连接省下多少往返，以及什么时候关连接这个难处。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -615,6 +802,7 @@ window.MN = {
        "summary": "一封邮件怎么走、一次 SMTP 对话长什么样，它的优点和缺点就在里面；有损压缩放弃了什么，多媒体为什么离不开它；再看 MIME、收信和流媒体。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -623,6 +811,7 @@ window.MN = {
        "summary": "分组密码怎样处理一个文件，为什么直接用 ECB 会泄露规律，为什么链式模式让随机访问变难，计数器模式怎样让每一块各自独立，以及计数器模式绝不能破的那条规矩。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -631,6 +820,7 @@ window.MN = {
        "summary": "公钥和私钥让什么成为可能，为什么挑战必须是新鲜的随机数，七条消息一条一条地看，以及目录被冒充时会出什么事。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -639,6 +829,7 @@ window.MN = {
        "summary": "每类题的答案里必须有什么、丢分的常见错，再做十道限时小题。",
        "minutes": 25,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -652,6 +843,7 @@ window.MN = {
        "summary": "十八道题各问什么、在哪一课讲，以及怎样从分值看出该写什么。",
        "minutes": 8,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -660,6 +852,7 @@ window.MN = {
        "summary": "光纤和铜线各擅长什么、各要付出什么；线路带宽不变时怎样多传几位；奈奎斯特和香农的极限；满分答案。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -668,6 +861,7 @@ window.MN = {
        "summary": "数据里可能含有结束标记时，接收方怎样找到一帧的结尾；填充最多要多花多少；纠错和检错在目的和做法上有什么不同。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -676,6 +870,7 @@ window.MN = {
        "summary": "发送方为什么需要确认、超时和序号，为什么要同时让好几帧在路上，以及中间一帧坏了时，回退 N 帧和选择重传各怎么做。",
        "minutes": 30,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -684,6 +879,7 @@ window.MN = {
        "summary": "IPv4 地址怎样分成网络和主机两部分，子网划分是为了什么，1000 个地址要多大的块，以及路由器怎样用表里的掩码去匹配目的地址。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -692,6 +888,7 @@ window.MN = {
        "summary": "无连接和面向连接的网络层各怎样为分组选路、各有什么代价；路由器怎样根据邻居的距离向量算出自己的路由，用第 10 题的网络完整算一遍。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -700,6 +897,7 @@ window.MN = {
        "summary": "套接字原语各做什么，为什么只有服务器需要一个公开的端口；流量控制窗口和拥塞窗口各保护谁，发送方不守它们会坏在哪里。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -708,6 +906,7 @@ window.MN = {
        "summary": "DNS 除了查名字还提供哪些服务，邮件为什么需要 MIME、MIME 怎样在 SMTP 之内工作，以及让流媒体平稳的缓冲为什么在对话里成了问题。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -716,6 +915,7 @@ window.MN = {
        "summary": "对称密钥算法和公钥算法各做什么、各有什么代价，公钥为什么解决了密钥分发、却又需要被信任，以及中间人怎样利用放在个人网站上的公钥。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -729,6 +929,7 @@ window.MN = {
        "summary": "课程各部分都练过、而样题和模拟卷都没考到的计算题，每类一道例题，以及计算题怎样写才拿满分。",
        "minutes": 8,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -737,6 +938,7 @@ window.MN = {
        "summary": "CRC 的模 2 长除法和接收方的检验；汉明码校验位的放置与检查，以及找出错的那一位；互联网校验和。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -745,6 +947,7 @@ window.MN = {
        "summary": "为什么 CSMA/CD 的帧至少要持续电缆传播时间的两倍，千兆网络的最小帧长，以及这对经典以太网和交换式以太网意味着什么。",
        "minutes": 25,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -753,6 +956,7 @@ window.MN = {
        "summary": "路由器为什么把数据报切成分片，哪些首部字段让目的主机把它拼回去，以及怎样算出每个分片的长度、偏移和 MF 标志，包括 8 的倍数这个陷阱。",
        "minutes": 25,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -761,6 +965,7 @@ window.MN = {
        "summary": "怎样给各机构分配大小为 2 的幂、并从自身大小的整数倍开始的地址块，以及几个前缀什么时候能聚合成一个。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -769,6 +974,7 @@ window.MN = {
        "summary": "临时标号和永久标号，Dijkstra 算法确定各路由器的顺序，为什么最小的标号一定是最终的，以及一个八台路由器网络里 A 到 D 的最短路径。",
        "minutes": 30,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -777,6 +983,7 @@ window.MN = {
        "summary": "卫星链路上一轮要多久，窗口怎样决定吞吐量，多大的窗口能让链路一直忙，以及回退 N 帧和选择重传为此各需要几位序号。",
        "minutes": 30,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -785,6 +992,7 @@ window.MN = {
        "summary": "用小数字生成 RSA 密钥对、加密、解密和签名；用 Diffie–Hellman 商定密钥；怎样手算模 n 的乘方；以及中间人怎样攻破不认证身份的密钥交换。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -798,7 +1006,7 @@ window.MN = {
   {
    "id": "econ90015",
    "category": "由课件生成",
-   "accent": "#BE123C",
+   "accent": "#af4855",
    "units": [
     {
      "title": "从这里开始",
@@ -809,6 +1017,7 @@ window.MN = {
        "summary": "六道题各讲什么，课为什么按这个顺序排，以及贯穿几乎每一分的两个想法。",
        "minutes": 10,
        "thumb": null,
+       "crop": null,
        "status": "done"
       }
      ]
@@ -822,6 +1031,7 @@ window.MN = {
        "summary": "把需求读成价值、把供给读成成本，市场怎么定出价格，配额对它做了什么，以及怎么用钱算清谁得谁失。",
        "minutes": 50,
        "thumb": null,
+       "crop": null,
        "status": "done"
       },
       {
@@ -830,6 +1040,7 @@ window.MN = {
        "summary": "厂商的成本（总成本、平均成本、边际成本），影响不了价格的厂商怎么决定产量，进入和退出为什么把长期价格钉在平均成本最低点，以及弹性衡量的是什么。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "done"
       }
      ]
@@ -843,6 +1054,7 @@ window.MN = {
        "summary": "为什么独家卖方多卖一个赚到的比价格少，它怎样用 MR = MC 定产量，税怎样改变它看到的需求，以及税到底谁付。",
        "minutes": 50,
        "thumb": null,
+       "crop": null,
        "status": "done"
       },
       {
@@ -851,6 +1063,7 @@ window.MN = {
        "summary": "卖家什么时候能向不同买家收不同的价：按组别（三级），或者让买家从一份套餐菜单里自己挑（二级），以及为什么高需求类型能留下信息租金。",
        "minutes": 50,
        "thumb": null,
+       "crop": null,
        "status": "done"
       },
       {
@@ -859,6 +1072,7 @@ window.MN = {
        "summary": "博弈与纳什均衡，厂商对对手产量的最优反应，怎样画出并解出两条反应函数，以及古诺与卡特尔、领导者、完全竞争的比较。",
        "minutes": 45,
        "thumb": null,
+       "crop": null,
        "status": "done"
       }
      ]
@@ -872,6 +1086,7 @@ window.MN = {
        "summary": "边际收益递减，人均收入是一条射线的斜率，为什么一波移民之后人口会回到原处，以及为拿分要画什么、写什么。",
        "minutes": 30,
        "thumb": null,
+       "crop": null,
        "status": "done"
       }
      ]
@@ -885,6 +1100,7 @@ window.MN = {
        "summary": "把整门课的方法汇成一张复习表，再做八道换了数的限时题。",
        "minutes": 30,
        "thumb": null,
+       "crop": null,
        "status": "done"
       }
      ]
@@ -898,6 +1114,7 @@ window.MN = {
        "summary": "这些预测从哪里来，每道题覆盖了哪些模考没考的内容，以及怎么用。",
        "minutes": 8,
        "thumb": null,
+       "crop": null,
        "status": "done"
       },
       {
@@ -906,6 +1123,7 @@ window.MN = {
        "summary": "供给弹性，税在买卖双方之间打进的楔子，税实际由谁负担，无谓损失，以及最高限价会带来什么。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -914,6 +1132,7 @@ window.MN = {
        "summary": "为什么会污染的商品市场会生产过多，损失有多大，能纠正它的税，以及为什么可交易的排放许可比让每家厂商减同样多更省钱。",
        "minutes": 45,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -922,6 +1141,7 @@ window.MN = {
        "summary": "固定成本和可变成本，停产价格和盈亏平衡价格，单个厂商和整个行业的供给，短期利润，进入带来的长期，以及亏损的厂商为什么可能继续生产。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -930,6 +1150,7 @@ window.MN = {
        "summary": "有市场势力的卖家为什么要收入场费再按次收费，顾客不一样时怎么办，以及为什么两种产品只捆绑出售能比分开卖赚得更多。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -938,6 +1159,7 @@ window.MN = {
        "summary": "先复习古诺，然后是先行动的领导者（斯塔克尔伯格）、卡特尔和背叛它的诱惑、价格竞争（伯特兰），全部用同一个需求和成本，方便比较。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -946,6 +1168,7 @@ window.MN = {
        "summary": "收益矩阵里的占优策略和纳什均衡，对手为什么会陷入囚徒困境，重复博弈怎样挽救合作，以及怎样倒推求解轮流行动的博弈，包括可信的威胁和承诺。",
        "minutes": 40,
        "thumb": null,
+       "crop": null,
        "status": "current"
       },
       {
@@ -954,6 +1177,7 @@ window.MN = {
        "summary": "用生产函数算出马尔萨斯均衡，为什么更好的作物带来更多的人却没有让人更富，瘟疫会带来什么，以及现代世界为什么走出了陷阱。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       },
       {
@@ -962,6 +1186,7 @@ window.MN = {
        "summary": "GDP 计算什么、不计算什么，名义 GDP 和实际 GDP，GDP 平减指数和通胀，以及货币数量论和名义利率。",
        "minutes": 35,
        "thumb": null,
+       "crop": null,
        "status": "new"
       }
      ]
@@ -983,42 +1208,152 @@ window.MN = {
   "course": "mpc",
   "id": "mpc-m2-model",
   "title": "模型：从物理到预测",
-  "chapter": "模型",
-  "step": 4,
-  "steps": 14,
-  "chapters": [
+  "minutes": 30,
+  "summary": "把小车精确离散化，用 X = Φx₀ + ΓU 预测整个计划，并看清线性预测为什么让 MPC 成为 QP。",
+  "steps": [
    {
-    "title": "小车",
-    "steps": 3
+    "n": 1,
+    "kind": "read",
+    "title": "规划好不好，全看预测准不准"
    },
    {
-    "title": "模型",
-    "steps": 4
+    "n": 2,
+    "kind": "derive",
+    "title": "小车的一步"
    },
    {
-    "title": "预测",
-    "steps": 4
+    "n": 3,
+    "kind": "read",
+    "title": "为什么不直接用欧拉法？"
    },
    {
-    "title": "小结",
-    "steps": 3
+    "n": 4,
+    "kind": "derive",
+    "title": "把模型展开：X = Φx₀ + ΓU"
+   },
+   {
+    "n": 5,
+    "kind": "check",
+    "title": "先猜一猜"
+   },
+   {
+    "n": 6,
+    "kind": "scene",
+    "title": "总量相同，时机不同"
+   },
+   {
+    "n": 7,
+    "kind": "explore",
+    "title": "自己规划这次停车"
+   },
+   {
+    "n": 8,
+    "kind": "read",
+    "title": "这个世界说明了什么"
+   },
+   {
+    "n": 9,
+    "kind": "code",
+    "title": "二十行代码算出 Φ 和 Γ"
+   },
+   {
+    "n": 10,
+    "kind": "read",
+    "title": "关键事实：预测对计划是线性的"
+   },
+   {
+    "n": 11,
+    "kind": "check",
+    "title": "读出速度"
+   },
+   {
+    "n": 12,
+    "kind": "check",
+    "title": "用欧拉模型规划"
+   },
+   {
+    "n": 13,
+    "kind": "check",
+    "title": "可疑的 Γ"
+   },
+   {
+    "n": 14,
+    "kind": "check",
+    "title": "解释一下"
    }
   ],
-  "stepTitle": "把一秒切成一小步",
-  "figure": "/apps/mathnim/public/thumbs/mpc-m2-model.zh.webp",
-  "paras": [
-   "控制器每 0.1 秒做一次决定。在两次决定之间，加速度 a 保持不变：这就是“零阶保持”。所以我们不需要知道小车在每一瞬间的样子，只要知道它在每一个 0.1 秒的格点上在哪里、跑多快。",
-   "把位置 p 和速度 v 放在一起，叫作状态 x。物理告诉我们：一小步之后，速度增加 a·Δt，位置增加 v·Δt 再加上 ½a·Δt²。这两句话写成矩阵，就是 x₊ = A x + B a。",
-   "这不是近似。加速度在一小步里不变，这两个式子就是精确的：模型和现实在每个格点上完全重合。这也是为什么 MPC 可以放心地往前算好几十步。"
-  ],
-  "equation": "x₊ = A x + B a,   A = [1 Δt; 0 1],   B = [½Δt²; Δt]",
-  "asks": [
-   "为什么零阶保持下离散化是精确的？",
-   "A 里的 Δt 从哪里来？"
-  ],
-  "note": {
-   "q": "如果 Δt 变成 0.5 秒，预测会更不准吗？",
-   "a": "不会更不准，模型在格点上依然精确。变的是控制器反应的机会：每 0.5 秒才能改一次加速度，小车在两次决定之间只能按旧计划走，靠近墙时就更难刹得刚好。"
+  "at": 6,
+  "pages": {
+   "1": {
+    "paras": [
+     "M1 里的规划器一直在问同一个问题：*如果我按这 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: 0;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.009ex\" height=\"1.545ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -683 888 683\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"1D441\" d=\"M234 637Q231 637 226 637Q201 637 196 638T191 649Q191 676 202 682Q204 683 299 683Q376 683 387 683T401 677Q612 181 616 168L670 381Q723 592 723 606Q723 633 659 637Q635 637 635 648Q635 650 637 660Q641 676 643 679T653 683Q656 683 684 682T767 680Q817 680 843 681T873 682Q888 682 888 672Q888 650 880 642Q878 637 858 637Q787 633 769 597L620 7Q618 0 599 0Q585 0 582 2Q579 5 453 305L326 604L261 344Q196 88 196 79Q201 46 268 46H278Q284 41 284 38T282 19Q278 6 272 0H259Q228 2 151 2Q123 2 100 2T63 2T46 1Q31 1 31 10Q31 14 34 26T39 40Q41 46 62 46Q130 49 150 85Q154 91 221 362L289 634Q287 635 234 637Z\"></path></g></g></g></svg></mjx-container> 个加速度去开，小车每一步会在哪？* 它考虑的每个计划都要回答一遍；墙之所以拦得住小车，只是因为预测说了一句“这个计划会越过 10 米”。回答这个问题的规则，就是<b>模型</b>。",
+     "MPC 的模型要同时做到三件事：<b>准</b>，在控制器自己的采样周期上，对系统的描述是对的；<b>快</b>，优化器每个采样周期都要反复用它；<b>形状对</b>，让优化问题保持好解。",
+     "这节课从物理出发，把小车的模型搭出来，三件事逐一核对。第三件最出人意料：预测对计划是<b>线性</b>的，而 MPC 之所以能解得又快又稳，靠的就是这一点。"
+    ],
+    "asks": [
+     "“形状对”具体指什么形状？",
+     "为什么不能直接用更细的模拟？"
+    ]
+   },
+   "5": {
+    "q": "计划 A 在前五根柱子（<mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.375ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.282ex\" height=\"1.375ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -442 1008.6 607.6\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path></g></g></g></g></svg></mjx-container> 到 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.339ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.282ex\" height=\"1.339ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -442 1008.6 592\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"34\" d=\"M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z\"></path></g></g></g></g></svg></mjx-container>）上以 −1 m/s² 刹车，计划 B 在后五根（<mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.375ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.282ex\" height=\"1.375ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -442 1008.6 607.6\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\"></path></g></g></g></g></svg></mjx-container> 到 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.375ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.282ex\" height=\"1.375ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -442 1008.6 607.6\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"39\" d=\"M352 287Q304 211 232 211Q154 211 104 270T44 396Q42 412 42 436V444Q42 537 111 606Q171 666 243 666Q245 666 249 666T257 665H261Q273 665 286 663T323 651T370 619T413 560Q456 472 456 334Q456 194 396 97Q361 41 312 10T208 -22Q147 -22 108 7T68 93T121 149Q143 149 158 135T173 96Q173 78 164 65T148 49T135 44L131 43Q131 41 138 37T164 27T206 22H212Q272 22 313 86Q352 142 352 280V287ZM244 248Q292 248 321 297T351 430Q351 508 343 542Q341 552 337 562T323 588T293 615T246 625Q208 625 181 598Q160 576 154 546T147 441Q147 358 152 329T172 282Q197 248 244 248Z\"></path></g></g></g></g></svg></mjx-container>）上刹。刹车总量一样。<mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.186ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"6.458ex\" height=\"1.756ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -694 2854.6 776\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"1D458\" d=\"M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(798.8,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(1854.6,0)\"><path data-c=\"31\" d=\"M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z\"></path><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\" transform=\"translate(500,0)\"></path></g></g></g></svg></mjx-container> 时哪个说法对？",
+    "options": [
+     "速度一样，位置也一样",
+     "速度一样；B 停得更远",
+     "速度一样；A 停得更远",
+     "<mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.186ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"6.458ex\" height=\"1.756ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -694 2854.6 776\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"1D458\" d=\"M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(798.8,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(1854.6,0)\"><path data-c=\"31\" d=\"M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z\"></path><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\" transform=\"translate(500,0)\"></path></g></g></g></svg></mjx-container> 时 B 还在动"
+    ],
+    "right": 1,
+    "chosen": 0,
+    "explain": "两者都是 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.666ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"10.816ex\" height=\"2.363ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -750 4780.6 1044.2\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mo\"><path data-c=\"2211\" d=\"M61 748Q64 750 489 750H913L954 640Q965 609 976 579T993 533T999 516H979L959 517Q936 579 886 621T777 682Q724 700 655 705T436 710H319Q183 710 183 709Q186 706 348 484T511 259Q517 250 513 244L490 216Q466 188 420 134T330 27L149 -187Q149 -188 362 -188Q388 -188 436 -188T506 -189Q679 -189 778 -162T936 -43Q946 -27 959 6H999L913 -249L489 -250Q65 -250 62 -248Q56 -246 56 -239Q56 -234 118 -161Q186 -81 245 -11L428 206Q428 207 242 462L57 717L56 728Q56 744 61 748Z\"></path></g><g data-mml-node=\"msub\" transform=\"translate(1222.7,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(2446.8,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(3502.6,0)\"><path data-c=\"2212\" d=\"M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(4280.6,0)\"><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\"></path></g></g></g></svg></mjx-container>，所以 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.375ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.885ex\" height=\"1.377ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -443 1275.1 608.6\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D463\" d=\"M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z\"></path></g><g data-mml-node=\"TeXAtom\" transform=\"translate(518,-150) scale(0.707)\" data-mjx-texclass=\"ORD\"><g data-mml-node=\"mn\"><path data-c=\"31\" d=\"M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z\"></path><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\" transform=\"translate(500,0)\"></path></g></g></g></g></g></svg></mjx-container> 都是 0。可是 B 先以全速滑行了半秒：A 停在 9.825 米，B 停在 10.075 米，穿过了墙。"
+   },
+   "6": {
+    "figure": "hi/mpc-m2-model.zh.webp",
+    "caption": "模拟：小车从 9.7 米处以 0.5 m/s 滑向 10 米处的墙，Δt = 0.1 秒，N = 10",
+    "lines": [
+     "十根柱子，就是十个计划好的加速度，每个保持十分之一秒。下面是预测的速度和位置。虚线是一直滑行：小车最后会冲进墙里二十厘米。",
+     "在前五根柱子上用力刹车。速度降到零，小车在离墙十七点五厘米的地方停下。",
+     "现在把同样的刹车挪到后五根柱子。最后的速度还是零，因为速度只是把柱子加起来。",
+     "可小车先全速滑行了半秒，所以最后停在墙后七点五厘米。总量相同，时机不同，位置就不同。柱子下面的灰色数字，说的就是差多少。"
+    ],
+    "line": 3,
+    "seconds": 38,
+    "at": 27,
+    "asks": [
+     "为什么速度只看总量？",
+     "灰色数字是怎么算出来的？"
+    ]
+   },
+   "8": {
+    "paras": [
+     "你刚才在调的两个数，就是 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: 0;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.414ex\" height=\"1.538ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -680 625 680\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"393\" d=\"M128 619Q121 626 117 628T101 631T58 634H25V680H554V676Q556 670 568 560T582 444V440H542V444Q542 445 538 478T523 545T492 598Q454 634 349 634H334Q264 634 249 633T233 621Q232 618 232 339L233 61Q240 54 245 52T270 48T333 46H360V0H348Q324 3 182 3Q51 3 36 0H25V46H58Q100 47 109 49T128 61V619Z\"></path></g></g></g></svg></mjx-container> 的最后一个块行。<b>速度</b>给每根柱子同样的权重 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.025ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"2.701ex\" height=\"1.645ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -716 1194 727\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"394\" d=\"M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(833,0)\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g></g></g></svg></mjx-container>：只看总量，要停住就得 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.666ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"10.816ex\" height=\"2.363ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -750 4780.6 1044.2\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mo\"><path data-c=\"2211\" d=\"M61 748Q64 750 489 750H913L954 640Q965 609 976 579T993 533T999 516H979L959 517Q936 579 886 621T777 682Q724 700 655 705T436 710H319Q183 710 183 709Q186 706 348 484T511 259Q517 250 513 244L490 216Q466 188 420 134T330 27L149 -187Q149 -188 362 -188Q388 -188 436 -188T506 -189Q679 -189 778 -162T936 -43Q946 -27 959 6H999L913 -249L489 -250Q65 -250 62 -248Q56 -246 56 -239Q56 -234 118 -161Q186 -81 245 -11L428 206Q428 207 242 462L57 717L56 728Q56 744 61 748Z\"></path></g><g data-mml-node=\"msub\" transform=\"translate(1222.7,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(2446.8,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(3502.6,0)\"><path data-c=\"2212\" d=\"M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(4280.6,0)\"><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\"></path></g></g></g></svg></mjx-container>。<b>位置</b>给第 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.462ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"0.932ex\" height=\"1.957ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -661 412 865\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mi\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g></g></svg></mjx-container> 根柱子的权重是 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.566ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"12.416ex\" height=\"2.452ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -833.9 5488 1083.9\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"mo\"><path data-c=\"28\" d=\"M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(389,0)\"><path data-c=\"39\" d=\"M352 287Q304 211 232 211Q154 211 104 270T44 396Q42 412 42 436V444Q42 537 111 606Q171 666 243 666Q245 666 249 666T257 665H261Q273 665 286 663T323 651T370 619T413 560Q456 472 456 334Q456 194 396 97Q361 41 312 10T208 -22Q147 -22 108 7T68 93T121 149Q143 149 158 135T173 96Q173 78 164 65T148 49T135 44L131 43Q131 41 138 37T164 27T206 22H212Q272 22 313 86Q352 142 352 280V287ZM244 248Q292 248 321 297T351 430Q351 508 343 542Q341 552 337 562T323 588T293 615T246 625Q208 625 181 598Q160 576 154 546T147 441Q147 358 152 329T172 282Q197 248 244 248Z\"></path><path data-c=\"2E\" d=\"M78 60Q78 84 95 102T138 120Q162 120 180 104T199 61Q199 36 182 18T139 0T96 17T78 60Z\" transform=\"translate(500,0)\"></path><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\" transform=\"translate(778,0)\"></path></g><g data-mml-node=\"mo\" transform=\"translate(1889.2,0)\"><path data-c=\"2212\" d=\"M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(2889.4,0)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(3301.4,0)\"><path data-c=\"29\" d=\"M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z\"></path></g><g data-mml-node=\"mstyle\" transform=\"translate(3690.4,0)\"><g data-mml-node=\"mspace\"></g></g><g data-mml-node=\"mi\" transform=\"translate(3857.4,0)\"><path data-c=\"394\" d=\"M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z\"></path></g><g data-mml-node=\"msup\" transform=\"translate(4690.4,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(394,363) scale(0.707)\"><path data-c=\"32\" d=\"M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z\"></path></g></g></g></g></svg></mjx-container>：早刹比晚刹减掉更多距离。",
+     "把两条放在一起，有个很漂亮的读法。只要小车最后停住，它走过的距离就等于初速度乘以<b>刹车的平均时刻</b> <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.697ex\" height=\"1.773ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -626 750.2 783.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g></g></g></svg></mjx-container>：",
+     "<mjx-container class=\"MathJax\" jax=\"SVG\" display=\"true\"><svg style=\"vertical-align: -2.578ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"42.016ex\" height=\"6.548ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -1754.5 18571.2 2894.1\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D45D\" d=\"M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(536,-150) scale(0.707)\"><path data-c=\"1D441\" d=\"M234 637Q231 637 226 637Q201 637 196 638T191 649Q191 676 202 682Q204 683 299 683Q376 683 387 683T401 677Q612 181 616 168L670 381Q723 592 723 606Q723 633 659 637Q635 637 635 648Q635 650 637 660Q641 676 643 679T653 683Q656 683 684 682T767 680Q817 680 843 681T873 682Q888 682 888 672Q888 650 880 642Q878 637 858 637Q787 633 769 597L620 7Q618 0 599 0Q585 0 582 2Q579 5 453 305L326 604L261 344Q196 88 196 79Q201 46 268 46H278Q284 41 284 38T282 19Q278 6 272 0H259Q228 2 151 2Q123 2 100 2T63 2T46 1Q31 1 31 10Q31 14 34 26T39 40Q41 46 62 46Q130 49 150 85Q154 91 221 362L289 634Q287 635 234 637Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(1436.1,0)\"><path data-c=\"2212\" d=\"M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z\"></path></g><g data-mml-node=\"msub\" transform=\"translate(2436.4,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D45D\" d=\"M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(536,-150) scale(0.707)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(3653.7,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"msub\" transform=\"translate(4709.5,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D463\" d=\"M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(518,-150) scale(0.707)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path></g></g><g data-mml-node=\"mstyle\" transform=\"translate(5631,0)\"><g data-mml-node=\"mspace\"></g></g><g data-mml-node=\"msub\" transform=\"translate(5798,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(6548.2,0)\"><path data-c=\"2C\" d=\"M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z\"></path></g><g data-mml-node=\"mstyle\" transform=\"translate(6826.2,0)\"><g data-mml-node=\"mspace\"></g></g><g data-mml-node=\"msub\" transform=\"translate(8992.9,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(10020.8,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mfrac\" transform=\"translate(11076.6,0)\"><g data-mml-node=\"mrow\" transform=\"translate(220,889.6)\"><g data-mml-node=\"munder\"><g data-mml-node=\"mo\"><path data-c=\"2211\" d=\"M61 748Q64 750 489 750H913L954 640Q965 609 976 579T993 533T999 516H979L959 517Q936 579 886 621T777 682Q724 700 655 705T436 710H319Q183 710 183 709Q186 706 348 484T511 259Q517 250 513 244L490 216Q466 188 420 134T330 27L149 -187Q149 -188 362 -188Q388 -188 436 -188T506 -189Q679 -189 778 -162T936 -43Q946 -27 959 6H999L913 -249L489 -250Q65 -250 62 -248Q56 -246 56 -239Q56 -234 118 -161Q186 -81 245 -11L428 206Q428 207 242 462L57 717L56 728Q56 744 61 748Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(1089,-285.4) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(1430.3,0)\"><path data-c=\"28\" d=\"M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(1819.3,0)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g><g data-mml-node=\"mo\" transform=\"translate(2453.6,0)\"><path data-c=\"2B\" d=\"M56 237T56 250T70 270H369V420L370 570Q380 583 389 583Q402 583 409 568V270H707Q722 262 722 250T707 230H409V-68Q401 -82 391 -82H389H387Q375 -82 369 -68V230H70Q56 237 56 250Z\"></path></g><g data-mml-node=\"mstyle\" transform=\"translate(3453.8,0)\"><g data-mml-node=\"mfrac\"><g data-mml-node=\"mn\" transform=\"translate(220,394) scale(0.707)\"><path data-c=\"31\" d=\"M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(220,-345) scale(0.707)\"><path data-c=\"32\" d=\"M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z\"></path></g><rect width=\"553.6\" height=\"60\" x=\"120\" y=\"220\"></rect></g></g><g data-mml-node=\"mo\" transform=\"translate(4247.3,0)\"><path data-c=\"29\" d=\"M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(4636.3,0)\"><path data-c=\"394\" d=\"M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(5469.3,0)\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mstyle\" transform=\"translate(5830.3,0)\"><g data-mml-node=\"mspace\"></g></g><g data-mml-node=\"msub\" transform=\"translate(6108.3,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g></g><g data-mml-node=\"mrow\" transform=\"translate(2475.7,-710)\"><g data-mml-node=\"munder\"><g data-mml-node=\"mo\"><path data-c=\"2211\" d=\"M61 748Q64 750 489 750H913L954 640Q965 609 976 579T993 533T999 516H979L959 517Q936 579 886 621T777 682Q724 700 655 705T436 710H319Q183 710 183 709Q186 706 348 484T511 259Q517 250 513 244L490 216Q466 188 420 134T330 27L149 -187Q149 -188 362 -188Q388 -188 436 -188T506 -189Q679 -189 778 -162T936 -43Q946 -27 959 6H999L913 -249L489 -250Q65 -250 62 -248Q56 -246 56 -239Q56 -234 118 -161Q186 -81 245 -11L428 206Q428 207 242 462L57 717L56 728Q56 744 61 748Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(1089,-285.4) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g><g data-mml-node=\"msub\" transform=\"translate(1597,0)\"><g data-mml-node=\"mi\"><path data-c=\"1D462\" d=\"M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(605,-150) scale(0.707)\"><path data-c=\"1D457\" d=\"M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z\"></path></g></g></g><rect width=\"7254.7\" height=\"60\" x=\"120\" y=\"220\"></rect></g></g></g></svg></mjx-container>",
+     "就好像所有刹车都集中在 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.697ex\" height=\"1.773ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -626 750.2 783.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g></g></g></svg></mjx-container> 这一瞬间：在那之前，小车一直保持 0.5 m/s。早刹的计划 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"8.737ex\" height=\"1.864ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -666 3861.7 823.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(1028,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(2083.7,0)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path><path data-c=\"2E\" d=\"M78 60Q78 84 95 102T138 120Q162 120 180 104T199 61Q199 36 182 18T139 0T96 17T78 60Z\" transform=\"translate(500,0)\"></path><path data-c=\"32\" d=\"M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z\" transform=\"translate(778,0)\"></path><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\" transform=\"translate(1278,0)\"></path></g></g></g></svg></mjx-container> 秒，走 12.5 厘米；晚刹的 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"8.737ex\" height=\"1.886ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -676 3861.7 833.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(1028,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(2083.7,0)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path><path data-c=\"2E\" d=\"M78 60Q78 84 95 102T138 120Q162 120 180 104T199 61Q199 36 182 18T139 0T96 17T78 60Z\" transform=\"translate(500,0)\"></path><path data-c=\"37\" d=\"M55 458Q56 460 72 567L88 674Q88 676 108 676H128V672Q128 662 143 655T195 646T364 644H485V605L417 512Q408 500 387 472T360 435T339 403T319 367T305 330T292 284T284 230T278 162T275 80Q275 66 275 52T274 28V19Q270 2 255 -10T221 -22Q210 -22 200 -19T179 0T168 40Q168 198 265 368Q285 400 349 489L395 552H302Q128 552 119 546Q113 543 108 522T98 479L95 458V455H55V458Z\" transform=\"translate(778,0)\"></path><path data-c=\"35\" d=\"M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z\" transform=\"translate(1278,0)\"></path></g></g></g></svg></mjx-container> 秒，走 37.5 厘米。停靠要走 30 厘米，所以 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"7.606ex\" height=\"1.864ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -666 3361.7 823.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g><g data-mml-node=\"mo\" transform=\"translate(1028,0)\"><path data-c=\"3D\" d=\"M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z\"></path></g><g data-mml-node=\"mn\" transform=\"translate(2083.7,0)\"><path data-c=\"30\" d=\"M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z\"></path><path data-c=\"2E\" d=\"M78 60Q78 84 95 102T138 120Q162 120 180 104T199 61Q199 36 182 18T139 0T96 17T78 60Z\" transform=\"translate(500,0)\"></path><path data-c=\"36\" d=\"M42 313Q42 476 123 571T303 666Q372 666 402 630T432 550Q432 525 418 510T379 495Q356 495 341 509T326 548Q326 592 373 601Q351 623 311 626Q240 626 194 566Q147 500 147 364L148 360Q153 366 156 373Q197 433 263 433H267Q313 433 348 414Q372 400 396 374T435 317Q456 268 456 210V192Q456 169 451 149Q440 90 387 34T253 -22Q225 -22 199 -14T143 16T92 75T56 172T42 313ZM257 397Q227 397 205 380T171 335T154 278T148 216Q148 133 160 97T198 39Q222 21 251 21Q302 21 329 59Q342 77 347 104T352 209Q352 289 347 316T329 361Q302 397 257 397Z\" transform=\"translate(778,0)\"></path></g></g></g></svg></mjx-container> 秒。"
+    ],
+    "aside": "十根柱子，两个方程：能停靠的计划有很多。哪一个<b>最好</b>（最平顺？最快？），模型回答不了，那是代价函数的事，M3 讲。",
+    "asks": [
+     "<mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.697ex\" height=\"1.773ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -626 750.2 783.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g></g></g></svg></mjx-container> 和物理里的质心有关系吗？",
+     "如果最后没有停住，这个读法还成立吗？"
+    ],
+    "note": {
+     "para": 1,
+     "q": "为什么刹车可以看成“集中在一瞬间”？",
+     "a": "因为距离对每根柱子都是线性的：把刹车按力度加权，求出它们的平均时刻 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.697ex\" height=\"1.773ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -626 750.2 783.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g></g></g></svg></mjx-container>，总效果就和在 <mjx-container class=\"MathJax\" jax=\"SVG\"><svg style=\"vertical-align: -0.357ex;\" xmlns=\"http://www.w3.org/2000/svg\" width=\"1.697ex\" height=\"1.773ex\" role=\"img\" focusable=\"false\" viewBox=\"0 -626 750.2 783.8\"><g stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" transform=\"scale(1,-1)\"><g data-mml-node=\"math\"><g data-mml-node=\"msub\"><g data-mml-node=\"mi\"><path data-c=\"1D461\" d=\"M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z\"></path></g><g data-mml-node=\"mi\" transform=\"translate(394,-150) scale(0.707)\"><path data-c=\"1D450\" d=\"M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z\"></path></g></g></g></g></svg></mjx-container> 那一刻一次刹完一样。这和用质心代替一个物体的全部质量，是同一种算法。"
+    }
+   }
+  },
+  "next": {
+   "id": "mpc-m3-cost",
+   "title": "代价：想要什么",
+   "minutes": 30,
+   "thumb": "hi/mpc-m3-cost.zh.webp",
+   "crop": [
+    0.0938,
+    0.2963,
+    0.5,
+    0.5556
+   ]
   }
  }
 };

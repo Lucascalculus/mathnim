@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mathnim · 镜头</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* 镜头 (Lens): the content fills the page; everything you can press lives in one floating hand at the bottom that
+   changes shape with the page (Apple's two layers; the Dynamic Island). Whatever you summon grows from where you
+   summoned it and goes back there: a question from the sentence you chose, the steps from the hand, a lesson from its
+   tile. The hand is our own material: solid paper lifted by a shadow, round where the content is square. */
+:root { --w: 1200px; --side: 48px; }
+.wrap { max-width: calc(var(--w) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+.top { position: absolute; left: 0; right: 0; top: 0; z-index: 20; display: flex; align-items: center; height: 60px; padding: 0 var(--side); pointer-events: none; }
+.top > * { pointer-events: auto; }
+.top .logo { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; color: var(--ink); }
+.top .logo svg { width: 20px; height: 20px; }
+.top .me { margin-left: auto; width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1.4px var(--ink); display: grid; place-items: center; font: 600 13px/1 var(--serif); background: var(--paper); }
+
+/* ---------------------------------------------------------------- the hand */
+.hand { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 50; background: var(--white); border-radius: var(--r-panel); box-shadow: var(--lift-hi); padding: 8px; overflow: hidden; max-width: calc(100vw - 24px); }
+.hand .row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hand .btn { height: 44px; border-radius: var(--r-inner); padding: 0 16px; }
+.hand .btn.primary small { color: rgba(255, 255, 255, .78); }
+.hand .ico { width: 44px; height: 44px; border-radius: var(--r-inner); display: grid; place-items: center; color: var(--ink2); transition: background-color .15s; }
+.hand .ico:hover { background: var(--wash); }
+.hand .ico svg { width: 18px; height: 18px; }
+.hand .pp { background: var(--ink); color: #fff; border-radius: 22px; }
+.hand .pp:hover { background: var(--ink2); }
+.hand .pp svg { width: 13px; height: 13px; }
+.hand .segs { display: flex; gap: 3px; width: 168px; align-items: center; height: 44px; padding: 0 6px; }
+.hand .segs i { flex: 1; height: 3px; background: var(--hair2); position: relative; border-radius: 2px; overflow: hidden; }
+.hand .segs i b { position: absolute; inset: 0; width: var(--p, 0%); background: var(--ink); }
+.hand .tm { color: var(--muted); padding-right: 8px; }
+.hand .steps-mini { height: 44px; padding: 0 12px; border-radius: var(--r-inner); display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.hand .steps-mini:hover { background: var(--wash); }
+.hand .steps-mini svg { width: 120px; height: 14px; overflow: visible; }
+.hand .panel { padding: 8px 8px 12px; width: min(420px, calc(100vw - 40px)); }
+.hand .panel .mono { color: var(--muted); padding: 4px 4px 10px; display: block; }
+.hand .panel ol { margin: 0; padding: 0; list-style: none; max-height: min(52vh, 460px); overflow: auto; }
+.hand .panel li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 9px 8px; border-radius: 10px; cursor: pointer; font-size: 14.5px; color: var(--muted); }
+.hand .panel li:hover { background: var(--wash); color: var(--ink); }
+.hand .panel li.done { color: var(--ink2); }
+.hand .panel li.here { background: var(--wash); color: var(--ink); font-weight: 600; }
+.hand .panel li svg { width: 16px; height: 16px; overflow: visible; }
+.hand .panel li .mono { padding: 0; color: var(--faint); font-weight: 500; }
+.hand .panel .asks { display: grid; gap: 2px; }
+.hand .panel .asks button { text-align: left; padding: 10px 10px; border-radius: 10px; font-size: 14.5px; line-height: 1.5; color: var(--ink2); }
+.hand .panel .asks button:hover { background: var(--wash); color: var(--ink); }
+.hand .panel .write { margin: 8px 10px 4px; border-bottom: 1.25px solid var(--ink2); height: 34px; font: 15px/34px var(--serif); color: var(--faint); }
+.hand .panel + .row { border-top: 1px solid var(--hair); padding-top: 8px; }
+/* a modal moment (choosing a step) dims the page a little; a parallel one (asking) doesn't */
+.dim { position: fixed; inset: 0; z-index: 45; background: rgba(22, 24, 27, .16); opacity: 0; pointer-events: none; transition: opacity var(--d-smooth) var(--smooth); }
+.dim.on { opacity: 1; pointer-events: auto; }
+
+/* ---------------------------------------------------------------- home */
+/* the figures' own ground is a vertical gradient: the band carries it, so the figure fills the width with no box */
+:root { --fig-ground: linear-gradient(#fff, #fafafa 50%, #f6f5f8); }
+.hero { position: relative; height: calc(100vh - 300px); min-height: 420px; max-height: 820px; background: var(--fig-ground); overflow: hidden; }
+.hero .img { position: absolute; inset: 0; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; }
+.hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--hair); }
+.intro { padding: var(--s6) 0 var(--s9); display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s8); align-items: end; }
+.intro .mono { color: var(--muted); }
+.intro .mono b { color: var(--accent); font-weight: 500; }
+.intro h1 { font-size: 48px; line-height: 1.1; letter-spacing: -.035em; margin: var(--s4) 0 0; font-weight: 700; text-wrap: balance; }
+.intro p { color: var(--ink2); font-size: 17px; line-height: 1.75; }
+.sheets { padding-bottom: 160px; }
+.sheets > .mono { color: var(--muted); display: flex; justify-content: space-between; border-bottom: 1px solid var(--ink); padding-bottom: var(--s4); margin-bottom: var(--s7); }
+.sheet-c { margin-bottom: var(--s8); }
+.sheet-c .h { display: flex; align-items: baseline; gap: var(--s4); margin-bottom: var(--s4); }
+.sheet-c .h b { font-size: 22px; letter-spacing: -.02em; font-weight: 650; }
+.sheet-c .h .mono { color: var(--muted); }
+.sheet-c .h .mono i { font-style: normal; color: var(--accent); }
+.sheet-c .h a.more { margin-left: auto; color: var(--muted); font-size: 14px; }
+.sheet-c .h a.more:hover { color: var(--ink); }
+.tiles { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+.tile { display: block; position: relative; }
+.tile .plate .crops { display: none; }
+.tile .plate { transition: transform var(--d-snappy) var(--snappy), box-shadow .2s; }
+.tile:hover .plate { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--hair), var(--lift); }
+.tile.done::after { content: ''; position: absolute; left: 6px; top: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.tile.current .plate { box-shadow: 0 0 0 2px var(--accent); }
+.tile .plate.type .img { padding: 7px 8px; }
+.tile .plate.type .img b { font-size: 11px; line-height: 1.3; font-weight: 500; color: var(--ink2); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.tile .plate.type .img span { font-size: 9.5px; }
+
+/* ---------------------------------------------------------------- course */
+.c-hero { position: relative; height: 60vh; min-height: 400px; max-height: 660px; background: var(--fig-ground); overflow: hidden; }
+.c-hero.toc { background: var(--white); }
+.c-hero .img { position: absolute; inset: 0; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; }
+.c-hero.toc { display: grid; place-items: center; }
+.c-hero.toc ol { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 64px; }
+.c-hero.toc li { font-size: 17px; line-height: 2.1; color: var(--ink2); break-inside: avoid; }
+.c-hero.toc li span { font: 500 11.5px var(--mono); color: var(--muted); margin-right: 14px; }
+.c-intro { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s8); padding: var(--s6) 0 var(--s8); align-items: start; }
+.c-intro h1 { font-size: var(--t-course); line-height: 1; letter-spacing: -.045em; margin: 0 0 var(--s5); font-weight: 700; }
+.c-intro p { color: var(--ink2); font-size: 18px; line-height: 1.7; }
+.c-intro .pre { color: var(--muted); font-size: 14.5px; margin-top: var(--s3); }
+.c-intro .out .mono { color: var(--muted); display: block; border-bottom: 1px solid var(--hair); padding-bottom: 10px; }
+.c-intro ol { margin: 0; padding: 0; list-style: none; counter-reset: o; }
+.c-intro ol li { counter-increment: o; display: grid; grid-template-columns: 30px 1fr; padding: 12px 0; border-bottom: 1px solid var(--hair); font-size: 15px; line-height: 1.6; }
+.c-intro ol li::before { content: counter(o, decimal-leading-zero); font: 500 11.5px/2.1 var(--mono); color: var(--accent); }
+.units { padding-bottom: 180px; }
+.u-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--s6); padding: var(--s5) 0; border-top: 1px solid var(--hair); }
+.u-row .uh .mono { color: var(--muted); }
+.u-row .uh b { display: block; font-size: 18px; font-weight: 650; letter-spacing: -.01em; margin-top: 6px; }
+.u-row .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s5) 14px; }
+.u-row .tile .t { font-size: 14px; font-weight: 600; line-height: 1.4; margin-top: 10px; }
+.u-row .tile .m { color: var(--muted); margin-top: 3px; }
+.u-row .tile .plate .crops { display: block; }
+
+/* ---------------------------------------------------------------- lesson */
+.l-top { padding: 68px 0 var(--s4); display: flex; align-items: baseline; gap: var(--s4); }
+.l-top .mono { color: var(--muted); }
+.l-top .mono b { color: var(--accent); font-weight: 500; }
+.l-top h1 { margin: 0; font-size: var(--t-step); letter-spacing: -.02em; font-weight: 650; line-height: 1.25; }
+.l-head { max-width: 640px; margin: 0 auto; }
+.full-fig { position: relative; background: var(--fig-ground); box-shadow: 0 1px 0 var(--hair), 0 -1px 0 var(--hair); }
+/* as large as the screen allows while the narration below stays in view */
+.full-fig .img { aspect-ratio: 16 / 9; width: min(100%, (100vh - 330px) * 16 / 9); background-size: 100% auto; background-repeat: no-repeat; margin: 0 auto; }
+.fig-under { max-width: 960px; margin: 0 auto; }
+.fig-under .aside { margin-top: 12px; color: var(--muted); font-size: 12.5px; }
+.player { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--s4); align-items: center; margin-top: var(--s5); }
+.player .pp { width: 44px; height: 44px; border-radius: 22px; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.player .pp svg { width: 14px; height: 14px; }
+.player .segs { display: flex; gap: 4px; height: 20px; align-items: center; }
+.player .segs i { flex: 1; height: 3px; background: var(--hair2); position: relative; border-radius: 2px; overflow: hidden; }
+.player .segs i b { position: absolute; inset: 0; width: var(--p, 0%); background: var(--ink); }
+.player .mono { color: var(--muted); }
+.say { margin: var(--s4) 0 0; font-size: 19px; line-height: 1.75; max-width: 40em; }
+.textcol { max-width: 640px; margin: 0 auto; padding-bottom: 200px; }
+.read p { font-size: var(--t-body); line-height: 1.8; margin: 0 0 var(--s5); color: #202328; }
+.read p b { font-weight: 650; }
+.read .aside-note { border-left: 2px solid var(--ink); padding: 2px 0 2px var(--s5); margin: var(--s6) 0; color: var(--ink2); font-size: 15.5px; line-height: 1.75; }
+.quiz .q { font-size: 20px; line-height: 1.7; margin-bottom: var(--s6); }
+.quiz .opt { display: grid; grid-template-columns: 32px 1fr auto; gap: var(--s3); align-items: center; width: 100%; text-align: left; padding: 14px 18px; margin-bottom: 10px; background: var(--white); border-radius: 0; box-shadow: inset 0 0 0 1px var(--hair2); font-size: 16.5px; line-height: 1.6; }
+.quiz .opt:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.quiz .opt .mono { color: var(--muted); }
+.quiz .opt.right { box-shadow: inset 0 0 0 2px var(--accent); }
+.quiz .opt.right .mono, .quiz .opt.right .verdict { color: var(--accent); }
+.quiz .opt.wrong { color: var(--muted); }
+.quiz .verdict { font: 500 11px/1 var(--mono); letter-spacing: .06em; }
+.quiz .why { margin-top: var(--s5); font-size: 17px; line-height: 1.8; }
+
+/* asking: a capsule appears at the chosen words; the conversation grows out of it and folds back into a number */
+mark.asked { background: linear-gradient(transparent 58%, var(--hl-2) 58%); color: inherit; }
+sup.n { font: 600 10.5px/1 var(--mono); color: var(--accent); margin-left: 2px; cursor: pointer; padding: 2px 3px; border-radius: 4px; }
+sup.n:hover { background: var(--wash); }
+.ask-cap { position: absolute; z-index: 40; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; box-shadow: var(--lift); }
+.pop { position: absolute; z-index: 41; width: 380px; background: var(--white); border-radius: var(--r-panel); box-shadow: var(--lift-hi); padding: 10px 18px 18px; transform-origin: var(--ox, 0) var(--oy, 0); }
+.pop .grab { display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--hair2); margin: 0 auto 10px; cursor: ns-resize; }
+.pop .x { position: absolute; right: 8px; top: 8px; width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; color: var(--muted); }
+.pop .x:hover { background: var(--wash); color: var(--ink); }
+.pop .quote { font-size: 13px; color: var(--muted); line-height: 1.55; border-left: 2px solid var(--hl-2); padding-left: 10px; margin-right: 24px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pop .q { font-size: 15px; font-weight: 600; line-height: 1.55; margin: 12px 0 8px; }
+.pop .a { font: 16px/1.8 var(--serif); color: var(--ink2); min-height: 3.6em; }
+.pop .a .caret { display: inline-block; width: 7px; height: 1.05em; background: var(--accent); vertical-align: -2px; margin-left: 2px; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.pop .follow { margin-top: 14px; border-bottom: 1.25px solid var(--ink2); height: 32px; font: 15px/32px var(--serif); color: var(--faint); }
+.pop.sheet { position: fixed; right: 16px; top: 16px; bottom: 96px; width: 400px; overflow: auto; }
+
+@media (max-width: 900px) {
+  :root { --side: 24px; }
+  .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .intro, .c-intro { grid-template-columns: 1fr; gap: var(--s5); }
+  .u-row { grid-template-columns: 1fr; gap: var(--s4); }
+  .u-row .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  :root { --side: 20px; --t-course: 44px; --t-step: 24px; }
+  .hero { height: 46vh; min-height: 260px; }
+  .hero .img, .c-hero .img { background-size: 160% auto; background-position: 0 100%; }
+  .sheet-c .h { flex-wrap: wrap; row-gap: 4px; }
+  .sheet-c .h b { flex-basis: 100%; }
+  .sheet-c .h a.more { margin-left: auto; }
+  .intro h1 { font-size: 32px; }
+  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .c-hero { height: 40vh; min-height: 260px; }
+  .c-hero.toc ol { columns: 1; }
+  .c-hero.toc li { font-size: 14px; line-height: 1.9; }
+  .l-top { padding-top: 64px; flex-direction: column; gap: 6px; }
+  .full-fig .img { width: 100%; }
+  .fig-under { padding: 0 var(--side); }
+  .read p { font-size: 17px; }
+  .pop { left: 12px !important; right: 12px; width: auto; }
+  .pop.sheet { left: 12px; right: 12px; top: 40px; width: auto; }
+  .hand .steps-mini svg { width: 72px; }
+  .hand .steps-mini .mono { display: none; }
+  .hand .segs { width: 64px; }
+  .hand .tm, .hand .steps-mini:has(+ #askb) { }
+  .hand:has(.pp) .steps-mini { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="dim" id="dim"></div>
+<div class="hand" id="hand"><div class="row"></div></div>
+<script src="data.js"></script>
+<script src="base.js"></script>
+<script>
+const { courses, lesson, course, all, current, recent, unit_of, esc, hours, pad, plate, kind_mark, KIND, ARROW, LOGO, SPRINGS, reduced } = UI;
+const accent = (c) => document.documentElement.style.setProperty('--accent', c.accent);
+const topbar = () => `<div class="top"><a class="logo" href="#/">${LOGO}Mathnim</a><span class="me">L</span></div>`;
+const bg = (src, extra = '') => `<div class="img" style="background-image:url(${src});${extra}"></div>`;
+const ICON = {
+  back: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 3.5 5.5 9l5.5 5.5"/></svg>',
+  ask: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5h12v7.5H8l-3.5 3v-3H3z"/></svg>',
+  grid: '<svg viewBox="0 0 18 18" fill="currentColor"><rect x="2.5" y="2.5" width="5" height="5"/><rect x="10.5" y="2.5" width="5" height="5"/><rect x="2.5" y="10.5" width="5" height="5"/><rect x="10.5" y="10.5" width="5" height="5"/></svg>',
+  x: '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l8 8M11 3l-8 8"/></svg>',
+};
+
+// ---------------------------------------------------------------- the hand: one plane whose shape follows the page
+const hand = document.getElementById('hand'), dim = document.getElementById('dim');
+let handState = { row: '', panel: '' };
+/** Change what the hand holds; it grows or shrinks to fit, on a spring, keeping its centre. */
+function setHand(row, panel = '', { modal = false } = {}) {
+  const a = hand.getBoundingClientRect();
+  hand.innerHTML = `${panel ? `<div class="panel">${panel}</div>` : ''}<div class="row">${row}</div>`;
+  const b = hand.getBoundingClientRect();
+  if (!reduced() && (a.width !== b.width || a.height !== b.height) && a.width) {
+    hand.animate([{ width: `${a.width}px`, height: `${a.height}px` }, { width: `${b.width}px`, height: `${b.height}px` }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
+    hand.firstElementChild.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 60, fill: 'backwards' });
+  }
+  handState = { row, panel };
+  dim.classList.toggle('on', modal);
+}
+dim.addEventListener('click', () => setHand(handState.row));
+
+// ---------------------------------------------------------------- home
+function home(app) {
+  const c = recent(), cur = current(c), p = c.progress;
+  accent(c);
+  app.innerHTML = `${topbar()}
+  <section class="hero"><a href="#/lesson/${p.step}">${bg(cur.thumb)}</a></section>
+  <main class="wrap">
+    <section class="intro">
+      <div><div class="mono"><b>${esc(c.title)}</b> · 第 ${all(c).indexOf(cur) + 1} 课 · 第 ${p.step} 步，共 ${p.steps} 步</div><h1>${esc(cur.title)}</h1></div>
+      <p>${esc(cur.summary)}</p>
+    </section>
+    <section class="sheets">
+      <div class="mono"><span>全部课程</span><span>${courses.length} 门 · ${courses.reduce((n, x) => n + x.lessonCount, 0)} 课</span></div>
+      ${courses.map((x) => {
+        const L = all(x), cap = innerWidth > 700 ? 16 : 8;
+        return `<div class="sheet-c" style="--accent:${x.accent}"><div class="h"><b>${esc(x.title)}</b><span class="mono">${x.lessonCount} 课 · ${hours(x.minutes)}${x.progress ? ` · <i>学过 ${x.progress.done}</i>` : ''}</span><a class="more" href="#/course/${x.id}">全部 ${x.lessonCount} 课 →</a></div>
+          <div class="tiles">${L.slice(0, cap).map((l, i) => `<a class="tile ${l.status}" href="#/course/${x.id}">${plate(l, { label: pad(i + 1) })}</a>`).join('')}</div></div>`;
+      }).join('')}
+    </section>
+  </main>`;
+  setHand(`<a class="btn primary" href="#/lesson/${p.step}">继续 <small>${esc(c.short)} · 第 ${p.step} 步</small> ${ARROW}</a>`);
+}
+
+// ---------------------------------------------------------------- course
+function coursePage(app, id) {
+  const c = course(id) || course('mpc'), cur = current(c), L = all(c);
+  accent(c);
+  const heroHtml = c.cover ? `<section class="c-hero">${bg(c.cover)}</section>`
+    : `<section class="c-hero toc"><ol>${c.units.map((u, i) => `<li><span>${pad(i + 1)}</span>${esc(u.title)}</li>`).join('')}</ol></section>`;
+  app.innerHTML = `${topbar()}${heroHtml}
+  <main class="wrap">
+    <section class="c-intro">
+      <div><h1>${esc(c.title)}</h1><p>${esc(c.summary)}</p>${c.prereq ? `<p class="pre">${esc(c.prereq.line)}</p>` : ''}</div>
+      <div class="out">${c.outcomes ? `<span class="mono">学完你能</span><ol>${c.outcomes.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : `<span class="mono">${L.length} 课 · ${hours(c.minutes)}</span>`}</div>
+    </section>
+    <section class="units">${c.units.map((u, ui) => `
+      <div class="u-row" id="u${ui}"><div class="uh"><span class="mono">${pad(ui + 1)} · ${u.lessons.length} 课</span><b>${esc(u.title)}</b></div>
+        <div class="tiles">${u.lessons.map((l) => {
+          const n = L.indexOf(l) + 1, go = c.id === 'mpc' && l.status === 'current';
+          return `<a class="tile ${l.status}" href="${go ? `#/lesson/${c.progress.step}` : '#'}" ${go ? 'data-grow="1"' : ''}>${plate(l, { label: pad(n) })}<div class="t">${esc(l.title)}</div><div class="m mono">${pad(n)} · ${l.minutes} 分钟${l.status === 'current' ? ` · 第 ${c.progress.step} 步` : l.status === 'done' ? ' · 学过' : ''}</div></a>`;
+        }).join('')}</div></div>`).join('')}</section>
+  </main>`;
+  setHand(`<a class="ico" href="#/" aria-label="全部课程">${ICON.back}</a>${cur ? `<a class="btn primary" href="${c.id === 'mpc' ? `#/lesson/${c.progress.step}` : '#'}" ${c.id === 'mpc' ? 'data-grow="1"' : ''}>继续 <small>${pad(L.indexOf(cur) + 1)} · ${esc(cur.title)}</small> ${ARROW}</a>` : `<a class="btn primary" href="#">开始 <small>01 · ${esc(L[0].title)}</small> ${ARROW}</a>`}`);
+  // the lesson grows out of its tile: remember where the tile was, so the lesson's figure can start there
+  document.querySelectorAll('[data-grow]').forEach((a) => a.addEventListener('click', () => {
+    const t = app.querySelector('.tile.current .plate');
+    if (t) sessionStorage.setItem('grow-from', JSON.stringify(t.getBoundingClientRect()));
+  }));
+}
+
+// ---------------------------------------------------------------- lesson
+let ticker, notes = [];
+function stepsMini(at) {
+  const n = lesson.steps.length, w = innerWidth > 700 ? 120 : 72, x = (i) => 3 + (i / (n - 1)) * (w - 6);
+  return `<svg viewBox="0 0 ${w} 14"><path d="M${x(0)},7H${x(n - 1)}" stroke="var(--hair2)"/><path d="M${x(0)},7H${x(at - 1)}" stroke="var(--accent)" stroke-width="2"/>${lesson.steps.map((s, i) => `<circle cx="${x(i)}" cy="7" r="${s.n === at ? 4 : 2}" fill="${s.n <= at ? 'var(--accent)' : 'var(--paper)'}" stroke="${s.n <= at ? 'var(--accent)' : 'var(--faint)'}"/>`).join('')}</svg>`;
+}
+function lessonHand(at) {
+  const nextOpen = [1, 5, 6, 8].find((n) => n > at) || at, prevOpen = [8, 6, 5, 1].find((n) => n < at);
+  const page = lesson.pages[at], scene = lesson.steps[at - 1].kind === 'scene' && page;
+  // in a scene the hand holds the player: play, the narration's sentences as segments, the time
+  const player = scene ? `<button class="ico pp" aria-label="播放"><svg viewBox="0 0 14 14"><path d="M2 1l11 6-11 6z" fill="currentColor"/></svg></button><span class="segs">${page.lines.map((_, i) => `<i><b style="--p:${i < page.line ? 100 : i === page.line ? 40 : 0}%"></b></i>`).join('')}</span><span class="mono tm">0:${pad(page.at)}</span>` : '';
+  return `<a class="ico" href="#/course/mpc" aria-label="课程">${ICON.grid}</a>${prevOpen ? `<a class="ico" href="#/lesson/${prevOpen}" aria-label="上一步">${ICON.back}</a>` : ''}
+    ${player}<button class="steps-mini" id="sm"><span class="mono">${pad(at)} / ${lesson.steps.length}</span>${stepsMini(at)}</button>
+    <button class="ico" id="askb" aria-label="问">${ICON.ask}</button>
+    <a class="btn primary" href="#/lesson/${nextOpen}">继续 ${ARROW}</a>`;
+}
+function stepsPanel(at) {
+  return `<span class="mono">${esc(lesson.title)} · ${lesson.steps.length} 步</span><ol>${lesson.steps.map((s) => {
+    const attrs = s.n === at ? `fill="var(--accent)" stroke="var(--accent)"` : s.n < at ? `fill="var(--ink)" stroke="var(--ink)"` : `fill="var(--paper)" stroke="var(--faint)" stroke-width="1.25"`;
+    return `<li class="${s.n < at ? 'done' : s.n === at ? 'here' : ''}" data-n="${s.n}"><svg viewBox="0 0 16 16">${kind_mark(s.kind, 8, 8, 4.5, attrs)}</svg><span>${esc(s.title)}</span><span class="mono">${KIND[s.kind]}</span></li>`;
+  }).join('')}</ol>`;
+}
+function bindHand(at, page) {
+  hand.querySelector('#sm')?.addEventListener('click', () => {
+    if (handState.panel) return setHand(handState.row);
+    setHand(handState.row, stepsPanel(at), { modal: true });
+    hand.querySelectorAll('li').forEach((li) => li.addEventListener('click', () => (location.hash = `#/lesson/${li.dataset.n}`)));
+    bindHand(at, page);
+  });
+  hand.querySelector('#askb')?.addEventListener('click', () => {
+    if (handState.panel) return (setHand(handState.row), bindHand(at, page));
+    setHand(handState.row, `<span class="mono">问这一页</span><div class="asks">${(page?.asks || []).map((q) => `<button>${q}</button>`).join('')}</div><div class="write">问这一页……</div>`);
+    bindHand(at, page);
+  });
+}
+
+function lessonPage(app, step) {
+  const c = course('mpc'), L = lesson, at = Math.min(Math.max(+step || L.at, 1), L.steps.length);
+  accent(c);
+  clearInterval(ticker);
+  document.querySelectorAll('.pop,.ask-cap').forEach((x) => x.remove());
+  const s = L.steps[at - 1], page = L.pages[at];
+  const head = `<div class="l-top"><span class="mono"><b>${pad(at)}</b> · ${KIND[s.kind]}</span><h1>${esc(s.title)}</h1></div>`;
+  let html;
+  if (page && s.kind === 'scene') {
+    html = `<div class="wrap" style="max-width:${960 + 96}px">${head}</div>
+      <figure class="full-fig" style="margin:0" id="ff">${bg(page.figure, 'max-width:1440px')}</figure>
+      <div class="fig-under"><div class="aside">${esc(page.caption)}</div>
+        <p class="say read-sel">${esc(page.lines[page.line])}</p><div style="height:180px"></div></div>`;
+  } else if (page && s.kind === 'check') {
+    html = `<div class="textcol">${head}<div class="quiz"><div class="q">${page.q}</div>${page.options.map((o, i) => `<button class="opt" data-i="${i}"><span class="mono">${'ABCD'[i]}</span><span>${o}</span><span class="verdict"></span></button>`).join('')}<div class="why" hidden>${page.explain}</div></div></div>`;
+  } else if (page) {
+    html = `<div class="textcol">${head}<div class="read read-sel">${page.paras.map((p, i) => `<p data-i="${i}">${p}${page.note && page.note.para === i ? '<sup class="n" data-note="0">1</sup>' : ''}</p>`).join('')}${page.aside ? `<div class="aside-note">${page.aside}</div>` : ''}</div></div>`;
+  } else html = `<div class="textcol">${head}<p class="muted">（原型只做了第 1、5、6、8 步。）</p></div>`;
+  app.innerHTML = topbar() + html;
+  setHand(lessonHand(at));
+  bindHand(at, page);
+
+  // the figure grows out of the tile it was chosen from (same shape, moved and scaled)
+  const from = sessionStorage.getItem('grow-from');
+  sessionStorage.removeItem('grow-from');
+  const ff = app.querySelector('#ff');
+  if (from && ff && !reduced()) {
+    const a = JSON.parse(from), b = ff.getBoundingClientRect();
+    ff.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, transformOrigin: '0 0' }, { transform: 'none', transformOrigin: '0 0' }], { duration: SPRINGS.smooth.ms * 1.1, easing: SPRINGS.smooth.css });
+    app.querySelectorAll('.l-top, .fig-under').forEach((el) => el.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: 160, easing: SPRINGS.smooth.css, fill: 'backwards' }));
+  }
+  if (s.kind === 'check' && page) app.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => {
+    const i = +b.dataset.i;
+    app.querySelectorAll('.opt').forEach((o) => {
+      const j = +o.dataset.i;
+      o.classList.toggle('right', j === page.right);
+      o.classList.toggle('wrong', j === i && i !== page.right);
+      o.querySelector('.verdict').textContent = j === page.right ? '对' : j === i ? '你选的' : '';
+    });
+    app.querySelector('.why').hidden = false;
+  }));
+  if (s.kind === 'scene' && page) {
+    const pp = hand.querySelector('.pp'), say = app.querySelector('.say'), segs = [...hand.querySelectorAll('.segs b')];
+    let line = page.line, prog = 40, on = false;
+    pp.addEventListener('click', () => {
+      on = !on;
+      pp.innerHTML = on ? '<svg viewBox="0 0 14 14"><path d="M3 1h3v12H3zM8 1h3v12H8z" fill="currentColor"/></svg>' : '<svg viewBox="0 0 14 14"><path d="M2 1l11 6-11 6z" fill="currentColor"/></svg>';
+      clearInterval(ticker);
+      if (on) ticker = setInterval(() => { prog += 4; if (prog >= 100) { prog = 0; line = (line + 1) % page.lines.length; } segs.forEach((b, i) => b.style.setProperty('--p', `${i < line ? 100 : i === line ? prog : 0}%`)); say.textContent = page.lines[line]; }, 160);
+    });
+  }
+  // the note this page already holds opens from its number
+  app.querySelectorAll('sup.n[data-note]').forEach((sup) => sup.addEventListener('click', () => openPop(sup, { q: page.note.q, a: page.note.a, quote: sup.parentElement.textContent.slice(0, 60) + '…', instant: true })));
+  bindSelection(app);
+  if (/ask/.test(location.search) && page?.note) setTimeout(() => app.querySelector('sup.n')?.click(), 200);
+  if (/steps/.test(location.search)) setTimeout(() => hand.querySelector('#sm')?.click(), 200);
+}
+
+// ---------------------------------------------------------------- asking from the words themselves
+let cap;
+function bindSelection(app) {
+  const zone = app.querySelector('.read-sel');
+  if (!zone) return;
+  const show = () => {
+    const sel = getSelection();
+    cap?.remove();
+    if (!sel.rangeCount || sel.isCollapsed || !zone.contains(sel.anchorNode)) return;
+    const text = sel.toString().trim();
+    if (text.length < 2) return;
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    cap = document.createElement('button');
+    cap.className = 'ask-cap';
+    cap.textContent = '问';
+    cap.style.left = `${r.right + scrollX - 18}px`;
+    cap.style.top = `${r.top + scrollY - 40}px`;
+    document.body.append(cap);
+    cap.animate([{ transform: 'scale(.6)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPRINGS.snappy.ms, easing: SPRINGS.snappy.css });
+    const range = sel.getRangeAt(0).cloneRange();
+    cap.addEventListener('mousedown', (e) => e.preventDefault());
+    cap.addEventListener('click', () => {
+      // the chosen words keep a highlight; the question grows from the capsule
+      const mark = document.createElement('mark');
+      mark.className = 'asked';
+      try { range.surroundContents(mark); } catch { /* across elements: leave unmarked */ }
+      getSelection().removeAllRanges();
+      openPop(cap, { quote: text, q: `“${text.length > 24 ? text.slice(0, 24) + '…' : text}”是什么意思？`, a: '这句话说的是：速度只取决于刹车的总量，因为每根柱子对速度的权重都是同样的 0.1；位置却还要看刹车发生的早晚。早刹的那部分速度损失，有更多的步子去累积成少走的距离。', anchor: mark.isConnected ? mark : null });
+      cap.remove();
+    });
+  };
+  zone.addEventListener('mouseup', () => setTimeout(show, 0));
+  zone.addEventListener('touchend', () => setTimeout(show, 250));
+}
+function openPop(src, { quote, q, a, anchor = null, instant = false }) {
+  document.querySelectorAll('.pop').forEach((x) => x.remove());
+  const r = src.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'pop';
+  const left = Math.min(Math.max(12, r.left + scrollX - 40), innerWidth - 392 + scrollX);
+  pop.style.left = `${left}px`;
+  pop.style.top = `${r.bottom + scrollY + 10}px`;
+  pop.style.setProperty('--ox', `${r.left + scrollX - left + r.width / 2}px`);
+  pop.style.setProperty('--oy', '-10px');
+  pop.innerHTML = `<span class="grab" title="展开"></span><button class="x" aria-label="收起">${ICON.x}</button><div class="quote">${esc(quote)}</div><div class="q">${esc(q)}</div><div class="a"></div><div class="follow">接着问……</div>`;
+  document.body.append(pop);
+  pop.animate([{ transform: 'scale(.2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
+  const out = pop.querySelector('.a');
+  if (instant) out.innerHTML = a;
+  else {
+    // the answer starts at once and arrives as it is written
+    let i = 0;
+    const t = setInterval(() => { i += 2; out.innerHTML = esc(a.slice(0, i)) + (i < a.length ? '<span class="caret"></span>' : ''); if (i >= a.length) clearInterval(t); }, 28);
+  }
+  // pull the grabber up: the conversation becomes a sheet beside the page (more room, still parallel to reading)
+  pop.querySelector('.grab').addEventListener('click', () => {
+    const f = pop.getBoundingClientRect();
+    pop.classList.toggle('sheet');
+    const l = pop.getBoundingClientRect();
+    pop.animate([{ transform: `translate(${f.left - l.left}px, ${f.top - l.top}px) scale(${f.width / l.width}, ${f.height / l.height})`, transformOrigin: '0 0' }, { transform: 'none', transformOrigin: '0 0' }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
+  });
+  // close: the conversation folds back into a number at the end of its words, and stays there
+  pop.querySelector('.x').addEventListener('click', () => {
+    let target = src.matches('sup') ? src : null;
+    if (!target && anchor) {
+      target = document.createElement('sup');
+      target.className = 'n';
+      target.textContent = String(++notes.length + (document.querySelectorAll('sup.n[data-note]').length));
+      anchor.after(target);
+      target.addEventListener('click', () => openPop(target, { quote, q, a, instant: true }));
+    }
+    const p = pop.getBoundingClientRect(), t = target ? target.getBoundingClientRect() : p;
+    const anim = pop.animate([{ transform: 'none', opacity: 1, transformOrigin: '0 0' }, { transform: `translate(${t.left - p.left}px, ${t.top - p.top}px) scale(${12 / p.width}, ${12 / p.height})`, opacity: 0, transformOrigin: '0 0' }], { duration: reduced() ? 1 : 360, easing: SPRINGS.smooth.css });
+    anim.onfinish = () => pop.remove();
+  });
+}
+
+UI.switcher('lens');
+UI.start((r, ctx) => {
+  const app = document.getElementById('app');
+  dim.classList.remove('on');
+  if (r.page === 'course') coursePage(app, r.id);
+  else if (r.page === 'lesson') {
+    lessonPage(app, r.id);
+    if (ctx.from?.page === 'lesson') app.querySelectorAll('.textcol, .l-top, .full-fig, .fig-under').forEach((el) => UI.step_in(el, +(ctx.from.id || lesson.at), +(r.id || lesson.at)));
+  }
+  else home(app);
+});
+</script>
+</body>
+</html>

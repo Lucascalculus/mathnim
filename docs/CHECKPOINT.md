@@ -3,6 +3,16 @@
 Work follows `docs/PLAN.md` (the engineering plan; status per work package is
 kept there). This file is the short "where are we right now".
 
+## Interface redesign (2026-11-02), waiting for Lucas's choice
+
+- Study: `docs/design/ui-2026-11/research.md` (Apple's guidance read in full, HCI, learning science, typography,
+  architecture, forty-odd cases, sixteen shared lessons, a critique of the live site, a design system).
+- Three previews of home, course and lesson (desktop and phone) in `docs/design/ui-2026-11/`: `exhibit.html` (展厅),
+  `atlas.html` (路线), `lens.html` (镜头); `index.html` compares them and recommends a mix. Serve the repo root
+  statically (`design-preview` in `.claude/launch.json`). Data from `make_data.mjs` (real courses, figures rendered
+  at 1920 × 1080 into `hi/`, details from `crops.py`, MPC lesson 2's real text with MathJax formulas).
+- Next: once Lucas picks, build the lesson page in the real site first, then the course page and home.
+
 ## Done today
 
 - DeepSeek provider (`deepseek-flash` default), key in `.env.local`, proxied by
