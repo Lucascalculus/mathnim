@@ -1,0 +1,38 @@
+/* What the three previews share: the paper, the ink, the three voices (sans for the interface, serif for the tutor,
+   mono for measurements) and the switcher. Each direction adds its own layout on top. */
+:root {
+  --paper: #fafaf7;
+  --white: #ffffff;
+  --ink: #16181b;
+  --ink2: #3a3e44;
+  --muted: #6b7077;
+  --faint: #e7e6e1;
+  --hair: rgba(22, 24, 27, 0.14);
+  --grid: rgba(22, 24, 27, 0.13);
+  --blue: #2f5bd3;
+  --red: #c2412d;
+  --hl-1: #ffe58a;
+  --hl-2: #b9e6ff;
+  --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --serif: "Iowan Old Style", Georgia, "Songti SC", "STSong", serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+img { display: block; max-width: 100%; }
+.mono { font-family: var(--mono); letter-spacing: .06em; }
+.serif { font-family: var(--serif); }
+
+/* the prototype's own switcher: not part of any design */
+.proto {
+  position: fixed; left: 12px; bottom: 12px; z-index: 1000; display: flex; gap: 1px; padding: 2px;
+  background: var(--ink); border-radius: 3px; font: 500 11px/1 var(--mono); letter-spacing: .04em;
+}
+.proto a { color: rgba(255, 255, 255, .6); padding: 7px 9px; border-radius: 2px; }
+.proto a:hover { color: #fff; }
+.proto a.on { background: rgba(255, 255, 255, .16); color: #fff; }
+.proto i { width: 1px; background: rgba(255, 255, 255, .2); margin: 4px 3px; }
+@media (max-width: 640px) { .proto { left: 6px; right: 6px; bottom: 6px; overflow-x: auto; } }

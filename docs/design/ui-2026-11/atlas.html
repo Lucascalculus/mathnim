@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mathnim · 路线</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* 路线 (Atlas): a course is a line, its length is its time, lessons are stations, the learner is a ring on it.
+   Everything a list or a sentence used to say (how long, how far, what next, what it leads to) is drawn. */
+:root { --w: 1180px; --side: 56px; }
+.wrap { max-width: calc(var(--w) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+
+/* the bar: the logo and three tools, nothing else */
+.bar { height: 64px; display: flex; align-items: center; gap: 28px; }
+.bar .logo { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; }
+.bar .logo svg { width: 22px; height: 22px; }
+.bar .tools { margin-left: auto; display: flex; gap: 22px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.bar .tools a:hover { color: var(--ink); }
+.bar .me { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center; font: 600 13px/1 var(--serif); color: var(--ink); }
+
+/* ---------------------------------------------------------------- home */
+.here { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: end; padding: 56px 0 72px; }
+.here .where { font: 500 12px/1 var(--mono); letter-spacing: .08em; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+.here .where b { color: var(--teal, #0f766e); font-weight: 500; }
+.here h1 { font-size: 52px; line-height: 1.1; letter-spacing: -.035em; font-weight: 700; margin: 20px 0 30px; text-wrap: balance; }
+.here .local { display: block; width: 100%; height: 46px; overflow: visible; }
+.go { display: inline-flex; align-items: center; gap: 0; margin-top: 30px; font-size: 17px; font-weight: 600; }
+.go .shaft { display: block; width: 72px; height: 2px; background: var(--ink); margin: 0 0 0 16px; transition: width .35s cubic-bezier(.3,1.4,.5,1); position: relative; }
+.go .shaft::after { content: ''; position: absolute; right: -1px; top: -4px; width: 9px; height: 9px; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); transform: rotate(45deg); }
+.go:hover .shaft { width: 112px; }
+.go small { font: 500 12px/1 var(--mono); color: var(--muted); margin-left: 14px; letter-spacing: .06em; }
+.fig { position: relative; margin: 0; }
+.fig img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--white); outline: 1px solid var(--hair); }
+.fig::before, .fig::after { content: ''; position: absolute; width: 14px; height: 14px; border: 0 solid var(--ink); }
+.fig::before { left: -10px; top: -10px; border-left-width: 1.5px; border-top-width: 1.5px; }
+.fig::after { right: -10px; bottom: -10px; border-right-width: 1.5px; border-bottom-width: 1.5px; }
+.fig figcaption { font: 500 11px/1 var(--mono); color: var(--muted); letter-spacing: .06em; margin-top: 14px; display: flex; justify-content: space-between; }
+
+.atlas { border-top: 1px solid var(--ink); padding: 18px 0 96px; }
+.atlas .head { display: flex; justify-content: space-between; font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--muted); margin-bottom: 26px; }
+.group { display: grid; grid-template-columns: 180px 1fr; column-gap: 32px; padding: 6px 0 22px; }
+.group .cat { grid-column: 1 / -1; font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--muted); padding: 14px 0 12px; border-top: 1px solid var(--hair); }
+.row { display: contents; }
+.row .name { padding: 6px 0 18px; font-size: 15px; font-weight: 600; line-height: 1.35; align-self: start; }
+.row .name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.row svg { overflow: visible; display: block; margin: 12px 0 20px; }
+.scale { display: flex; align-items: center; gap: 10px; font: 500 11px/1 var(--mono); color: var(--muted); letter-spacing: .06em; margin: 8px 0 0 212px; }
+.scale i { display: block; height: 7px; border: 1.5px solid var(--muted); border-top: 0; }
+
+/* stations everywhere */
+.st { cursor: pointer; }
+.st circle { transition: r .15s; }
+.st:hover circle.dot { r: 7; }
+.plate { position: absolute; z-index: 20; width: 236px; background: var(--white); outline: 1px solid var(--ink); padding: 10px 10px 12px; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+.plate.on { opacity: 1; transform: none; }
+.plate img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--paper); }
+.plate .t { font-size: 13.5px; font-weight: 600; line-height: 1.4; margin-top: 9px; }
+.plate .m { font: 500 11px/1 var(--mono); color: var(--muted); margin-top: 7px; letter-spacing: .06em; }
+.blank { display: grid; place-items: center; aspect-ratio: 16 / 10; background: var(--paper) radial-gradient(var(--grid) 1px, transparent 1.3px) 0 0 / 12px 12px; padding: 14px; text-align: center; font-size: 13px; font-weight: 600; color: var(--ink2); line-height: 1.45; }
+
+/* ---------------------------------------------------------------- course */
+.c-head { display: grid; grid-template-columns: 1fr 380px; gap: 64px; padding: 48px 0 40px; align-items: end; }
+.c-head .back { font: 500 12px/1 var(--mono); color: var(--muted); letter-spacing: .08em; }
+.c-head h1 { font-size: 76px; line-height: 1; letter-spacing: -.045em; margin: 22px 0 22px; font-weight: 700; }
+.c-head p { margin: 0; color: var(--ink2); font-size: 17px; max-width: 560px; }
+.route { position: relative; margin: 40px 0 0; }
+.route svg { display: block; overflow: visible; }
+.route .lp { position: absolute; width: 196px; transform: translateX(-50%); }
+.route .lp .card { background: var(--white); outline: 1px solid var(--hair); padding: 8px 8px 10px; }
+.route .lp.done .card { outline-color: var(--hair); }
+.route .lp.current .card { outline: 2px solid var(--ink); }
+.route .lp.new .card img, .route .lp.new .blank { opacity: .78; }
+.route .lp img, .route .lp .blank { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.route .lp .t { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin-top: 8px; }
+.route .lp .m { font: 500 10.5px/1 var(--mono); color: var(--muted); margin-top: 6px; letter-spacing: .06em; display: flex; justify-content: space-between; }
+.route .lp .stem { position: absolute; left: 50%; width: 1px; background: var(--ink); opacity: .35; }
+.route .lp.current .go { margin-top: 10px; font-size: 14px; }
+.route .lp.current .go .shaft { width: 44px; margin-left: 10px; }
+.route .ul { position: absolute; font: 500 11px/1.2 var(--mono); letter-spacing: .08em; color: var(--muted); white-space: nowrap; transform: translateY(-50%); }
+.terminal { position: absolute; width: 300px; }
+.terminal .k { font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--muted); }
+.terminal .k b { color: var(--ink); font-weight: 600; }
+.terminal p { margin: 10px 0 0; font-size: 14px; color: var(--ink2); line-height: 1.6; }
+.terminal ol { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: o; }
+.terminal ol li { counter-increment: o; display: grid; grid-template-columns: 26px 1fr; font-size: 14.5px; line-height: 1.5; margin: 0 0 12px; }
+.terminal ol li::before { content: counter(o); font: 600 13px/1.6 var(--mono); }
+.terminal .links { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--blue); }
+
+/* ---------------------------------------------------------------- lesson */
+.l-bar { position: sticky; top: 0; z-index: 30; background: var(--paper); border-bottom: 1px solid var(--hair); }
+.l-bar .wrap { display: flex; align-items: center; height: 56px; gap: 18px; }
+.l-bar .crs { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+.l-bar .crs:hover { color: var(--ink); }
+.l-bar .crs svg { overflow: visible; }
+.l-bar h1 { font-size: 15px; font-weight: 650; margin: 0; }
+.l-bar .tools { margin-left: auto; display: flex; gap: 20px; font-size: 13px; color: var(--muted); align-items: center; }
+.steps { padding: 14px 0 8px; }
+.steps svg { display: block; overflow: visible; width: 100%; height: 44px; }
+.page { display: grid; grid-template-columns: minmax(0, 1fr) 680px 56px 300px minmax(0, 1fr); padding: 34px 0 120px; }
+.page > .main { grid-column: 2; }
+.page > .margin { grid-column: 4; position: relative; }
+.main h2 { font-size: 38px; letter-spacing: -.03em; line-height: 1.15; margin: 0 0 30px; }
+.main .fig { margin: 0 0 34px; }
+.main p { font-size: 17.5px; line-height: 1.8; margin: 0 0 22px; color: #22252a; }
+.main mark { background: linear-gradient(transparent 55%, var(--hl-1) 55%); color: inherit; padding: 0 1px; }
+.main sup { font: 600 11px/1 var(--mono); color: var(--teal, #0f766e); margin-left: 2px; }
+.eq { font: italic 22px/1.4 var(--serif); padding: 26px 0; margin: 4px 0 28px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); text-align: center; letter-spacing: .01em; }
+.ask { position: sticky; top: 140px; }
+.ask .k { font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--muted); display: flex; justify-content: space-between; }
+.ask .q { display: block; margin-top: 14px; font-size: 14px; line-height: 1.5; color: var(--ink2); padding-left: 16px; position: relative; }
+.ask .q::before { content: ''; position: absolute; left: 0; top: .72em; width: 8px; height: 1.5px; background: var(--ink); }
+.ask .q:hover { color: var(--ink); }
+.ask .line { margin-top: 20px; border-bottom: 1.5px solid var(--ink); height: 34px; font: 14px/34px var(--serif); color: var(--muted); }
+.note { position: absolute; left: 0; right: 0; }
+.note .k { font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--teal, #0f766e); }
+.note .q { font-size: 14px; font-weight: 600; line-height: 1.5; margin: 8px 0 6px; }
+.note .a { font: 15px/1.7 var(--serif); color: var(--ink2); }
+.leader { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.next { grid-column: 2 / 5; margin-top: 56px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 22px; padding-top: 26px; border-top: 1px solid var(--hair); }
+.next .k { font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--muted); }
+.next .t { font-size: 24px; font-weight: 650; letter-spacing: -.02em; margin-top: 8px; }
+.next .ahead { height: 2px; background: var(--ink); position: relative; }
+.next .ahead::after { content: ''; position: absolute; right: -1px; top: -5px; width: 11px; height: 11px; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); transform: rotate(45deg); }
+.next:hover .ahead { background: var(--teal, #0f766e); }
+
+@media (max-width: 1100px) {
+  :root { --side: 28px; }
+  .here, .c-head { grid-template-columns: 1fr; gap: 36px; }
+  .page { grid-template-columns: 0 minmax(0, 1fr) 0 0 0; }
+  .page > .margin { grid-column: 2; margin-top: 30px; }
+  .next { grid-column: 2; }
+  .group { grid-template-columns: 1fr; }
+  .row .name { padding-bottom: 0; }
+  .scale { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="data.js"></script>
+<script src="base.js"></script>
+<script>
+const { courses, lesson, course, all, current, recent, esc, hours } = UI;
+const LOGO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M6.5 16.5L12 7l5.5 9.5"/></svg>';
+const bar = (extra = '') => `<header class="wrap bar"><a class="logo" href="#/">${LOGO}Mathnim</a>${extra}<nav class="tools"><a href="#">数据</a><a href="#">设置</a><span class="me">L</span></nav></header>`;
+const thumb = (l, cls = '') => (l.thumb ? `<img class="${cls}" src="${l.thumb}" alt="">` : `<div class="blank ${cls}">${esc(l.title)}</div>`);
+
+/**
+ * A course laid out as one line that snakes across `W`: length is time (k px a minute, units a gap apart). Returns
+ * the stations with their positions and a function drawing the line between two distances.
+ */
+function route(c, W, k, rowGap, unitGap = 10) {
+  const stations = [];
+  let s = 0;
+  c.units.forEach((u, ui) => {
+    if (ui) s += unitGap;
+    u.lessons.forEach((l, li) => {
+      stations.push({ l, s, unit: ui, first: li === 0, u });
+      s += (l.minutes || 15) * k;
+    });
+  });
+  const L = s, rows = Math.max(1, Math.ceil(L / W - 1e-9));
+  const at = (d) => {
+    const r = Math.min(Math.floor(d / W), rows - 1), t = d - r * W;
+    return { x: r % 2 ? W - t : t, y: r * rowGap, r };
+  };
+  const path = (a, b) => {
+    let d = '';
+    for (let r = Math.floor(a / W); r < rows && r * W < b; r++) {
+      const s0 = Math.max(a, r * W), s1 = Math.min(b, (r + 1) * W);
+      const p0 = at(s0), p1 = at(Math.min(s1, (r + 1) * W - 1e-6));
+      d += `M${p0.x.toFixed(1)},${p0.y}L${p1.x.toFixed(1)},${p1.y}`;
+      if (s1 >= (r + 1) * W && r < rows - 1 && b > (r + 1) * W) {
+        const ex = r % 2 ? 0 : W, sweep = r % 2 ? 0 : 1;
+        d += `M${ex},${r * rowGap}A${rowGap / 2},${rowGap / 2} 0 0 ${sweep} ${ex},${(r + 1) * rowGap}`;
+      }
+    }
+    return d;
+  };
+  stations.forEach((st) => Object.assign(st, at(st.s)));
+  return { stations, L, rows, at, path };
+}
+const CROP = (x, y, h = 9, a = 4) => [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => `<path d="M${x + sx * h},${y + sy * (h - a)}V${y + sy * h}H${x + sx * (h - a)}" fill="none" stroke="var(--ink)" stroke-width="1.4"/>`).join('');
+function drawLine(c, R, { r = 4, width = 3.2, faint = .22 } = {}) {
+  const cur = R.stations.find((x) => x.l.status === 'current');
+  const doneTo = cur ? cur.s : R.stations.filter((x) => x.l.status === 'done').length ? R.L : 0;
+  let g = `<path d="${R.path(0, R.L)}" fill="none" stroke="${c.accent}" stroke-opacity="${faint}" stroke-width="${width}" stroke-linecap="round"/>`;
+  if (doneTo) g += `<path d="${R.path(0, doneTo)}" fill="none" stroke="${c.accent}" stroke-width="${width}" stroke-linecap="round"/>`;
+  const end = R.at(R.L);
+  g += `<path d="M${end.x},${end.y - 7}v14" stroke="${c.accent}" stroke-width="${width}" stroke-opacity="${cur || doneTo ? 1 : faint * 2}"/>`;
+  R.stations.forEach((st, i) => {
+    const st_ = st.l.status;
+    const dot = st_ === 'current'
+      ? `<circle class="dot" cx="${st.x}" cy="${st.y}" r="${r + 2.5}" fill="var(--paper)" stroke="${c.accent}" stroke-width="3"/>${CROP(st.x, st.y, r + 9)}`
+      : `<circle class="dot" cx="${st.x}" cy="${st.y}" r="${st.first ? r + 1 : r}" fill="${st_ === 'done' ? c.accent : 'var(--paper)'}" stroke="${c.accent}" stroke-width="2" ${st_ === 'new' ? `stroke-opacity="${faint * 2.4}"` : ''}/>`;
+    g += `<g class="st" data-c="${c.id}" data-i="${i}">${dot}<circle cx="${st.x}" cy="${st.y}" r="11" fill="transparent"/></g>`;
+  });
+  return g;
+}
+
+/** A lesson as a line of its steps, chapters named above their segments; the learner's step ringed. */
+function stepLine(svg, c, L, pad) {
+  const w = svg.clientWidth, n = L.steps, x = (i) => 8 + (i / (n - 1)) * (w - 16);
+  let g = '', s = 0;
+  L.chapters.forEach((ch, ci) => {
+    g += `<text x="${x(s)}" y="10" font-size="11" fill="${s <= L.step - 1 ? 'var(--ink2)' : 'var(--muted)'}" font-family="var(--mono)" letter-spacing=".08em">${String(ci + 1).padStart(2, '0')} ${esc(ch.title)}</text>`;
+    if (s) g += `<path d="M${(x(s - 1) + x(s)) / 2},22v16" stroke="var(--ink)" stroke-opacity=".3" stroke-width="1"/>`;
+    s += ch.steps;
+  });
+  g += `<path d="M${x(0)},30H${x(n - 1)}" stroke="${c.accent}" stroke-opacity=".22" stroke-width="3"/><path d="M${x(0)},30H${x(L.step - 1)}" stroke="${c.accent}" stroke-width="3"/>`;
+  for (let i = 0; i < n; i++) {
+    const done = i < L.step - 1, cur = i === L.step - 1;
+    g += cur
+      ? `<circle cx="${x(i)}" cy="30" r="6.5" fill="var(--paper)" stroke="${c.accent}" stroke-width="3"/>${CROP(x(i), 30, 14)}`
+      : `<circle cx="${x(i)}" cy="30" r="3.6" fill="${done ? c.accent : 'var(--paper)'}" stroke="${c.accent}" stroke-width="1.8" ${done ? '' : 'stroke-opacity=".5"'}/>`;
+  }
+  svg.innerHTML = g;
+}
+// a plate that follows the pointer over any station
+let plate;
+function plates(root) {
+  plate = document.createElement('div');
+  plate.className = 'plate';
+  document.body.append(plate);
+  root.querySelectorAll('.st').forEach((g) => {
+    g.addEventListener('mouseenter', () => {
+      const c = course(g.dataset.c), l = all(c)[+g.dataset.i];
+      plate.innerHTML = `${thumb(l)}<div class="t">${esc(l.title)}</div><div class="m">${l.minutes} MIN${l.status === 'done' ? ' · ✓' : l.status === 'current' ? ' · 在这里' : ''}</div>`;
+      const b = g.getBoundingClientRect();
+      const left = Math.min(Math.max(b.left + b.width / 2 - 118, 12), innerWidth - 248);
+      plate.style.left = `${left + scrollX}px`;
+      plate.style.top = `${b.top + scrollY - 14}px`;
+      plate.style.transform = 'translateY(-100%)';
+      plate.classList.add('on');
+    });
+    g.addEventListener('mouseleave', () => plate.classList.remove('on'));
+    g.addEventListener('click', () => (location.hash = g.dataset.c === 'mpc' ? '#/lesson' : `#/course/${g.dataset.c}`));
+  });
+}
+
+// ---------------------------------------------------------------- home
+function home(app) {
+  const c = recent(), cur = current(c), p = c.progress;
+  const idx = all(c).indexOf(cur) + 1;
+  const W = Math.min(1180, innerWidth - 112) - (innerWidth > 1100 ? 212 : 0);
+  const k = W / 720;
+  const groups = [...new Set(courses.map((x) => x.category))];
+  app.innerHTML = `${bar()}
+  <main class="wrap">
+    <section class="here">
+      <div>
+        <div class="where"><b>${esc(c.title)}</b><span>·</span><span>${idx} / ${all(c).length}</span></div>
+        <h1>${esc(cur.title)}</h1>
+        <svg class="local" id="local"></svg>
+        <a class="go" href="#/lesson">继续<span class="shaft"></span><small>${p.step} / ${p.steps}</small></a>
+      </div>
+      <figure class="fig"><img src="${cur.thumb}" alt=""><figcaption><span>${esc(c.units.find((u) => u.lessons.includes(cur)).title)}</span><span>${cur.minutes} MIN</span></figcaption></figure>
+    </section>
+    <section class="atlas">
+      <div class="head"><span>全部课程</span><span>线长 = 时长</span></div>
+      ${groups.map((g) => `<div class="group"><div class="cat">${esc(g)}</div>${courses.filter((x) => x.category === g).map((x) => {
+        const R = route(x, W, k, 26, 8);
+        return `<div class="row"><a class="name" href="#/course/${x.id}">${esc(x.title)}</a><svg width="${W}" height="${(R.rows - 1) * 26 + 1}">${drawLine(x, R)}</svg></div>`;
+      }).join('')}</div>`).join('')}
+      <div class="scale"><i style="width:${(k * 60).toFixed(1)}px"></i>1 小时</div>
+    </section>
+  </main>`;
+  // the hero's line is the lesson itself, step by step: exactly what 继续 continues
+  stepLine(app.querySelector('#local'), c, lesson, 0);
+  plates(app);
+}
+
+// ---------------------------------------------------------------- course
+function coursePage(app, id) {
+  const c = course(id) || course('mpc'), cur = current(c);
+  const PW = 196, PH = 178, STEM = 34, GAPX = 14;
+  const W0 = Math.min(1180, innerWidth - 112) - 150;
+  // as many rows as the lessons need at a readable scale (about 4.5 px a minute), then stretched to fill them exactly
+  const gaps = (c.units.length - 1) * 26;
+  const rows = Math.max(1, Math.round((c.minutes * 4.5 + gaps) / (W0 - 120)));
+  const W = rows > 1 ? W0 - 120 : W0 - 40; // a row that turns needs room for its curve
+  const k = (rows * W - gaps - 1) / c.minutes;
+  let R = route(c, W, k, 0, 26);
+  // plates hang above or below their station, alternating; one that would touch a neighbour moves a tier out,
+  // the way station names are set on a transit map
+  const taken = new Map(), tierOf = [];
+  const free = (key, x) => !(taken.get(key) || []).some(([a, b]) => x - PW / 2 - GAPX < b && x + PW / 2 + GAPX > a);
+  R.stations.forEach((st, i) => {
+    const pref = i % 2 === 0 ? ['up', 'down'] : ['down', 'up'];
+    let pick;
+    for (let t = 0; t < 4 && !pick; t++) for (const sd of pref) if (!pick && free(`${st.r}${sd}${t}`, st.x)) pick = [sd, t];
+    pick ??= [pref[0], 3];
+    const key = `${st.r}${pick[0]}${pick[1]}`;
+    taken.set(key, [...(taken.get(key) || []), [st.x - PW / 2, st.x + PW / 2]]);
+    tierOf[i] = pick;
+  });
+  const reach = (row, sd) => Math.max(0, ...tierOf.map((p, i) => (R.stations[i].r === row && p[0] === sd ? STEM + (p[1] + 1) * (PH + 14) : 0)));
+  let rowGap = 0;
+  for (let r = 0; r < rows - 1; r++) rowGap = Math.max(rowGap, reach(r, 'down') + reach(r + 1, 'up') + 36);
+  R = route(c, W, k, rowGap || 1, 26);
+  const top = reach(0, 'up') + 24;
+  const last = rows - 1, endp = R.at(R.L);
+  const finTop = top + endp.y + reach(last, 'down') + 44;
+  const H = finTop + 240;
+  app.innerHTML = `${bar()}
+  <main class="wrap">
+    <section class="c-head">
+      <div>
+        <a class="back" href="#/">← 全部课程</a>
+        <h1>${esc(c.title)}</h1>
+        <p>${esc(c.summary)}</p>
+        ${cur ? `<a class="go" href="${c.id === 'mpc' ? '#/lesson' : '#'}">继续<span class="shaft"></span><small>${String(all(c).indexOf(cur) + 1).padStart(2, '0')} · ${esc(cur.title)}</small></a>` : `<a class="go" href="#">开始<span class="shaft"></span><small>01 · ${esc(all(c)[0].title)}</small></a>`}
+      </div>
+      ${c.cover ? `<figure class="fig"><img src="${c.cover}" alt=""></figure>` : ''}
+    </section>
+    <div class="route" style="height:${H}px;margin-left:150px">
+      <svg width="${W}" height="${H}" style="position:absolute;left:0;top:${top}px">${drawLine(c, R, { r: 6, width: 4.5 })}
+        <path d="M${endp.x},${endp.y + 8}V${finTop - top - 16}" stroke="${c.accent}" stroke-width="1.5" stroke-dasharray="2 5" fill="none"/></svg>
+    </div>
+  </main>`;
+  const box = app.querySelector('.route');
+  R.stations.forEach((st, i) => {
+    const [sd, tier] = tierOf[i], up = sd === 'up', l = st.l;
+    const stem = STEM + tier * (PH + 14);
+    const el = document.createElement('a');
+    el.className = `lp ${l.status}`;
+    el.href = c.id === 'mpc' && l.status === 'current' ? '#/lesson' : '#';
+    el.style.left = `${st.x}px`;
+    el.innerHTML = `<div class="card">${thumb(l)}<div class="t">${esc(l.title)}</div><div class="m"><span>${String(i + 1).padStart(2, '0')}</span><span>${l.minutes} MIN</span></div>${l.status === 'current' ? `<span class="go">继续<span class="shaft"></span></span>` : ''}</div><i class="stem" style="${up ? 'bottom' : 'top'}:-${stem}px;height:${stem - 10}px"></i>`;
+    box.append(el);
+    el.style.top = `${top + st.y + (up ? -el.offsetHeight - stem : stem)}px`;
+  });
+  R.stations.filter((s) => s.first).forEach((st) => {
+    const el = document.createElement('div');
+    el.className = 'ul';
+    el.textContent = st.u.title;
+    const flip = st.r % 2 === 1;
+    el.style.top = `${top + st.y - 16}px`;
+    el.style.left = `${st.x + (flip ? -12 : 12)}px`;
+    if (flip) el.style.transform = 'translate(-100%,-50%)';
+    box.append(el);
+  });
+  // the two terminals: what to bring at the start, what you can do at the end
+  const start = document.createElement('div');
+  start.className = 'terminal';
+  start.style.cssText = `left:-150px;top:${top + 34}px;width:132px`;
+  start.innerHTML = `<div class="k"><b>出发</b></div>${c.prereq ? `<p style="font-size:12.5px">${esc(c.prereq.line)}</p><div class="links">${c.prereq.links.map((x) => `<a href="#">${esc(x)}</a>`).join('')}</div>` : c.audience ? `<p style="font-size:12.5px">${esc(c.audience)}</p>` : ''}`;
+  box.append(start);
+  const fin = document.createElement('div');
+  fin.className = 'terminal';
+  fin.style.cssText = `top:${finTop}px;width:360px;${endp.x > W / 2 ? `left:${endp.x - 360 + 8}px;text-align:left` : `left:${endp.x - 8}px`}`;
+  fin.innerHTML = `<div class="k"><b>到达</b> · 学完你能</div>${c.outcomes ? `<ol>${c.outcomes.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : `<p>${esc(c.summary)}</p>`}`;
+  box.append(fin);
+  plates(app);
+}
+
+// ---------------------------------------------------------------- lesson
+function lessonPage(app) {
+  const c = course('mpc'), L = lesson;
+  app.innerHTML = `
+  <header class="l-bar"><div class="wrap">
+    <a class="crs" href="#/course/mpc"><svg width="120" height="16" viewBox="0 -8 120 16" id="mini"></svg>${esc(c.title)}</a>
+    <span style="color:var(--hair)">/</span><h1>${esc(L.title)}</h1>
+    <nav class="tools"><a href="#">数据</a><a href="#">设置</a><span class="me">L</span></nav>
+  </div></header>
+  <div class="wrap steps"><svg id="steps"></svg></div>
+  <div class="page">
+    <article class="main">
+      <h2>${esc(L.stepTitle)}</h2>
+      <figure class="fig"><img src="${L.figure}" alt=""><figcaption><span>图 2.1 · 小车在一个格点上</span><span>拖动可探索</span></figcaption></figure>
+      <p>${esc(L.paras[0]).replace('零阶保持', '<mark>零阶保持</mark>')}</p>
+      <p>${esc(L.paras[1])}</p>
+      <div class="eq">x₊ = A x + B a</div>
+      <p id="p3">${esc(L.paras[2])}<sup>1</sup></p>
+    </article>
+    <aside class="margin">
+      <div class="ask">
+        <div class="k"><span>ASK · 02</span><span>＋</span></div>
+        ${L.asks.map((q) => `<a class="q" href="#">${esc(q)}</a>`).join('')}
+        <div class="line">问这一页……</div>
+      </div>
+      <div class="note" id="n1"><div class="k">ASK · 01</div><div class="q">${esc(L.note.q)}</div><div class="a">${esc(L.note.a)}</div></div>
+    </aside>
+    <a class="next" href="#"><div><div class="k">下一步 · 5 / 14</div><div class="t">把模型往前推 N 步</div></div><div class="ahead"></div></a>
+  </div>`;
+  // the course in miniature: where this lesson sits
+  const mini = app.querySelector('#mini');
+  const Rm = route(c, 120, 120 / c.minutes, 0, 4);
+  mini.innerHTML = drawLine(c, Rm, { r: 2.4, width: 2 }).replace(/<path d="M[^"]*V[^"]*H[^"]*"[^>]*>/g, '');
+  stepLine(app.querySelector('#steps'), c, L, 0);
+  // the note's leader: from the note to the end of the paragraph it answers, in the course's ink
+  requestAnimationFrame(() => {
+    const p3 = app.querySelector('#p3'), note = app.querySelector('#n1'), margin = app.querySelector('.margin');
+    const mb = margin.getBoundingClientRect(), pb = p3.getBoundingClientRect();
+    note.style.top = `${pb.top - mb.top + 4}px`;
+    const nb = note.getBoundingClientRect(), sup = p3.querySelector('sup').getBoundingClientRect();
+    const lead = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    lead.classList.add('leader');
+    lead.innerHTML = `<path d="M${sup.right - mb.left + 6},${sup.top - mb.top + 6}H${nb.left - mb.left - 14}" stroke="${c.accent}" stroke-width="1.2" fill="none" stroke-dasharray="2 4"/><circle cx="${nb.left - mb.left - 14}" cy="${sup.top - mb.top + 6}" r="2.5" fill="${c.accent}"/>`;
+    margin.append(lead);
+  });
+}
+
+UI.switcher('atlas');
+UI.start((r) => {
+  document.querySelectorAll('.plate').forEach((p) => p.remove());
+  const app = document.getElementById('app');
+  if (r.page === 'course') coursePage(app, r.id);
+  else if (r.page === 'lesson') lessonPage(app);
+  else home(app);
+});
+</script>
+</body>
+</html>
