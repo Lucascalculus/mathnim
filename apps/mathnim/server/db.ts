@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS usage (day TEXT NOT NULL, route TEXT NOT NULL, op TEX
 `;
 
 /** Columns added after a table was first made: added where missing (an error means it is there already). */
-const LATER = ['ALTER TABLE studio_courses ADD COLUMN named INTEGER NOT NULL DEFAULT 0'];
+const LATER = ['ALTER TABLE studio_courses ADD COLUMN named INTEGER NOT NULL DEFAULT 0', "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT ''"];
 
 const ready = new WeakMap<SqlDb, Promise<unknown>>();
 /** Create the tables once per database and isolate (CREATE ... IF NOT EXISTS, so it is safe to repeat). */

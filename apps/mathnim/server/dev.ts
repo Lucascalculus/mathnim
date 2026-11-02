@@ -294,7 +294,7 @@ export function dev_api(o: DevOptions): Middleware {
   let db: Promise<SqlDb | undefined> | null = null;
   const data_env = async (): Promise<StatsEnv> => {
     db ??= o.sqlite ? o.fs.mkdir(o.cache_dir, { recursive: true }).then(() => d1_of(o.sqlite!(`${o.cache_dir}/mathnim.sqlite`))) : Promise.resolve(undefined);
-    return { DB: await db, FILES: blobs, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS, RESEND_API_KEY: env.RESEND_API_KEY, MAIL_FROM: env.MAIL_FROM, ADMIN_EMAILS: env.ADMIN_EMAILS, STATS_TZ: env.STATS_TZ };
+    return { DB: await db, FILES: blobs, ALLOWED_ORIGINS: env.ALLOWED_ORIGINS, RESEND_API_KEY: env.RESEND_API_KEY, MAIL_FROM: env.MAIL_FROM, ADMIN_EMAILS: env.ADMIN_EMAILS, STATS_TZ: env.STATS_TZ, DATA_CENTRE: env.DATA_CENTRE };
   };
   const studio_deps = { model: new ReplayModel(o.fs, `${o.cache_dir}/studio`), blob_path: blobs && ((k: string) => blobs.path(k)) };
 

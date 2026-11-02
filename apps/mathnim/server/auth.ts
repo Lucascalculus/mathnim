@@ -1,7 +1,8 @@
 // /api/auth/*: sign in with a code sent by email, no passwords.
 //   POST start  {email, lang?}  -> 200 {ok} (and {dev_code} on the dev server without a mail key)
 //   POST verify {email, code}   -> 200 {user} + the session cookie
-//   GET  me                     -> 200 {user | null, mail, studio, generate}  (codes can be sent; files can be uploaded; a model makes courses)
+//   GET  me                     -> 200 {user | null, mail, studio, generate, data}  (codes can be sent; files can be uploaded; a model makes
+//                                  courses; the data centre is open to everyone ('public') or to teachers and admins ('staff'))
 //   POST logout                 -> 200 {ok}, cookie cleared
 // Codes are six digits, live 10 minutes, allow 5 tries, and are stored hashed;
 // sessions are a random token in an HttpOnly cookie, stored hashed. Mail goes
@@ -13,8 +14,10 @@ export interface AuthEnv extends DataEnv {
   RESEND_API_KEY?: string;
   /** e.g. "Mathnim <login@penghaolun.com>" (a domain verified in Resend). */
   MAIL_FROM?: string;
-  /** Who may publish uploaded courses to everyone (comma-separated). */
+  /** Admins (comma-separated): they publish uploaded courses to everyone, see everything in the data centre and name teachers. */
   ADMIN_EMAILS?: string;
+  /** "public": the data centre's summaries are open to everyone (for now); otherwise to teachers and admins only. */
+  DATA_CENTRE?: string;
 }
 export interface AuthDeps {
   limiter: RateLimiter | null;
@@ -31,10 +34,13 @@ export interface Mail {
   text: string;
   html: string;
 }
+/** An admin (ADMIN_EMAILS) above a teacher (named by an admin, stored with the account) above a learner. */
+export type Role = 'admin' | 'teacher' | 'learner';
 export interface User {
   id: string;
   email: string;
   admin: boolean;
+  role: Role;
 }
 
 export const COOKIE = 'mn_sid';
@@ -59,6 +65,13 @@ function token(): string {
   return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 const is_admin = (env: AuthEnv, email: string) => list(env.ADMIN_EMAILS).map((x) => x.toLowerCase()).includes(email);
+export const role_of = (env: AuthEnv, email: string, stored: unknown): Role => (is_admin(env, email) ? 'admin' : stored === 'teacher' ? 'teacher' : 'learner');
+const user_of = (env: AuthEnv, id: string, email: string, stored: unknown): User => {
+  const role = role_of(env, email, stored);
+  return { id, email, admin: role === 'admin', role };
+};
+/** Whether the data centre's summaries are open to everyone. */
+export const data_public = (env: AuthEnv) => env.DATA_CENTRE === 'public';
 
 function cookie(request: Request, value: string, max_age: number): string {
   const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
@@ -79,10 +92,10 @@ export async function session_user(request: Request, env: AuthEnv): Promise<User
   if (!t || !env.DB) return null;
   const db = await with_schema(env.DB);
   const row = await db
-    .prepare('SELECT u.id AS id, u.email AS email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.hash = ? AND s.expires > ?')
+    .prepare('SELECT u.id AS id, u.email AS email, u.role AS role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.hash = ? AND s.expires > ?')
     .bind(await sha256_hex(t), Date.now())
-    .first<{ id: string; email: string }>();
-  return row ? { id: row.id, email: row.email, admin: is_admin(env, row.email) } : null;
+    .first<{ id: string; email: string; role: string }>();
+  return row ? user_of(env, row.id, row.email, row.role) : null;
 }
 
 async function body_json(request: Request): Promise<Record<string, unknown> | null> {
@@ -101,7 +114,8 @@ export async function auth(request: Request, env: AuthEnv, path: string, deps: A
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');
   const db = await with_schema(env.DB);
   // `mail`: whether codes can be sent (the dev server prints them instead), so the site offers sign-in only then
-  if (path === 'me' && request.method === 'GET') return json(200, { user: await session_user(request, env), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM) || !!deps.dev, studio: !!env.FILES, generate: !!deps.generate && !!env.FILES });
+  if (path === 'me' && request.method === 'GET')
+    return json(200, { user: await session_user(request, env), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM) || !!deps.dev, studio: !!env.FILES, generate: !!deps.generate && !!env.FILES, data: data_public(env) ? 'public' : 'staff' });
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
   if (path === 'logout') {
     const t = read_cookie(request);
@@ -155,7 +169,7 @@ async function verify(request: Request, env: AuthEnv, db: SqlDb, email: string, 
     return error(400, 'Wrong code.');
   }
   await db.prepare('DELETE FROM login_codes WHERE email = ?').bind(email).run();
-  let user = await db.prepare('SELECT id FROM users WHERE email = ?').bind(email).first<{ id: string }>();
+  let user = await db.prepare('SELECT id, role FROM users WHERE email = ?').bind(email).first<{ id: string; role?: string }>();
   if (!user) {
     user = { id: new_id(12) };
     await db.prepare('INSERT INTO users (id, email, created) VALUES (?, ?, ?)').bind(user.id, email, now).run();
@@ -164,7 +178,7 @@ async function verify(request: Request, env: AuthEnv, db: SqlDb, email: string, 
   await db.prepare('INSERT INTO sessions (hash, user_id, expires) VALUES (?, ?, ?)').bind(await sha256_hex(t), user.id, now + SESSION_S * 1000).run();
   // expired sessions are swept now and then rather than on a schedule
   if (Math.random() < 0.05) await db.prepare('DELETE FROM sessions WHERE expires < ?').bind(now).run();
-  return json(200, { user: { id: user.id, email, admin: is_admin(env, email) } satisfies User }, { 'set-cookie': cookie(request, t, SESSION_S) });
+  return json(200, { user: user_of(env, user.id, email, user.role) }, { 'set-cookie': cookie(request, t, SESSION_S) });
 }
 
 export function code_mail(to: string, code: string, lang: 'en' | 'zh'): Mail {

@@ -1,7 +1,10 @@
-// /api/admin/*: the data centre's numbers (pages/admin.ts), for admins only (ADMIN_EMAILS, signed in). Everything is
-// read with SQL from what the site already keeps: page views (hits) and what the routes cost (usage, both
-// server/stats.ts), accounts, signed-in learners' events (server/events.ts), uploaded courses, and the answers'
-// feedback (KV). Ranges are the site's local days (STATS_TZ): ?days=1|7|30|90|365, 0 for everything.
+// /api/admin/*: the data centre's numbers (pages/admin.ts). Everything is read with SQL from what the site already
+// keeps: page views (hits) and what the routes cost (usage, both server/stats.ts), accounts, signed-in learners'
+// events (server/events.ts), uploaded courses, and the answers' feedback (KV). Ranges are the site's local days
+// (STATS_TZ): ?days=1|7|30|90|365, 0 for everything. Who sees what (NEED): the summaries, with no person in them,
+// to everyone while DATA_CENTRE is "public" (else to teachers and admins); each learner, their record and their
+// words to teachers and admins; exports, uploads and naming teachers to admins. Every answer says the viewer's
+// `level` (1 summaries, 2 teacher, 3 admin).
 //   GET overview              headline numbers for the range and the one before it, and each day
 //   GET traffic               pages, sources, countries, devices, languages, hours of the day
 //   GET learning              per course and lesson; the hardest questions; misconceptions
@@ -12,10 +15,11 @@
 //   GET users?q=&offset=      accounts with what each has done; GET user?id= one learner's record
 //   GET uploads               courses made from uploaded slides
 //   GET export?kind=events|hits|usage|users   the rows as CSV
-import { session_user } from './auth';
+//   POST role {id, role: 'teacher' | 'learner'}   name a teacher (an admin is one by ADMIN_EMAILS)
+import { data_public, role_of, session_user } from './auth';
 import { with_schema, type SqlDb } from './db';
 import { list_feedback, type FeedbackEnv } from './feedback';
-import { error, json } from './http';
+import { error, json, origin_ok, read_text } from './http';
 import { DEFAULT_TZ, day_start, days_before, local_day, tz_offset, type StatsEnv } from './stats';
 
 export type AdminEnv = StatsEnv & FeedbackEnv;
@@ -56,18 +60,24 @@ const first = async (db: SqlDb, sql: string, ...v: unknown[]) => (await db.prepa
 /** The local day of a time column, in SQL. */
 const day_sql = (col: string) => `date((${col} + ?) / 1000, 'unixepoch')`;
 
+/** The level each section needs: 1 the summaries, 2 a teacher (each learner and their words), 3 an admin. */
+export const NEED: Record<string, number> = { overview: 1, traffic: 1, learning: 1, lesson: 1, ai: 1, questions: 2, feedback: 2, users: 2, user: 2, uploads: 3, export: 3, role: 3 };
+
 export async function admin(request: Request, env: AdminEnv, path: string): Promise<Response> {
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');
-  if (request.method !== 'GET') return error(405, 'Use GET.', { allow: 'GET' });
+  const need = NEED[path];
+  if (!need) return error(404, 'Unknown section.');
   const user = await session_user(request, env);
-  if (!user) return error(401, 'Sign in first.');
-  if (!user.admin) return error(403, 'Only an admin can see the data centre.');
+  const level = user?.role === 'admin' ? 3 : user?.role === 'teacher' ? 2 : data_public(env) ? 1 : 0;
+  if (level < need) return level || user ? error(403, need === 3 ? 'Only an admin can see this.' : 'Only teachers and admins can see this.') : error(401, 'Sign in first.');
   const db = await with_schema(env.DB);
+  if (path === 'role') return name_role(request, env, db);
+  if (request.method !== 'GET') return error(405, 'Use GET.', { allow: 'GET' });
   const url = new URL(request.url);
   const tz = env.STATS_TZ || DEFAULT_TZ;
   const r = range_of(url, tz);
   const q = (k: string) => url.searchParams.get(k) ?? '';
-  const meta = { range: { days: r.days, from: r.from, to: r.to, tz }, now: Date.now() };
+  const meta = { range: { days: r.days, from: r.from, to: r.to, tz }, now: Date.now(), level };
   switch (path) {
     case 'overview':
       return json(200, { ...meta, ...(await overview(db, r)) });
@@ -76,7 +86,8 @@ export async function admin(request: Request, env: AdminEnv, path: string): Prom
     case 'learning':
       return json(200, { ...meta, ...(await learning(db, r)) });
     case 'lesson':
-      return q('id') ? json(200, { ...meta, ...(await lesson(db, r, q('id'))) }) : error(400, 'id: a lesson id.');
+      // (what learners asked, and who, is a teacher's to read)
+      return q('id') ? json(200, { ...meta, ...(await lesson(db, r, q('id'), level >= 2)) }) : error(400, 'id: a lesson id.');
     case 'questions':
       return json(200, { ...meta, items: await questions(db, r, { lesson: q('lesson'), text: q('q'), before: Number(q('before')) || 0 }) });
     case 'ai':
@@ -86,7 +97,7 @@ export async function admin(request: Request, env: AdminEnv, path: string): Prom
       return json(200, { ...meta, ...(await list_feedback(env.FEEDBACK, 50, q('cursor') || undefined)) });
     }
     case 'users':
-      return json(200, { ...meta, ...(await users(db, q('q'), Math.max(0, Number(q('offset')) || 0))) });
+      return json(200, { ...meta, ...(await users(db, env, q('q'), Math.max(0, Number(q('offset')) || 0))) });
     case 'user': {
       const found = await one_user(db, q('id'), Number(q('before')) || 0);
       return found ? json(200, { ...meta, ...found }) : error(404, 'No such user.');
@@ -208,7 +219,7 @@ async function learning(db: SqlDb, r: Range) {
   return { courses, lessons, hardest, misconceptions, views, sections };
 }
 
-async function lesson(db: SqlDb, r: Range, id: string) {
+async function lesson(db: SqlDb, r: Range, id: string, words: boolean) {
   const span = 'lesson = ? AND t >= ? AND t < ?';
   const [summary, steps, first_try, stops, misconceptions, asked, views] = await Promise.all([
     first(db, `SELECT ${LESSON_COLS} FROM events WHERE ${span}`, id, r.since, r.until),
@@ -235,7 +246,7 @@ async function lesson(db: SqlDb, r: Range, id: string) {
        WHERE ${span} AND verb = 'answered' AND misconception IS NOT NULL GROUP BY step, misconception ORDER BY learners DESC`,
       id, r.since, r.until,
     ),
-    questions(db, r, { lesson: id, text: '', before: 0 }),
+    words ? questions(db, r, { lesson: id, text: '', before: 0 }) : Promise.resolve([]),
     first(db, "SELECT COUNT(*) AS views, COUNT(DISTINCT day || tag) AS visitors FROM hits WHERE day BETWEEN ? AND ? AND (path LIKE ? ESCAPE '\\')", r.from, r.to, `%/${like(id)}`),
   ]);
   return { id, summary, steps, first_try, stops, misconceptions, questions: asked, views };
@@ -306,13 +317,13 @@ const PERSON = `SELECT user_id, COUNT(*) AS events, MAX(t) AS last_t, COUNT(DIST
   COUNT(DISTINCT CASE WHEN verb = 'completed' THEN lesson END) AS completed, SUM(verb = 'answered') AS answered,
   SUM(verb = 'answered' AND correct = 1) AS correct, SUM(verb = 'asked') AS asked, SUM(CASE WHEN verb = 'left' THEN ${STAY} ELSE 0 END) AS time_ms
   FROM events`;
-async function users(db: SqlDb, text: string, offset: number) {
+async function users(db: SqlDb, env: AdminEnv, text: string, offset: number) {
   const filter = text ? "WHERE u.email LIKE ? ESCAPE '\\'" : '';
   const v = text ? [`%${like(text.toLowerCase())}%`] : [];
   const [items, count] = await Promise.all([
     all(
       db,
-      `SELECT u.id AS id, u.email AS email, u.created AS created, a.events, a.last_t, a.lessons, a.completed, a.answered, a.correct, a.asked, a.time_ms,
+      `SELECT u.id AS id, u.email AS email, u.role AS role, u.created AS created, a.events, a.last_t, a.lessons, a.completed, a.answered, a.correct, a.asked, a.time_ms,
        (SELECT COUNT(*) FROM studio_courses c WHERE c.owner = u.id) AS uploads
        FROM users u LEFT JOIN (${PERSON} GROUP BY user_id) a ON a.user_id = u.id ${filter}
        ORDER BY COALESCE(a.last_t, u.created) DESC LIMIT 100 OFFSET ?`,
@@ -320,11 +331,28 @@ async function users(db: SqlDb, text: string, offset: number) {
     ),
     first(db, `SELECT COUNT(*) AS n FROM users u ${filter}`, ...v),
   ]);
+  for (const u of items) u.role = role_of(env, String(u.email), u.role);
   return { items, total: count.n ?? 0, offset };
 }
 
+/** An admin names a teacher, or makes one a learner again. */
+async function name_role(request: Request, env: AdminEnv, db: SqlDb): Promise<Response> {
+  if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  let d: { id?: unknown; role?: unknown } = {};
+  try {
+    d = JSON.parse((await read_text(request, 1024)) ?? '');
+  } catch {
+    return error(400, 'Invalid JSON.');
+  }
+  if (typeof d.id !== 'string' || (d.role !== 'teacher' && d.role !== 'learner')) return error(400, "Expected {id, role: 'teacher' | 'learner'}.");
+  const r = (await db.prepare('UPDATE users SET role = ? WHERE id = ?').bind(d.role === 'teacher' ? 'teacher' : '', d.id).run()) as { meta?: { changes?: number }; changes?: number };
+  if (!(r.meta?.changes ?? r.changes)) return error(404, 'No such user.');
+  return json(200, { ok: true });
+}
+
 async function one_user(db: SqlDb, id: string, before: number) {
-  const user = await first(db, 'SELECT id, email, created FROM users WHERE id = ?', id);
+  const user = await first(db, 'SELECT id, email, role, created FROM users WHERE id = ?', id);
   if (!user.id) return null;
   const [totals, lessons, events, uploads] = await Promise.all([
     first(db, `${PERSON} WHERE user_id = ?`, id),

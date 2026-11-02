@@ -1,14 +1,17 @@
-// /admin: the data centre, for admins. Five tabs over the numbers the server reads with SQL (server/admin.ts):
+// /data: the data centre. Five tabs over the numbers the server reads with SQL (server/admin.ts):
 //   overview   the headline numbers of the range against the range before, each day as a chart, the latest questions
 //   visitors   everyone, signed in or not: pages, landing pages, sources, countries, devices, languages, hours
 //   learning   per course and lesson (signed-in learners): the hardest questions, misconceptions; one lesson page by page
 //   AI         calls, tokens and cost per route; every question learners asked and the answer; feedback on answers
 //   accounts   each learner and their record; uploaded courses
-// Every view is an address (/admin?tab=learning&lesson=…&days=30), so back and bookmarks work; what was fetched is
+// Who sees what is the server's (NEED in server/admin.ts): the summaries, with no person in them, to everyone while
+// they are public; each learner, their record and their words to teachers; exports, uploads and naming teachers to
+// admins. The page leaves out what the viewer cannot open.
+// Every view is an address (/data?tab=learning&lesson=…&days=30), so back and bookmarks work; what was fetched is
 // kept for a minute, so moving between tabs is instant. Days are the site's local days (the server's STATS_TZ).
 import { tr, type L10n, type Lesson } from '@mathnim/core';
 import { esc, t, ui_lang } from '@mathnim/present';
-import { current_user } from '../account';
+import { current_user, data_available, is_staff } from '../account';
 import { backlink } from '../backlink';
 import { course_by_slug, ensure_lesson, find_course, find_lesson, lesson_path } from '../course';
 import { navigate, parse } from '../router';
@@ -131,6 +134,7 @@ button.ad-tile:hover{background:color-mix(in srgb,var(--mn-fg) 4%,transparent)}
 .ad-sub p{margin:2px 0 0;font-size:13px;color:var(--mn-muted)}
 .ad-sub .mn-btn{font-size:13px;text-decoration:none}
 .ad-ev td:first-child{white-space:nowrap;color:var(--mn-muted);font-size:12.5px}
+.ad-role{font:inherit;font-size:13px;padding:3px 6px;border:1px solid var(--mn-border);border-radius:7px;background:var(--mn-panel);color:var(--mn-fg)}
 @media (max-width:640px){
   .adm h1{font-size:25px}
   .ad-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -162,7 +166,7 @@ function href(v: Partial<View>, base: View): string {
   if (x.user) p.set('user', x.user);
   if (x.q) p.set('q', x.q);
   const s = p.toString();
-  return `/admin${s ? `?${s}` : ''}`;
+  return `/data${s ? `?${s}` : ''}`;
 }
 
 // ---------------------------------------------------------------- fetching
@@ -428,6 +432,9 @@ function question_list(items: Row[], names: Map<string, LessonNames>, base: View
 /** The chart each tab shows, as chosen by its readouts (kept while moving between tabs). */
 const picked: Record<string, string> = { overview: 'visitors', traffic: 'visitors', ai: 'ai_calls' };
 
+/** What the viewer may open: 1 the summaries, 2 a teacher (each learner, their words), 3 an admin (exports, uploads, roles). */
+const level = () => (current_user()?.admin ? 3 : is_staff() ? 2 : 1);
+
 export async function admin_page(root: HTMLElement): Promise<() => void> {
   if (!injected) {
     injected = true;
@@ -441,26 +448,32 @@ export async function admin_page(root: HTMLElement): Promise<() => void> {
   const wrap = document.createElement('div');
   wrap.className = 'adm';
   root.append(wrap);
-  if (!current_user()?.admin) {
-    wrap.innerHTML = `<p class="ad-msg">${esc(t('ad_admins_only'))}</p>`;
+  if (!data_available()) {
+    wrap.innerHTML = `<p class="ad-msg">${esc(t('ad_staff_only'))}</p>`;
     return done;
   }
+  const tabs = TABS.filter((x) => x !== 'users' || level() >= 2);
+  if (!tabs.includes(v.tab)) v.tab = 'overview';
   const range_label = (d: number) => (d === 1 ? t('ad_today') : d === 365 ? t('ad_year') : d === 0 ? t('ad_all') : t('ad_days', { n: d }));
   const tab_label: Record<Tab, string> = { overview: t('ad_tab_overview'), traffic: t('ad_tab_traffic'), learning: t('ad_tab_learning'), ai: t('ad_tab_ai'), users: t('ad_tab_users') };
   wrap.innerHTML = `
     <div class="ad-head">
       <div><span class="ad-label">Mathnim · data · <span class="ad-tz"></span></span><h1>${esc(t('ad_title'))}</h1></div>
       <nav class="ad-range">${RANGES.map((d) => `<a href="${esc(href({ days: d, lesson: v.lesson, user: v.user, q: v.q }, v))}"${d === v.days ? ' class="on" aria-current="true"' : ''}>${esc(range_label(d))}</a>`).join('')}</nav>
-      <details class="ad-export"><summary class="mn-btn">${esc(t('ad_export'))}</summary><div class="ad-menu card">${['events', 'hits', 'usage', 'users']
-        .map((k) => `<a href="/api/admin/export?kind=${k}&days=${v.days}" download>${esc(t(`ad_x_${k}`))}<small>CSV</small></a>`)
-        .join('')}</div></details>
+      ${
+        level() >= 3
+          ? `<details class="ad-export"><summary class="mn-btn">${esc(t('ad_export'))}</summary><div class="ad-menu card">${['events', 'hits', 'usage', 'users']
+              .map((k) => `<a href="/api/admin/export?kind=${k}&days=${v.days}" download>${esc(t(`ad_x_${k}`))}<small>CSV</small></a>`)
+              .join('')}</div></details>`
+          : ''
+      }
     </div>
-    <nav class="ad-tabs">${TABS.map((x) => `<a href="${esc(href({ tab: x }, v))}"${x === v.tab ? ' class="on" aria-current="page"' : ''}>${esc(tab_label[x])}</a>`).join('')}</nav>
+    <nav class="ad-tabs">${tabs.map((x) => `<a href="${esc(href({ tab: x }, v))}"${x === v.tab ? ' class="on" aria-current="page"' : ''}>${esc(tab_label[x])}</a>`).join('')}</nav>
     <div class="ad-body loading"></div>`;
   const body = wrap.querySelector<HTMLElement>('.ad-body')!;
-  const export_menu = wrap.querySelector<HTMLDetailsElement>('.ad-export')!;
+  const export_menu = wrap.querySelector<HTMLDetailsElement>('.ad-export');
   const close_menu = (e: Event) => {
-    if (export_menu.open && !export_menu.contains(e.target as Node)) export_menu.open = false;
+    if (export_menu?.open && !export_menu.contains(e.target as Node)) export_menu.open = false;
   };
   document.addEventListener('pointerdown', close_menu);
   try {
@@ -468,7 +481,7 @@ export async function admin_page(root: HTMLElement): Promise<() => void> {
     const tz = await views[v.tab](v, body, observers);
     wrap.querySelector('.ad-tz')!.textContent = tz ?? '';
   } catch (e) {
-    body.innerHTML = `<p class="ad-msg">${esc(t(e instanceof Refused ? 'ad_admins_only' : 'ad_failed'))}</p>`;
+    body.innerHTML = `<p class="ad-msg">${esc(t(e instanceof Refused ? 'ad_staff_only' : 'ad_failed'))}</p>`;
   }
   body.classList.remove('loading');
   return () => {
@@ -502,7 +515,8 @@ function picker(host: HTMLElement, tab: string, list: Tile[], daily: Row[], fmt:
 
 // ---------------------------------------------------------------- overview
 async function overview(v: View, body: HTMLElement, obs: ResizeObserver[]): Promise<string> {
-  const [ov, qs] = await Promise.all([load('overview', { days: v.days }), load('questions', { days: v.days })]);
+  const words = level() >= 2;
+  const [ov, qs] = await Promise.all([load('overview', { days: v.days }), words ? load('questions', { days: v.days }) : Promise.resolve({} as Row)]);
   const now = (ov.totals ?? {}) as Row, before = ov.previous as Row | null, daily = rows(ov.daily);
   const d = (k: string) => delta(now[k], before?.[k], v.days, k === 'cost' ? usd : int);
   const list: Tile[] = [
@@ -528,7 +542,7 @@ async function overview(v: View, body: HTMLElement, obs: ResizeObserver[]): Prom
   const rest = document.createElement('div');
   rest.className = 'ad-grid2';
   rest.innerHTML =
-    section(t('ad_recent_q'), question_list(items, names, v), { link: `<a href="${esc(href({ tab: 'ai' }, v))}">${esc(t('ad_all_q'))} →</a>` }) +
+    (words ? section(t('ad_recent_q'), question_list(items, names, v), { link: `<a href="${esc(href({ tab: 'ai' }, v))}">${esc(t('ad_all_q'))} →</a>` }) : '') +
     section(t('ad_tab_learning'), table([{ h: '', cell: (r) => esc(S(r[0])) }, { h: '', num: true, cell: (r) => `<b>${esc(S(r[1]))}</b>` }], learning.map((x) => ({ ...x }) as unknown as Row)).replace(/<thead>.*?<\/thead>/, ''), {
       link: `<a href="${esc(href({ tab: 'learning' }, v))}">${esc(t('ad_tab_learning'))} →</a>`,
     });
@@ -740,7 +754,7 @@ async function one_lesson(v: View, body: HTMLElement): Promise<string> {
         ],
         rows(d.misconceptions),
       ),
-    )}${section(t('ad_recent_q'), question_list(rows(d.questions), names, v), { link: `<a href="${esc(href({ tab: 'ai', q: '' }, v))}">${esc(t('ad_all_q'))} →</a>` })}</div>`;
+    )}${level() >= 2 ? section(t('ad_recent_q'), question_list(rows(d.questions), names, v), { link: `<a href="${esc(href({ tab: 'ai', q: '' }, v))}">${esc(t('ad_all_q'))} →</a>` }) : ''}</div>`;
   return tz_of(d);
 }
 const find_course_of = (lesson: string) => {
@@ -750,7 +764,9 @@ const find_course_of = (lesson: string) => {
 
 // ---------------------------------------------------------------- AI
 async function ai(v: View, body: HTMLElement, obs: ResizeObserver[]): Promise<string> {
-  const [d, qs, fb] = await Promise.all([load('ai', { days: v.days }), load('questions', { days: v.days, q: v.q }), load('feedback')]);
+  const words = level() >= 2;
+  const none = Promise.resolve({} as Row);
+  const [d, qs, fb] = await Promise.all([load('ai', { days: v.days }), words ? load('questions', { days: v.days, q: v.q }) : none, words ? load('feedback') : none]);
   const daily = rows(d.daily).map((x) => ({ ...x, tokens: N(x.prompt) + N(x.completion) }));
   const all = rows(d.rows);
   const sum = (k: string, f: (x: Row) => boolean = () => true) => all.filter(f).reduce((n, x) => n + N(x[k]), 0);
@@ -797,7 +813,9 @@ async function ai(v: View, body: HTMLElement, obs: ResizeObserver[]): Promise<st
         all,
       ),
     ) +
-    `<section class="ad-sec ad-qsec"><h2>${esc(t('ad_all_q'))}</h2>
+    (!words
+      ? ''
+      : `<section class="ad-sec ad-qsec"><h2>${esc(t('ad_all_q'))}</h2>
       <form class="ad-search"><input class="mn-input" type="search" name="q" value="${esc(v.q)}" placeholder="${esc(t('ad_search'))}" aria-label="${esc(t('ad_search'))}"><button class="mn-btn" type="submit">${esc(t('ad_search_btn'))}</button></form>
       <div class="ad-qlist">${question_list(items, names, v)}</div>${items.length >= 50 ? `<button type="button" class="mn-btn ad-more ad-qmore">${esc(t('ad_more'))}</button>` : ''}</section>` +
     section(
@@ -812,9 +830,9 @@ async function ai(v: View, body: HTMLElement, obs: ResizeObserver[]): Promise<st
             ],
             fb_items,
           )}`,
-    );
+      ));
   // a search is an address of its own; more questions load under the list
-  rest.querySelector<HTMLFormElement>('.ad-search')!.addEventListener('submit', (e) => {
+  rest.querySelector<HTMLFormElement>('.ad-search')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const q = String(new FormData(e.target as HTMLFormElement).get('q') ?? '').trim();
     navigate(href({ tab: 'ai', q }, v));
@@ -838,10 +856,16 @@ async function ai(v: View, body: HTMLElement, obs: ResizeObserver[]): Promise<st
 // ---------------------------------------------------------------- accounts
 async function users(v: View, body: HTMLElement): Promise<string> {
   if (v.user) return one_user(v, body);
-  const [d, ov, up] = await Promise.all([load('users', { q: v.q }), load('overview', { days: v.days }), load('uploads')]);
+  const admin = level() >= 3;
+  const [d, ov, up] = await Promise.all([load('users', { q: v.q }), load('overview', { days: v.days }), admin ? load('uploads') : Promise.resolve({} as Row)]);
   const now = (ov.totals ?? {}) as Row;
   const list = rows(d.items);
   const person = (x: Row) => `<a href="${esc(href({ tab: 'users', user: S(x.id) }, v))}">${esc(S(x.email))}</a><small>№ ${esc(S(x.id).slice(0, 4).toUpperCase())}</small>`;
+  // an admin names teachers here; an admin is one by the server's list, not by this choice
+  const role_cell = (x: Row) =>
+    !admin || x.role === 'admin'
+      ? esc(t(`ad_role_${S(x.role) || 'learner'}`))
+      : `<select class="ad-role" data-id="${esc(S(x.id))}" aria-label="${esc(t('ad_role'))}">${['learner', 'teacher'].map((r) => `<option value="${r}"${x.role === r ? ' selected' : ''}>${esc(t(`ad_role_${r}`))}</option>`).join('')}</select>`;
   const table_of = (l: Row[]) =>
     table(
       [
@@ -854,6 +878,7 @@ async function users(v: View, body: HTMLElement): Promise<string> {
         { h: t('ad_asked'), num: true, cell: (x) => (N(x.asked) ? int(x.asked) : '') },
         { h: t('ad_time'), num: true, cell: (x) => dur(x.time_ms) },
         { h: t('ad_uploads'), num: true, cell: (x) => (N(x.uploads) ? int(x.uploads) : '') },
+        { h: t('ad_role'), num: true, cell: role_cell },
       ],
       l,
     );
@@ -865,7 +890,10 @@ async function users(v: View, body: HTMLElement): Promise<string> {
     <section class="ad-sec"><h2>${esc(t('ad_accounts'))} <small>${esc(int(d.total))}</small></h2>
       <form class="ad-search"><input class="mn-input" type="search" name="q" value="${esc(v.q)}" placeholder="${esc(t('ad_find_email'))}" aria-label="${esc(t('ad_find_email'))}"><button class="mn-btn" type="submit">${esc(t('ad_search_btn'))}</button></form>
       <div class="ad-ulist">${table_of(list)}</div>${N(d.total) > list.length ? `<button type="button" class="mn-btn ad-more">${esc(t('ad_more'))}</button>` : ''}</section>
-    ${section(
+    ${
+      !admin
+        ? ''
+        : section(
       t('ad_uploads'),
       table(
         [
@@ -877,7 +905,17 @@ async function users(v: View, body: HTMLElement): Promise<string> {
         rows(up.items),
       ),
       { count: rows(up.items).length ? String(rows(up.items).length) : '' },
-    )}`;
+    )
+    }`;
+  body.addEventListener('change', async (e) => {
+    const sel = (e.target as Element).closest<HTMLSelectElement>('.ad-role');
+    if (!sel) return;
+    sel.disabled = true;
+    const r = await fetch('/api/admin/role', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: sel.dataset.id, role: sel.value }) }).catch(() => null);
+    if (!r?.ok) sel.value = sel.value === 'teacher' ? 'learner' : 'teacher'; // not saved: back to what it was
+    kept.clear();
+    sel.disabled = false;
+  });
   body.querySelector<HTMLFormElement>('.ad-search')!.addEventListener('submit', (e) => {
     e.preventDefault();
     navigate(href({ tab: 'users', q: String(new FormData(e.target as HTMLFormElement).get('q') ?? '').trim() }, v));

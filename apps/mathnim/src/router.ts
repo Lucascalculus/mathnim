@@ -4,7 +4,7 @@
 //   /<course-slug>/<lesson>   a lesson
 //   /<course-slug>/labs/<lab> a lab tutorial
 //   /review /dashboard /settings
-//   /admin                    the data centre (admins only)
+//   /data                     the data centre (/admin, its first address, leads here too)
 //   /studio /studio/<id>      courses made from uploaded slides: my uploads, one upload
 // Old hash links (#/, #/lesson/<id>, #/course/<id>, #/review ...) are redirected.
 // Links inside the app are plain <a href="/..."> elements: a click is turned
@@ -20,13 +20,14 @@ export type Route =
   | { page: 'review' | 'settings' | 'admin' }
   | { page: 'studio'; id?: string };
 
-const OTHER = new Set(['review', 'settings', 'admin']);
+const OTHER = new Set(['review', 'settings']);
 
 /** The route of a path; unknown paths go home (and wrong course slugs to the lesson's own course). */
 export function parse(pathname: string): Route {
   const parts = pathname.split('/').filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return { page: 'home' };
-  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' | 'admin' };
+  if (parts.length === 1 && (parts[0] === 'data' || parts[0] === 'admin')) return { page: 'admin' };
+  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' };
   if (parts[0] === 'studio' && parts.length <= 2) return { page: 'studio', id: parts[1] };
   const course = course_by_slug(parts[0]);
   if (course && parts.length === 1) return { page: 'course', course };

@@ -39,6 +39,8 @@ ANSWER_CACHE_TTL = "86400"
 MAIL_FROM = "Mathnim <login@penghaolun.com>"
 # Who may publish an uploaded course to everyone (comma-separated addresses).
 ADMIN_EMAILS = "haolun.lucas@gmail.com"
+# the data centre (/data): "public" opens its summaries to everyone for now; anything else keeps it to teachers and admins
+DATA_CENTRE = "public"
 # Live narration: "" = Azure when AZURE_SPEECH_KEY/AZURE_SPEECH_REGION are set,
 # else Edge's unofficial read-aloud endpoint (demo grade); "off" disables it.
 TTS = ""

@@ -70,7 +70,8 @@ the file. Secrets are separate and are never in the file.
 | `RATE_LIMITS` | variable | | per visitor: `deepseek=40/300,tts=80/600,feedback=20/100` (per 10 min / per UTC day; `deepseek` counts `/api/ai`) |
 | `ANSWER_CACHE_TTL` | variable | | seconds a shared answer (the starter questions) is cached (`86400`; `0` = off) |
 | `TTS` | variable | | live narration: empty = Azure if configured else Edge; `edge`, `azure`, or `off` |
-| `ADMIN_EMAILS` | variable | for the data centre and publishing | who is an admin (comma-separated): the data centre at `/admin`, publishing uploaded courses |
+| `ADMIN_EMAILS` | variable | for the data centre and publishing | who is an admin (comma-separated): everything in the data centre, naming teachers, publishing uploaded courses |
+| `DATA_CENTRE` | variable | | `public`: the data centre's summaries (no person in them) are open to everyone, as for now; anything else keeps the data centre to teachers and admins |
 | `STATS_TZ` | variable | | the data centre's days (default `Australia/Melbourne`): "today" ends at this zone's midnight |
 
 Set secrets from the repo root (each command prompts for the value):
@@ -113,7 +114,8 @@ structured log line per call.
 | `GET`/`PUT /api/me/state` | The signed-in learner's records (`mathnim.*` in localStorage except settings and the event log), newest value per record wins |
 | `POST /api/me/events` `{events: [...]}` | The signed-in learner's learning events (≤ 200 per request), appended to the D1 table `events`: answered, hinted, explored, viewed and left a step (with the time on it), asked the tutor (question and answer, words only), set a preference... Each has an id made from its content in the browser, so a resent event is stored once. Columns for analytics (`lesson`, `step`, `verb`, `skill`, `correct`, `misconception`, `duration_ms`, `attempt`), the rest JSON in `data`; example queries at the top of `server/events.ts`. Personalisation (what the tutor is told about a learner) is to read from here |
 | `POST /api/hit` `{path, ref?, lang?, w?}` | `204`. One page view for the data centre, sent by every page, signed in or not. Kept in D1 (`hits`): the page (no query; uploads as `/studio/*`), where the visit came from (on its first page), country (Cloudflare's), phone / tablet / computer, language, signed in or not, and a visitor tag: a hash of the address and browser with a salt made each day and deleted the next, so a person is one visitor within a day and cannot be followed across days. No cookie, no address. Robots (by user agent) and admins are not counted |
-| `GET /api/admin/<section>?days=` | The data centre's numbers (`overview`, `traffic`, `learning`, `lesson`, `questions`, `ai`, `feedback`, `users`, `user`, `uploads`, `export?kind=events\|hits\|usage\|users` as CSV), for a signed-in admin only (`ADMIN_EMAILS`). Contract at the top of `server/admin.ts` |
+| `GET /api/admin/<section>?days=` | The data centre's numbers (`overview`, `traffic`, `learning`, `lesson`, `questions`, `ai`, `feedback`, `users`, `user`, `uploads`, `export?kind=events\|hits\|usage\|users` as CSV). Three levels (`NEED` in `server/admin.ts`): the summaries, with no person in them, to everyone while `DATA_CENTRE` is `public` (else to teachers and admins); each learner, their record and their questions to teachers and admins; exports and uploads to admins. Every answer says the viewer's `level` |
+| `POST /api/admin/role` `{id, role}` | An admin names a teacher (`role: 'teacher'`) or makes one a learner again; kept in `users.role`. Admins are the ones in `ADMIN_EMAILS` |
 | `/api/studio/*` | Courses made from uploaded slides and practice exams: courses, files (PDF ≤ 32 MB), steps (NDJSON while a step runs), `catalog`, `lessons/<course>/<lesson>`. Contract at the top of `server/studio/routes.ts`; the steps in `server/studio/pipeline.ts` |
 
 The teacher view, from a terminal:
@@ -208,7 +210,7 @@ data centre per 30 days (cache), so live narration costs little even on Azure.
 
 ## The data centre
 
-`/admin` (a link on an admin's pass) shows what the site keeps, by the site's local days (`STATS_TZ`):
+`/data` (its icon in the top bar, a reading drawn on the dot grid) shows what the site keeps, by the site's local days (`STATS_TZ`), to whoever may see it (the three levels above: everyone, teachers, admins):
 visitors (everyone, from `/api/hit`), learning (signed-in learners' events: per course, lesson and page,
 first-try answers, misconceptions, where learners stopped), the AI (calls, tokens and cost per route, every
 question asked with its answer, feedback), and accounts (each learner's record, uploaded courses), each

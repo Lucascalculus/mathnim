@@ -11,7 +11,7 @@ landing page. Three levels:
 | Lesson | `/<course-slug>/<lesson-id>` | Learn, without distractions |
 | Lab | `/<course-slug>/labs/<lab-id>` | Read a hands-on tutorial |
 | Other pages | `/review`, `/dashboard`, `/settings` | As before |
-| Data centre | `/admin` (admins only, linked from the pass) | What the site keeps: visitors, learning, the AI's cost and questions, accounts (`docs/DEPLOY.md`) |
+| Data centre | `/data` (an icon in the top bar; `/admin` leads here too) | What the site keeps: visitors, learning, the AI's cost and questions, accounts. Summaries for everyone while `DATA_CENTRE` is public; each learner's record and words for teachers; exports, uploads and naming teachers for admins (`docs/DEPLOY.md`) |
 
 Routing uses real paths (history API). Cloudflare Pages serves `index.html` for
 unknown paths because there is no `404.html`. Old hash links (`#/`,

@@ -122,11 +122,35 @@ describe('what the routes cost', () => {
 });
 
 describe('the data centre', () => {
-  it('is for admins only', async () => {
+  it('shows each level its own: summaries (public for now), teachers, admins', async () => {
     const e = env();
+    const learner = await sign_in(e, 'a@example.com'), boss = await sign_in(e, 'boss@example.com'), teacher = await sign_in(e, 't@example.com');
+    // closed: teachers and admins only
     expect((await get(e, 'overview', '')).status).toBe(401);
-    expect((await get(e, 'overview', await sign_in(e, 'a@example.com'))).status).toBe(403);
-    expect((await get(e, 'overview', await sign_in(e, 'boss@example.com'))).status).toBe(200);
+    expect((await get(e, 'overview', learner)).status).toBe(403);
+    expect((await get(e, 'overview', teacher)).status).toBe(403);
+    expect((await get<{ level: number }>(e, 'overview', boss)).body.level).toBe(3);
+    // an admin names a teacher (and only an admin can)
+    const users = (await get<{ items: { id: string; email: string; role: string }[] }>(e, 'users', boss)).body.items;
+    const t_id = users.find((u) => u.email === 't@example.com')!.id;
+    expect(users.find((u) => u.email === 'boss@example.com')!.role).toBe('admin');
+    const name = (cookie: string, role: string) => admin(req('admin/role', { body: { id: t_id, role }, cookie }), e, 'role');
+    expect((await name(learner, 'teacher')).status).toBe(403);
+    expect((await name(boss, 'teacher')).status).toBe(200);
+    const me = await auth(req('auth/me', { cookie: teacher }), e, 'me', { limiter: null }, {});
+    expect(((await me.json()) as { user: { role: string } }).user.role).toBe('teacher');
+    expect((await get<{ level: number }>(e, 'users', teacher)).body.level).toBe(2);
+    expect((await get(e, 'export?kind=users', teacher)).status).toBe(403);
+    // open: everyone sees the summaries, nobody's words or records
+    const open = { ...e, DATA_CENTRE: 'public' };
+    const anon = (path: string) => admin(req(`admin/${path}`), open, path.split('?')[0]);
+    expect((await anon('overview')).status).toBe(200);
+    expect((await anon('learning')).status).toBe(200);
+    expect(((await (await anon('lesson?id=l1')).json()) as { questions: unknown[]; level: number })).toMatchObject({ questions: [], level: 1 });
+    for (const path of ['questions', 'users', 'user?id=x', 'feedback', 'export?kind=events']) expect((await anon(path)).status).toBe(403);
+    const me_open = await auth(req('auth/me'), open, 'me', { limiter: null }, {});
+    expect(((await me_open.json()) as { data: string }).data).toBe('public');
+    expect((await name(boss, 'learner')).status).toBe(200);
   });
 
   it('reads learning from the events: answers, first tries, where learners stopped, questions', async () => {

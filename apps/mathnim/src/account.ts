@@ -10,6 +10,8 @@ export interface Me {
   id: string;
   email: string;
   admin: boolean;
+  /** An admin above a teacher above a learner (server/auth.ts). */
+  role?: 'admin' | 'teacher' | 'learner';
 }
 let me: Me | null = null;
 /** False when this server has no accounts (the sign-in entry is not shown). */
@@ -17,11 +19,17 @@ let available = false;
 /** Whether files can be uploaded here, and whether a model is connected to make courses of them. */
 let studio = false;
 let generate = false;
+/** The data centre's summaries are open to everyone (the server's DATA_CENTRE), not only to teachers and admins. */
+let data_open = false;
 const listeners = new Set<() => void>();
 export const current_user = () => me;
 export const accounts_available = () => available;
 export const studio_available = () => available && studio;
 export const generate_available = () => studio_available() && generate;
+/** Is this a teacher or an admin (each learner's record, their questions)? */
+export const is_staff = () => me?.role === 'admin' || me?.role === 'teacher' || !!me?.admin;
+/** Whether the data centre is shown (its entry in the top bar). */
+export const data_available = () => data_open || is_staff();
 /** Called when the learner signs in or out. */
 export function on_user(f: () => void): () => void {
   listeners.add(f);
@@ -43,8 +51,9 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<{ ok: bool
 /** Ask the server who is signed in; false when it did not answer (slow or offline), so nothing is known yet. */
 async function ask_me(timeout_ms: number): Promise<boolean> {
   try {
-    const r = await call<{ user: Me | null; mail?: boolean; studio?: boolean; generate?: boolean }>('auth/me', { signal: AbortSignal.timeout(timeout_ms) });
+    const r = await call<{ user: Me | null; mail?: boolean; studio?: boolean; generate?: boolean; data?: string }>('auth/me', { signal: AbortSignal.timeout(timeout_ms) });
     studio = r.ok && !!r.data.studio;
+    data_open = r.ok && r.data.data === 'public';
     generate = r.ok && !!r.data.generate;
     // sign-in is offered once the server can mail codes (a signed-in learner keeps their account regardless)
     available = r.ok && 'user' in r.data && (r.data.mail !== false || !!r.data.user);
@@ -52,6 +61,7 @@ async function ask_me(timeout_ms: number): Promise<boolean> {
     return true;
   } catch {
     available = false;
+    data_open = false;
     me = null;
     return false;
   }

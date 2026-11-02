@@ -5,9 +5,9 @@ import { ui_lang } from '@mathnim/present';
 
 let first = true;
 let last = '';
-/** Count the page at `path` (a page re-drawn in another language is not counted again). */
+/** Count the page at `path` (a page re-drawn in another language is not counted again; admins are not counted by the server). */
 export function count_view(path: string): void {
-  if (path === last || path === '/admin' || path.startsWith('/admin/')) return;
+  if (path === last) return;
   last = path;
   let ref: string | undefined;
   if (first) {

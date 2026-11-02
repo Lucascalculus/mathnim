@@ -6,7 +6,7 @@ import { lesson_path } from './course';
 import { intercept_links, legacy_path, navigate, parse, set_router, type Route } from './router';
 import { load_settings } from './settings';
 import { settings_panel } from './pages/settings';
-import { accounts_available, current_user, on_account_late, sign_out, studio_available } from './account';
+import { accounts_available, current_user, data_available, on_account_late, sign_out, studio_available } from './account';
 import { login_form } from './login';
 import { SHEET } from './sheet';
 import { PROGRESS_CSS } from './progress_mark';
@@ -58,8 +58,25 @@ body{margin:0;background:#fbfbfa}
 @keyframes acct-wiggle{0%,100%{transform:rotate(18deg)}20%{transform:rotate(-4deg) scale(1.15)}45%{transform:rotate(26deg) scale(1.1)}70%{transform:rotate(12deg)}}
 .pass-admin{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:#B7791F;letter-spacing:.14em}
 .pass-admin svg{width:12px;height:10px}
+.pass-teacher{font-weight:600;color:var(--mn-accent);letter-spacing:.14em}
 @media (prefers-reduced-motion:reduce){.acct .acct-crown{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.nav-ic>i,.nav-ic svg{transition:none}}
+/* the data centre: a link drawn like the other tools; on its own page its crop marks stay closed in */
+a.nav-ic{text-decoration:none}
+.nav-ic[aria-current=page]{color:var(--mn-fg)}
+.nav-ic[aria-current=page]>i{opacity:1}
+.nav-ic[aria-current=page]>i:nth-child(1){left:2px;top:2px}
+.nav-ic[aria-current=page]>i:nth-child(2){right:2px;top:2px}
+.nav-ic[aria-current=page]>i:nth-child(3){left:2px;bottom:2px}
+.nav-ic[aria-current=page]>i:nth-child(4){right:2px;bottom:2px}
+/* pointed at, its line is drawn again and the reading lands */
+.data .reading path{stroke-dasharray:1}
+.data .reading .tip{transform-box:fill-box;transform-origin:center}
+.data:hover .reading path{animation:reading-draw .55s cubic-bezier(.4,0,.2,1) both}
+.data:hover .reading .tip{animation:reading-tip .4s .45s cubic-bezier(.3,1.8,.5,1) both}
+@keyframes reading-draw{from{stroke-dashoffset:1}}
+@keyframes reading-tip{from{transform:scale(0)}}
+@media (prefers-reduced-motion:reduce){.data:hover .reading path,.data:hover .reading .tip{animation:none}}
 .acct-pop{position:absolute;top:calc(100% + 8px);right:16px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;z-index:30;display:flex;flex-direction:column;gap:12px;${SHEET};padding:16px 20px 18px;box-shadow:0 18px 50px -12px rgba(0,0,0,.25),0 0 0 1px var(--mn-border)}
 .acct-pop[hidden]{display:none}
 .pass-head{display:flex;justify-content:space-between;padding-bottom:10px;margin-bottom:2px;border-bottom:1px dashed color-mix(in srgb,var(--mn-fg) 30%,transparent);font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:color-mix(in srgb,var(--mn-fg) 55%,transparent)}
@@ -335,6 +352,8 @@ const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V1
 /** The four crop marks that hold each tool of the top bar. */
 const CORNERS = '<i></i><i></i><i></i><i></i>';
 /** Signed out, the account is a blank sheet: the margin's dot grid, three by three. */
+/** The data centre: a reading drawn across the sheet's dot grid (the signed-out pass), ending where a chart's tip rests. */
+const DATA_ICON = `<svg class="reading" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor" opacity=".4">${[2.5, 8, 13.5].flatMap((y) => [2.5, 8, 13.5].map((x) => `<circle r="1" cx="${x}" cy="${y}"/>`)).join('')}</g><path d="M2.5 12.8L6.3 8.2L9.7 10.6L13.4 3.9" pathLength="1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle class="tip" cx="13.4" cy="3.9" r="1.9" fill="currentColor"/></svg>`;
 const SHEET_ICON = `<svg class="dots" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${[2.5, 8, 13.5].flatMap((y) => [2.5, 8, 13.5].map((x) => `<circle${x === 8 && y === 8 ? ' class="mid" r="1.6"' : ' r="1.15"'} cx="${x}" cy="${y}"/>`)).join('')}</svg>`;
 
 export function mount_shell(pages: Record<Route['page'], Page>): void {
@@ -377,8 +396,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     close_account();
   });
   // the pass: its number (from the account id) once there is an account, the sign-in form until then
-  const pass_head = (n: string, admin = false) =>
-    `<div class="pass-head"><span>LAB PASS${admin ? ` · <b class="pass-admin">${CROWN}ADMIN</b>` : ''}</span><span>№ ${esc(n)}</span></div>`;
+  const pass_head = (n: string, role?: string) =>
+    `<div class="pass-head"><span>LAB PASS${role === 'admin' ? ` · <b class="pass-admin">${CROWN}ADMIN</b>` : role === 'teacher' ? ` · <b class="pass-teacher">TEACHER</b>` : ''}</span><span>№ ${esc(n)}</span></div>`;
   let stamping = false;
   const account_card = () => {
     const me = current_user();
@@ -399,8 +418,8 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       );
       return;
     }
-    acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase(), me.admin)}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
-      <div class="pass-links">${me.admin ? `<a href="/admin">${esc(t('ad_title'))}</a>` : ''}${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
+    acct_pop.innerHTML = `${pass_head(me.id.slice(0, 4).toUpperCase(), me.admin ? 'admin' : me.role)}<div class="pass-who" title="${esc(me.email)}">${esc(me.email)}</div>
+      <div class="pass-links">${studio_available() ? `<a href="/studio">${esc(t('my_studio'))}</a>` : ''}<button type="button" class="pass-out">${esc(t('sign_out'))}</button></div>`;
     acct_pop.querySelector<HTMLButtonElement>('.pass-out')!.onclick = () => {
       close_account();
       void sign_out();
@@ -417,8 +436,11 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
       : me
         ? `<button type="button" class="nav-ic acct me${me.admin ? ' admin' : ''}" aria-label="${esc(me.email)}" title="${esc(me.email)}" aria-expanded="false">${CORNERS}${esc(me.email.slice(0, 1))}${me.admin ? `<span class="acct-crown" aria-hidden="true">${CROWN}</span>` : ''}</button>`
         : `<button type="button" class="nav-ic acct" aria-label="${esc(t('sign_in'))}" title="${esc(t('sign_in'))}" aria-expanded="false">${CORNERS}${SHEET_ICON}</button>`;
+    const data = data_available()
+      ? `<a class="nav-ic data" href="/data" aria-label="${esc(t('ad_title'))}" title="${esc(t('ad_title'))}"${current.page === 'admin' ? ' aria-current="page"' : ''}>${CORNERS}${DATA_ICON}</a>`
+      : '';
     nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
-      <span class="nav-tools">${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
+      <span class="nav-tools">${data}${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
     nav.append(pop, acct_pop);
     const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');
     if (acct_btn)
