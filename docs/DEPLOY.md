@@ -210,7 +210,7 @@ data centre per 30 days (cache), so live narration costs little even on Azure.
 
 ## The data centre
 
-`/data` (its icon in the top bar, a reading drawn on the dot grid) shows what the site keeps, by the site's local days (`STATS_TZ`), to whoever may see it (the three levels above: everyone, teachers, admins):
+`/data` ("Data" in the top bar, held by crop marks like the other tools) shows what the site keeps, by the site's local days (`STATS_TZ`), to whoever may see it (the three levels above: everyone, teachers, admins):
 visitors (everyone, from `/api/hit`), learning (signed-in learners' events: per course, lesson and page,
 first-try answers, misconceptions, where learners stopped), the AI (calls, tokens and cost per route, every
 question asked with its answer, feedback), and accounts (each learner's record, uploaded courses), each

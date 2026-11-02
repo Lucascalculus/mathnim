@@ -11,6 +11,7 @@ define_ui({
   nav_review: { en: 'Review', zh: '复习' },
   nav_dashboard: { en: 'Dashboard', zh: '学习记录' },
   nav_settings: { en: 'Settings', zh: '设置' },
+  nav_data: { en: 'Data', zh: '数据' },
   nav_ai: { en: 'AI: {p}', zh: 'AI：{p}' },
   language: { en: 'Language', zh: '语言' },
   offline_answers: { en: 'offline demo answers', zh: '离线演示答案' },
