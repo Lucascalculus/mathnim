@@ -78,3 +78,31 @@ the number of firms would show things the model cannot back.
 | 5a | long-run supply horizontal at $p = 125$ (each firm $q = 25$) |
 | 5b | $Q = 1900$, $\varepsilon = -4 \cdot 125/1900 \approx -0.26$ (76 firms) |
 | 6 | equilibrium where the ray of slope $y^*$ (subsistence) meets $Y = Af(N, K)$; immigration: $Y/N$ falls below $y^*$, population falls back to $N^*$ |
+
+## Predicted exam questions (a sixth unit)
+
+`predict.py` adds nine lessons (`econ90015-pq-*`, built by `build.py` with the rest): a start page and eight
+questions written in the mock's style, each taught the same way (question as printed, part by part from the
+ground up, every derivation line in words, a full-mark answer, the wider topic, your turn). The lessons are in
+`pq_markets.py`, `pq_power.py` and `pq_macro.py`; titles, the answer-spreading helper (`mixed`) and the diagrams
+in `pq_common.py`.
+
+**Where the predictions come from** (2026-11-02): the subject's learning outcomes (Handbook 2026: markets;
+economies of scale, scope and learning; market structures; game theory; measures of cost; external costs with
+taxes, quantitative restrictions and tradeable permits; the macroeconomic environment and policy), and what the
+lectures covered in recent runs, from the topic lists of students' notes (2022: GDP, supply and demand,
+elasticities, welfare, externalities and taxes, production and cost, perfect competition, monopoly, non-uniform
+pricing, oligopoly and game theory, growth; 2024 adds bundling, two-part pricing, money, inflation, interest rates,
+fiscal and monetary policy). No lecture slides or past papers were seen: these are practice on the likeliest
+topics, and the start page says so. Each lesson either goes deeper than a mock question or covers what it left out.
+
+| Lesson | Question | Answers (checked with sympy) |
+|---|---|---|
+| pq-tax | per-unit tax and a price ceiling: $Q_d = 400 - 4p$, $Q_s = 6p - 100$, $t = 10$, ceiling 40 | $p = 50$, $Q = 200$, $\varepsilon_d = -1$, $\varepsilon_s = 1.5$; $p_b = 56$, $p_s = 46$, $Q = 176$; buyers bear 60%; revenue 1760, DWL 120; shortage 100, DWL 750 |
+| pq-pollution | $p = 100 - Q/2$, $MPC = 10 + Q/2$, $MEC = 20$; permits with $MAC_1 = 2a_1$, $MAC_2 = 4a_2$, cut 60 | market 90 at 55; efficient 70 at 65; DWL 200; tax 20, revenue 1400; equal cuts 2700, permits 2400 ($a_1 = 40$, $a_2 = 20$, price 80, 10 permits traded) |
+| pq-costs | $C = 100 + 4q + q^2$, 50 firms, $Q = 1300 - 25p$; recession $Q = 700 - 25p$ | shutdown 4, break-even 24 ($q = 10$); $Q_s = 25p - 100$; SR $p = 28$, $q = 12$, profit 44; LR 24, 70 firms; recession $p = 16$, loss 64 < 100: keep producing |
+| pq-pricing | golfer $Q = 20 - p$, $MC = 4$; two types (casual $Q = 16 - p$); bundle values A (120, 40), B (90, 70) | single price 12, profit 64; two-part fee 128 at $p = 4$; two types: $p = 4$ gives 144 per pair, $p = 6$ (fee 50) gives 148 (the optimum); separate 260, bundle 320 |
+| pq-oligopoly | $p = 140 - Q$, $MC = 20$ | Cournot 40 each, $p = 60$, 1600 each; Stackelberg 60/30, $p = 50$, 1800/900; cartel 30 each at 80, 1800; cheat to 45 earns 2025; Bertrand $p = 20$ |
+| pq-games | matrix (50,50)/(10,70)/(70,10)/(30,30); entry tree (0,100), fight (−10,20), accommodate (30,50); capacity 60/45/10 | Low dominant, NE (Low, Low); cooperation if $\delta \geq 1/2$; SPE (Enter, Accommodate); threat not credible; invest (60 > 50) |
+| pq-growth | $Y = A\sqrt{NK}$, $K = 100$, $y^* = 4$; $A$ 2 → 3; plague kills a third | $N^* = 25$, $Y = 100$; at first $Y/N = 6$, then $N = 56.25$, $Y = 225$; plague: $Y/N \approx 4.9$, back to 56.25. Maize example: Chen and Kung (2016), checked against the paper |
+| pq-macro | pizzas and haircuts, 2024 and 2025; money +8%, real +3%, real rate 2% | nominal 2000 and 2760, real 2400, growth 20%; deflator 115, inflation 15%; used car, flour, pension no, new house yes; inflation 5%, nominal rate 7% |

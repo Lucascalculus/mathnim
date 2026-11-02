@@ -3510,8 +3510,8 @@
    "decks": 0,
    "exams": 1,
    "note": {
-    "en": "Written by an AI (Claude) from 1 practice exam · not edited by a person",
-    "zh": "由 AI（Claude）根据 1 份模拟题编写 · 未经人工修改"
+    "en": "Written by an AI (Claude) from 1 practice exam; the predicted questions also from the subject’s published topics · not edited by a person",
+    "zh": "由 AI（Claude）根据 1 份模拟题编写；预测题另参考了这门课公开的课程内容 · 未经人工修改"
    }
   },
   "units": [
@@ -3561,6 +3561,23 @@
     },
     "lessons": [
      "econ90015-drill"
+    ]
+   },
+   {
+    "title": {
+     "en": "Predicted exam questions",
+     "zh": "预测考题精讲"
+    },
+    "lessons": [
+     "econ90015-pq-start",
+     "econ90015-pq-tax",
+     "econ90015-pq-pollution",
+     "econ90015-pq-costs",
+     "econ90015-pq-pricing",
+     "econ90015-pq-oligopoly",
+     "econ90015-pq-games",
+     "econ90015-pq-growth",
+     "econ90015-pq-macro"
     ]
    }
   ],
@@ -3895,6 +3912,395 @@
        "name": {
         "en": "The whole exam",
         "zh": "整张试卷"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-start",
+    "title": {
+     "en": "Start here: eight predicted questions",
+     "zh": "从这里开始：八道预测题"
+    },
+    "summary": {
+     "en": "Where the predictions come from, what each question covers that the mock did not, and how to use them.",
+     "zh": "这些预测从哪里来，每道题覆盖了哪些模考没考的内容，以及怎么用。"
+    },
+    "minutes": 8,
+    "meta": {
+     "title": {
+      "en": "Start here: eight predicted questions",
+      "zh": "从这里开始：八道预测题"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.map",
+       "name": {
+        "en": "Reading the predicted questions",
+        "zh": "读懂这组预测题"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-tax",
+    "title": {
+     "en": "A tax and a price ceiling (predicted 1)",
+     "zh": "一道税和一个限价（预测题 1）"
+    },
+    "summary": {
+     "en": "Elasticity of supply, the wedge a tax drives between buyers and sellers, who really pays it, the deadweight loss, and what a maximum price does.",
+     "zh": "供给弹性，税在买卖双方之间打进的楔子，税实际由谁负担，无谓损失，以及最高限价会带来什么。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "A tax and a price ceiling (predicted 1)",
+      "zh": "一道税和一个限价（预测题 1）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.incidence",
+       "name": {
+        "en": "Tax incidence and deadweight loss",
+        "zh": "税负归宿与无谓损失"
+       }
+      },
+      {
+       "id": "e15.pq.controls",
+       "name": {
+        "en": "Price controls",
+        "zh": "价格管制"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-pollution",
+    "title": {
+     "en": "Pollution: a tax, a quota or permits (predicted 2)",
+     "zh": "污染：征税、配额还是排放许可（预测题 2）"
+    },
+    "summary": {
+     "en": "Why a market produces too much of a good that pollutes, how big the loss is, the tax that fixes it, and why tradeable permits cut pollution more cheaply than telling every firm to cut the same amount.",
+     "zh": "为什么会污染的商品市场会生产过多，损失有多大，能纠正它的税，以及为什么可交易的排放许可比让每家厂商减同样多更省钱。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Pollution: a tax, a quota or permits (predicted 2)",
+      "zh": "污染：征税、配额还是排放许可（预测题 2）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.externality",
+       "name": {
+        "en": "External costs and the Pigouvian tax",
+        "zh": "外部成本与庇古税"
+       }
+      },
+      {
+       "id": "e15.pq.permits",
+       "name": {
+        "en": "Tradeable permits",
+        "zh": "可交易排放许可"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-costs",
+    "title": {
+     "en": "A firm in the short run and the long run (predicted 3)",
+     "zh": "短期与长期里的厂商（预测题 3）"
+    },
+    "summary": {
+     "en": "Fixed and variable cost, the shutdown and break-even prices, a firm’s and an industry’s supply, short-run profit, entry to the long run, and why a firm making a loss may keep producing.",
+     "zh": "固定成本和可变成本，停产价格和盈亏平衡价格，单个厂商和整个行业的供给，短期利润，进入带来的长期，以及亏损的厂商为什么可能继续生产。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "A firm in the short run and the long run (predicted 3)",
+      "zh": "短期与长期里的厂商（预测题 3）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.shutdown",
+       "name": {
+        "en": "Short-run supply and shutdown",
+        "zh": "短期供给与停产"
+       }
+      },
+      {
+       "id": "e15.pq.entry",
+       "name": {
+        "en": "Long-run entry",
+        "zh": "长期进入"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-pricing",
+    "title": {
+     "en": "A fee and a price, and bundles (predicted 4)",
+     "zh": "入场费加单价，以及捆绑（预测题 4）"
+    },
+    "summary": {
+     "en": "Why a seller with power charges a fee plus a price per use, what to do when its customers differ, and why selling two products only as a bundle can earn more than selling them apart.",
+     "zh": "有市场势力的卖家为什么要收入场费再按次收费，顾客不一样时怎么办，以及为什么两种产品只捆绑出售能比分开卖赚得更多。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "A fee and a price, and bundles (predicted 4)",
+      "zh": "入场费加单价，以及捆绑（预测题 4）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.twopart",
+       "name": {
+        "en": "Two-part tariffs",
+        "zh": "两部收费"
+       }
+      },
+      {
+       "id": "e15.pq.bundle",
+       "name": {
+        "en": "Bundling",
+        "zh": "捆绑销售"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-oligopoly",
+    "title": {
+     "en": "Two sellers: who moves first, and why cartels break (predicted 5)",
+     "zh": "两家卖方：谁先动，以及卡特尔为何会瓦解（预测题 5）"
+    },
+    "summary": {
+     "en": "Cournot again, then a leader who moves first (Stackelberg), a cartel and the temptation to cheat on it, and price competition (Bertrand), all with the same demand and costs so you can compare.",
+     "zh": "先复习古诺，然后是先行动的领导者（斯塔克尔伯格）、卡特尔和背叛它的诱惑、价格竞争（伯特兰），全部用同一个需求和成本，方便比较。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Two sellers: who moves first, and why cartels break (predicted 5)",
+      "zh": "两家卖方：谁先动，以及卡特尔为何会瓦解（预测题 5）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.stackelberg",
+       "name": {
+        "en": "Stackelberg leadership",
+        "zh": "斯塔克尔伯格领导者"
+       }
+      },
+      {
+       "id": "e15.pq.cartel",
+       "name": {
+        "en": "Cartels and Bertrand",
+        "zh": "卡特尔与伯特兰"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-games",
+    "title": {
+     "en": "Games: a matrix and a tree (predicted 6)",
+     "zh": "博弈：一张矩阵和一棵树（预测题 6）"
+    },
+    "summary": {
+     "en": "Dominant strategies and Nash equilibrium in a payoff matrix, why rivals end up in a prisoners’ dilemma, how repetition can rescue cooperation, and how to solve a game in turns by working backwards, with credible threats and commitment.",
+     "zh": "收益矩阵里的占优策略和纳什均衡，对手为什么会陷入囚徒困境，重复博弈怎样挽救合作，以及怎样倒推求解轮流行动的博弈，包括可信的威胁和承诺。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Games: a matrix and a tree (predicted 6)",
+      "zh": "博弈：一张矩阵和一棵树（预测题 6）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.nash",
+       "name": {
+        "en": "Nash equilibrium in a matrix",
+        "zh": "矩阵中的纳什均衡"
+       }
+      },
+      {
+       "id": "e15.pq.backward",
+       "name": {
+        "en": "Backward induction",
+        "zh": "逆向归纳"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-growth",
+    "title": {
+     "en": "Malthus with numbers, and the escape (predicted 7)",
+     "zh": "带数字的马尔萨斯，以及如何走出陷阱（预测题 7）"
+    },
+    "summary": {
+     "en": "The Malthusian equilibrium computed from a production function, why a better crop brings more people but not richer ones, what a plague does, and why the modern world escaped.",
+     "zh": "用生产函数算出马尔萨斯均衡，为什么更好的作物带来更多的人却没有让人更富，瘟疫会带来什么，以及现代世界为什么走出了陷阱。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Malthus with numbers, and the escape (predicted 7)",
+      "zh": "带数字的马尔萨斯，以及如何走出陷阱（预测题 7）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.malthus",
+       "name": {
+        "en": "The Malthusian equilibrium",
+        "zh": "马尔萨斯均衡"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "econ90015-pq-macro",
+    "title": {
+     "en": "GDP, inflation and money (predicted 8)",
+     "zh": "GDP、通胀和货币（预测题 8）"
+    },
+    "summary": {
+     "en": "What GDP counts and what it leaves out, nominal against real GDP, the GDP deflator and inflation, and the quantity theory of money and the nominal interest rate.",
+     "zh": "GDP 计算什么、不计算什么，名义 GDP 和实际 GDP，GDP 平减指数和通胀，以及货币数量论和名义利率。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "GDP, inflation and money (predicted 8)",
+      "zh": "GDP、通胀和货币（预测题 8）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "e15.pq.gdp",
+       "name": {
+        "en": "Measuring GDP",
+        "zh": "衡量 GDP"
+       }
+      },
+      {
+       "id": "e15.pq.money",
+       "name": {
+        "en": "Money, inflation and interest",
+        "zh": "货币、通胀与利率"
        }
       }
      ]

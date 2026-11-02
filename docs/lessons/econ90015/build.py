@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Builds the ECON90015 demo course (README.md here): eight lessons as Mathnim lesson JSON in
+# Builds the ECON90015 demo course (README.md here): the mock's eight lessons and the predicted questions'
+# nine (predict.py) as Mathnim lesson JSON in
 # apps/mathnim/public/demo/econ90015/, and its entry in apps/mathnim/public/demo/courses.json.
 #   python3 docs/lessons/econ90015/build.py && node apps/mathnim/tools/demo_check.mjs econ90015
 # The diagrams are drawn from the same functions the questions use, so every point is where the
@@ -1390,10 +1391,11 @@ UNITS = [
 
 
 def build():
+    from predict import PREDICT_LESSONS, PREDICT_UNIT  # imported here: they draw with this file's helpers
     out_dir = os.path.join(DEMO, CID)
     os.makedirs(out_dir, exist_ok=True)
     entries = []
-    for make in LESSONS:
+    for make in LESSONS + PREDICT_LESSONS:
         L = make()
         lesson = {'id': L['id'], 'mode': 'essay', 'title': L['title'], 'description': L['description'], 'minutes': L['minutes'],
                   'skills': L['skills'], 'misconceptions': L.get('misconceptions', []), 'steps': L['steps']}
@@ -1412,8 +1414,8 @@ def build():
         'outcomes': [T('Understand every idea behind the six questions, from the ground up', '从头弄懂六道题背后的每个想法'),
                      T('Solve each type of question with a method you can check, and write it the way the examiner expects', '每类题都有能自检的解法，并按阅卷人期待的方式写出来'),
                      T('Handle the twists a real exam can add', '应对真题可能加的各种变化')],
-        'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'packs': ['econ'], 'origin': {'decks': 0, 'exams': 1, 'note': T('Written by an AI (Claude) from 1 practice exam · not edited by a person', '由 AI（Claude）根据 1 份模拟题编写 · 未经人工修改')},
-        'units': [{'title': t, 'lessons': ids} for t, ids in UNITS],
+        'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'packs': ['econ'], 'origin': {'decks': 0, 'exams': 1, 'note': T('Written by an AI (Claude) from 1 practice exam; the predicted questions also from the subject’s published topics · not edited by a person', '由 AI（Claude）根据 1 份模拟题编写；预测题另参考了这门课公开的课程内容 · 未经人工修改')},
+        'units': [{'title': t, 'lessons': ids} for t, ids in UNITS] + [{'title': PREDICT_UNIT, 'lessons': [f'{CID}-pq-{x}' for x in ('start', 'tax', 'pollution', 'costs', 'pricing', 'oligopoly', 'games', 'growth', 'macro')]}],
         'lessons': entries, 'demo': True,
     }
     path = os.path.join(DEMO, 'courses.json')
