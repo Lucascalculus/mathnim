@@ -16,3 +16,5 @@ export * from './figure';
 export * from './player';
 export * from './acts';
 export * from './mirror';
+export * from './shapes';
+export * from './view3d';

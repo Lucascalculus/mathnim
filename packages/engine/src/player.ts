@@ -62,6 +62,7 @@ export class FigurePlayer {
   private live_raf = 0;
   private interactive = false;
   private held: Handle | null = null;
+  private last: XY = [0, 0];
   private focus_h = 0;
   private ro: ResizeObserver | null = null;
   private watched = false;
@@ -427,13 +428,17 @@ export class FigurePlayer {
       h.state.set(2);
       c.setPointerCapture?.(e.pointerId);
       c.style.cursor = 'grabbing';
-      h.move_to(p);
+      // (a relative handle, an orbit, moves by the drag from here)
+      this.last = p;
+      if (!h.o.relative) h.move_to(p);
       this.on_input?.();
     });
     on_ev('pointermove', (e) => {
       const p = this.at(e);
       if (this.held) {
-        this.held.move_to(p);
+        if (this.held.o.relative) this.held.drag_by(p[0] - this.last[0], p[1] - this.last[1]);
+        else this.held.move_to(p);
+        this.last = p;
         this.on_input?.();
         return;
       }

@@ -1,4 +1,6 @@
 import { describe, expect, it, beforeAll } from 'vitest';
+// @ts-ignore (node's fs: the test writes a picture to look at)
+import fs from 'node:fs';
 import { createCanvas } from '@napi-rs/canvas';
 import {
   Column, Field, Figure, FigurePlayer, Marker, Path, Plot, Row, TextBlock, act_now, beat, check_act, column, tex_to_text, derive, load_tex, manifest_of, param, place, place_label, quadratic, read, reveal, row,
@@ -268,5 +270,108 @@ describe('the DOM mirror reads TeX as words', () => {
     expect(tex_to_text('\\det A = \\color{#1F8A5B}a\\color{#E4572E}d - \\color{#E4572E}b\\color{#1F8A5B}c')).toBe('det A = ad − bc');
     expect(tex_to_text('\\hat\\imath, \\hat{\\jmath}')).toBe('î, ĵ');
     expect(tex_to_text('\\varnothing')).toBe('∅');
+  });
+});
+
+describe("manim's shapes and motions", () => {
+  const gallery = async () => {
+    const S = await import('../src/index');
+    const f = new S.Figure();
+    const st = S.stage({ id: 'st' });
+    const r = f.param('r', 1, { range: [0.5, 2] });
+    const circle = st.add(new S.Circle([-5, 2], () => r.value, { id: 'circle', role: 'noun:plan', says: t('a circle', '圆') }));
+    const square = st.add(new S.Rect([-6, -3], [-4, -1], { id: 'square', role: 'region:plan', corner: 8 }));
+    const ellipse = st.add(new S.Ellipse([-1.5, 2], 1.4, 0.7, 0.4, { id: 'ellipse', role: 'noun:cost' }));
+    const sector = st.add(new S.Sector([-1.5, -2], 1.3, 0, 1.2, { id: 'sector', role: 'region:goal' }));
+    const arc = st.add(new S.Arc([1.5, 2], 1, 0, Math.PI, { id: 'arc', role: 'noun:wall' }));
+    const tri = st.add(new S.Polygon([[1, -3], [3, -3], [1, -1]], { id: 'tri', role: 'noun:plan' }));
+    const ra = st.add(new S.RightAngle([1, -3], [3, -3], [1, -1], 12, { id: 'ra', role: 'text' }));
+    const ang = st.add(new S.Angle([3, -3], [1, -3], [1, -1], 26, { id: 'ang', role: 'noun:speed' }));
+    const line = st.add(new S.Line([4, -3], [6.5, -1], { id: 'line', role: 'predicted:plan' }));
+    const brace = st.add(new S.Brace([1, -3.3], [3, -3.3], { id: 'brace', depth: 10 }));
+    const eq = st.add(new S.TexMark('e^{i\\pi} + 1 = 0', [4.8, 2.4], { id: 'eq' }));
+    const words = st.add(new S.TexMark(t('a sector', '扇形'), [-1.5, -3.6], { id: 'words', tex: false }));
+    const target = st.add(new S.Circle([5, 0.4], 0.8, { id: 'target', role: 'noun:goal' }));
+    const from = st.add(new S.Rect([4, -0.4], [6, 1.2], { id: 'from', role: 'noun:goal' }));
+    f.label('2', brace, { id: 'brace_word', tex: true, avoid: false, sides: ['center'], gap: 0 });
+    f.layout(column([st]), { pad: 0 });
+    f.script(
+      S.create(circle, square), S.write(eq), S.grow('left', arc), S.lagged(0.2, reveal(ellipse), reveal(sector), reveal(tri)),
+      S.indicate(circle, eq), S.flash(st, [-5, 2]), set(r, 1.6, 'linear', 1), S.transform(from, target), reveal(ra, ang, line, brace, words),
+      S.call(0.5, (u) => r.set(1.6 - 0.4 * u, true), [r]),
+    );
+    return { f, circle, square, eq, from, target, r };
+  };
+  it('draws them, lints clean at both sizes, and seeks exactly through Create, Write, Grow, Indicate, Flash and Transform', async () => {
+    const { f, circle, eq, from, target, r } = await gallery();
+    expect(lint_figure(f).filter((i) => i.severity === 'error')).toEqual([]);
+    f.layout_for(960, 540);
+    f.at(0.4);
+    expect(circle.drawn.peek()).toBeGreaterThan(0);
+    expect(circle.drawn.peek()).toBeLessThan(1);
+    const mid = [circle.drawn.peek(), eq.drawn.peek(), from.morph.peek(), r.peek()];
+    f.at(f.duration);
+    expect([circle.drawn.peek(), eq.drawn.peek(), from.morph.peek()]).toEqual([1, 1, 1]);
+    expect(from.opacity.peek()).toBe(0);
+    expect(target.opacity.peek()).toBe(1);
+    expect(r.peek()).toBeCloseTo(1.2, 9);
+    expect(circle.pulse.peek()).toBe(0);
+    f.at(0.4);
+    expect([circle.drawn.peek(), eq.drawn.peek(), from.morph.peek(), r.peek()]).toEqual(mid);
+    const c = render_figure(f, 960, 540);
+    fs.mkdirSync('/tmp/mathnim-engine', { recursive: true });
+    fs.writeFileSync('/tmp/mathnim-engine/gallery.png', c.toBuffer('image/png'));
+  });
+});
+
+describe('a slider', () => {
+  it('moves its param by hand, keyboard and tutor, and lints clean', async () => {
+    const S = await import('../src/index');
+    const f = new S.Figure();
+    const k = f.param('k', 1, { range: [0, 4], step: 0.5, says: t('the gain k', '增益 k') });
+    const P = f.plot({ id: 'p', x: [0, 4], y: [0, 16] });
+    P.add(new Path(() => Array.from({ length: 21 }, (_, i) => [i / 5, k.value * (i / 5) ** 2] as [number, number]), { id: 'curve', role: 'noun:plan' }));
+    const sl = S.slider(f, k, { label: 'k', tex: true, decimals: 1 });
+    f.layout(column([P, sl]));
+    f.build();
+    expect(lint_figure(f).filter((i) => i.severity === 'error')).toEqual([]);
+    expect(S.manifest_of(f).params.map((p) => [p.name, p.doc])).toEqual([['k', 'the gain k']]);
+    f.handles[0].nudge(1, 0);
+    expect(k.peek()).toBe(1.5);
+    expect(S.act_now(f, { op: 'set', param: 'k', to: 3.3 }).ok).toBe(true);
+    expect(k.peek()).toBe(3.5);
+  });
+});
+
+describe('a minimal 3D view', () => {
+  it('projects with manim camera angles, draws far to near, and turns with an orbit', async () => {
+    const S = await import('../src/index');
+    const f = new S.Figure();
+    const phi = f.param('phi', (70 * Math.PI) / 180, { range: [0, Math.PI / 2], tutor: true }), theta = f.param('theta', -0.9, { range: [-Math.PI, Math.PI], tutor: true });
+    const st = S.stage({ id: 'st3' });
+    const v = st.add(new S.View3D({ phi, theta }, { id: 'v', size: 2, radius: 3.5 }));
+    v.arrow([0, 0, 0], [1.5, 0, 0], { role: 'noun:i-hat' }).arrow([0, 0, 0], [0, 1.5, 0], { role: 'noun:j-hat' }).arrow([0, 0, 0], [0, 0, 1.5], { role: 'text' });
+    v.face([[-1, -1, 0], [1, -1, 0], [1, 1, 0], [-1, 1, 0]], { role: 'region:plan' });
+    v.dots(Array.from({ length: 40 }, (_, i) => [Math.cos(i) * 1.2, Math.sin(i * 1.7) * 0.5, Math.sin(i) * 0.3] as [number, number, number]), { role: 'noun:data' });
+    const h = S.orbit(f, st, v);
+    f.layout(column([st]), { pad: 0 });
+    f.build();
+    expect(lint_figure(f).filter((i) => i.severity === 'error')).toEqual([]);
+    // looking straight down (phi = 0), +x points right and +y up on the plot; the depth of a point is its height
+    phi.set(0, true);
+    theta.set(-Math.PI / 2, true);
+    const [x1, y1] = v.project([1, 0, 0]), [x2, y2, d2] = v.project([0, 1, 0.5]);
+    expect(x1).toBeGreaterThan(0);
+    expect(Math.abs(y1)).toBeLessThan(1e-9);
+    expect(y2).toBeGreaterThan(0);
+    expect(Math.abs(x2)).toBeLessThan(1e-9);
+    expect(d2).toBeCloseTo(0.5, 9);
+    h.drag_by(100, 0);
+    expect(theta.peek()).toBeCloseTo(-Math.PI / 2 - 1, 9);
+    phi.set(1.2, true);
+    theta.set(-0.9, true);
+    const c = render_figure(f, 960, 540);
+    fs.mkdirSync('/tmp/mathnim-engine', { recursive: true });
+    fs.writeFileSync('/tmp/mathnim-engine/view3d.png', c.toBuffer('image/png'));
   });
 });
