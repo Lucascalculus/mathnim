@@ -52,6 +52,7 @@ Read a ported figure before writing one: `packages/visuals/src/mpc/qp_figure.ts`
 | script | `reveal`, `hide`, `set(param, to, intent, dur?)`, `wait`, `beat`, `together`; intents (reveal, travel, grow, converge, settle, emphasise) are springs in the look |
 | world | `fig.report_with(() => …)`, `fig.emit`, `fig.listen`; a subclass adds `set_state` etc. for goals and `solve()` |
 | checks | `fig.check(name, () => null \| problem)`; `fig.lint()`; `fig.describe()`; `fig.explain(id)` |
+| the tutor's hands | `manifest_of(fig)` (what is on screen, what the hand can move: params under a handle or `{ tutor: true }`, named by `says`); `player.act({ op: 'point' \| 'set' \| 'note' \| 'reset', … })` checks the act (`check_act`), moves as a hand would and keeps `fig.hands().history`; `act_now` does it at once (node). The model writes `ACT:` lines after its words (`packages/ai/src/acts.ts`); `node apps/mathnim/tools/tutor_acts_e2e.cjs` checks it all in the page |
 
 ## Overrides (the freedom layer)
 

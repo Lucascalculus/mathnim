@@ -2,6 +2,7 @@
 // in development a model called from the page can run them too (local_backend.ts). Production pages never load this
 // module: the prompts and the engine's API digest stay on the server. Inputs come from the browser, so parse_op checks
 // them and cuts every text to size before a prompt is written.
+import type { FigureManifest } from './acts';
 import type { AskContext, ScenePromptExtra } from './prompt';
 import type { CompletionRequest, Message } from './provider';
 import type { OpInputs, OpName, Round } from './ops_types';
@@ -84,6 +85,21 @@ function need(v: unknown, max: number, what: string): string {
   if (!s) throw new Error(`${what} is required`);
   return s;
 }
+const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+/** A figure's manifest as the browser sent it (acts.ts): ids, kinds and words cut to size, at most 80 things and 12 params. */
+function figure(v: unknown): FigureManifest | undefined {
+  if (v === undefined) return undefined;
+  const f = obj(v);
+  const things = Array.isArray(f.things) ? f.things.slice(0, 80).map((t) => {
+    const o = obj(t);
+    return { id: str(o.id, 60), kind: str(o.kind, 20), says: opt(o.says, 120), text: opt(o.text, 60) };
+  }).filter((t) => t.id) : [];
+  const params = Array.isArray(f.params) ? f.params.slice(0, 12).map((p) => {
+    const o = obj(p), r = Array.isArray(o.range) && o.range.length === 2 ? [num(o.range[0]), num(o.range[1])] : null;
+    return { name: str(o.name, 40), value: num(o.value) ?? 0, range: r && r[0] !== undefined && r[1] !== undefined ? (r as [number, number]) : undefined, step: num(o.step), doc: opt(o.doc, 120) };
+  }).filter((p) => p.name) : [];
+  return things.length || params.length ? { things, params } : undefined;
+}
 function context(v: unknown): AskContext | undefined {
   if (v === undefined) return undefined;
   const c = obj(v);
@@ -92,6 +108,7 @@ function context(v: unknown): AskContext | undefined {
     lesson: opt(c.lesson, 400), step: opt(c.step, 300), on_screen: opt(c.on_screen, 6000), learner: opt(c.learner, 600),
     misconceptions: strs(c.misconceptions, 8, 300), recent, level: opt(c.level, 200), language: opt(c.language, 40),
     learner_language: opt(c.learner_language, 40), topics: strs(c.topics, 12, 60), selected: opt(c.selected, 1200), unanswered: c.unanswered === true || undefined,
+    figure: figure(c.figure),
   };
 }
 function extra(v: unknown): ScenePromptExtra | undefined {

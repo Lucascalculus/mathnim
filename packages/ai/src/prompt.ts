@@ -1,5 +1,6 @@
 // What the tutor is told about the student and the page with a question (all optional). The prompts themselves are
 // written on the server (prompts/, ops.ts) and never reach the browser.
+import type { FigureManifest } from './acts';
 
 /** What is known about the student when they ask. */
 export interface AskContext {
@@ -25,6 +26,8 @@ export interface AskContext {
   selected?: string;
   /** The step is a question the student has not answered yet: help them understand it without giving the answer away. */
   unanswered?: boolean;
+  /** The figure on screen, when the tutor may act in it (acts.ts): its things and what the learner can move. */
+  figure?: FigureManifest;
 }
 export interface ScenePromptExtra {
   /** The tutor's one-line reading of the question (from the fast text answer). */

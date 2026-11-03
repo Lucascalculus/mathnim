@@ -23,6 +23,7 @@ import { CueGuide, Narrator, define_ui, drag_hint, inject_styles, math_html, t, 
 import { get_visual, type Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
+import { act_words, validate_acts, type FigureAct, type FigureManifest } from '../acts';
 import type { AskContext } from '../prompt';
 import type { Backend } from '../ops_types';
 import { compile_answer, load_answer } from '../run';
@@ -59,6 +60,10 @@ const CSS = `
 .mn-picture{display:flex;flex-direction:column;gap:8px}
 .mn-picture:empty{display:none}
 .mn-caption-text{font-size:13px;color:var(--mn-muted)}
+.mn-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:6px;font-size:12px;color:var(--mn-muted)}
+.mn-act{display:inline-flex;align-items:center;gap:5px}
+.mn-act::before{content:'';width:6px;height:6px;border-radius:50%;background:#E4572E;flex:none}
+.mn-act-back{font:inherit;font-size:12px;color:var(--mn-accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .mn-caption-text:empty{display:none}
 .mn-quick-check{font-size:13px}
 .mn-quick-check details{display:inline;margin-left:6px}
@@ -120,7 +125,14 @@ define_ui({
   ask_failed: { en: 'The answer could not be written. Please try again.', zh: '没能写出回答，请再试一次。' },
   ask_too_long: { en: 'it took too long', zh: '画得太久了' },
   ask_no_recording: { en: 'No recorded answer for this question. Add an API key in Settings to ask anything.', zh: '这个问题没有录好的回答。在设置里添加 API key 后就可以随便问了。' },
+  ask_acts: { en: 'What the tutor did in the figure', zh: '导师在图里做了什么' },
+  ask_put_back: { en: 'Put it back', zh: '放回原样' },
 });
+/** The figure on screen, when the tutor may act in it: what it shows, and a hand that does one act (the figure checks it again). */
+export interface TutorHands {
+  manifest(): FigureManifest;
+  act(a: FigureAct): Promise<{ ok: boolean; why?: string }>;
+}
 const FREEFORM_PHASE = () => t('ask_freeform');
 /** A drawn picture gets this long, then the question goes without one (it keeps drawing while the learner reads on). */
 const MAX_PICTURE_MS = 120_000;
@@ -131,6 +143,8 @@ export type SavedPicture = { visual: string; params: Params; caption?: string } 
 export interface AskPanelOptions {
   /** Where the questions go (the site's server; recorded answers offline). */
   backend: () => Backend;
+  /** The figure the tutor may act in (an engine figure on screen), or null. */
+  hands?: () => TutorHands | null;
   validate: Validator;
   context?: () => AskContext;
   suggestions?: string[];
@@ -183,6 +197,8 @@ interface Card {
   picture: HTMLElement;
   backend: Backend;
   context: AskContext;
+  /** The figure the tutor may act in for this question. */
+  hands: TutorHands | null;
   timing: { text_first?: number; text_done?: number; plan?: number; build?: number; picture?: number };
   /** The streamed text answer (null: offline, the scene's explanation is the answer). */
   fast: Promise<Explanation | null> | null;
@@ -347,9 +363,14 @@ export class AskPanel {
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'ask', data: { question } });
     const backend = this.o.backend();
     let diagnosed: () => void = () => {};
+    const ctx: AskContext = { ...this.o.context?.(), ...extra, recent: this.history.slice(-3).map((h) => ({ q: h.q, a: h.a.slice(0, 240) })) };
+    // (the figure on screen goes with the question, unless the question is one the learner has not answered yet)
+    const hands = ctx.unanswered ? null : (this.o.hands?.() ?? null);
+    if (hands) ctx.figure = hands.manifest();
     const c: Card = {
       question, t0: performance.now(), body, status, text, say_row, picture, backend,
-      context: { ...this.o.context?.(), ...extra, recent: this.history.slice(-3).map((h) => ({ q: h.q, a: h.a.slice(0, 240) })) },
+      context: ctx,
+      hands,
       timing: {}, fast: null, got_diagnosis: new Promise<void>((res) => (diagnosed = res)), spoken: { text: '', caption: '' },
     };
 
@@ -379,6 +400,7 @@ export class AskPanel {
             c.spoken.text = x.text;
             this.read_button(c);
             this.history.push({ q: question, a: x.text });
+            if (x.acts.length) void this.do_acts(c, x.acts);
             return x;
           },
           (e) => {
@@ -403,6 +425,47 @@ export class AskPanel {
   async show_saved(body: HTMLElement, pic: SavedPicture): Promise<void> {
     const player = await draw_saved(body, pic);
     if (player) this.players.push(player);
+  }
+
+  /**
+   * The tutor's acts in the figure on screen, one after the other, once its words are in: checked against what the
+   * figure showed when the question was asked, then by the figure itself. What was done is listed under the answer
+   * (the history), with a way to put back what the tutor moved.
+   */
+  private async do_acts(c: Card, acts: FigureAct[]): Promise<void> {
+    const hands = c.hands, m = c.context.figure;
+    if (!hands || !m) return;
+    const { ok, rejected } = validate_acts(acts, m);
+    for (const r of rejected) console.info('tutor act not done:', r.why, r.act);
+    if (!ok.length) return;
+    const deck = document.createElement('div');
+    deck.className = 'mn-acts';
+    deck.setAttribute('aria-label', t('ask_acts'));
+    c.text.after(deck);
+    let moved = false;
+    for (const a of ok) {
+      const r = await hands.act(a);
+      this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'tutor_act', data: { act: a, ok: r.ok, why: r.why } });
+      if (!r.ok) continue;
+      moved ||= a.op === 'set';
+      const chip = document.createElement('span');
+      chip.className = 'mn-act';
+      chip.textContent = act_words(a, m, ui_lang());
+      deck.append(chip);
+    }
+    if (moved && !ok.some((a) => a.op === 'reset')) {
+      const back = document.createElement('button');
+      back.className = 'mn-act-back';
+      back.textContent = t('ask_put_back');
+      back.onclick = async () => {
+        back.disabled = true;
+        const r = await hands.act({ op: 'reset' });
+        this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'tutor_act', data: { act: { op: 'reset' }, ok: r.ok, by: 'learner' } });
+        back.remove();
+      };
+      deck.append(back);
+    }
+    if (!deck.childElementCount) deck.remove();
   }
 
   /** A placeholder that counts the seconds until the picture is there. */

@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
 import {
-  Column, Field, Figure, FigurePlayer, Marker, Path, Plot, Row, TextBlock, beat, column, derive, load_tex, param, place_label, quadratic, read, reveal, row,
+  Column, Field, Figure, FigurePlayer, Marker, Path, Plot, Row, TextBlock, act_now, beat, check_act, column, derive, load_tex, manifest_of, param, place, place_label, quadratic, read, reveal, row,
   set, settle_time, spring_step, t, track, untracked, wait, watch_writes, now_version,
 } from '../src/index';
 import { use_node_canvas, lint_figure, render_figure } from '../node';
@@ -197,5 +197,64 @@ describe('nice ticks', () => {
     expect(nice_ticks(0, 12, 6)).toEqual([0, 2, 4, 6, 8, 10, 12]);
     expect(nice_ticks(0, 35, 5)).toEqual([0, 10, 20, 30]);
     expect(nice_ticks(-1, 1, 4)).toEqual([-1, -0.5, 0, 0.5, 1]);
+  });
+});
+
+describe('the tutor acts as the learner can', () => {
+  const world = () => {
+    const f = new Figure();
+    const x = f.param('x', 1, { range: [0, 4], step: 0.5, doc: 'where the dot is' });
+    const hidden = f.param('secret', 0, { range: [0, 1] });
+    const P = f.plot({ id: 'p', x: [0, 4], y: [0, 1] });
+    const dot = P.add(new Marker(() => [x.value, 0.5], { id: 'dot', role: 'noun:plan', says: t('the dot', '点') }));
+    f.handle(P, x, null, { id: 'x_handle' });
+    f.layout(column([P]));
+    f.script(reveal(dot));
+    f.build();
+    f.layout_for(640, 360);
+    f.at(f.duration);
+    return { f, x, hidden };
+  };
+  it('lists what is on screen and only what the hand can move', () => {
+    const { f } = world();
+    const g = createCanvas(640, 360).getContext('2d') as unknown as CanvasRenderingContext2D;
+    f.draw(g, 1, { force: true });
+    const m = manifest_of(f);
+    expect(m.things.map((x) => x.id)).toContain('dot');
+    expect(m.params).toEqual([{ name: 'x', value: 1, range: [0, 4], step: 0.5, doc: 'where the dot is' }]);
+  });
+  it('refuses what the learner could not do, does the rest, keeps the history, and puts it back', () => {
+    const { f, x, hidden } = world();
+    const g = createCanvas(640, 360).getContext('2d') as unknown as CanvasRenderingContext2D;
+    f.draw(g, 1, { force: true });
+    expect(check_act(f, { op: 'set', param: 'secret', to: 1 })).toContain('not something the learner can move');
+    expect(check_act(f, { op: 'point', id: 'nothing' })).toContain("no thing 'nothing'");
+    expect(act_now(f, { op: 'set', param: 'secret', to: 1 }).ok).toBe(false);
+    expect(hidden.peek()).toBe(0);
+    expect(act_now(f, { op: 'set', param: 'x', to: 3.2 }).ok).toBe(true);
+    expect(x.peek()).toBe(3); // (snapped to the hand's step)
+    expect(act_now(f, { op: 'point', id: 'dot' }).ok).toBe(true);
+    expect(act_now(f, { op: 'note', id: 'dot', text: 'here' }).ok).toBe(true);
+    f.draw(g, 1, { force: true });
+    expect(f.hands().light.box.w).toBeGreaterThan(0);
+    expect(f.registry.get('tutor_note')!.box.w).toBeGreaterThan(0);
+    act_now(f, { op: 'reset' });
+    expect(x.peek()).toBe(1);
+    expect(f.hands().history.map((r) => [r.act.op, r.ok])).toEqual([['set', false], ['set', true], ['point', true], ['note', true], ['reset', true]]);
+  });
+});
+
+describe('placement by hand', () => {
+  it('puts blocks in the rectangles of a frame, and a design width scales the drawing', () => {
+    const f = new Figure();
+    const a = new TextBlock('left', { id: 'a' }), b = new TextBlock('right', { id: 'b' });
+    f.layout(place([[a, [-7, -1, 3, 3.6]], [b, [1, 7, -3.6, -3]]]), { pad: 0, design_w: 960 });
+    f.build();
+    // (a phone, below 560 px, gets its own composition: this is a small desktop)
+    const size = f.layout_for(720, 405);
+    expect(size).toEqual({ w: 720, h: 405 });
+    expect(f.view_scale).toBeCloseTo(0.75, 6);
+    expect(a.box.x).toBeCloseTo((-7 + 64 / 9) * (960 / (128 / 9)), 3);
+    expect(b.box.y).toBeGreaterThan(a.box.y + 300);
   });
 });

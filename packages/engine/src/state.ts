@@ -53,6 +53,10 @@ export interface ParamSpec {
   range?: [number, number];
   step?: number;
   doc?: string;
+  /** The tutor may move it (as it may move what is under a handle): acts.ts. */
+  tutor?: boolean;
+  /** What it is, in both languages (the tutor's history and the screen reader say it). */
+  says?: { en: string; zh: string };
 }
 
 export class Derived<T> implements Readable<T> {

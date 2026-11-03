@@ -63,8 +63,8 @@ export function qp_figure(p: QpFigureParams): QpFigure {
   const full = p.story === 'full';
   // ---- state: the cart's state, and what the story shows of the picture
   const fig = new QpFigure({ lang });
-  const p0 = (fig.p0 = fig.param('p0', p.p0, { range: PAD.p, step: 0.05, doc: "the cart's position now (m)" }));
-  const v0 = (fig.v0 = fig.param('v0', p.v0, { range: PAD.v, step: 0.05, doc: "the cart's speed now (m/s)" }));
+  const p0 = (fig.p0 = fig.param('p0', p.p0, { range: PAD.p, step: 0.05, doc: "the cart's position now (m)", says: t("the cart's position p₀ (m)", '小车此刻的位置 p₀（米）') }));
+  const v0 = (fig.v0 = fig.param('v0', p.v0, { range: PAD.v, step: 0.05, doc: "the cart's speed now (m/s)", says: t("the cart's speed v₀ (m/s)", '小车此刻的速度 v₀（米/秒）') }));
   const fam = fig.param('families', full ? 0 : 3, { range: [0, 3], doc: 'limit families shown (motor, speed, wall)' });
   const grow = fig.param('grow', full ? 0 : 1, { range: [0, 1], doc: 'the best ellipse grows from the centre' });
   const drawn = fig.param('contours_drawn', full ? 0 : 1, { range: [0, 1], doc: 'how much of the cost ellipses is drawn' });

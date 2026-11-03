@@ -12,7 +12,9 @@ import type { Figure } from './figure';
 import type { XY } from './geom';
 import type { Handle } from './kinds';
 import { init_gpu } from './gpu';
-import { watch_writes } from './state';
+import { check_act, type Act, type ActRecord, type Hands } from './acts';
+import { ease_in_out } from './script';
+import { watch_writes, type Param } from './state';
 import { load_tex } from './tex';
 
 export interface FigurePlayerOptions {
@@ -304,6 +306,62 @@ export class FigurePlayer {
     this.live_off = null;
     if (this.live_raf) caf(this.live_raf);
     this.live_raf = 0;
+  }
+
+  // ---------------------------------------------------------------- the tutor's hands (acts.ts)
+  /**
+   * Do one of the tutor's acts as a hand would: a param travels to its value, the light comes up on a thing (and
+   * fades by itself), a note appears on a thing, or everything the tutor moved goes back. Resolves when the motion is
+   * done; an act that cannot be done is recorded with why, and nothing moves.
+   */
+  async act(a: Act): Promise<ActRecord> {
+    const fig = this.scene, h = fig.hands(), why = check_act(fig, a);
+    if (why) return h.record(a, why);
+    if (this.playing) this.pause();
+    this.start_live();
+    const slow = look().reduced_motion ? 0 : 1;
+    if (a.op === 'set') {
+      const p = h.param(a.param)!, r = p.spec.range, to = r ? Math.max(r[0], Math.min(r[1], a.to)) : a.to;
+      h.keep(p);
+      await this.tween(p, to, 0.9 * slow);
+      p.set(to); // (snapped to its step, as the hand's moves are)
+    } else if (a.op === 'point') {
+      h.light.target = a.id;
+      await this.tween(h.light.level, 1, 0.25 * slow);
+      this.fade_light(h, 2.6);
+    } else if (a.op === 'note') h.show_note(a.id, a.text);
+    else {
+      await Promise.all(h.kept_values().map(([p, v]) => this.tween(p, v, 0.7 * slow)));
+      h.forget();
+      h.light.level.set(0);
+      h.show_note(null);
+    }
+    return h.record(a);
+  }
+  private light_token = 0;
+  private fade_light(h: Hands, after: number): void {
+    const token = ++this.light_token;
+    setTimeout(() => {
+      if (token === this.light_token) void this.tween(h.light.level, 0, 0.6);
+    }, after * 1000);
+  }
+  /** Move a param to a value over dur seconds (slow in, slow out), a frame at a time. */
+  private tween(p: Param<number>, to: number, dur: number): Promise<void> {
+    const from = p.peek();
+    if (dur <= 0 || from === to) {
+      p.set(to, true);
+      return Promise.resolve();
+    }
+    const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    return new Promise((res) => {
+      const step = () => {
+        const u = Math.min(1, ((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0) / (dur * 1000));
+        p.set(from + (to - from) * ease_in_out(u), true);
+        if (u < 1) raf(step);
+        else res();
+      };
+      raf(step);
+    });
   }
 
   // ---------------------------------------------------------------- the hand

@@ -11,6 +11,7 @@ import { look, known_noun, type Look } from '@mathnim/look';
 import { inflate, overlap, type Box, type XY } from './geom';
 import { CanvasBlock, Handle, Label, Legend, ListBlock, Plot, Readout, TextBlock, type LabelOpts, type LegendEntry, type Part, type PlotSpec } from './kinds';
 import { Column, place_at, place_label, type Block, type LayoutEnv } from './layout';
+import { Hands } from './acts';
 import { Renderer, paint_background } from './render';
 import { Timeline, type Step } from './script';
 import { derive, now_version, param, read, untracked, type Derived, type Param, type ParamSpec, type Val } from './state';
@@ -211,9 +212,19 @@ export class Figure {
   /** The things the current composition shows (all of them before the first layout). */
   private placed: Set<Thing> | null = null;
   private body(): Thing[] {
-    const overlay = new Set<Thing>([...this.labels, ...this.handles]);
+    const overlay = new Set<Thing>(this.overlay());
     const shown = (t: Thing) => !this.placed || this.placed.has(t) || !!(t as { plot?: Thing }).plot && this.placed.has((t as { plot?: Thing }).plot!);
     return this.registry.ordered().filter((t) => !overlay.has(t) && shown(t) && !t.dropped);
+  }
+  /** What is drawn over the figure: attached labels, handles, and the tutor's light. */
+  private overlay(): Thing[] {
+    return [...this.labels, ...this.handles, ...(this._hands ? [this._hands.light] : [])];
+  }
+  private _hands: Hands | null = null;
+  /** The tutor's hands on this figure (acts.ts): made the first time the tutor acts. */
+  hands(): Hands {
+    this.build();
+    return (this._hands ??= new Hands(this));
   }
   /** Put the attached labels where they hide least (in order; each placed label becomes an obstacle for the next). */
   place_labels(): void {
@@ -244,7 +255,7 @@ export class Figure {
   /** Draw a frame; returns false when nothing changed (and nothing was drawn). */
   draw(g: CanvasRenderingContext2D, dpr: number, o: { force?: boolean } = {}): boolean {
     const env: DrawEnv = { g, look: look(), lang: this.lang, dpr: dpr * this.view_scale, frame: this.frame };
-    return this.renderer.frame(this.body(), [...this.labels, ...this.handles], env, now_version(), {
+    return this.renderer.frame(this.body(), this.overlay(), env, now_version(), {
       force: o.force,
       before: () => this.place_labels(),
       background: paint_background,
