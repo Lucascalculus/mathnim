@@ -21,16 +21,21 @@ export function settle_time(T: number, zeta: number): number {
   return last + T / 200;
 }
 const settle_cache = new Map<string, number>();
-function intent_of(name: string): { T: number; zeta: number; dur: number; reduced: 'instant' | 'fade' } {
+function intent_of(name: string): { T: number; zeta: number; dur: number; reduced: 'instant' | 'fade'; curve: 'spring' | 'ease' } {
   const m = look().motion[name] ?? look().motion.reveal, key = `${m.response}|${m.damping}`;
   let dur = settle_cache.get(key);
   if (dur === undefined) settle_cache.set(key, (dur = settle_time(m.response, m.damping)));
-  return { T: m.response, zeta: m.damping, dur, reduced: m.reduced };
+  return { T: m.response, zeta: m.damping, dur, reduced: m.reduced, curve: m.curve ?? 'spring' };
+}
+/** Slow in, slow out, over the whole time (a logistic curve, normalised to run 0 → 1). */
+export function ease_in_out(u: number, k = 10): number {
+  const s = (x: number) => 1 / (1 + Math.exp(-x));
+  return (s(k * (u - 0.5)) - s(-k / 2)) / (s(k / 2) - s(-k / 2));
 }
 
 export type Step =
-  | { kind: 'reveal'; things: Thing[]; intent: string }
-  | { kind: 'hide'; things: Thing[]; intent: string }
+  | { kind: 'reveal'; things: Thing[]; intent: string; dur?: number }
+  | { kind: 'hide'; things: Thing[]; intent: string; dur?: number }
   | { kind: 'set'; param: Param<number>; to: number; intent: string; dur?: number }
   | { kind: 'wait'; s: number }
   | { kind: 'beat' }
@@ -43,6 +48,12 @@ export const hide = (...things: (Thing | { things(): Thing[] })[]): Step => ({ k
 /** Move a param to a value with an intent's motion (travel by default). */
 export const set = (param: Param<number>, to: number, intent = 'travel', dur?: number): Step => ({ kind: 'set', param, to, intent, dur });
 export const wait = (s: number): Step => ({ kind: 'wait', s });
+/** The same step taking `dur` seconds (each part of a together(), too): its motion is stretched to fill the time. */
+export function over(dur: number, s: Step): Step {
+  if (s.kind === 'together') return { ...s, steps: s.steps.map((x) => over(dur, x)) };
+  if (s.kind === 'reveal' || s.kind === 'hide' || s.kind === 'set') return { ...s, dur };
+  return s;
+}
 /** A beat of the narration: the next section starts here (and may wait for the voice). */
 export const beat = (): Step => ({ kind: 'beat' });
 /** Steps that run at the same time. */
@@ -98,11 +109,12 @@ export class Timeline {
         return s.dur;
       }
       const m = intent_of(s.intent);
-      const dur = reduced && m.reduced === 'instant' ? 0.001 : s.kind === 'set' && s.dur ? s.dur : m.dur;
+      const dur = reduced && m.reduced === 'instant' ? 0.001 : s.dur ?? m.dur;
       this.log.push({ t0: at, dur, what: s.kind === 'set' ? `${s.intent} ${s.param.name || 'param'} → ${+s.to.toFixed(3)}` : `${s.kind}(${names(s.things)})` });
-      // (a motion given a shorter time than its spring needs is scaled to arrive exactly at its end)
-      const end = Math.max(1e-6, spring_step(dur, m.T, m.zeta));
-      const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : spring_step(u * dur, m.T, m.zeta) / end);
+      // a motion given its own time fills it: the spring is slowed or sped up to settle at the end (an 'ease'
+      // intent runs slow-in slow-out over the whole time)
+      const T = m.T * (dur / m.dur), end = Math.max(1e-6, spring_step(dur, T, m.zeta));
+      const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : m.curve === 'ease' ? ease_in_out(u) : spring_step(u * dur, T, m.zeta) / end);
       if (s.kind === 'set') {
         const from = s.param.peek(), to = s.to, p = s.param;
         this.actions.push({ t0: at, dur, apply: (u) => p.set(from + (to - from) * ease(u), true) });

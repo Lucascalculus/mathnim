@@ -118,6 +118,8 @@ export const TYPE = {
   label: { size: 15, weight: 500, line: 1.3 },
   caption: { size: 16, weight: 400, line: 1.55 },
   readout: { size: 22, weight: 500, line: 1.2 },
+  /** The one or two quantities a figure is about (a matrix, its determinant): set large, beside the picture. */
+  display: { size: 30, weight: 500, line: 1.2 },
   /** TeX is set at this multiple of the text size around it. */
   tex_scale: 1.12,
 };
@@ -141,14 +143,22 @@ export const SPACE = {
  * (SwiftUI's meaning), `damping` its damping fraction (1 = no overshoot). `reduced` is what the intent becomes when
  * the system asks for less motion.
  */
-export interface Motion { response: number; damping: number; reduced: 'instant' | 'fade' }
+export interface Motion {
+  response: number;
+  damping: number;
+  reduced: 'instant' | 'fade';
+  /** 'spring' (default): the spring's step response; 'ease': slow in and slow out over the whole time (a long move or a drawing-on, so a narration's pacing holds). */
+  curve?: 'spring' | 'ease';
+}
 export const MOTION: Record<string, Motion> = {
   reveal: { response: 0.55, damping: 1, reduced: 'fade' },
   converge: { response: 0.8, damping: 0.92, reduced: 'fade' },
   emphasise: { response: 0.4, damping: 0.7, reduced: 'instant' },
-  travel: { response: 1.1, damping: 1, reduced: 'instant' },
+  travel: { response: 1.1, damping: 1, reduced: 'instant', curve: 'ease' },
   settle: { response: 0.45, damping: 0.85, reduced: 'instant' },
-  grow: { response: 1.4, damping: 1, reduced: 'instant' },
+  grow: { response: 1.4, damping: 1, reduced: 'instant', curve: 'ease' },
+  /** A line or a grid drawing itself on. */
+  draw: { response: 1.2, damping: 1, reduced: 'instant', curve: 'ease' },
 };
 
 /** Layout rules, applied by the engine per device. */

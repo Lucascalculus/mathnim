@@ -5,7 +5,7 @@
 // repeated system prompt) - or the tutor draws the learner's own numbers.
 // On the engine: two plots side by side (stacked on a phone), each curve in its
 // noun's colour and drawn on by the script; words wrap instead of shrinking.
-import { Figure, Path, column, reveal, row, set, t, together, wait, type XY } from '@mathnim/engine';
+import { Figure, Path, column, over, reveal, row, set, t, together, wait, type XY } from '@mathnim/engine';
 import { define_figure } from '../../visual';
 import { LANG_SPEC, figure_lang } from './kit';
 
@@ -118,9 +118,13 @@ export function training_curves_figure(p: TrainingCurvesParams): Figure {
   fig.aside(custom ? t('你的数据', 'your numbers') : t('示意：典型形状，不是某次真实训练', 'illustration: typical shapes, not a real run'));
   // (small multiples: the two panels stay side by side on a phone too, so loss and metric are read at the same epoch)
   fig.layout(column([legend, row([column([lt, L], { gap: 6 }), column([rt, R], { gap: 6 })], { gap: 32, phone: 'row' }), ...(diag ? [diag] : [])], { gap: 12 }));
+  // (the original scene's timings and order: the axes and their titles, then the curves drawn on, 2.2 s in all;
+  // the note, the diagnosis when asked, a pause)
   fig.script(
-    together(reveal(legend, lt, rt, L, R, ...curves), set(draw, 1, 'travel', 2.2)),
-    ...(diag ? [reveal(diag)] : []),
+    over(1.3, reveal(legend, lt, rt, L, R)),
+    over(0.9, together(reveal(...curves), set(draw, 1, 'draw'))),
+    wait(0.5),
+    ...(diag ? [over(0.8, reveal(diag))] : []),
     wait(1.5),
   );
   return fig;

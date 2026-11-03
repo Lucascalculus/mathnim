@@ -12,7 +12,7 @@ export interface L10n { en: string; zh: string }
 export const t = (zh: string, en: string): L10n => ({ zh, en });
 export const tr = (s: string | L10n, lang: Lang): string => (typeof s === 'string' ? s : s[lang] ?? s.en);
 
-export type TextKind = 'label' | 'caption' | 'readout';
+export type TextKind = 'label' | 'caption' | 'readout' | 'display';
 export interface FontSpec { size: number; weight: number; family: 'sans' | 'serif' | 'mono'; italic?: boolean }
 export const font_css = (f: FontSpec, l: Look = look()): string => `${f.italic ? 'italic ' : ''}${f.weight} ${f.size}px ${l.fonts[f.family]}`;
 export function font_of(kind: TextKind, o: { weight?: number; scale?: number } = {}, l: Look = look()): FontSpec {

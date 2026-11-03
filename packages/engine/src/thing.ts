@@ -46,12 +46,14 @@ export abstract class Thing {
     this.z = o.z ?? 0;
     this.opacity = param(1, { name: this.id + '.opacity', range: [0, 1] });
   }
+  /** A role that follows the state (read while drawing, so the thing is drawn again when it changes). */
+  role_of?: () => string;
   get color(): string {
-    return color_of(this.role, look());
+    return color_of(this.role_of?.() ?? this.role, look());
   }
   /** Its colour as text (the noun's hue, dark enough to read). */
   get text_color(): string {
-    return text_color_of(this.role, look());
+    return text_color_of(this.role_of?.() ?? this.role, look());
   }
   get material(): Material {
     return material_of(this.role, look());
