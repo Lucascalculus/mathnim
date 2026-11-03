@@ -2,7 +2,7 @@
 // reacts to what the learner does. WorldSession holds the logic without any
 // player or DOM, so presenters and tests drive it the same way: interactions
 // and semantic events go in, findings / reached goals / lines come out.
-import type { Scene } from 'manim-web';
+import type { Stage } from './stage';
 import type { L10n } from './content';
 import type { LessonContext } from './schema';
 
@@ -33,7 +33,7 @@ export interface WorldApi {
 }
 export interface Goal {
   id: string;
-  check: (scene: Scene, ctx: LessonContext, world: WorldApi) => boolean;
+  check: (scene: Stage, ctx: LessonContext, world: WorldApi) => boolean;
   message?: L10n;
 }
 export interface Detector {
@@ -94,7 +94,7 @@ export class WorldSession {
 
   constructor(
     private spec: WorldSpec,
-    private scene: Scene,
+    private scene: Stage,
     private ctx: LessonContext,
     private out: (o: WorldOutput) => void,
     private now: () => number = () => performance.now(),

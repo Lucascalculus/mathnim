@@ -5,6 +5,8 @@
   "type": "module",
   "workspaces": [
     "packages/manim-web",
+    "packages/look",
+    "packages/engine",
     "packages/core",
     "packages/present",
     "packages/visuals",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.9",
+    "@webgpu/types": "^0.1.61",
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3",
     "vite": "^6.4.3",

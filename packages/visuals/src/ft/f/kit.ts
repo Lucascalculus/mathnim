@@ -28,6 +28,16 @@ export function ft_lang(): Lang {
 }
 /** The language a visual draws in: its `lang` parameter, or the learner's for 'auto'. */
 export const resolve_lang = (v: unknown): Lang => (v === 'zh' || v === 'en' ? v : ft_lang());
+/**
+ * The language an engine figure draws in: its `lang` parameter, or the page's for 'auto'. Unlike a manim scene it
+ * needs no Chinese font to be downloaded first (it draws with the system's own), so it never falls back to English
+ * while one loads; without a page (tools, tests) it follows set_ft_lang().
+ */
+export const figure_lang = (v: unknown): Lang => {
+  if (v === 'zh' || v === 'en') return v;
+  const page = typeof document !== 'undefined' ? document.documentElement?.lang ?? '' : '';
+  return page ? (page.toLowerCase().startsWith('zh') ? 'zh' : 'en') : ft_lang();
+};
 
 /** Pick the text of the current language. */
 export const pick = (lang: Lang, en: string, zh: string) => (lang === 'zh' ? zh : en);

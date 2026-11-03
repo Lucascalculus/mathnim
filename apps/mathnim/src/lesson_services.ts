@@ -2,6 +2,7 @@
 // @mathnim/visuals, parameters checked) and the AI grader for free-text answers.
 import { grade_text } from '@mathnim/ai';
 import type { TextGrader, VisualResolver } from '@mathnim/present';
+import type { Interaction } from 'manim-web/ext/interact';
 import { check_params, get_visual } from '@mathnim/visuals';
 import { backend, has_model, language_name } from './settings';
 
@@ -10,7 +11,7 @@ export const visual_resolver: VisualResolver = (name, params) => {
   const v = get_visual(name);
   if (!v) return null;
   const p = check_params(v, params ?? {}).params;
-  return { scene: () => v.scene(p), explore: v.explore ? (scene, ui) => v.explore!(scene, ui, p) : undefined };
+  return { scene: () => v.scene(p), explore: v.explore ? (scene, ui) => v.explore!(scene, ui as Interaction, p) : undefined };
 };
 
 /** The AI grader when a model is available (offline: undefined, the learner assesses their own answer). */

@@ -34,7 +34,8 @@
 // - Without a stated language the model once wrote an English student's
 //   caption in Italian, so the prompt names the language (prompts/plan.ts, answer_language()).
 import { check_params, describe_param, get_visual, list_visuals, palette, apply_palette, type ParamSpec, type Params, type Visual } from '@mathnim/visuals';
-import { ScenePlayer, preload } from 'manim-web/ext/player';
+import { preload } from 'manim-web/ext/player';
+import { is_figure_player, make_player, type StagePlayer } from '@mathnim/core';
 import type { Backend, Round } from './ops_types';
 import type { AskContext } from './prompt';
 import type { Usage } from './provider';
@@ -263,10 +264,10 @@ export function decide(r: PlanResult | null | undefined, error?: unknown): Pictu
 }
 
 /** Build a visual's scene on a canvas in the current theme (records the timeline). */
-export async function load_visual(v: Visual<Params>, params: Params, canvas: HTMLCanvasElement | OffscreenCanvas, o: { tex?: boolean } = {}): Promise<ScenePlayer> {
+export async function load_visual(v: Visual<Params>, params: Params, canvas: HTMLCanvasElement | OffscreenCanvas, o: { tex?: boolean } = {}): Promise<StagePlayer> {
   await preload({ tex: o.tex });
-  const player = new ScenePlayer(v.scene(params), canvas, { audio: false });
-  apply_palette(player);
+  const player = make_player(v.scene(params), canvas, { audio: false });
+  if (!is_figure_player(player)) apply_palette(player); // (a figure draws with the look)
   await player.load();
   return player;
 }

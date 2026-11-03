@@ -9,7 +9,7 @@ import { palette } from '../../theme';
 import { tex } from '../../linalg/kit';
 
 // Canvas language: parts A/F's convention (lang 'auto' follows the learner's language).
-export { LANG_SPEC, pick, resolve_lang, ft_lang, type Lang } from '../f/kit';
+export { LANG_SPEC, pick, resolve_lang, figure_lang, ft_lang, type Lang } from '../f/kit';
 export type P3 = [number, number, number];
 export const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
 

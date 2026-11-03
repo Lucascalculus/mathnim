@@ -2,8 +2,9 @@
 // answers, hints, the learner model and the event log. UI-agnostic - the DOM
 // view (ui/view.ts) or any other front end subscribes to its events.
 import type { Scene } from 'manim-web';
-import { Interaction } from 'manim-web/ext/interact';
-import { ScenePlayer, preload } from 'manim-web/ext/player';
+import type { Interaction } from 'manim-web/ext/interact';
+import { preload } from 'manim-web/ext/player';
+import { load_tex } from '@mathnim/engine';
 import { tr, type L10n, type Lang } from './content';
 import { EventLog } from './events';
 import { expected_answer, grade } from './grading';
@@ -14,11 +15,12 @@ import {
   type SceneSpec, type Step, type TextStep, type Vars,
 } from './schema';
 import { WorldSession, type Finding, type Line, type SemanticEvent } from './world';
+import { make_player, make_ui, release_player, type Stage, type StagePlayer, type StageUI } from './stage';
 
 export type RuntimeEvent =
   | { type: 'step'; step: Step; index: number }
   | { type: 'scene-end'; step: Step }
-  | { type: 'explore'; step: ExploreStep; prompt: string; ui: Interaction }
+  | { type: 'explore'; step: ExploreStep; prompt: string; ui: StageUI }
   | { type: 'goal'; step: ExploreStep; message: string; id: string; final: boolean; stars?: 1 | 2 | 3 }
   | { type: 'semantic'; step: ExploreStep; event: SemanticEvent }
   | { type: 'finding'; step: ExploreStep; finding: Finding; misconception?: Misconception }
@@ -40,8 +42,8 @@ export interface RuntimeOptions {
   log?: EventLog;
   /** Seed for variants (default: random). */
   seed?: number;
-  /** Called for every new player, e.g. to apply a theme. */
-  on_player?: (player: ScenePlayer) => void;
+  /** Called for every new player, e.g. to apply a theme (a scene's or a figure's: see stage.ts). */
+  on_player?: (player: StagePlayer) => void;
   /** Play scene steps automatically (default true). */
   autoplay?: boolean;
   /** When the learner may move on (default LINEAR_FLOW: always). */
@@ -92,8 +94,10 @@ export class LessonRuntime {
   learner: LearnerModel;
   log: EventLog;
   index = -1;
-  player: ScenePlayer | null = null;
-  ui: Interaction | null = null;
+  player: StagePlayer | null = null;
+  ui: StageUI | null = null;
+  /** A figure's player whose canvas is given back once the next step's picture is ready to take it (no blank frame). */
+  private retired: StagePlayer | null = null;
   /** The live world of the current explore step. */
   world: WorldSession | null = null;
   vars: Vars = {};
@@ -208,6 +212,7 @@ export class LessonRuntime {
     this.token++;
     this.listeners = [];
     this.teardown();
+    this.retire();
   }
   private disposed = false;
   /** When the step on screen came (its 'left' event says how long it stayed). */
@@ -224,6 +229,12 @@ export class LessonRuntime {
     this.ui = null;
     this.player?.pause();
     this.player?.stop_live();
+    if (this.player) this.retired = this.player;
+  }
+  /** Give the canvas back from the last figure (before a new player takes it). */
+  private retire(): void {
+    release_player(this.retired);
+    this.retired = null;
   }
   private async go(i: number): Promise<void> {
     if (this.disposed) return;
@@ -250,6 +261,7 @@ export class LessonRuntime {
     } else {
       // no figure for this step: clear the stage rather than leave the previous frame up
       this.player = null;
+      this.retire();
       const g = this.opts.canvas.getContext('2d');
       g?.clearRect(0, 0, this.opts.canvas.width, this.opts.canvas.height);
     }
@@ -264,7 +276,7 @@ export class LessonRuntime {
     } else if (step.kind === 'explore') {
       const p = this.player!;
       p.show_end();
-      const ui = new Interaction(p);
+      const ui = make_ui(p);
       this.ui = ui;
       const goals = [...(step.goal ? [{ id: 'goal', ...step.goal }] : []), ...(step.goals ?? [])];
       const t0 = performance.now();
@@ -300,7 +312,7 @@ export class LessonRuntime {
         }
       });
       this.world = world;
-      step.setup?.(p.scene, ui, this.ctx, world.api);
+      step.setup?.(p.scene, ui as Interaction, this.ctx, world.api);
       ui.on_change = () => {
         log_interaction();
         world.input();
@@ -317,10 +329,12 @@ export class LessonRuntime {
       this.emit({ type: 'page', step });
     }
   }
-  private async load_scene(spec: SceneSpec): Promise<ScenePlayer> {
+  private async load_scene(spec: SceneSpec): Promise<StagePlayer> {
     await preload(); // scene constructors and factories may build Text/TeX
-    const scene = isClass(spec) ? new spec() : (spec as (c: LessonContext) => Scene)(this.ctx);
-    const player = new ScenePlayer(scene, this.opts.canvas, { audio: true });
+    await load_tex();
+    const stage: Stage = isClass(spec) ? new spec() : (spec as (c: LessonContext) => Stage)(this.ctx);
+    this.retire();
+    const player = make_player(stage, this.opts.canvas, { audio: true });
     this.opts.on_player?.(player);
     await player.load();
     return player;

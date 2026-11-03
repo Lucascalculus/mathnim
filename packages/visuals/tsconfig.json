@@ -19,6 +19,12 @@
       ],
       "manim-web/*": [
         "../manim-web/src/*"
+      ],
+      "@mathnim/engine": [
+        "../engine/src/index.ts"
+      ],
+      "@mathnim/look": [
+        "../look/src/index.ts"
       ]
     }
   },

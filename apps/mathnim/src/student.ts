@@ -1,7 +1,7 @@
 // What the tutor knows about the student when they ask a question: level,
 // where they are, what is on their screen, mastery, and mistakes they made.
 import type { AskContext } from '@mathnim/ai';
-import { describe_step, is_text_step, load_events, tr } from '@mathnim/core';
+import { describe_step, is_figure_player, is_text_step, load_events, tr } from '@mathnim/core';
 import { ui_lang, type LessonView } from '@mathnim/present';
 import { describe_text } from 'manim-web/ext/describe';
 import { all_skills, find_lesson, playable, type CourseLesson } from './course';
@@ -42,7 +42,7 @@ export function lesson_context(cl: CourseLesson, view: LessonView): AskContext {
   const step = view.runtime.step;
   const player = view.runtime.player;
   // a text page has no scene: what the student reads is the page itself (and a case's brief)
-  const screen = step && (is_text_step(step) || (step.kind === 'checkpoint' && step.group)) ? describe_step(step, lang) : player ? describe_text(player.scene) : '';
+  const screen = step && (is_text_step(step) || (step.kind === 'checkpoint' && step.group)) ? describe_step(step, lang) : player ? (is_figure_player(player) ? player.scene.describe() : describe_text(player.scene)) : '';
   return {
     topics: LESSON_TOPICS[cl.id],
     level: cl.level !== undefined ? tr(cl.level, lang) : cl.entry?.level,

@@ -1,14 +1,14 @@
-// The determinant as an area: the unit square spanned by î and ĵ becomes the
-// parallelogram spanned by A's columns, and det A is its (signed) area. Then ĵ
-// is turned onto î's line (the plane collapses, det = 0) and past it (the
-// orientation flips, det < 0). Explore: drag î and ĵ.
-import { Arc, Create, DrawBorderThenFill, FadeIn, Flash, GrowArrow, Scene, VGroup, Write, always_redraw, RIGHT, DOWN, LEFT } from 'manim-web';
-import { palette } from '../theme';
-import { define_visual } from '../visual';
-import {
-  LiveMatrix, MatrixTrackers, PANEL, STAGE, basis_arrows, basis_handles, basis_labels, filled_polygon, fit_plane, readout, switcher, tex, texs,
-  transformed_grid, type P3, type Plane,
-} from './kit';
+// The determinant as an area: the unit square spanned by î and ĵ becomes the parallelogram spanned by A's columns,
+// and det A is its (signed) area. Then ĵ is turned onto î's line (the plane collapses, det = 0) and past it (the
+// orientation flips, det < 0). Explore: drag the tips of î and ĵ.
+//
+// On the engine: four params (the entries of A) are the whole state; the grid, the parallelogram, the arrows, the
+// orientation arc, the matrix and the readouts are functions of them. The parallelogram takes the colour of what the
+// determinant is doing (ochre: scaled, vermilion: collapsed, violet: flipped), and the words say so in the same
+// colour; î and ĵ keep their colours in the arrows, the matrix's columns and the formula.
+import { Arrow, Drawn, Figure, Path, Region, column, row, reveal, set, t, together, wait, derive, type Param, type XY } from '@mathnim/engine';
+import { look } from '@mathnim/look';
+import { define_figure } from '../visual';
 import { angle_of, col, det2, from_angle, from_cols, mat2, norm2, wrap_pi, type Mat2, type Vec2 } from './math';
 
 export interface DeterminantAreaParams extends Record<string, unknown> {
@@ -32,7 +32,132 @@ export function collapse_and_flip(A: Mat2): { flat: Mat2; flipped: Mat2 } | null
   return { flat: from_cols(c1, from_angle(onto, r)), flipped: from_cols(c1, from_angle(onto + d, r)) };
 }
 
-export const determinant_area = define_visual<DeterminantAreaParams>({
+/** The four entries of A as params; get()/set() as the old MatrixTrackers (lessons' goals and solve() use them). */
+export class MatrixParams {
+  constructor(public t: [Param<number>, Param<number>, Param<number>, Param<number>]) {}
+  get(): Mat2 {
+    const [a, b, c, d] = this.t.map((x) => x.value);
+    return [[a, b], [c, d]];
+  }
+  set(m: Mat2): void {
+    [m[0][0], m[0][1], m[1][0], m[1][1]].forEach((v, i) => this.t[i].set(v, true));
+  }
+}
+export class DeterminantFigure extends Figure {
+  M!: MatrixParams;
+}
+
+const sign_role = (d: number): string => (d < -DET_ZERO ? 'noun:flipped' : d > DET_ZERO ? 'noun:determinant' : 'noun:collapsed');
+
+export function determinant_figure(p: DeterminantAreaParams): DeterminantFigure {
+  const A = mat2(p.A);
+  const fig = new DeterminantFigure({ lang: 'en' });
+  const R = 3.2;
+  const e = (name: string, v: number) => fig.param(name, v, { range: [-R, R], step: 0.1 });
+  const [a, b, c, d] = [e('a', I[0][0]), e('b', I[0][1]), e('c', I[1][0]), e('d', I[1][1])];
+  const M = (fig.M = new MatrixParams([a, b, c, d]));
+  const det = derive(() => det2(M.get()), 'det A');
+  const cf = collapse_and_flip(A);
+  const reach = (m: Mat2) => Math.max(norm2(col(m, 0)), norm2(col(m, 1)), norm2([m[0][0] + m[0][1], m[1][0] + m[1][1]]));
+  const ext = Math.max(2.3, reach(A), cf ? reach(cf.flipped) : 0) + 0.4;
+
+  // ---- the plane
+  const P = fig.plot({ id: 'plane', x: [-ext, ext], y: [-ext, ext], aspect: 'equal', fill: true, axes: 'origin', numbers: false, grid: false, priority: 2, says: t('平面：网格跟着 A 一起变', 'the plane: the grid moves with A') });
+  const n = Math.ceil(ext * 4);
+  // the grid A moves (cobalt, faint), and the two lines through the origin it moves most visibly (î's and ĵ's)
+  const lattice = (only_axes: boolean) => () => {
+    const m = M.get(), out: XY[][] = [];
+    const at = (x: number, y: number): XY => [m[0][0] * x + m[0][1] * y, m[1][0] * x + m[1][1] * y];
+    for (let k = -n; k <= n; k++) if (!only_axes || k === 0) out.push([at(k, -n), at(k, n)], [at(-n, k), at(n, k)]);
+    return out;
+  };
+  const grid = P.add(new Path(lattice(false), { id: 'grid', role: 'noun:grid', width: 1.1, alpha: 0.4, z: 1.1 }));
+  const axes = P.add(new Path(lattice(true), { id: 'grid_axes', role: 'noun:grid', width: 1.75, alpha: 0.8, z: 1.15 }));
+  const corners = (): XY[] => {
+    const m = M.get(), i: XY = [m[0][0], m[1][0]], j: XY = [m[0][1], m[1][1]];
+    return [[0, 0], i, [i[0] + j[0], i[1] + j[1]], j];
+  };
+  // one region per state of the determinant (only one has points at a time), so each keeps its colour and name
+  const para = (['noun:determinant', 'noun:collapsed', 'noun:flipped'] as const).map((role) =>
+    P.add(new Region(() => (sign_role(det.value) === role ? corners() : []), { id: `area_${role.split(':')[1]}`, role: role.replace('noun', 'region'), says: t('单位正方形变成的平行四边形', 'the unit square, moved by A') })));
+  const i_hat = P.add(new Arrow([0, 0], () => [a.value, c.value], { id: 'i_hat', role: 'noun:i-hat', says: t('î 落到的位置：A 的第一列', 'where î lands: the first column of A') }));
+  const j_hat = P.add(new Arrow([0, 0], () => [b.value, d.value], { id: 'j_hat', role: 'noun:j-hat', says: t('ĵ 落到的位置：A 的第二列', 'where ĵ lands: the second column of A') }));
+  // orientation: the short turn from î to ĵ
+  const orient = P.add(new Drawn((env, pl) => {
+    const m = M.get(), c1 = col(m, 0), c2 = col(m, 1), a1 = angle_of(c1), sweep = wrap_pi(angle_of(c2) - a1);
+    const o = pl.P([0, 0]), r = 26, u = pl.unit();
+    if (Math.abs(sweep) < 0.3 || norm2(c1) / u < 34 || norm2(c2) / u < 34) return null;
+    const g = env.g, col_ = look().palette[sign_role(det.value) === 'noun:flipped' ? 'violet' : sign_role(det.value) === 'noun:collapsed' ? 'vermilion' : 'ochre'];
+    // (y is down on the canvas: angles turn the other way)
+    const s0 = -a1, s1 = -(a1 + sweep);
+    g.strokeStyle = col_;
+    g.fillStyle = col_;
+    g.lineWidth = 2.5;
+    g.beginPath();
+    g.arc(o[0], o[1], r, s0, s1, sweep > 0);
+    g.stroke();
+    const tip: XY = [o[0] + r * Math.cos(s1), o[1] + r * Math.sin(s1)], dir = sweep > 0 ? -1 : 1;
+    const tx = -Math.sin(s1) * dir, ty = Math.cos(s1) * dir;
+    g.beginPath();
+    g.moveTo(tip[0] + tx * 7, tip[1] + ty * 7);
+    g.lineTo(tip[0] - ty * 4.5, tip[1] + tx * 4.5);
+    g.lineTo(tip[0] + ty * 4.5, tip[1] - tx * 4.5);
+    g.closePath();
+    g.fill();
+    return { x: o[0] - r, y: o[1] - r, w: 2 * r, h: 2 * r };
+  }, { id: 'orientation', role: 'noun:determinant', z: 2.5 }));
+  // names at the tips, and |det| inside the parallelogram while it is wide enough to hold it
+  fig.label('\\hat{\\imath}', i_hat, { id: 'i_word', tex: true, role: 'noun:i-hat', sides: ['right', 'below-right', 'above-right', 'below', 'above'] });
+  fig.label('\\hat{\\jmath}', j_hat, { id: 'j_word', tex: true, role: 'noun:j-hat', sides: ['above', 'above-left', 'left', 'above-right', 'right'] });
+  const area_word = fig.label(() => {
+    const m = M.get(), side = Math.max(norm2(col(m, 0)), norm2(col(m, 1)), 1e-9), thick = (Math.abs(det.value) / side) / P.unit();
+    return thick > 40 && Math.min(norm2(col(m, 0)), norm2(col(m, 1))) / P.unit() > 60 ? Math.abs(det.value).toFixed(2) : '';
+  }, () => {
+    const m = M.get();
+    return P.P([(m[0][0] + m[0][1]) / 2, (m[1][0] + m[1][1]) / 2]);
+  }, { id: 'area_word', role: 'noun:determinant', sides: ['center'], own: [...para, grid, axes] });
+
+  // ---- the numbers: A with its columns in î's and ĵ's colours, the formula, det A and what it means
+  const pal = look().palette, I_C = pal.viridian, J_C = pal.vermilion;
+  const f1 = (v: number) => v.toFixed(1).replace('-', '−');
+  const matrix = fig.readout([{ tex: () => {
+    const m = M.get();
+    return `A = \\begin{bmatrix} \\color{${I_C}}{${f1(m[0][0])}} & \\color{${J_C}}{${f1(m[0][1])}} \\\\ \\color{${I_C}}{${f1(m[1][0])}} & \\color{${J_C}}{${f1(m[1][1])}} \\end{bmatrix}`;
+  } }], { id: 'matrix', says: t('矩阵 A：两列是 î 和 ĵ 落到的位置', "the matrix A: its columns are where î and ĵ land") });
+  const formula = fig.readout([{ tex: `\\det A = \\color{${I_C}}{a}\\color{${J_C}}{d} - \\color{${J_C}}{b}\\color{${I_C}}{c}` }], { id: 'det_formula' });
+  const det_ro = fig.readout([{ tex: '\\det A =' }, { value: () => det.value, decimals: 2, template: '−0.00' }], { id: 'det_readout', role: 'noun:determinant' });
+  const message = fig.caption(() => {
+    const dv = det.value;
+    if (dv > DET_ZERO) return t('面积乘以 [|det A|](noun:determinant)，方向不变', 'areas are scaled by [|det A|](noun:determinant); the orientation is kept');
+    if (dv < -DET_ZERO) return t('[det A < 0](noun:flipped)：方向翻转了', '[det A < 0](noun:flipped): the orientation is flipped');
+    return t('[det A = 0](noun:collapsed)：平面被压成一条线', '[det A = 0](noun:collapsed): the plane is squashed onto a line');
+  }, { id: 'det_message' });
+
+  fig.layout(row([P, column([matrix, formula, det_ro, message], { gap: 14 })], { weights: [1.5, 1], gap: 28, align: 'center' }));
+  // the hand moves each column's tip
+  fig.handle(P, a, c, { id: 'i_handle', says: t('î 的终点', 'the tip of î') });
+  fig.handle(P, b, d, { id: 'j_handle', says: t('ĵ 的终点', 'the tip of ĵ') });
+  fig.check('the readout is the area', () => {
+    const q = corners(), area = Math.abs(((q[1][0] * q[3][1]) - (q[3][0] * q[1][1])));
+    return Math.abs(area - Math.abs(det.peek())) < 1e-9 ? null : `area ${area} but |det| ${Math.abs(det.peek())}`;
+  });
+
+  const morph = (m: Mat2, dur: number) => together(set(a, m[0][0], 'travel', dur), set(b, m[0][1], 'travel', dur), set(c, m[1][0], 'travel', dur), set(d, m[1][1], 'travel', dur));
+  fig.script(
+    reveal(P, grid, axes),
+    reveal(i_hat, j_hat, fig.labels[0], fig.labels[1]),
+    reveal(...para, orient, area_word, matrix),
+    morph(A, 3),
+    reveal(formula, det_ro),
+    reveal(message),
+    wait(1),
+    ...(p.show_collapse && cf ? [morph(cf.flat, 2.5), wait(1.4), morph(cf.flipped, 2), wait(1.2), morph(A, 2.5)] : []),
+    wait(1.5),
+  );
+  return fig;
+}
+
+export const determinant_area = define_figure<DeterminantAreaParams>({
   name: 'determinant_area',
   summary: "det A as area: the unit square becomes the parallelogram of A's columns with signed area det A; then ĵ turns onto î's line (det 0, plane squashed) and past it (det < 0, orientation flipped). Student drags î and ĵ.",
   topics: ['linear algebra', 'determinant', 'area', 'orientation', 'linear transformations'],
@@ -41,108 +166,8 @@ export const determinant_area = define_visual<DeterminantAreaParams>({
     show_collapse: { type: 'boolean', default: true, doc: 'after showing det A, turn ĵ onto î\'s line (det 0) and past it (det < 0), then back' },
   },
   examples: [{}, { A: [[1, 2], [0.5, 1]] }, { A: [[1, 2], [1, -1]] }, { A: [[3, 0], [0, 2]], show_collapse: false }],
-  ids: ['grid', 'i_hat', 'j_hat', 'parallelogram', 'area_label', 'orientation', 'matrix', 'det_readout', 'det_formula', 'det_message'],
-  scene: (p) => {
-    const A = mat2(p.A);
-    class DeterminantArea extends Scene {
-      M = new MatrixTrackers(I);
-      plane!: Plane;
-      override construct() {
-        const c = palette();
-        const { M } = this;
-        this.track(...M.t);
-        const cf = collapse_and_flip(A);
-        const reach = (m: Mat2) => Math.max(norm2(col(m, 0)), norm2(col(m, 1)), norm2([m[0][0] + m[0][1], m[1][0] + m[1][1]]));
-        const extent = Math.max(2.3, reach(A), cf ? reach(cf.flipped) : 0) + 0.4;
-        const plane = fit_plane(STAGE, [-2.5, 0], extent, 0.95);
-        this.plane = plane;
-        const det = () => det2(M.get());
-        const sign_color = (d: number) => (d < -DET_ZERO ? c.purple : d > DET_ZERO ? c.gold : c.coral);
-
-        const grid = transformed_grid(plane, () => M.get());
-        grid.group.name = 'grid';
-        const para = always_redraw(() => {
-          const m = M.get(), o = plane.p(0, 0), a = plane.pv(col(m, 0)), b = plane.pv(col(m, 1));
-          const s: P3 = [a[0] + b[0] - o[0], a[1] + b[1] - o[1], 0];
-          const col_ = sign_color(det2(m));
-          return filled_polygon([o, a, s, b], plane.box, col_, 0.3, col_, 3);
-        });
-        para.name = 'parallelogram';
-        const [i_hat, j_hat] = basis_arrows(plane, M);
-        const [li, lj] = basis_labels(plane, M, ['\\hat{\\imath}', '\\hat{\\jmath}']);
-        // |det| written inside the parallelogram, while it is wide enough to hold it
-        const area = readout('', () => Math.abs(det()), { decimals: 2, font_size: 34 });
-        area.add_updater((m: any) => {
-          const q = M.get(), w: Vec2 = [(q[0][0] + q[0][1]) / 2, (q[1][0] + q[1][1]) / 2];
-          const side = Math.max(norm2(col(q, 0)), norm2(col(q, 1)), 1e-9);
-          const thick = (Math.abs(det2(q)) / side) * plane.unit;
-          const show = thick > 0.75 && plane.inside(w, 0.5) && Math.min(norm2(col(q, 0)), norm2(col(q, 1))) * plane.unit > 1.2;
-          m.move_to(plane.pv(w));
-          const k = show ? 1 : 0;
-          if (m._k !== k) {
-            m.set_opacity(k);
-            m._k = k;
-          }
-        });
-        area.name = 'area_label';
-        // orientation: the short turn from î to ĵ
-        const orient = always_redraw(() => {
-          const m = M.get(), a1 = angle_of(col(m, 0)), sweep = wrap_pi(angle_of(col(m, 1)) - a1);
-          const r = 0.55, d = det2(m);
-          const arc: any = Arc({ radius: r, start_angle: a1, angle: Math.abs(sweep) < 0.25 ? 0.25 * Math.sign(sweep || 1) : sweep, arc_center: plane.p(0, 0), stroke_color: sign_color(d), stroke_width: 4 });
-          arc.add_tip({ tip_length: 0.16 });
-          if (Math.abs(sweep) < 0.3 || norm2(col(m, 0)) * plane.unit < 0.7 || norm2(col(m, 1)) * plane.unit < 0.7) arc.set_opacity(0);
-          return arc;
-        });
-        orient.name = 'orientation';
-
-        const mat = new LiveMatrix(() => M.get(), { decimals: 1, font_size: 44, colors: [c.good, c.coral] });
-        mat.name = 'matrix';
-        const X0 = PANEL.x0 + 0.12;
-        const at = (m: any, y: number) => m.move_to([X0 + m.width / 2, y, 0]);
-        const top = VGroup(tex('A =', 48), mat).arrange(RIGHT, { buff: 0.25 });
-        at(top, 2.75);
-        mat.update(0);
-        const formula = at(texs([['\\det A', undefined], ['=', undefined], ['a', c.good], ['d', c.coral], ['-', undefined], ['b', c.coral], ['c', c.good]], 44), 1.3);
-        formula.name = 'det_formula';
-        const det_ro = at(readout('\\det A =', det, { decimals: 2, font_size: 48, color_of: sign_color }), 0.3);
-        det_ro.name = 'det_readout';
-        const msg = (a: string, b: string, color: string) => VGroup(tex(a, 36, color), tex(b, 36, color)).arrange(DOWN, { buff: 0.16, aligned_edge: LEFT });
-        const message = switcher([
-          msg('\\text{areas are scaled by } |\\det A|', '\\text{orientation is kept}', c.gold),
-          msg('\\det A = 0:\\ \\text{the plane is}', '\\text{squashed onto a line}', c.coral),
-          msg('\\det A < 0:\\ \\text{the orientation}', '\\text{is flipped}', c.purple),
-        ], () => (det() > DET_ZERO ? 0 : det() < -DET_ZERO ? 2 : 1), [X0, -1.05]);
-        message.name = 'det_message';
-
-        this.play(Create(grid.group, { lag_ratio: 0.02 }), { run_time: 1.3 });
-        this.play(GrowArrow(i_hat), GrowArrow(j_hat), FadeIn(li), FadeIn(lj), { run_time: 0.9 });
-        area.update(0);
-        this.play(DrawBorderThenFill(para), FadeIn(area), Create(orient), { run_time: 1.2 });
-        this.play(Write(top), { run_time: 1 });
-        this.bring_to_front(i_hat, j_hat, li, lj, area);
-        this.play(M.morph(I, A, { run_time: 3 }));
-        det_ro.update(0);
-        this.play(Write(formula), FadeIn(det_ro), { run_time: 1.2 });
-        message.update(0);
-        this.play(FadeIn(message), { run_time: 0.8 });
-        this.wait(1);
-        if (p.show_collapse && cf) {
-          this.play(M.morph(A, cf.flat, { run_time: 2.5 }));
-          this.play(Flash(plane.p(0, 0), { color: c.coral, flash_radius: 0.4, line_length: 0.3 }), { run_time: 1 });
-          this.wait(0.8);
-          this.play(M.morph(cf.flat, cf.flipped, { run_time: 2 }));
-          this.wait(1.2);
-          this.play(M.morph(cf.flipped, A, { run_time: 2.5 }));
-        } else if (Math.abs(det2(A)) <= DET_ZERO) {
-          this.play(Flash(plane.p(0, 0), { color: c.coral, flash_radius: 0.4, line_length: 0.3 }), { run_time: 1 });
-        }
-        this.wait(1.5);
-      }
-    }
-    return new DeterminantArea();
-  },
-  explore: (scene: any, ui) => {
-    basis_handles(ui, scene.plane, scene.M);
-  },
+  ids: ['plane', 'grid', 'i_hat', 'j_hat', 'area_determinant', 'orientation', 'matrix', 'det_readout', 'det_formula', 'det_message'],
+  figure: determinant_figure,
+  // (the handles on î's and ĵ's tips are part of the figure; an explore step turns them on)
+  explore: () => {},
 });

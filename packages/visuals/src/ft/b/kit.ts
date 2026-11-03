@@ -8,7 +8,7 @@ import type { Mobject } from 'manim-web';
 import { palette } from '../../theme';
 import { fit, label, pick, type Lang } from '../f/kit';
 
-export { LANG_SPEC, fit, label, pick, resolve_lang, type Lang } from '../f/kit';
+export { LANG_SPEC, figure_lang, fit, label, pick, resolve_lang, type Lang } from '../f/kit';
 
 type P3 = [number, number, number];
 interface UiLike { add_handle(spec: any): unknown }

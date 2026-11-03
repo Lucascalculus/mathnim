@@ -64,7 +64,7 @@ const out = path.resolve(here, '.cache/check_visuals.bundle.mjs');
 await build({
   entryPoints: [path.join(here, 'check_visuals.ts')], bundle: true, platform: 'node', format: 'esm', outfile: out, target: 'node20',
   external: ['@napi-rs/canvas', 'mediabunny'], logLevel: 'error', plugins: [ft_visuals, stub_missing],
-  alias: { 'manim-web': manim_src, '@mathnim/visuals': pk('visuals/src') },
+  alias: { 'manim-web': manim_src, '@mathnim/visuals': pk('visuals/src'), '@mathnim/engine': pk('engine/src'), '@mathnim/look': pk('look/src') },
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
 });
 if (stubbed.size) console.log(`note: stubbed modules that do not exist yet (in progress elsewhere): ${[...stubbed].join(', ')}\n`);

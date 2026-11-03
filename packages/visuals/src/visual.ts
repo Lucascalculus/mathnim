@@ -3,6 +3,7 @@
 // visual and fills in its parameters, which is fast and cannot break the layout.
 import type { Scene } from 'manim-web';
 import type { Interaction } from 'manim-web/ext/interact';
+import type { Figure, FigureUI } from '@mathnim/engine';
 
 /** One parameter. `doc` is shown to the AI in the catalog. */
 export type ParamSpec =
@@ -29,10 +30,12 @@ export interface Visual<P extends Params = Params> {
   params: ParamSpecs<P>;
   /** Parameter sets that must pass the layout checks (the doctor renders each). */
   examples?: Partial<P>[];
-  /** The explanation as a scene (8-30 s); it stays on screen when it ends. */
-  scene(p: P): Scene;
-  /** Handles and sliders added to the finished scene. */
-  explore?(scene: Scene, ui: Interaction, p: P): void;
+  /** The explanation as a scene (8-30 s), or an engine figure (define_figure); it stays on screen when it ends. */
+  scene(p: P): Scene | Figure;
+  /** Handles and sliders added to the finished scene (a figure's explore gets a FigureUI: define_figure). */
+  explore?(scene: Scene | Figure, ui: Interaction, p: P): void;
+  /** Made with @mathnim/engine (its scene() returns a Figure). */
+  engine?: boolean;
   /** Names of objects the scene exposes (for highlighting and scene descriptions). */
   ids?: string[];
 }
@@ -40,4 +43,15 @@ export interface Visual<P extends Params = Params> {
 /** Helper that keeps the parameter types of a visual. */
 export function define_visual<P extends Params>(v: Visual<P>): Visual<P> {
   return v;
+}
+
+/** A visual made with @mathnim/engine: figure() builds the figure; explore() wires what the hand reports. */
+export interface FigureVisual<P extends Params = Params> extends Omit<Visual<P>, 'scene' | 'explore' | 'engine'> {
+  figure(p: P): Figure;
+  explore?(fig: Figure, ui: FigureUI, p: P): void;
+}
+/** Register an engine figure as a visual (the catalog, lessons, the tutor and the tools take it like any other). */
+export function define_figure<P extends Params>(v: FigureVisual<P>): Visual<P> {
+  const { figure, explore, ...rest } = v;
+  return { ...rest, scene: figure, explore: explore as unknown as Visual<P>['explore'], engine: true };
 }

@@ -24,7 +24,9 @@
     "@mathnim/core": "*",
     "@mathnim/present": "*",
     "@mathnim/visuals": "*",
-    "manim-web": "*"
+    "manim-web": "*",
+    "@mathnim/engine": "*",
+    "@mathnim/look": "*"
   },
   "devDependencies": {
     "marked": "^18.0.14"
