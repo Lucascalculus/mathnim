@@ -70,73 +70,70 @@ export function qp_figure(p: QpFigureParams): QpFigure {
   const plane = fig.plot({
     id: 'plane', x: [-LIM, LIM], y: [-LIM, LIM], x_ticks: [-2, -1, 0, 1, 2], y_ticks: [-2, -1, 0, 1, 2], aspect: 'equal',
     x_label: 'a_1\\;(0\\text{–}1\\,\\mathrm{s})', y_label: 'a_2\\;(1\\text{–}2\\,\\mathrm{s})', priority: 2,
-    says: t('计划平面：每个点是一份完整的计划 (a₁, a₂)', 'the plan plane: each point is a whole plan (a₁, a₂)'),
+    says: t('the plan plane: each point is a whole plan (a₁, a₂)', '计划平面：每个点是一份完整的计划 (a₁, a₂)'),
   });
   // the cost bowl: its level lines are the ellipses of equal cost around the no-limits plan
   const H = COST.H;
   const bowl = plane.add(new Field(quadratic(() => {
     const c = view().center;
     return [c[0], c[1], H[0][0], H[0][1], H[1][1]];
-  }), { id: 'contours', role: 'noun:cost', levels: [1, 2, 3, 4.5, 6, 8], range: [0, 9], fill: 0.07, line: 0.3, says: t('等代价椭圆：同一圈上的计划代价相同', 'ellipses of equal cost') }));
-  const feasible = plane.add(new Region(() => (view().poly.length >= 3 ? view().poly : []), { id: 'feasible', role: 'region:plan', says: t('守住所有限制的计划', 'the plans that keep every limit') }));
+  }), { id: 'contours', role: 'noun:cost', levels: [1, 2, 3, 4.5, 6, 8], range: [0, 9], fill: 0.07, line: 0.3, says: t('ellipses of equal cost', '等代价椭圆：同一圈上的计划代价相同') }));
+  const feasible = plane.add(new Region(() => (view().poly.length >= 3 ? view().poly : []), { id: 'feasible', role: 'region:plan', says: t('the plans that keep every limit', '守住所有限制的计划') }));
   // one line per limit, in its noun's colour; thick when the best plan touches it
-  const lines = FAMILIES.flatMap(({ f, noun, k }) => {
+  for (const { f, noun, k } of FAMILIES) {
     const rows = ROWS.map((r, i) => (r.family === f ? i : -1)).filter((i) => i >= 0);
     const segs = (active: boolean) => () => {
       const v = view();
       if (fam.value < k - 0.999) return [];
       return rows.filter((i) => v.plan.active.includes(i) === active).map((i) => row_segment(i, v.x0, -LIM, LIM)).filter((s): s is [[number, number], [number, number]] => !!s) as XY[][];
     };
-    const thin = plane.add(new Path(segs(false), { id: `limit_${noun}`, role: `noun:${noun}`, z: 2.2 }));
-    const thick = plane.add(new Path(segs(true), { id: `active_${noun}`, role: `active:${noun}`, z: 2.4 }));
-    return [thin, thick];
-  });
-  void lines;
+    plane.add(new Path(segs(false), { id: `limit_${noun}`, role: `noun:${noun}`, z: 2.2 }));
+    plane.add(new Path(segs(true), { id: `active_${noun}`, role: `active:${noun}`, z: 2.4 }));
+  }
   // the best plan's ellipse (grown from the centre in the story), and the clipped plan's (dashed: it costs more)
-  const best_contour = plane.add(new Path(() => {
+  plane.add(new Path(() => {
     const v = view(), r = v.r * grow.value;
     return r > 0.02 ? contour(v.x0, r, 160) : [];
   }, { id: 'best_contour', role: 'noun:best-plan', width: 3.25, z: 2.6 }));
-  const clip_contour = plane.add(new Path(() => {
+  plane.add(new Path(() => {
     const v = view();
     if (!clip_on() || !v.feasible || Math.hypot(v.clip[0] - v.plan.z[0], v.clip[1] - v.plan.z[1]) < 0.05) return [];
     return contour(v.x0, radius(v.clip, v.x0), 160);
   }, { id: 'clip_contour', role: 'ghost:plan', z: 2.5 }));
   // markers: × the no-limits plan (an arrow on the border when it is off the chart), □ clipped, ● best
-  const center_x = plane.add(new Marker(() => (inside(view().center) ? (view().center as XY) : null), { id: 'center', role: 'text', shape: 'cross', says: t('不管限制时的计划', 'the plan without limits') }));
+  const center_x = plane.add(new Marker(() => (inside(view().center) ? (view().center as XY) : null), { id: 'center', role: 'text', shape: 'cross', says: t('the plan without limits', '不管限制时的计划') }));
   const center_arrow = plane.add(new Marker(() => {
     const c = view().center;
     if (inside(c)) return null;
     const s = LIM / Math.max(Math.abs(c[0]), Math.abs(c[1]));
     return [c[0] * s * 0.985, c[1] * s * 0.985];
   }, { id: 'center_arrow', role: 'text', shape: 'arrow', dir: () => view().center as XY }));
-  const clip_mark = plane.add(new Marker(() => {
+  plane.add(new Marker(() => {
     const v = view();
     if (!clip_on()) return null;
     if (v.feasible && Math.hypot(v.clip[0] - v.plan.z[0], v.clip[1] - v.plan.z[1]) < 0.05) return null;
     return v.clip as XY;
-  }, { id: 'clipped', role: 'ghost:plan', shape: 'square', says: t('截断的计划', 'the clipped plan') }));
-  const best = plane.add(new Marker(() => (view().feasible && grown() ? (view().plan.z as XY) : null), { id: 'best', role: 'noun:best-plan', shape: 'dot', says: t('限制内的最优计划', 'the best plan within the limits') }));
+  }, { id: 'clipped', role: 'ghost:plan', shape: 'square', says: t('the clipped plan', '截断的计划') }));
+  const best = plane.add(new Marker(() => (view().feasible && grown() ? (view().plan.z as XY) : null), { id: 'best', role: 'noun:best-plan', shape: 'dot', says: t('the best plan within the limits', '限制内的最优计划') }));
   // words on the chart
   const center_word = fig.label(() => {
     const v = view();
     if (!v.feasible && fam.value > 2.5) return '';
     return inside(v.center) ? L('no limits', '不管限制') : L('no limits (off the chart)', '不管限制（在图外）');
   }, () => center_x.where() ?? center_arrow.where(), { id: 'center_word', own: [center_x, center_arrow], sides: ['above-right', 'below-right', 'above-left', 'below-left', 'right', 'left', 'above', 'below'], within: () => plane.data });
-  const none_word = fig.label(() => (!view().feasible && fam.value > 2.5 ? L('no plan keeps every limit', '没有任何计划能守住所有限制') : ''), () => [plane.data.x + plane.data.w / 2, plane.data.y + plane.data.h * 0.38] as XY, { id: 'no_plan', role: 'noun:wall', sides: ['below', 'above'], weight: 600, within: () => plane.data });
-  void none_word;
+  fig.label(() => (!view().feasible && fam.value > 2.5 ? L('no plan keeps every limit', '没有任何计划能守住所有限制') : ''), () => [plane.data.x + plane.data.w / 2, plane.data.y + plane.data.h * 0.38] as XY, { id: 'no_plan', role: 'noun:wall', sides: ['below', 'above'], weight: 600, within: () => plane.data });
 
   // the key: each family comes in with its line; the markers with the best plan
   const legend = fig.legend([
-    ...FAMILIES.map(({ noun, k, tex, en, zh }) => ({ role: `noun:${noun}`, text: t(zh, en), tex, mark: 'line' as const, show: () => clamp01(fam.value - (k - 1)) })),
-    { role: 'noun:best-plan', text: t('最优计划', 'best plan'), mark: 'dot' as const, show: () => (grown() ? 1 : 0) },
-    ...(p.clip ? [{ role: 'ghost:plan', text: t('截断的计划', 'clipped plan'), mark: 'square' as const, show: () => (clip_on() ? 1 : 0) }] : []),
+    ...FAMILIES.map(({ noun, k, tex, en, zh }) => ({ role: `noun:${noun}`, text: t(en, zh), tex, mark: 'line' as const, show: () => clamp01(fam.value - (k - 1)) })),
+    { role: 'noun:best-plan', text: t('best plan', '最优计划'), mark: 'dot' as const, show: () => (grown() ? 1 : 0) },
+    ...(p.clip ? [{ role: 'ghost:plan', text: t('clipped plan', '截断的计划'), mark: 'square' as const, show: () => (clip_on() ? 1 : 0) }] : []),
   ], { id: 'legend' });
   // the best plan's numbers and the limits that hold it
   const a_of = (i: 0 | 1) => () => (view().feasible ? view().plan.z[i] : NaN);
-  const readout = fig.readout([{ tex: 'a_1 =' }, { value: a_of(0), decimals: 2, template: '−0.00' }, { gap: 1.1 }, { tex: 'a_2 =' }, { value: a_of(1), decimals: 2, template: '−0.00' }, { tex: '\\mathrm{m/s^2}' }], { id: 'readout', role: 'noun:best-plan', says: t('最优计划的两步加速度', "the best plan's two accelerations") });
+  const readout = fig.readout([{ tex: 'a_1 =' }, { value: a_of(0), decimals: 2, template: '−0.00' }, { gap: 1.1 }, { tex: 'a_2 =' }, { value: a_of(1), decimals: 2, template: '−0.00' }, { tex: '\\mathrm{m/s^2}' }], { id: 'readout', role: 'noun:best-plan', says: t("the best plan's two accelerations", '最优计划的两步加速度') });
   const active = fig.readout([
-    { text: t('起作用的限制：', 'active:') },
+    { text: t('active:', '起作用的限制：') },
     { tex: () => {
       const v = view();
       if (!v.feasible) return '\\text{---}';
@@ -148,7 +145,7 @@ export function qp_figure(p: QpFigureParams): QpFigure {
       if (!v.feasible) return L('infeasible', '无解');
       return v.ids.length ? '' : L('(none: as with no limits)', '（没有：和不管限制时一样）');
     } },
-  ], { id: 'active', kind: 'caption', says: t('最优计划碰到的限制', 'the limits the best plan touches') });
+  ], { id: 'active', kind: 'caption', says: t('the limits the best plan touches', '最优计划碰到的限制') });
 
   // ---- the cart and its state
   const track = track_plot({ id: 'track', p: [PAD.p[0], 10.4], ticks: [4, 5, 6, 7, 8, 9, 10] });
@@ -160,21 +157,20 @@ export function qp_figure(p: QpFigureParams): QpFigure {
     if (!grown()) return [];
     return predicted(v.x0, v.feasible ? v.plan.z : [-1, -1]).map((s) => s[0]).filter((q) => q <= 10);
   }));
-  const dots_bad = track.add(position_dots(() => (!view().feasible ? predicted(view().x0, [-1, -1]).map((s) => s[0]).filter((q) => q > 10 && q < 10.4) : []), { id: 'plan_dots_bad', role: 'noun:wall' }));
+  track.add(position_dots(() => (!view().feasible ? predicted(view().x0, [-1, -1]).map((s) => s[0]).filter((q) => q > 10 && q < 10.4) : []), { id: 'plan_dots_bad', role: 'noun:wall' }));
   const arrow = track.add(speed_arrow(() => p0.value, () => v0.value));
   // (v₀ is always shown, as before: beside its arrow - first behind it, where the track is usually empty - or above
   // the cart while it stands still)
   const speed_word = fig.label(() => `v_0 = ${v0.value.toFixed(2)}\\,\\mathrm{m/s}`, () => (arrow.box.w ? arrow.box : cart.box.w ? { x: cart.box.x, y: cart.box.y - 14, w: cart.box.w, h: 10 } : null), { id: 'speed_word', tex: true, role: 'noun:speed', sides: ['left', 'right', 'above'], own: [arrow], within: () => track.box });
-  const track_key = fig.legend([{ role: 'noun:plan', text: t('最优计划在接下来 2 秒里让小车到达的位置', 'where the best plan takes the cart in the next 2 s'), mark: 'dot', show: () => (grown() ? 1 : 0) }], { id: 'track_key' });
+  const track_key = fig.legend([{ role: 'noun:plan', text: t('where the best plan takes the cart in the next 2 s', '最优计划在接下来 2 秒里让小车到达的位置'), mark: 'dot', show: () => (grown() ? 1 : 0) }], { id: 'track_key' });
   const pad = fig.plot({
     id: 'pad', x: [PAD.p[0], 10], y: PAD.v, x_ticks: [4, 5, 6, 7, 8, 9, 10], y_ticks: [0, 1, 2], aspect: 2.4, phone_aspect: 3.4,
-    x_label: 'p_0\\;(\\mathrm{m})', y_label: 'v_0\\;(\\mathrm{m/s})', says: t('小车此刻的状态', "the cart's state now"),
+    x_label: 'p_0\\;(\\mathrm{m})', y_label: 'v_0\\;(\\mathrm{m/s})', says: t("the cart's state now", '小车此刻的状态'),
   });
-  const state = pad.add(new Marker(() => [p0.value, v0.value], { id: 'state', role: 'noun:state', shape: 'dot', clip: false, says: t('小车此刻的状态 (p₀, v₀)', "the cart's state (p₀, v₀)") }));
-  const handle = fig.handle(pad, p0, v0, { id: 'state_handle', says: t('小车的状态 (p₀, v₀)', "the cart's state (p₀, v₀)"), on_end: () => fig.emit_released() });
-  void handle;
-  const pad_title = fig.caption(t('小车此刻的状态', "the cart's state now"), { id: 'pad_title', kind: 'label' });
-  fig.aside(t('玩具小车，QP 精确求解；计划每秒只换一次加速度', 'toy cart, exact QP; the plan holds one acceleration per second'));
+  const state = pad.add(new Marker(() => [p0.value, v0.value], { id: 'state', role: 'noun:state', shape: 'dot', clip: false, says: t("the cart's state (p₀, v₀)", '小车此刻的状态 (p₀, v₀)') }));
+  fig.handle(pad, p0, v0, { id: 'state_handle', says: t("the cart's state (p₀, v₀)", '小车的状态 (p₀, v₀)'), on_end: () => fig.emit_released() });
+  const pad_title = fig.caption(t("the cart's state now", '小车此刻的状态'), { id: 'pad_title', kind: 'label' });
+  fig.aside(t('toy cart, exact QP; the plan holds one acceleration per second', '玩具小车，QP 精确求解；计划每秒只换一次加速度'));
 
   // ---- layout: plan plane beside the cart; on a phone, one above the other
   // (the plane takes the whole height of its side; its result - the numbers and the active limits - heads the other
@@ -241,7 +237,6 @@ export function qp_figure(p: QpFigureParams): QpFigure {
       ]
     : [over(1, reveal(...all, center_x, center_arrow, center_word, bowl, feasible, readout, active, dots, track_key, best)), wait(0.4)];
   fig.script(...steps);
-  void [feasible, best_contour, clip_contour, clip_mark, dots_bad];
   return fig;
 }
 

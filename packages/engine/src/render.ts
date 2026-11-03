@@ -44,12 +44,14 @@ export class Renderer {
   private below_set: Thing[] = [];
   private above_set: Thing[] = [];
   private last_global = -1;
+  /** The layers must be painted again (size, look or language changed). */
+  private stale = true;
   stats: FrameStats = { drawn: 0, skipped: 0, things_drawn: 0, layers_rebuilt: 0 };
 
   /** Something outside params changed (size, look, language): draw everything again. */
   invalidate(): void {
     this.info.clear();
-    this.below = this.above = null;
+    this.stale = true;
     this.below_set = this.above_set = [];
     this.last_global = -1;
   }
@@ -72,9 +74,12 @@ export class Renderer {
     this.info.set(t, { deps, sig, quiet: i && i.sig === sig ? i.quiet + 1 : 0 });
     this.stats.things_drawn++;
   }
-  private paint_layer(things: Thing[], env: DrawEnv, w: number, h: number, background?: (g: CanvasRenderingContext2D, frame: Box) => void): Canvas {
-    const c = make_canvas(w, h);
+  /** Paint a layer into `reuse` when it has the size (cleared), else into a new canvas. */
+  private paint_layer(things: Thing[], env: DrawEnv, w: number, h: number, reuse: Canvas | null, background?: (g: CanvasRenderingContext2D, frame: Box) => void): Canvas {
+    const c = reuse && reuse.width === w && reuse.height === h ? reuse : make_canvas(w, h);
     const g = c.getContext('2d') as CanvasRenderingContext2D;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, w, h);
     g.setTransform(env.dpr, 0, 0, env.dpr, 0, 0);
     background?.(g, env.frame);
     for (const t of things) this.draw_one(t, { ...env, g });
@@ -101,14 +106,15 @@ export class Renderer {
     const middle = first < 0 ? [] : things.slice(first, last + 1);
     const same = (a: Thing[], b: Thing[]) => a.length === b.length && a.every((x, i) => x === b[i]);
     // (the background is baked into the bottom layer: an opaque copy replaces clearing and repainting it)
-    if (!this.below || !same(below, this.below_set) || below.some((t) => this.changed(t))) {
-      this.below = this.paint_layer(below, env, W, H, o.background);
+    if (!this.below || this.stale || !same(below, this.below_set) || below.some((t) => this.changed(t))) {
+      this.below = this.paint_layer(below, env, W, H, this.below, o.background);
       this.below_set = below;
     }
-    if (!this.above || !same(above, this.above_set) || above.some((t) => this.changed(t))) {
-      this.above = this.paint_layer(above, env, W, H);
+    if (!this.above || this.stale || !same(above, this.above_set) || above.some((t) => this.changed(t))) {
+      this.above = this.paint_layer(above, env, W, H, this.above);
       this.above_set = above;
     }
+    this.stale = false;
     const g = env.g;
     g.setTransform(1, 0, 0, 1, 0, 0);
     if (!o.background) g.clearRect(0, 0, W, H);

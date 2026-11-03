@@ -112,7 +112,7 @@ describe('figure', () => {
     const curve = P.add(new Path(() => Array.from({ length: 21 }, (_, i) => [i / 10, a.value * (i / 10) ** 2] as [number, number]), { id: 'curve', role: 'noun:plan' }));
     const dot = P.add(new Marker(() => [1, a.value], { id: 'dot', role: 'noun:plan' }));
     f.label('y = a x²', dot, { id: 'dot_word' });
-    f.layout(row([P, column([f.caption(t('一条抛物线', 'a parabola'), { id: 'cap' })])]));
+    f.layout(row([P, column([f.caption(t('a parabola', '一条抛物线'), { id: 'cap' })])]));
     f.script(reveal(curve, dot), set(a, 2));
     return { f, a };
   };

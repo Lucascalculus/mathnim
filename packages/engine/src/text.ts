@@ -8,8 +8,8 @@ import type { Ctx2D } from './geom';
 export type Lang = 'en' | 'zh';
 /** Text in both languages. */
 export interface L10n { en: string; zh: string }
-/** Two-language text: t('中文', 'English'). (Chinese first: it is written natively, not translated.) */
-export const t = (zh: string, en: string): L10n => ({ zh, en });
+/** Two-language text: t('English', '中文'), in the same order as the lessons' own t() (both are written natively). */
+export const t = (en: string, zh: string): L10n => ({ en, zh });
 export const tr = (s: string | L10n, lang: Lang): string => (typeof s === 'string' ? s : s[lang] ?? s.en);
 
 export type TextKind = 'label' | 'caption' | 'readout' | 'display';

@@ -58,9 +58,10 @@ export class FigurePlayer {
   private held: Handle | null = null;
   private focus_h = 0;
   private ro: ResizeObserver | null = null;
+  private watched = false;
   private sized = '';
   private dpr = 1;
-  private saved: { w: number; h: number; style: string; parent_class: string } | null = null;
+  private saved: { w: number; h: number; style: string } | null = null;
   private off: (() => void)[] = [];
 
   constructor(fig: Figure, canvas: Canvas, opts: FigurePlayerOptions = {}) {
@@ -76,13 +77,23 @@ export class FigurePlayer {
     // a figure with a GPU field asks for the device first (it draws with WebGL2 or the CPU if there is none)
     if (this.scene.registry.all().some((t) => t.kind === 'field')) await init_gpu();
     const c = this.canvas as HTMLCanvasElement;
-    this.saved = { w: c.width, h: c.height, style: c.style?.cssText ?? '', parent_class: c.parentElement?.className ?? '' };
+    this.saved = { w: c.width, h: c.height, style: c.style?.cssText ?? '' };
     this.fit();
-    if (typeof ResizeObserver !== 'undefined' && c.parentElement) {
+    // (the canvas itself is watched too: one built before it is in the page, as the tutor's are, is laid out again
+    // for its real size once it is put there)
+    if (typeof ResizeObserver !== 'undefined' && !this.opts.size && typeof (c as { addEventListener?: unknown }).addEventListener === 'function') {
       this.ro = new ResizeObserver(() => {
+        if (c.parentElement && !this.watched) {
+          this.watched = true;
+          this.ro?.observe(c.parentElement);
+        }
         if (this.fit()) this.draw(true);
       });
-      this.ro.observe(c.parentElement);
+      this.ro.observe(c);
+      if (c.parentElement) {
+        this.watched = true;
+        this.ro.observe(c.parentElement);
+      }
     }
     this.lay_out();
     this.loaded = true;
@@ -118,8 +129,9 @@ export class FigurePlayer {
     const size = this.scene.layout_for(w, h);
     this.stats.layout_ms += now() - t0;
     this.dpr = dpr;
-    c.width = Math.round(size.w * dpr);
-    c.height = Math.round(size.h * dpr);
+    // (even pixel sizes: a video encoder (H.264, 4:2:0) takes no odd ones, and export_video records this canvas)
+    c.width = 2 * Math.round((size.w * dpr) / 2);
+    c.height = 2 * Math.round((size.h * dpr) / 2);
     if (stage && !this.opts.size && c.style) {
       // phone: the canvas sets the stage's height; wide: it fills the stage
       c.style.height = h === undefined ? `${size.h}px` : '';

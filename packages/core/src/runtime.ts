@@ -258,7 +258,8 @@ export class LessonRuntime {
       await painted();
       if (my !== this.token) return;
       const player = await this.load_scene(spec);
-      if (my !== this.token) return;
+      // (the learner moved on while it was built: give its canvas back, or a figure's would keep listening to it)
+      if (my !== this.token) return void release_player(player);
       this.player = player;
     } else {
       // no figure for this step: clear the stage rather than leave the previous frame up

@@ -32,4 +32,17 @@ describe('engine figures', () => {
         }
         set_ft_lang(null);
       });
+  // (the two-language helper's order: an English figure says nothing in Chinese, a Chinese one does)
+  it('draws each language in its own words', () => {
+    for (const n of ['mpc_qp_plane', 'mpc_shift_tail', 'training_curves']) {
+      const v = get_visual(n)!;
+      for (const lang of ['en', 'zh'] as const) {
+        const fig = v.scene(check_params(v, { lang }).params);
+        if (!is_figure(fig)) continue;
+        lint_figure(fig);
+        const cjk = /[\u3000-\u9fff]/.test(fig.describe() + fig.asides.join(' '));
+        expect(cjk, `${n} ${lang}: ${fig.describe().slice(0, 200)}`).toBe(lang === 'zh');
+      }
+    }
+  });
 });
