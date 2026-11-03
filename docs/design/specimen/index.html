@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <title>收敛 · 审美样本</title>
 <style>
 :root{
@@ -159,6 +160,19 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 .cell h3 small{font-size:14px;font-weight:500;color:var(--graphite-t);margin-left:6px}
 .cell p{margin:0 0 6px;font-size:14.5px;line-height:1.65;color:var(--ink-2)}
 .cell p.c{font-size:13px;color:var(--graphite-t)}
+/* materials on our own WebGL2 core (gpu/): bigger stages, so the lab is two columns */
+#lab .cells{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cell.gpu{--rule:rgba(26,27,31,.10)}
+.cell.gpu.wide{grid-column:1 / -1}
+.cell.gpu .stage{position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:#f3f1ec;touch-action:none;
+  box-shadow:0 0 0 1px rgba(26,27,31,.06),0 1px 2px rgba(26,27,31,.04)}
+.cell.gpu .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cell.gpu .hud{position:absolute;left:12px;bottom:12px;padding:4px 9px;border-radius:7px;background:rgba(251,250,247,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;pointer-events:none;letter-spacing:.01em}
+.cell.gpu .hud:empty{display:none}
+.cell.gpu .hud b{font-weight:600;color:var(--ink)}
+.cell.gpu .stage.night .hud{color:rgba(255,255,255,.78);background:rgba(16,17,21,.6)}
+.cell.gpu .stage.night .hud b{color:#fff}
 .demo-dom{height:210px;display:flex;flex-direction:column;justify-content:center;gap:12px}
 .demo-verb{display:inline-grid;place-items:center;height:44px;padding:0 22px;border-radius:22px;background:var(--vermilion);color:#fff;font-size:15px;font-weight:600;width:max-content}
 .demo-text{font-size:15px;line-height:1.85;max-width:300px}
@@ -167,14 +181,6 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 .lab-row{display:flex;align-items:center;gap:12px;margin-top:8px;min-height:40px}
 .lab-row .r{font-size:13px;color:var(--ink-2);line-height:1.5}
 .lab-row .lab-btn{flex:none;white-space:nowrap}
-.deriv{display:flex;flex-direction:column;gap:6px;height:220px;justify-content:center}
-.deriv button{display:flex;align-items:center;gap:10px;text-align:left;font-family:var(--sans);font-variant-numeric:tabular-nums;font-size:16px;padding:6px 10px;border-radius:8px;min-height:40px;transition:background .2s}
-.deriv button:hover{background:rgba(26,27,31,.04)}
-.deriv button i{width:12px;height:12px;border-radius:50%;border:1.6px solid var(--graphite);flex:none;transition:background .4s,border-color .4s}
-.deriv button.bad i{border-color:var(--ochre);background:var(--ochre)}
-.deriv button.ok i{border-color:var(--cobalt)}
-.deriv .fix{font-family:var(--serif);font-size:15px;color:var(--ink-2);min-height:26px}
-.deriv u{text-decoration-color:var(--ochre);text-decoration-thickness:2px;text-underline-offset:4px}
 .teach{display:flex;flex-direction:column;gap:10px;height:auto;min-height:220px}
 .teach textarea{font:inherit;font-size:15px;line-height:1.7;border:0;border-radius:10px;padding:10px 12px;min-height:84px;resize:none;background:#fff;box-shadow:0 0 0 .5px rgba(26,27,31,.18),inset 0 1px 2px rgba(26,27,31,.06);color:var(--ink)}
 .ideas{display:flex;gap:8px;flex-wrap:wrap}
@@ -236,7 +242,7 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
   .course.wide{grid-column:auto}
   #meta{bottom:84px;left:6px;flex-wrap:wrap;max-width:230px}
   .sheet{padding:20px 16px 100px}
-  .cells{grid-template-columns:1fr}
+  .cells,#lab .cells{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){ *{transition-duration:.15s!important} }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.45s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
@@ -330,8 +336,8 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 
 <main id="motion" class="view sheet" hidden>
   <a class="kicker" data-home>Mathnim · 动效</a>
-  <h1>二十种材质与动画</h1>
-  <p class="lede">每一种只做一件事，在任何一门课里都能用；后十种专门帮着把数学“看出来”。每一种先写下验收标准，再做；下面的结果是页面自己量出来的：时长、我们的代码每帧花的时间、结束后是否静止，以及各自的精度。</p>
+  <h1>十七种动画</h1>
+  <p class="lede">每一种只做一件事，在任何一门课里都能用；前七种用在界面上，后十种专门帮着把数学“看出来”。每一种先写下验收标准，再做；下面的结果是页面自己量出来的：时长、我们的代码每帧花的时间、结束后是否静止，以及各自的精度。</p>
   <table class="fxtab" id="fx-table"><thead><tr><th style="width:24%">名字 · 用途</th><th>验收标准</th><th style="width:30%">实测</th></tr></thead><tbody></tbody></table>
   <section class="group"><h2>界面 · 每一页都用得上</h2><div class="cells" id="cells-motion"></div></section>
   <section class="group"><h2>数学 · 帮着把数学看出来</h2><div class="cells" id="cells-math"></div></section>
@@ -1341,6 +1347,43 @@ function build_materials() {
 // =====================================================================
 // THE LAB: candidate materials and learning interactions, each to be tested before it joins
 // =====================================================================
+// materials on our own WebGL2 core (from the material lab, kept in gpu/): each module exports meta and
+// make({stage, canvas, hud, lang}); browsers cap live WebGL contexts, so each is made when first seen
+const GPU = [];
+const gpu_io = new IntersectionObserver((es) => es.forEach((e) => {
+  const g = GPU.find((x) => x.stage === e.target); if (!g) return;
+  if (e.isIntersecting && !g.inst) {
+    try { g.inst = g.mod.make({ stage: g.stage, canvas: g.canvas, hud: g.hud, lang: 'zh' }); }
+    catch (err) { console.error('gpu ' + g.path, err); g.hud.textContent = String(err.message || err); }
+  }
+  g.inst?.visible?.(e.isIntersecting);
+}), { rootMargin: '200px' });
+function gpu_cell(group, path, o = {}) {
+  const el = document.createElement('div'); el.className = 'cell gpu' + (o.wide ? ' wide' : '');
+  el.innerHTML = '<div class="stage"><canvas></canvas><div class="hud"></div></div><h3></h3><p></p><p class="c"></p>';
+  $('#cells-' + group).append(el);
+  const g = { path, el, stage: el.querySelector('.stage'), canvas: el.querySelector('canvas'), hud: el.querySelector('.hud'), inst: null };
+  GPU.push(g);
+  g.ready = import(`./gpu/m/${path}.js`).then((mod) => {
+    const m = (g.mod = mod).meta;
+    g.stage.classList.toggle('night', !!m.night); el.classList.toggle('wide', !!(m.wide || o.wide));
+    el.querySelector('h3').innerHTML = `${m.name.zh}<small>${m.name.en}</small>`;
+    el.querySelector('p').textContent = m.means.zh;
+    el.querySelector('p.c').textContent = '验收：' + m.test.zh;
+    gpu_io.observe(g.stage);
+  }).catch((err) => { console.error('gpu ' + path, err); el.querySelector('h3').textContent = path; });
+  return g;
+}
+// each GPU material's own test; returns [{path, pass, value}]
+window.__gpu_accept = async () => {
+  const out = [];
+  for (const g of GPU) {
+    await g.ready; if (!g.mod) { out.push({ path: g.path, pass: false, value: 'not loaded' }); continue; }
+    if (!g.inst) g.inst = g.mod.make({ stage: g.stage, canvas: g.canvas, hud: g.hud, lang: 'zh' });
+    try { out.push({ path: g.path, ...(await g.inst.accept()) }); } catch (err) { out.push({ path: g.path, pass: false, value: String(err.message || err) }); }
+  }
+  return out;
+};
 function lab_btn(m, text, fn) { const row = document.createElement('div'); row.className = 'lab-row'; row.innerHTML = `<button class="lab-btn">${text}</button><span class="r"></span>`; m.el.insertBefore(row, m.el.querySelector('h3')); row.querySelector('button').addEventListener('click', fn); return row; }
 function valley_pts() { const pts = []; for (const x of [VAL.X0, VAL.X1]) for (const y of [VAL.Y0, VAL.Y1]) pts.push(W3([x, y]), [x, 0, -y]); return pts; }
 function build_lab() {
@@ -1411,17 +1454,6 @@ function build_lab() {
     const up = () => { if (!on) return; on = false; const from = m.st.x; tween(900, (k) => { m.st.x = lerp(from, 8.0 - (8.0 - from) * Math.cos(k * 7) * Math.exp(-3.4 * k), 1) ; redraw(m.paint); }, { ease: (t) => t }); };
     m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
   }, { x: 3.2 });
-  cell('mat', 'sand', '沙', '可能性 = 多少', '每一粒沙随机往左或往右落。落下的沙堆起来，堆得高的地方，就是可能性大的地方。点一下，再倒一次。', '概率与统计 · 采样 · 不确定性', 240, (ctx, w, h, st) => {
-    const bins = 13, bw = (w - 40) / bins, base = h - 30;
-    stroke_ink(ctx, seg(ctx, 20, base, w - 20, base), PIG.ink, 0.8, 0.5);
-    for (let r = 0; r < 8; r++) for (let j = 0; j <= r; j++) { const x = w / 2 + (j - r / 2) * bw, y = 24 + r * 14; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fillStyle = css(PIG.graphite, 0.6); ctx.fill(); }
-    const counts = new Array(bins).fill(0), n = Math.floor(st.n);
-    for (let i = 0; i < n; i++) { const b = st.path[i]; const k = counts[b]++; ctx.fillStyle = css(mix(PLASTER, PIG.ochre, 0.35)); ctx.fillRect(20 + b * bw + 2 + (k % 3) * ((bw - 4) / 3), base - 3 - Math.floor(k / 3) * 3.2, (bw - 6) / 3, 2.6); }
-    label(ctx, n + ' 粒', w - 20, h - 10, PIG.graphite_t, 12, 500, 'right');
-  }, (m) => {
-    const pour = () => { m.st.path = Array.from({ length: 210 }, () => { let b = 2; for (let r = 0; r < 8; r++) b += Math.random() < 0.5 ? 0 : 1; return b + (Math.random() < 0.5 ? 0 : 1) + 0; }); tween(2400, (k) => { m.st.n = k * 210; redraw(m.paint); }, { ease: (t) => t }); };
-    m.canvas.style.cursor = 'pointer'; m.canvas.addEventListener('click', pour); pour();
-  }, { n: 0, path: [] });
   cell('mat', 'light', '光', '影子 = 投影', '光从正上方照下来，杆子在卡片上的影子，就是它在这张卡片上的投影。拖杆子的顶端。', '线性代数 · PCA · 最小二乘', 240, (ctx, w, h, st) => {
     const cam = world(), card = box(-2, 0, -1.5, 2.4, 0.04, 1.5), tail = [-0.8, 0.04, 0.5], tip = [st.x, 1.2, st.z];
     fit(cam, card.pts.concat([[-1.8, 1.2, -1.3], [2.2, 1.2, 1.3]]), 16, 14, w - 32, h - 40);
@@ -1440,237 +1472,10 @@ function build_lab() {
     const up = () => { on = false; m.st.drag = false; redraw(m.paint); };
     m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
   }, { x: 0.9, z: -0.4 });
+  for (const p of ['d/nib', 'd/fold', 'd/rope', 'd/sand', 'd/layers']) gpu_cell('mat', p);
 
-  // ---------- harder, more beautiful materials: each still means one exact thing ----------
-  const offscreen = (W, H) => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
-  cell('rare', 'caustic', '焦散', '亮 = 被挤在一起', '光穿过一块玻璃，被弯到一起的地方就亮。亮了多少倍，正是这张“光的映射”把面积压小了多少倍：亮度 = 1 / |det J|。拖动玻璃。', '行列式 · 变量替换 · 概率密度的变换', 260, (ctx, w, h, st) => {
-    const X0 = 14, Y0 = 12, TW = w - 28, TH = h - 40, S = 2.4, W = Math.round(TW / S), H = Math.round(TH / S);
-    const acc = st.acc && st.acc.length === W * H ? st.acc.fill(0) : (st.acc = new Float32Array(W * H));
-    const lx = st.lx, ly = st.ly, A = 0.0011, sg = 0.15, K = 1.0;
-    // light falls straight down through a smooth glass lens on a gently rippled sheet, onto the floor
-    const RX = W * 3, RY = H * 3; let s = 11; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-    for (let j = 0; j < RY; j++) for (let i = 0; i < RX; i++) {
-      const x = (i + rnd()) / RX, y = (j + rnd()) / RY, dx = x - lx, dy = (y - ly) * TH / TW, e = Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg));
-      let gx = -A * dx / (sg * sg) * e * 60, gy = -A * dy / (sg * sg) * e * 60 * TW / TH;
-      gx += 0.0016 * Math.cos(x * 19 + y * 6) + 0.001 * Math.cos(x * 8 - y * 15); gy += 0.0016 * Math.cos(y * 17 - x * 5) + 0.001 * Math.sin(x * 11 + y * 9);
-      const fx = x + K * gx * 3, fy = y + K * gy * 3, u = Math.floor(fx * W), v = Math.floor(fy * H);
-      if (u >= 0 && u < W && v >= 0 && v < H) acc[v * W + u] += 1;
-    }
-    const img = new ImageData(W, H), mean = (RX * RY) / (W * H), d = img.data, bl_ = new Float32Array(W * H);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let sum = 0, n = 0; for (let v = -1; v <= 1; v++) for (let u = -1; u <= 1; u++) { const xx = x + u, yy = y + v; if (xx >= 0 && xx < W && yy >= 0 && yy < H) { const wgt = (u || v) ? (u && v ? 1 : 2) : 4; sum += acc[yy * W + xx] * wgt; n += wgt; } } bl_[y * W + x] = sum / n; }
-    for (let k = 0; k < W * H; k++) {
-      const b = bl_[k] / mean, lo = Math.min(b, 1), hi = Math.max(0, b - 1);
-      const r = 200 * (0.7 + 0.3 * lo) + 95 * hi, g = 218 * (0.7 + 0.3 * lo) + 80 * hi, bl = 222 * (0.7 + 0.3 * lo) + 60 * hi;
-      d[k * 4] = Math.min(255, r); d[k * 4 + 1] = Math.min(255, g); d[k * 4 + 2] = Math.min(255, bl); d[k * 4 + 3] = 255;
-    }
-    const oc = st.oc && st.oc.width === W ? st.oc : (st.oc = offscreen(W, H)); oc.getContext('2d').putImageData(img, 0, 0);
-    soft_fill(ctx, () => { ctx.beginPath(); ctx.roundRect(X0, Y0, TW, TH, 10); }, 0.14, 8, 0, 3);
-    ctx.save(); ctx.beginPath(); ctx.roundRect(X0, Y0, TW, TH, 10); ctx.clip(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(oc, X0, Y0, TW, TH);
-    // the light map squeezes a grid: small cells, bright light
-    if (st.grid) { ctx.lineWidth = 0.6; ctx.strokeStyle = css(PIG.ink, 0.28); for (let gi = 0; gi <= 12; gi++) for (const dir of [0, 1]) { ctx.beginPath(); for (let t = 0; t <= 40; t++) { const x = dir ? gi / 12 : t / 40, y = dir ? t / 40 : gi / 12, dx = x - lx, dy = (y - ly) * TH / TW, e = Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg)); const fx = x + 3 * (-A * dx / (sg * sg) * e * 60), fy = y + 3 * (-A * dy / (sg * sg) * e * 60 * TW / TH); const px = X0 + fx * TW, py = Y0 + fy * TH; t ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); } }
-    ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.roundRect(X0 + 0.5, Y0 + 0.5, TW - 1, TH - 1, 10); ctx.lineWidth = 1; ctx.strokeStyle = css(PIG.ink, 0.18); ctx.stroke(); ctx.restore();
-    const bx = X0 + lx * TW, by = Y0 + ly * TH;
-    ctx.save(); ctx.beginPath(); ctx.arc(bx, by, sg * TW * 0.9, 0, 7); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.stroke(); ctx.restore();
-    glass_bead(ctx, bx, by, 11, st.drag ? 1 : 0, 0.9);
-    label(ctx, st.grid ? '格子被挤小的地方，光就亮' : '点一下，看光怎么挤格子', X0, h - 10, PIG.graphite_t, 12, 500);
-    st.box = [X0, Y0, TW, TH];
-  }, (m) => {
-    let on = false, moved = false; m.canvas.style.cursor = 'grab';
-    m.canvas.addEventListener('pointerdown', (e) => { on = true; moved = false; m.st.drag = true; try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} });
-    m.canvas.addEventListener('pointermove', (e) => { if (!on) return; moved = true; const p = pos_in(m.canvas, e), [X0, Y0, TW, TH] = m.st.box; m.st.lx = clamp((p[0] - X0) / TW, 0.08, 0.92); m.st.ly = clamp((p[1] - Y0) / TH, 0.1, 0.9); redraw(m.paint); });
-    const up = () => { if (!on) return; on = false; m.st.drag = false; if (!moved) m.st.grid = !m.st.grid; redraw(m.paint); };
-    m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-  }, { lx: 0.42, ly: 0.48, grid: false });
-  cell('rare', 'metal', '液态金属', '靠近就融成一团', '每一团是一个钟形（高斯）。把它们加起来，就是一个混合分布：分开时是几个峰，靠近时融成一团。拖动任意一团。', '概率密度 · 聚类 · 核密度估计', 260, (ctx, w, h, st) => {
-    const S = 2, W = Math.round(w / S), H = Math.round(h / S), img = new ImageData(W, H), d = img.data, sg = 0.075, T = 0.55;
-    const B = st.blobs, asp = h / w;
-    // its shadow on the paper first
-    for (const b of B) soft_fill(ctx, () => { ctx.beginPath(); ctx.ellipse(b.x * w + 6, b.y * h + 9, sg * w * 1.25 * Math.sqrt(b.m), sg * w * 1.0 * Math.sqrt(b.m), 0, 0, 7); }, 0.16, 12);
-    const L = nrm([-0.45, -0.55, 0.7]);
-    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
-      const x = (i + 0.5) / W, y = (j + 0.5) / H * asp;
-      let f = 0, fx = 0, fy = 0;
-      for (const b of B) { const dx = x - b.x, dy = y - b.y * asp, e = b.m * Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg)); f += e; fx += -dx / (sg * sg) * e; fy += -dy / (sg * sg) * e; }
-      const a = clamp((f - T + 0.03) / 0.06, 0, 1); const k = (j * W + i) * 4;
-      if (a <= 0) { d[k + 3] = 0; continue; }
-      // a chrome surface: normal from the field, the reflection looks up into a soft studio
-      const s = 0.055, n = nrm([-fx * s, -fy * s, 1]), r = [2 * n[2] * n[0], 2 * n[2] * n[1], 2 * n[2] * n[2] - 1];
-      const horizon = Math.exp(-((r[2] - 0.3) ** 2) / 0.012), sky = clamp(r[2], 0, 1), win = Math.pow(Math.max(0, v_dot(r, L)), 30);
-      let c = 0.82 * sky + 0.22 - 0.5 * horizon - 0.18 * Math.max(0, r[1]);
-      c = clamp(c + 1.1 * win, 0.04, 1.05);
-      d[k] = Math.min(255, 255 * c * 0.97); d[k + 1] = Math.min(255, 255 * c * 0.98); d[k + 2] = Math.min(255, 255 * c * 1.02); d[k + 3] = 255 * a;
-    }
-    const oc = st.oc && st.oc.width === W ? st.oc : (st.oc = offscreen(W, H)); oc.getContext('2d').putImageData(img, 0, 0);
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(oc, 0, 0, w, h); ctx.restore();
-    // how many peaks? count the separate pieces along the line through all blobs (a simple, honest readout)
-    let peaks = 0; for (const b of B) { let f = 0; for (const c of B) { const dx = b.x - c.x, dy = (b.y - c.y) * asp; f += c.m * Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg)); } let higher = false; for (let t = 0; t < 12 && !higher; t++) { const an = t / 12 * Math.PI * 2, px = b.x + Math.cos(an) * 0.01, py = b.y * asp + Math.sin(an) * 0.01; let g = 0; for (const c of B) { const dx = px - c.x, dy = py - c.y * asp; g += c.m * Math.exp(-(dx * dx + dy * dy) / (2 * sg * sg)); } if (g > f + 1e-6) higher = true; } if (!higher) peaks++; }
-    label(ctx, peaks + ' 个峰', 14, h - 12, PIG.graphite_t, 12, 600);
-  }, (m) => {
-    let idx = -1; m.canvas.style.cursor = 'grab';
-    m.canvas.addEventListener('pointerdown', (e) => { const p = pos_in(m.canvas, e); let bd = Infinity; m.st.blobs.forEach((b, i) => { const d2 = (b.x * m.w - p[0]) ** 2 + (b.y * m.h - p[1]) ** 2; if (d2 < bd) { bd = d2; idx = i; } }); try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} });
-    m.canvas.addEventListener('pointermove', (e) => { if (idx < 0) return; const p = pos_in(m.canvas, e); m.st.blobs[idx].x = clamp(p[0] / m.w, 0.08, 0.92); m.st.blobs[idx].y = clamp(p[1] / m.h, 0.12, 0.85); redraw(m.paint); });
-    const up = () => { idx = -1; }; m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-  }, { blobs: [{ x: 0.3, y: 0.42, m: 1 }, { x: 0.47, y: 0.55, m: 0.8 }, { x: 0.74, y: 0.45, m: 1.1 }] });
-  // the colour of a soap film of thickness t (nm): light reflected from its two faces interferes
-  const film = (t) => { const n2 = 2 * 1.33 * t; const I = (lam) => Math.sin(Math.PI * n2 / lam + Math.PI / 2) ** 2; return [I(650), I(540), I(450)]; };
-  cell('rare', 'soap', '肥皂膜', '永远用最小的面积', '两个圈之间的肥皂膜，总是选面积最小的形状。把上面的圈往上拉，腰会越收越细；拉过“间距 ≈ 1.33 × 半径”，最小的形状不存在了，膜就破了。点一下重新蘸。', '变分法 · 最优化 · 极小曲面', 300, (ctx, w, h, st) => {
-    const cam = camera(-0.35, 0.36), R = 1, y0 = 0.25, d = st.d, y1 = y0 + d, ym = (y0 + y1) / 2;
-    // solve R = a·cosh(d / 2a) for the wider neck (the stable film); no solution: it cannot exist
-    let a = null; { const f = (x) => x * Math.cosh(d / (2 * x)) - R; for (let x = R; x > 0.05; x -= 0.002) if (f(x) < 0) { let l = x, u = x + 0.002; for (let k = 0; k < 40; k++) { const mid = (l + u) / 2; (f(mid) < 0 ? (l = mid) : (u = mid)); } a = (l + u) / 2; break; } }
-    // a is the neck radius only while the larger root exists: check the minimum of f
-    const ring = (y) => { const pts = []; for (let i = 0; i <= 64; i++) { const t = i / 64 * Math.PI * 2; pts.push(cam.p([R * Math.cos(t), y, R * Math.sin(t)])); } return pts; };
-    fit(cam, [[-R, 0, -R], [R, 1.9, R], [R, 0, R], [-R, 1.9, -R]], 20, 12, w - 40, h - 50);
-    soft_fill(ctx, () => { const p = cam.p([0, 0, 0]); ctx.beginPath(); ctx.ellipse(p[0] + 6, p[1] + 4, R * cam.s * 0.9, R * cam.s * 0.9 * cam.se, 0, 0, 7); }, 0.08, 14);
-    const popped = st.popped || a === null;
-    if (a !== null && !st.popped) st.a = a;
-    const quads = [];
-    if (!popped) {
-      const nu = 44, nv = 22;
-      for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) {
-        const ya = lerp(y0, y1, j / nv), yb = lerp(y0, y1, (j + 1) / nv), ra = a * Math.cosh((ya - ym) / a), rb = a * Math.cosh((yb - ym) / a);
-        const ta = i / nu * Math.PI * 2, tb = (i + 1) / nu * Math.PI * 2;
-        const P = [[ra * Math.cos(ta), ya, ra * Math.sin(ta)], [ra * Math.cos(tb), ya, ra * Math.sin(tb)], [rb * Math.cos(tb), yb, rb * Math.sin(tb)], [rb * Math.cos(ta), yb, rb * Math.sin(ta)]];
-        const n = newell(P), v = (j + 0.5) / nv, u = (i + 0.5) / nu;
-        const thick = 210 + 520 * Math.pow(v, 0.8) + 70 * Math.sin(u * 14 + v * 9 + st.ph) + 40 * Math.sin(u * 31 - v * 17);
-        quads.push({ pp: P.map(cam.p), facing: Math.abs(v_dot(n, cam.view)), col: film(thick) });
-      }
-    } else {
-      // the film that is left: two flat discs on the rings
-      for (const y of [y0, y1]) for (let i = 0; i < 44; i++) for (let k = 0; k < 6; k++) {
-        const ta = i / 44 * Math.PI * 2, tb = (i + 1) / 44 * Math.PI * 2, r0 = k / 6 * R, r1 = (k + 1) / 6 * R;
-        const P = [[r0 * Math.cos(ta), y, r0 * Math.sin(ta)], [r1 * Math.cos(ta), y, r1 * Math.sin(ta)], [r1 * Math.cos(tb), y, r1 * Math.sin(tb)], [r0 * Math.cos(tb), y, r0 * Math.sin(tb)]];
-        quads.push({ pp: P.map(cam.p), facing: 0.6, col: film(300 + 260 * (k / 6) + 50 * Math.sin(i * 0.6 + y * 9)) });
-      }
-    }
-    for (const q of quads) q.d = q.pp.reduce((s, p) => s + p[2], 0) / 4;
-    quads.sort((p, q) => p.d - q.d);
-    const back = ring(y0).concat(ring(y1));
-    for (const q of quads) {
-      const c = mix([1, 1, 1], q.col, 0.75), al = (0.10 + 0.42 * Math.pow(1 - q.facing, 1.6)) * (st.fade ?? 1);
-      ctx.fillStyle = css(c, al); poly(ctx, q.pp, true)(); ctx.fill();
-    }
-    for (const y of [y0, y1]) stroke_ink(ctx, poly(ctx, ring(y)), [0.35, 0.36, 0.38], 1.8, 0.95);
-    for (const dr of st.drops || []) { ctx.beginPath(); ctx.arc(dr.x, dr.y, 1.8, 0, 7); ctx.fillStyle = css(PIG.water, 0.7 * dr.a); ctx.fill(); }
-    const tp = cam.p([0, y1, R]); glass_bead(ctx, tp[0], tp[1], 11, st.drag ? 1 : 0, 1);
-    label(ctx, popped ? '膜破了：只剩两片平的' : `间距 / 半径 = ${(d / R).toFixed(2)} · 腰的半径 ${st.a.toFixed(2)}`, 18, h - 14, popped ? PIG.ochre : PIG.ink, 13, 600);
-    st.cam = cam;
-  }, (m) => {
-    let on = false, moved = false; m.canvas.style.cursor = 'ns-resize';
-    m.canvas.addEventListener('pointerdown', (e) => { on = true; moved = false; m.st.drag = true; m.st.y_start = pos_in(m.canvas, e)[1]; m.st.d_start = m.st.d; try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} });
-    m.canvas.addEventListener('pointermove', (e) => {
-      if (!on || !m.st.cam) return; moved = true;
-      const dy = (m.st.y_start - pos_in(m.canvas, e)[1]) / (m.st.cam.s * m.st.cam.ce);
-      m.st.d = clamp(m.st.d_start + dy, 0.25, 1.62); m.st.ph += 0.03;
-      if (!m.st.popped && m.st.d > 1.325) {
-        // past the limit, no minimal surface exists between the rings: it breaks
-        m.st.popped = true; const cam = m.st.cam, mid = cam.p([0, 0.25 + m.st.d / 2, 0]);
-        m.st.drops = Array.from({ length: 9 }, (_, i) => ({ x: mid[0] + (i - 4) * 9, y: mid[1], vy: 0, a: 1 }));
-        tween(900, (k) => { for (const dr of m.st.drops) { dr.vy += 0.5; dr.y += dr.vy; dr.a = 1 - k; } redraw(m.paint); }, { ease: (t) => t });
-      }
-      redraw(m.paint);
-    });
-    const up = () => { if (!on) return; on = false; m.st.drag = false; if (!moved && m.st.popped) { m.st.popped = false; m.st.d = Math.min(m.st.d, 0.9); m.st.drops = []; } redraw(m.paint); };
-    m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-  }, { d: 0.8, ph: 0, popped: false, a: 0.8, drops: [] });
-  cell('rare', 'filings', '铁屑', '每一处都有方向', '撒在纸上的铁屑，每一粒都顺着它那里的方向躺下：一整张纸，就是一个向量场。梯度、电场、水流，都是这样的场。拖动两块磁铁。', '向量场 · 梯度 · 微分方程', 260, (ctx, w, h, st) => {
-    if (!st.pts || st.w !== w) { let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647); st.pts = Array.from({ length: Math.round(w * h / 125) }, () => [rnd() * w, rnd() * (h - 30)]); st.w = w; }
-    const P = st.poles.map((p) => [p.x * w, p.y * (h - 30)]);
-    for (const [x, y] of st.pts) {
-      let bx = 0, by = 0, near = false;
-      P.forEach(([px, py], i) => { const dx = x - px, dy = y - py, r2 = dx * dx + dy * dy; if (r2 < 220) near = true; const q = i ? -1 : 1; bx += q * dx / r2; by += q * dy / r2; });
-      if (near) continue;
-      const m = Math.hypot(bx, by), ux = bx / m, uy = by / m, L = 3.3, a = clamp(m * 900, 0.22, 0.85);
-      ctx.beginPath(); ctx.moveTo(x - ux * L, y - uy * L); ctx.lineTo(x + ux * L, y + uy * L); ctx.lineWidth = 1.25; ctx.strokeStyle = css([0.22, 0.23, 0.25], a); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x - ux * L + 0.4, y - uy * L - 0.5); ctx.lineTo(x + ux * L + 0.4, y + uy * L - 0.5); ctx.lineWidth = 0.5; ctx.strokeStyle = `rgba(255,255,255,${0.5 * a})`; ctx.stroke();
-    }
-    P.forEach(([x, y], i) => { glass_bead(ctx, x, y, 13, st.drag === i ? 1 : 0, 1); label(ctx, i ? 'S' : 'N', x, y + 1, PIG.ink, 12, 700, 'center', 'middle'); });
-    label(ctx, '纸上每一处都有一个方向', 14, h - 10, PIG.graphite_t, 12, 500);
-  }, (m) => {
-    let idx = -1; m.canvas.style.cursor = 'grab';
-    m.canvas.addEventListener('pointerdown', (e) => { const p = pos_in(m.canvas, e); let bd = Infinity; m.st.poles.forEach((q, i) => { const d2 = (q.x * m.w - p[0]) ** 2 + (q.y * (m.h - 30) - p[1]) ** 2; if (d2 < bd) { bd = d2; idx = i; } }); m.st.drag = idx; try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} redraw(m.paint); });
-    m.canvas.addEventListener('pointermove', (e) => { if (idx < 0) return; const p = pos_in(m.canvas, e); m.st.poles[idx] = { x: clamp(p[0] / m.w, 0.06, 0.94), y: clamp(p[1] / (m.h - 30), 0.08, 0.92) }; redraw(m.paint); });
-    const up = () => { idx = -1; m.st.drag = -1; redraw(m.paint); }; m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-  }, { poles: [{ x: 0.3, y: 0.5 }, { x: 0.7, y: 0.5 }], drag: -1 });
-
-  cell('rare', 'trace', '光粒', '收拢成轮廓', '一阵发光的粒子落进夜里：靠近看不见的东西时被吸过去，顺着边滑行，最后停在轮廓上。每颗粒子都沿着离轮廓最近的方向收拢，轮廓就是它们收敛到的地方。点一下，再来一阵。', '等值线 · 距离场 · 收敛', 300, (ctx, w, h, st) => {
-    const X0 = 12, Y0 = 10, W = w - 24, H = h - 46;
-    if (!st.trail || st.trail.width !== Math.round(W * DPR)) { st.trail = offscreen(Math.round(W * DPR), Math.round(H * DPR)); st.settled = []; st.box = null; }
-    st.box = { X0, Y0, W, H };
-    soft_fill(ctx, () => { ctx.beginPath(); ctx.roundRect(X0, Y0, W, H, 12); }, 0.25, 14, 0, 6);
-    ctx.save(); ctx.beginPath(); ctx.roundRect(X0, Y0, W, H, 12); ctx.clip();
-    const bg = ctx.createRadialGradient(X0 + W * 0.5, Y0 + H * 0.35, 10, X0 + W * 0.5, Y0 + H * 0.5, W * 0.75); bg.addColorStop(0, '#141c33'); bg.addColorStop(1, '#070a14'); ctx.fillStyle = bg; ctx.fillRect(X0, Y0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.drawImage(st.trail, X0, Y0, W, H);
-    // the outline so far: settled points glow; the newest flash brighter
-    const now = performance.now();
-    for (const p of st.settled) {
-      const age = (now - p.t) / 1000, flash = Math.max(0, 1 - age / 0.6), c = p.c;
-      const r = 1.1 + 2.6 * flash, a = 0.55 + 0.45 * flash;
-      const g = ctx.createRadialGradient(X0 + p.x, Y0 + p.y, 0, X0 + p.x, Y0 + p.y, r * 3.2);
-      g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); g.addColorStop(0.35, `rgba(${c[0]},${c[1]},${c[2]},${0.3 * a})`); g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X0 + p.x, Y0 + p.y, r * 3.2, 0, 7); ctx.fill();
-    }
-    for (const p of st.live) { ctx.beginPath(); ctx.arc(X0 + p.x, Y0 + p.y, p.cap ? 1.8 : 1.2, 0, 7); ctx.fillStyle = p.cap ? `rgba(${p.c[0]},${p.c[1]},${p.c[2]},0.95)` : 'rgba(220,232,255,0.9)'; ctx.fill(); }
-    ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.roundRect(X0 + 0.5, Y0 + 0.5, W - 1, H - 1, 12); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.stroke(); ctx.restore();
-    const total = st.outline ? st.outline.length : 1;
-    label(ctx, `轮廓已勾出 ${Math.round(100 * Math.min(1, st.settled.length / (total * 0.55)))}%`, X0 + 2, h - 14, PIG.ink, 13, 560);
-  }, (m) => {
-    const st = m.st;
-    // the hidden things: the cart, the ball and the wall; their outlines, sampled densely
-    const outline = () => {
-      const { W, H } = st.box, gy = H - 18, pts = [];
-      const rect = (x0, y0, x1, y1, c) => { const L = 2 * (x1 - x0 + y1 - y0), n = Math.round(L / 2.2); for (let i = 0; i < n; i++) { let s = i / n * L, x, y; if (s < x1 - x0) { x = x0 + s; y = y0; } else if ((s -= x1 - x0) < y1 - y0) { x = x1; y = y0 + s; } else if ((s -= y1 - y0) < x1 - x0) { x = x1 - s; y = y1; } else { s -= x1 - x0; x = x0; y = y1 - s; } pts.push({ x, y, c, k: pts.length }); } };
-      const circ = (cx, cy, r, c, a0 = 0, a1 = Math.PI * 2) => { const n = Math.round(r * (a1 - a0) / 2.2); for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), c }); } };
-      const blue = [110, 160, 255], amber = [255, 178, 90], white = [200, 214, 240];
-      rect(W * 0.14, gy - H * 0.27, W * 0.38, gy - H * 0.07, blue);
-      circ(W * 0.19, gy - H * 0.04, H * 0.04, blue); circ(W * 0.33, gy - H * 0.04, H * 0.04, blue);
-      circ(W * 0.58, gy - H * 0.13, H * 0.13, [140, 185, 255]);
-      rect(W * 0.8, gy - H * 0.66, W * 0.85, gy, amber);
-      for (let x = W * 0.04; x < W * 0.96; x += 3) pts.push({ x, y: gy + 1, c: white, ground: true });
-      return pts;
-    };
-    const grid = new Map(), key = (x, y) => (Math.floor(x / 24) << 16) | (Math.floor(y / 24) & 0xffff);
-    const nearest = (x, y) => { let best = null, bd = 1e9; for (let gx = -1; gx <= 1; gx++) for (let gy = -1; gy <= 1; gy++) for (const p of grid.get(key(x + gx * 24, y + gy * 24)) || []) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } } return [best, Math.sqrt(bd)]; };
-    const burst = (secs = 4.5) => {
-      if (!st.box) return;
-      st.outline = outline(); grid.clear(); for (const p of st.outline) { const k = key(p.x, p.y); (grid.get(k) || grid.set(k, []).get(k)).push(p); }
-      st.until = performance.now() + secs * 1000; if (st.running) return; st.running = true;
-      let last = performance.now();
-      const tg = st.trail.getContext('2d');
-      const step = () => {
-        const now = performance.now(), dt = Math.min(0.033, (now - last) / 1000); last = now;
-        const { W, H } = st.box;
-        if (now < st.until) for (let i = 0; i < 420 * dt; i++) st.live.push({ x: Math.random() * W, y: -10 - Math.random() * 40, vx: (Math.random() - 0.5) * 20, vy: 260 + Math.random() * 220, cap: null });
-        // trails fade a little every frame: motion, not clutter
-        tg.globalCompositeOperation = 'destination-out'; tg.fillStyle = 'rgba(0,0,0,0.16)'; tg.fillRect(0, 0, st.trail.width, st.trail.height); tg.globalCompositeOperation = 'lighter'; tg.lineCap = 'round';
-        for (const p of st.live) {
-          const px = p.x, py = p.y;
-          if (!p.cap) {
-            p.vy += 120 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-            const [q, d] = nearest(p.x, p.y);
-            // close to an outline: caught, and pulled along the distance field onto it
-            if (q && d < 26 && !(q.ground && Math.random() < 0.85)) { p.cap = q; p.c = q.c; p.slide = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 5); p.left = 0.35 + Math.random() * 0.5; p.idx = st.outline.indexOf(q); }
-          } else {
-            p.left -= dt;
-            if (p.left > 0) { p.idx = (p.idx + Math.round(p.slide) + st.outline.length) % st.outline.length; }
-            const q = st.outline[p.idx]; p.x += (q.x - p.x) * Math.min(1, dt * 14); p.y += (q.y - p.y) * Math.min(1, dt * 14);
-            if (p.left <= 0 && Math.hypot(q.x - p.x, q.y - p.y) < 0.8) { if (!q.lit) { q.lit = true; st.settled.push({ x: q.x, y: q.y, c: q.c, t: now }); } p.dead = true; }
-          }
-          const c = p.cap ? p.c : [200, 220, 255];
-          tg.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${p.cap ? 0.75 : 0.45})`; tg.lineWidth = (p.cap ? 1.6 : 1) * DPR;
-          tg.beginPath(); tg.moveTo(px * DPR, py * DPR); tg.lineTo(p.x * DPR, p.y * DPR); tg.stroke();
-        }
-        st.live = st.live.filter((p) => !p.dead && p.y < H + 30);
-        m.paint();
-        if (now < st.until || st.live.length || now - (st.settled.at(-1)?.t || 0) < 700) requestAnimationFrame(step); else { st.running = false; m.paint(); }
-      };
-      requestAnimationFrame(step);
-    };
-    m.canvas.style.cursor = 'pointer'; m.canvas.addEventListener('click', () => burst(4.5));
-    new IntersectionObserver((es) => { if (es[0].isIntersecting && !st.started) { st.started = true; setTimeout(() => burst(5), 200); } }, { threshold: 0.4 }).observe(m.canvas);
-  }, { live: [], settled: [] });
+  // ---------- harder, more beautiful materials ----------
+  for (const p of ['v1/ink', 'm/field', 'a1/algebra', 'a1/glass']) gpu_cell('rare', p);
 
   // ---------- interactions ----------
   const truth = (t) => { const z = OPT.z, a1 = CART.s * z[0], a2 = CART.s * z[1], v1 = CART.v0 + a1, p = positions(z); if (t <= 1) return CART.p0 + CART.v0 * t + a1 * t * t / 2; if (t <= 2) return p[1] + v1 * (t - 1) + a2 * (t - 1) ** 2 / 2; return p[2] + (v1 + a2) * (t - 2); };
@@ -1700,65 +1505,6 @@ function build_lab() {
       row.querySelector('.r').textContent = '平均差 ' + (sum / m.st.pts.length).toFixed(2) + ' 米';
     });
   }, { pts: [], k: 0 });
-  cell('int', 'sure', '有多确定', '圈的大小 = 把握', '先点你的猜测，再拖圈的边：圈越小，说明你越有把握。揭晓时，真值落在圈里，圈就填满。', '估算 · 物理直觉 · 校准', 240, (ctx, w, h, st) => {
-    const X = (p) => 30 + (p - 6) / 4.6 * (w - 60), y = h / 2 + 4;
-    stroke_ink(ctx, seg(ctx, X(6), y, X(10.6), y), PIG.ink, 1, 0.6);
-    for (let p = 6; p <= 10; p++) { stroke_ink(ctx, seg(ctx, X(p), y - 4, X(p), y + 4), PIG.ink, 0.8, 0.6); label(ctx, p + (p === 6 ? ' 米' : ''), X(p), y + 22, PIG.graphite_t, 12, 500, 'center'); }
-    stroke_ink(ctx, seg(ctx, X(10), y - 26, X(10), y + 10), PIG.ochre, 2); label(ctx, '墙', X(10) + 6, y - 16, PIG.ochre, 12, 650);
-    label(ctx, '三秒后，小车在哪？', 30, 28, PIG.ink, 14, 600);
-    if (st.g != null) {
-      const x0 = X(st.g - st.r), x1 = X(st.g + st.r), inside_ = Math.abs(positions(OPT.z)[3] - st.g) <= st.r;
-      ctx.save(); ctx.beginPath(); ctx.roundRect(x0, y - 11, x1 - x0, 22, 11); ctx.fillStyle = css(PIG.cobalt, 0.12 + (inside_ ? 0.6 * st.k : 0)); ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = css(PIG.cobalt); ctx.stroke(); ctx.restore();
-      glass_bead(ctx, x1, y, 10, st.drag ? 1 : 0, 1);
-      if (st.k > 0) { const tx = X(positions(OPT.z)[3]); ring_dot(ctx, tx, y - 30, 5, PIG.cobalt, st.k, 1.5); stroke_ink(ctx, seg(ctx, tx, y - 25, tx, y - 11), PIG.cobalt, 1, st.k); label(ctx, inside_ ? (st.r < 0.3 ? '在圈里，而且很有把握' : '在圈里，但圈有点大') : '在圈外', w / 2, h - 12, PIG.ink, 13, 600, 'center', 'alphabetic', st.k); }
-    }
-    st.X = X;
-  }, (m) => {
-    let mode = null; m.canvas.style.cursor = 'pointer';
-    m.canvas.addEventListener('pointerdown', (e) => {
-      const p = pos_in(m.canvas, e), val = 6 + (p[0] - 30) / (m.w - 60) * 4.6;
-      if (m.st.g != null && Math.abs(p[0] - m.st.X(m.st.g + m.st.r)) < 16) mode = 'r'; else { m.st.g = clamp(val, 6, 10.6); m.st.k = 0; mode = 'r'; }
-      m.st.drag = true; try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} redraw(m.paint);
-    });
-    m.canvas.addEventListener('pointermove', (e) => { if (!mode) return; const p = pos_in(m.canvas, e), val = 6 + (p[0] - 30) / (m.w - 60) * 4.6; m.st.r = clamp(Math.abs(val - m.st.g), 0.08, 2); redraw(m.paint); });
-    const up = () => { mode = null; m.st.drag = false; redraw(m.paint); }; m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-    lab_btn(m, '看看', () => { if (m.st.g == null) return; tween(900, (k) => { m.st.k = k; redraw(m.paint); }); });
-  }, { g: null, r: 0.5, k: 0 });
-  cell('int', 'scrub', '倒带', '时间可以拖', '拖下面的时间：球往回滚、往前滚。走过的路是实线，还没走的是虚线；橙色的刻度是它第一次碰到墙的时刻。', '动态系统 · 过程 · 算法', 260, (ctx, w, h, st) => {
-    if (!VQ) build_valley();
-    if (!st.path) st.path = roll_path([-0.7, -0.75]);
-    const cam = camera(0, Math.PI / 2 - 1e-4); fit(cam, valley_pts(), 10, 8, w - 20, h - 64);
-    draw_valley(ctx, cam, { top: 1, water: null });
-    const n = st.path.length - 1, i = Math.round(st.t * n), pp = st.path.map((a) => cam.p(W3(a, 0.005)));
-    stroke_prov(ctx, poly(ctx, pp.slice(0, i + 1)), PIG.cobalt, 1, 1.6);
-    stroke_prov(ctx, poly(ctx, pp.slice(i)), PIG.cobalt, 0, 1.2, 0.6);
-    draw_ball(ctx, cam, st.path[i], 1);
-    const tx0 = 24, tx1 = w - 24, ty = h - 26, hit = st.path.findIndex((a) => on_wall(a)) / n;
-    stroke_ink(ctx, seg(ctx, tx0, ty, tx1, ty), PIG.ink, 1, 0.5);
-    stroke_ink(ctx, seg(ctx, lerp(tx0, tx1, hit), ty - 8, lerp(tx0, tx1, hit), ty + 8), PIG.ochre, 2);
-    glass_bead(ctx, lerp(tx0, tx1, st.t), ty, 12, st.drag ? 1 : 0, 1);
-  }, (m) => {
-    let on = false; m.canvas.style.cursor = 'ew-resize';
-    const set = (e) => { const p = pos_in(m.canvas, e); m.st.t = clamp((p[0] - 24) / (m.w - 48), 0, 1); redraw(m.paint); };
-    m.canvas.addEventListener('pointerdown', (e) => { on = true; m.st.drag = true; try { m.canvas.setPointerCapture(e.pointerId); } catch (_) {} set(e); });
-    m.canvas.addEventListener('pointermove', (e) => on && set(e));
-    const up = () => { on = false; m.st.drag = false; redraw(m.paint); }; m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
-  }, { t: 0.35 });
-  const er = cell('int', 'spot', '找错', '点你觉得错的那一行', '一段推导里藏着一个错。点你觉得错的那一行：点对了，错处会被划出来，改正会写在下面；点了没错的行，它会告诉你为什么没错。', '推导 · 证明 · 计算', 0, null);
-  er.dom.className = 'deriv';
-  const lines = [
-    ['p₃ = p₀ + 3v₀ + 2.5a₁ + 1.5a₂', '这一行没错：三秒里，第一秒的推力影响了 2.5 秒的路程。'],
-    ['&nbsp;&nbsp;&nbsp;= 6.2 + 3 × 0.8 + 2.5a₁ + 1.5a₂', '这一行没错：只是把 p₀ = 6.2、v₀ = 0.8 代进去。'],
-    ['&nbsp;&nbsp;&nbsp;= 8.6 + 2.5a₁ + 1.5a₂', '这一行没错：6.2 + 2.4 = 8.6。'],
-    ['p₃ ≤ 10 &nbsp;⇒&nbsp; 2.5a₁ + 1.5a₂ ≤ <u>1.6</u>', null],
-  ];
-  er.dom.innerHTML = lines.map(([t], i) => `<button data-i="${i}"><i></i><span>${t.replace('<u>1.6</u>', '1.6')}</span></button>`).join('') + '<div class="fix"></div>';
-  er.dom.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-    const i = +b.dataset.i, fix = er.dom.querySelector('.fix');
-    if (lines[i][1]) { b.classList.add('ok'); fix.textContent = lines[i][1]; return; }
-    b.classList.add('bad'); b.querySelector('span').innerHTML = lines[i][0];
-    form(fix, ['错在这里：', '10 − 8.6 = 1.4，', '不是 1.6。']);
-  }));
   const tb = cell('int', 'teach', '讲回来', '用你的话讲给同学', '用一句话讲：球为什么停在墙边？你的话里讲到的要点，会从空心变成实心；还差的那一点，会有一句提示。', '任何一个概念的收尾', 0, null);
   tb.dom.className = 'teach';
   tb.dom.innerHTML = '<textarea placeholder="球停在墙边，是因为……"></textarea><div class="ideas"><span data-k="wall"><i></i>墙挡住了谷底</span><span data-k="slide"><i></i>沿着墙往下滑</span><span data-k="low"><i></i>停在能到的最低处</span></div><div class="echo"></div><div class="hint"></div>';
@@ -1772,10 +1518,11 @@ function build_lab() {
     form(tb.dom.querySelector('.hint'), miss ? [{ wall: '还差一点：谷底在哪儿？球为什么到不了？', slide: '还差一点：球碰到墙以后，做了什么？', low: '还差一点：它最后停在什么样的地方？' }[miss]] : ['讲全了。']);
   });
   tb.dom.after(row);
+  gpu_cell('int', 'a1/time'); gpu_cell('int', 'a1/pull'); gpu_cell('int', 'a1/morph', { wide: true });
 }
 
 // =====================================================================
-// MOTION: ten general materials and animations. Each has one job anywhere on the site,
+// MOTION: general animations. Each has one job anywhere on the site,
 // and its acceptance criteria are measured live (duration, frame rate, at rest, exactness).
 // =====================================================================
 const FXS = [];
@@ -1919,46 +1666,6 @@ function build_motion() {
     check(c) { const lit = (c.ps || []).filter((p) => p.lit).length / Math.max(1, (c.ps || []).length); return { ok: c.st.line >= 1, t: `线落在轮廓上 · ${Math.round(lit * 100)}% 粒子到位` }; },
   });
 
-  // 2 ---- 粒子成像: content appears. A figure is sampled into particles that converge back into it, exactly.
-  fx_cell('assemble', '粒子成像', '出现：新内容从取样中收敛出来', '任何内容；≤ 1.1 秒；最后一帧与原图逐像素一致；每帧 ≤ 8 ms。', 1150, 250, {
-    text: '一张新图出现时，先是一团取样点，从你点的地方涌出来，各自找到位置，收敛成这张图；最后一帧就是原图本身，一个像素都不差。',
-    setup(c) {
-      c.img = rasterize(c.w, c.h, (g) => {
-        g.font = `650 30px ${SANS}`; g.fillStyle = css(PIG.ink); g.fillText('最好的计划', 24, 52);
-        g.font = `500 15px ${SANS}`; g.fillStyle = css(PIG.graphite_t); g.fillText('最小的椭圆，第一次碰到允许区域', 26, 80);
-        const cx = c.w * 0.62, cy = 158; g.lineWidth = 1.2;
-        for (const r of [22, 44, 66, 88]) { g.beginPath(); g.ellipse(cx + 40, cy - 10, r * 1.3, r * 0.8, -0.5, 0, 7); g.strokeStyle = css(PIG.graphite, 0.8); g.stroke(); }
-        g.beginPath(); g.moveTo(c.w * 0.18, 220); g.lineTo(c.w * 0.6, 100); g.lineWidth = 2.4; g.strokeStyle = css(PIG.ochre); g.stroke();
-        g.beginPath(); g.arc(c.w * 0.468, 137, 6, 0, 7); g.fillStyle = css(PIG.cobalt); g.fill();
-      });
-      const g = c.img.getContext('2d'), d = g.getImageData(0, 0, c.img.width, c.img.height).data, S = Math.round(2.5 * DPR);
-      c.pts = [];
-      for (let y = 0; y < c.img.height; y += S) for (let x = 0; x < c.img.width; x += S) { const k = (y * c.img.width + x) * 4; if (d[k + 3] > 60) c.pts.push({ tx: x / DPR, ty: y / DPR, col: `rgba(${d[k]},${d[k + 1]},${d[k + 2]},${(d[k + 3] / 255).toFixed(2)})` }); }
-    },
-    start(c) {
-      const src = [c.w * 0.92, c.h * 0.9];
-      for (const p of c.pts) { const a = Math.random() * Math.PI * 2, r = Math.random() * 40; p.x = src[0] + Math.cos(a) * r; p.y = src[1] + Math.sin(a) * r; p.vx = (Math.random() - 0.5) * 300; p.vy = -Math.random() * 300; p.delay = Math.hypot(p.tx - src[0], p.ty - src[1]) / 900; }
-      c.st.fade = 0;
-    },
-    step(c, dt, ms) {
-      let far = 0;
-      for (const p of c.pts) { if (ms / 1000 < p.delay) { far++; continue; } [p.x, p.vx] = ease_spring(p.x, p.vx, p.tx, 160, 20, dt); [p.y, p.vy] = ease_spring(p.y, p.vy, p.ty, 160, 20, dt); if (Math.abs(p.x - p.tx) + Math.abs(p.y - p.ty) > 0.6) far++; }
-      if (far < c.pts.length * 0.03) c.st.fade = Math.min(1, c.st.fade + dt / 0.15);
-      return c.st.fade < 1;
-    },
-    finish(c) { c.st.fade = 1; },
-    draw(c) {
-      const ctx = c.ctx; ctx.clearRect(0, 0, c.w, c.h);
-      if (c.st.fade < 1) { ctx.save(); ctx.globalAlpha = 1 - c.st.fade; for (const p of c.pts) { if (p.x == null) continue; ctx.fillStyle = p.col; ctx.fillRect(p.x - 1.1, p.y - 1.1, 2.2, 2.2); } ctx.restore(); }
-      if (c.st.fade > 0) { ctx.save(); ctx.globalAlpha = c.st.fade; ctx.drawImage(c.img, 0, 0, c.w, c.h); ctx.restore(); }
-    },
-    check(c) {
-      const a = c.ctx.getImageData(0, 0, c.canvas.width, c.canvas.height).data, b = c.img.getContext('2d').getImageData(0, 0, c.img.width, c.img.height).data;
-      let diff = 0; for (let i = 3; i < a.length; i += 4) diff += Math.abs(a[i] - b[i]); const pct = diff / (a.length / 4) / 255 * 100;
-      return { ok: pct < 0.01, t: `与原图差 ${pct.toFixed(3)}%` };
-    },
-  });
-
   // 3 ---- 凝结玻璃: a panel appears. Glass droplets fly from the touch point and merge into a pane that refracts what is under it.
   fx_cell('condense', '凝结玻璃', '弹出：面板从你手指的地方凝结出来', '≤ 0.6 秒成形；边缘下的内容真的被折射；最终边缘与圆角矩形误差 ≤ 1 px；不磨砂。', 650, 250, {
     text: '答案的面板不是“弹”出来的：一串玻璃水珠从你点的地方飞出，聚到一起，融成一块玻璃。它下面的字和格子在边缘处被折弯，因为它真是一块有厚度的玻璃。',
@@ -2087,39 +1794,6 @@ function build_motion() {
     check(c) { const f = c.fogwork.getContext('2d').getImageData(Math.round(c.w / 2 * DPR), Math.round(82 * DPR), 1, 1).data; return { ok: f[3] < 8, t: `擦过处透明度 ${(f[3] / 255).toFixed(2)}` }; },
   });
 
-  // 6 ---- 磁吸刻度: snapping. Near a value, filings show its field; the handle is pulled in and seats.
-  fx_cell('snap', '磁吸刻度', '吸附：靠近一个值时，看得见它的“磁场”', '只在吸附半径内出现；最终值精确；入位 ≤ 0.3 秒、只回弹一次；离开即消失。', 1700, 170, {
-    text: '拖动的手柄靠近一个整数时，刻度周围的铁屑朝它排好，手柄被吸过去、轻轻一顿落位。你感觉到的不是“对齐网格”，而是一个吸住你的点。“播放”演示一次拖动。',
-    setup(c) { c.track = { x0: 30, x1: c.w - 30, y: c.h / 2 + 6 }; c.st.v = c.st.v ?? 1.35; c.st.raw = c.st.v; c.st.vel = 0; c.st.fade = c.st.fade ?? 1; },
-    start(c) { c.st.path = [[0, 1.35], [0.45, 2.62], [0.7, 2.86], [0.95, 2.97]]; c.st.release = false; c.st.fade = 0; },
-    step(c, dt, ms) {
-      const t = ms / 1000, P = c.st.path;
-      if (t < 0.95) { let i = 0; while (i < P.length - 2 && t > P[i + 1][0]) i++; const u = (t - P[i][0]) / (P[i + 1][0] - P[i][0]); c.st.raw = lerp(P[i][1], P[i + 1][1], clamp(u, 0, 1)); c.st.v = snap_pull(c.st.raw); return true; }
-      if (!c.st.release) { c.st.release = true; c.st.target = Math.round(c.st.v); c.st.vel = 0; }
-      // seat: an underdamped spring, one small overshoot
-      [c.st.v, c.st.vel] = ease_spring(c.st.v, c.st.vel, c.st.target, 520, 26, dt); c.st.raw = c.st.v;
-      const seated = Math.abs(c.st.v - c.st.target) < 0.0005 && Math.abs(c.st.vel) < 0.003;
-      if (seated) { c.st.v = c.st.target; c.st.fade = Math.min(1, (c.st.fade || 0) + dt / 0.4); }
-      return !seated || c.st.fade < 1;
-    },
-    finish(c) { c.st.v = Math.round(c.st.v); c.st.raw = c.st.v; c.st.fade = 1; },
-    draw(c) {
-      const ctx = c.ctx, { x0, x1, y } = c.track, X = (v) => lerp(x0, x1, v / 5); ctx.clearRect(0, 0, c.w, c.h);
-      stroke_ink(ctx, seg(ctx, x0, y, x1, y), PIG.ink, 1, 0.5);
-      for (let v = 0; v <= 5; v++) { stroke_ink(ctx, seg(ctx, X(v), y - 6, X(v), y + 6), PIG.ink, 1, 0.6); label(ctx, String(v), X(v), y + 26, PIG.graphite_t, 12, 500, 'center'); }
-      const near = Math.round(c.st.raw), d = Math.abs(X(c.st.raw) - X(near)), R = 34;
-      if (d < R) {
-        // filings around the value, pointing at it; they gather as you come closer
-        const k = (1 - d / R) * (1 - (c.st.fade || 0)); let s = 9 + near * 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-        for (let i = 0; i < 70; i++) { const a = rnd() * Math.PI * 2, r = 9 + rnd() * 30, px = X(near) + Math.cos(a) * r, py = y + Math.sin(a) * r * 0.7; const ang = Math.atan2(y - py, X(near) - px); ctx.beginPath(); ctx.moveTo(px - Math.cos(ang) * 3, py - Math.sin(ang) * 3); ctx.lineTo(px + Math.cos(ang) * 3, py + Math.sin(ang) * 3); ctx.lineWidth = 1.1; ctx.strokeStyle = css([0.22, 0.23, 0.25], 0.65 * k * (1 - r / 44)); ctx.stroke(); }
-      }
-      glass_bead(ctx, X(c.st.v), y, 14, d < R && !(c.st.fade >= 1) ? 1 : 0, 1);
-      label(ctx, c.st.v.toFixed(Math.abs(c.st.v - Math.round(c.st.v)) < 0.0005 ? 0 : 2), X(c.st.v), y - 24, PIG.ink, 14, 650, 'center');
-    },
-    check(c) { return { ok: Math.abs(c.st.v - 3) < 1e-3, t: `落在 ${c.st.v.toFixed(3)}` }; },
-  });
-  function snap_pull(raw) { const n = Math.round(raw), d = Math.abs(raw - n), R = 0.3; return d < R ? raw + (n - raw) * Math.pow(1 - d / R, 2) * 0.85 : raw; }
-
   // 7 ---- 流光边: your turn. One streak of light runs once around the next-step button, then rests.
   fx_cell('run', '流光边', '轮到你了：光沿着按钮的边跑一圈', '恰好一圈，≤ 1.1 秒；严格沿圆角走；跑完静止；朱红和玻璃上都清楚。', 1150, 150, {
     text: '下一步可以按了，光沿着朱红按钮的边缘跑一圈，然后停下。它只跑一次：提醒你，不催你。玻璃上的同一束光，表示控制条刚刚准备好。',
@@ -2154,36 +1828,6 @@ function build_motion() {
       });
     },
     check(c) { return { ok: c.fs.every((f) => f.style.transform === 'none'), t: '静止时没有变形' }; },
-  });
-
-  // 9 ---- 碎片重组: something changed. The old value breaks into shards that fly into the new one, with no gaps.
-  fx_cell('shatter', '碎片重组', '改变：旧的碎开，碎片拼成新的', '≤ 0.9 秒；碎片保留原来的纹理；最后一帧与新内容逐像素一致，没有缝。', 950, 200, {
-    text: '一个值被改正时，旧的不会“淡出”：它碎成几十片，每一片带着自己那一小块字，飞到新答案里对应的位置，拼起来就是新的。你看得见“从哪儿变成了哪儿”。',
-    setup(c) {
-      const draw = (txt, sub, col) => rasterize(c.w, c.h, (g) => { g.font = `650 44px ${SANS}`; g.fillStyle = css(col); g.fillText(txt, 26, 96); g.font = `500 14px ${SANS}`; g.fillStyle = css(PIG.graphite_t); g.fillText(sub, 28, 132); });
-      c.A = draw('a₁ = 0.300', '你猜的', PIG.graphite_t); c.B = draw('a₁ = 0.549', '最好的计划', PIG.cobalt);
-      let s = 4; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647), cols = 12, rows = 5, P = [];
-      for (let j = 0; j <= rows; j++) for (let i = 0; i <= cols; i++) P.push([i / cols * c.w + (i % cols && j % rows ? (rnd() - 0.5) * c.w / cols * 0.7 : 0), j / rows * c.h + (i % cols && j % rows ? (rnd() - 0.5) * c.h / rows * 0.7 : 0)]);
-      c.tris = []; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const a = j * (cols + 1) + i, b = a + 1, d = a + cols + 1, e = d + 1; c.tris.push([P[a], P[b], P[e]], [P[a], P[e], P[d]]); }
-      c.tris = c.tris.map((t) => ({ t, cx: (t[0][0] + t[1][0] + t[2][0]) / 3, cy: (t[0][1] + t[1][1] + t[2][1]) / 3, dx: (rnd() - 0.5) * 60, dy: -20 - rnd() * 40, rot: (rnd() - 0.5) * 1.2, d: rnd() * 0.15 }));
-      c.st.u = c.st.u ?? 1;
-    },
-    start(c) { c.st.u = 0; },
-    step(c, dt, ms) { c.st.u = clamp(ms / 880, 0, 1); return ms < 880; },
-    finish(c) { c.st.u = 1; },
-    draw(c) {
-      const ctx = c.ctx, u = c.st.u; ctx.clearRect(0, 0, c.w, c.h);
-      if (u >= 1) { ctx.drawImage(c.B, 0, 0, c.w, c.h); return; }
-      if (u <= 0) { ctx.drawImage(c.A, 0, 0, c.w, c.h); return; }
-      for (const s of c.tris) {
-        const v = clamp((u - s.d) / (1 - s.d), 0, 1), out = Math.sin(Math.PI * Math.min(1, v * 1.15)), mixk = clamp((v - 0.35) / 0.4, 0, 1);
-        ctx.save(); ctx.translate(s.cx + s.dx * out, s.cy + s.dy * out + 30 * out * out); ctx.rotate(s.rot * out); ctx.translate(-s.cx, -s.cy);
-        ctx.beginPath(); ctx.moveTo(...s.t[0]); ctx.lineTo(...s.t[1]); ctx.lineTo(...s.t[2]); ctx.closePath(); ctx.clip();
-        ctx.globalAlpha = 1 - mixk; ctx.drawImage(c.A, 0, 0, c.w, c.h); ctx.globalAlpha = mixk; ctx.drawImage(c.B, 0, 0, c.w, c.h);
-        ctx.restore();
-      }
-    },
-    check(c) { return { ok: c.st.u >= 1, t: '最后一帧就是新内容' }; },
   });
 
   // 10 ---- 数位收敛: numbers. Digits roll and settle from the highest place down; places not yet sure stay faint.
@@ -3246,7 +2890,7 @@ $('#i-send').addEventListener('click', send_ask);
 $('#i-close').addEventListener('click', () => { island_mode('rest'); clear_frame(); asking_target = null; });
 document.querySelectorAll('#meta button').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); go(b.dataset.go); }));
 let rt = 0;
-addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (view === 'home') layout_home(); if (view === 'lesson') { layout_lesson(); relayout_notes(); paint_scale(); } if (view === 'attn') { layout_attn(); relayout_notes(); paint_scale(); } if (view === 'materials' || view === 'lab') layout_cells(view); if (view === 'motion') fx_layout(); }, 120); });
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (view === 'home') layout_home(); if (view === 'lesson') { layout_lesson(); relayout_notes(); paint_scale(); } if (view === 'attn') { layout_attn(); relayout_notes(); paint_scale(); } if (view === 'materials' || view === 'lab') layout_cells(view); if (view === 'motion') fx_layout(); for (const g of GPU) g.inst?.resize?.(); }, 120); });
 if (location.search.includes('eyes')) $('#meta').hidden = true;
 const start = new URLSearchParams(location.search).get('v');
 go(['lesson', 'attn', 'materials', 'lab', 'motion'].includes(start) ? start : 'home');

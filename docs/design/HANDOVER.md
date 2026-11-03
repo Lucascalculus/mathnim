@@ -65,11 +65,16 @@ His words, in order, so you can hear the bar:
     class's guesses fall like sand.
   - `attn`: attention in the fine-tuning course, typeset words with a fan of lines from 「它」.
   - `materials`: the six core materials.
-  - `lab`: material candidates, harder materials (caustics, liquid metal, soap film, iron filings, light particles
-    tracing outlines) and learning interactions.
-  - `motion`: twenty general materials and animations. The first ten are interface effects; the second ten help show
-    mathematics.
-  - Inside the page: `window.__fx_all()` plays every effect.
+  - `lab`: what Lucas kept on 2026-11-03 (the rest was deleted): material candidates (water, thread, tinted sheets,
+    spring, light; and from the cloud session's material lab the broad-nib pen, folding paper, a thread, sand that
+    builds a histogram, paper layers), harder materials (ink in water, vector field as light, liquid algebra, liquid
+    glass) and learning interactions (sketch your guess, teach back, time as matter, pull a noun out, one thing in
+    another view). The lab's materials are ES modules in `gpu/` (our own WebGL2 core in `gpu/lib/`), so the page
+    must be served over http, not opened as a file.
+  - `motion`: seventeen animations. The first seven are interface effects; the last ten help show mathematics.
+  - Inside the page: `window.__fx_all()` plays every effect; `window.__gpu_accept()` runs the GPU materials' tests.
+- Published unlisted at https://lab.penghaolun.com/p/0y7r2k8c6i/ (noindex). After changing the specimen, run
+  `npm run specimen` (copies it into `apps/mathnim/public/p/…`) before a deploy.
 - `docs/design/specimen/shots/`: reference screenshots of where the work stands.
 - `apps/mathnim/tools/page_shots.mjs`: drives a headless Chrome and saves screenshots (usage is at the top of the
   file).
