@@ -13,6 +13,7 @@ import type { XY } from './geom';
 import type { Handle } from './kinds';
 import { init_gpu } from './gpu';
 import { check_act, type Act, type ActRecord, type Hands } from './acts';
+import { Mirror } from './mirror';
 import { ease_in_out } from './script';
 import { watch_writes, type Param } from './state';
 import { load_tex } from './tex';
@@ -25,6 +26,9 @@ export interface FigurePlayerOptions {
   tex?: boolean;
   /** A fixed size in CSS px (tools, tests); default: the size the canvas is shown at. */
   size?: { w: number; h?: number; dpr?: number };
+  /** No DOM mirror (a canvas only recorded or exported); and the mirror's name for the figure. */
+  mirror?: boolean;
+  label?: string;
 }
 
 type Canvas = HTMLCanvasElement | OffscreenCanvas;
@@ -145,6 +149,8 @@ export class FigurePlayer {
     this.pause();
     this.stop_live();
     this.set_interactive(false);
+    this.mirror?.destroy();
+    this.mirror = null;
     this.ro?.disconnect();
     this.ro = null;
     const c = this.canvas as HTMLCanvasElement;
@@ -223,9 +229,37 @@ export class FigurePlayer {
       if (drew) {
         this.stats.drawn++;
         this.stats.draw_ms += now() - t0;
+        this.mirror_sync();
       } else this.stats.skipped++;
     }
     this.opts.on_frame?.(this.time, this);
+  }
+
+  // ---------------------------------------------------------------- the DOM mirror (mirror.ts)
+  /** The accessible layer over the canvas (made once the canvas is in a page; none in node, export or offscreen). */
+  mirror: Mirror | null = null;
+  private mirrored = 0;
+  private mirror_sync(): void {
+    if (this.opts.mirror === false) return;
+    const c = this.canvas as HTMLCanvasElement;
+    if (!this.mirror) {
+      if (typeof c.after !== 'function' || !c.isConnected || !c.parentElement) return;
+      const plot = this.scene.registry.all().find((t) => t.kind === 'plot' && t.says);
+      this.mirror = new Mirror(this.scene, c, {
+        label: this.opts.label ?? (plot?.says ? plot.says[this.scene.lang] : undefined),
+        quiet: () => !this.playing,
+        nudge: (h, dx, dy) => {
+          h.nudge(dx, dy);
+          h.o.on_end?.();
+          this.on_input?.();
+        },
+      });
+    }
+    // (while the script plays, a few times a second is enough for a reader; at rest, every change)
+    const t = now();
+    if (this.playing && t - this.mirrored < 200) return;
+    this.mirrored = t;
+    this.mirror.sync();
   }
   show_end(): void {
     this.frame = this.total_frames;

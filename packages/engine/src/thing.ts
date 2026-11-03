@@ -127,6 +127,8 @@ export abstract class Thing {
   text_px(): number {
     return 0;
   }
+  /** Its words piece by piece where each is drawn (a legend's entries, a readout's parts), for the DOM mirror. */
+  parts_of?: (lang: Lang) => { text: string; tex?: boolean; box: Box }[];
   /** Is it on screen now? */
   visible(): boolean {
     return !this.dropped && this.opacity.value > 0.001 && (!this.parent || this.parent.visible());
