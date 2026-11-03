@@ -48,6 +48,7 @@ const CSS = `
 .st-verb{position:absolute;left:0;top:0;height:36px;padding:0 16px 0 14px;border-radius:18px;border:0;background:${C.vermilion};color:#fff;
   font:600 15px ${SANS};white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px rgba(227,71,44,.24);display:flex;align-items:center;gap:7px;will-change:transform}
 .st-verb b{font-weight:600;opacity:.82}
+.st-verb .nm{font-weight:600}
 .st-wrap.narrow .st-verb{height:44px;border-radius:22px;padding:0 18px 0 16px}
 `;
 
@@ -137,15 +138,25 @@ export function make({ stage, canvas, hud, lang }) {
   let vtarget = null;
   function verb_box() {
     if (!vtarget) return null;
+    // the full verb if it fits among the stars; when the chart is zoomed far out it condenses to the verb alone
+    const nm = verb.querySelector('.nm');
+    for (const short of [false, true]) {
+      if (nm) nm.style.display = short ? 'none' : '';
+      const b = verb_place();
+      if (b.free || short) return b;
+    }
+  }
+  function verb_place() {
     const [x, y] = scr([vpos.x, vpos.y]), w = verb.offsetWidth, h = verb.offsetHeight, n = by[vtarget], r = radius(n) + 10;
     const cands = narrow ? [[x - w / 2, y + r], [x - w / 2, y - r - h], [x + r, y - h / 2], [x - r - w, y - h / 2]] : [[x + r, y - h / 2], [x - r - w, y - h / 2], [x - w / 2, y + r], [x - w / 2, y - r - h]];
+    cands.push([x + r * 0.7, y + r * 0.7], [x + r * 0.7, y - r * 0.7 - h], [x - r * 0.7 - w, y + r * 0.7], [x - r * 0.7 - w, y - r * 0.7 - h]);
     const free = (b) => N.every((m) => { if (m === n) return true; const [mx, my] = scr(world(m)), rr = radius(m) + 3; return !(mx + rr > b.x && mx - rr < b.x + b.w && my + rr > b.y && my - rr < b.y + b.h); });
-    for (const [bx, by_] of cands) { const b = { x: bx, y: by_, w, h }; if (free(b)) return b; }
-    return { x: cands[0][0], y: cands[0][1], w, h };
+    for (const [bx, by_] of cands) { const b = { x: bx, y: by_, w, h }; if (free(b)) return { ...b, free: true }; }
+    return { x: cands[0][0], y: cands[0][1], w, h, free: false };
   }
   function set_verb(id, snap) {
     vtarget = id || null; verb.style.display = id ? '' : 'none'; if (!id) return;
-    verb.innerHTML = `<b>${VERB[lang]}</b> ${by[id].name}`;
+    verb.innerHTML = `<b>${VERB[lang]}</b><span class="nm">${by[id].name}</span>`;
     const [x, y] = world(by[id]); if (snap) { vpos.a.snap(x); vpos.b.snap(y); } else vpos.to(x, y);
   }
 
@@ -296,8 +307,10 @@ export function make({ stage, canvas, hud, lang }) {
     const sx = (n) => scr(world(n));
     const L = place_labels(sx), vb = verb_box(), boxes = L.map((l) => l.b).concat(vb ? [vb] : []);
     for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (hit(boxes[i], boxes[j])) bad++;
-    for (const b of boxes) for (const n of N) { const [x, y] = sx(n), r = radius(n); if (x + r > b.x && x - r < b.x + b.w && y + r > b.y && y - r < b.y + b.h) bad++; }
-    return { bad, shown: L.length };
+    const why = [];
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (hit(boxes[i], boxes[j])) why.push('box' + i + '/' + j);
+    for (const b of boxes) for (const n of N) { const [x, y] = sx(n), r = radius(n); if (x + r > b.x && x - r < b.x + b.w && y + r > b.y && y - r < b.y + b.h) { bad++; why.push(n.id + '@' + (L.find((l) => l.b === b)?.n.id || 'verb')); } }
+    return { bad, shown: L.length, why };
   }
   return {
     visible: (v) => sched.set_visible(v),
@@ -316,7 +329,7 @@ export function make({ stage, canvas, hud, lang }) {
       // labels at zooms from far to near, in the course's real state
       const zs = [0.55, 0.8, 1, 1.5, 2.2, 3.2]; let bad = 0, shown = [];
       const c0 = [cam.c.x, cam.c.y, cam.s.x];
-      for (const z of zs) { cam.s.snap(fit_s * z); const o = overlaps(); bad += o.bad; shown.push(o.shown); }
+      for (const z of zs) { cam.s.snap(fit_s * z); const o = overlaps(); bad += o.bad; shown.push(o.shown); if (o.why.length) console.warn('overlap', z, o.why.join(' ')); }
       cam.c.a.snap(c0[0]); cam.c.b.snap(c0[1]); cam.s.snap(c0[2]); reset_state(); set_verb(next_id(), true); draw();
       const full = overlaps().shown === N.length - 1;
       const pass = dag && ok_closure && bad === 0 && full;

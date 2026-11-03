@@ -214,7 +214,8 @@ export function make({ stage, canvas, hud, lang }) {
       speed = 1;
       const hits = samples.filter((s) => inside_box(s.b, s.x, s.y)).length;
       // at rest: wait for the light to settle, then count frames over a while
-      await new Promise((r) => setTimeout(r, 2600));
+      for (let t = 0; t < 80 && (L.pos.a.busy() || L.pos.b.busy() || L.amb.busy() || L.rx.busy()); t++) await new Promise((r) => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 1700));
       const f0 = sched.frames; await new Promise((r) => setTimeout(r, 900)); const still = sched.frames - f0;
       const ok = samples.length === phrases.length && hits === phrases.length && still === 0;
       const zh = lang === 'zh';

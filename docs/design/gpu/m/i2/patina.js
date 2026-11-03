@@ -206,7 +206,7 @@ export function make({ stage, canvas, hud, lang }) {
     // let three weeks pass, then review the most faded card
     demo() { day.snap(S.t).set(2.4, 1).to(24); sched.wake(3200); setTimeout(() => { let k = 0, lo = 2; cards.forEach((c, i) => { const R = memory(c, S.t).R; if (R < lo) { lo = R; k = i; } }); review(k); }, 2800); },
     at(t) { day.snap(t); set_day(t); draw(); },
-    review, sched,
+    review,
     async accept() {
       const save = cards.map((c) => c.reviews.slice()), t_save = S.t;
       // 1 · ink on screen ÷ fresh ink = R(t), for every card at several days

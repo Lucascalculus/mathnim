@@ -110,9 +110,9 @@ const FIG = (names) => `<svg viewBox="0 0 560 230">
   <rect x="0" y="0" width="560" height="230" rx="10" fill="#f3f1ec"/>
   <g clip-path="url(#nv-clip)">
   <g class="valley">${Array.from({ length: 7 }, (_, i) => { const k = 7 - i; return `<ellipse cx="392" cy="104" rx="${k * 25}" ry="${k * 14.5}" transform="rotate(-24 392 104)" fill="rgba(47,91,210,${(0.016 + i * 0.007).toFixed(3)})" stroke="rgba(26,27,31,${k % 3 ? 0.2 : 0.42})" stroke-width="${k % 3 ? 1 : 1.5}"/>`; }).join('')}</g>
-  <g data-sel="bottom" data-name="${names.bottom}"><circle cx="392" cy="104" r="3.5" fill="#1a1b1f"/><text x="402" y="96" font-family="${SANS}" font-size="14" fill="#44464d">${names.bottom}</text></g>
+  <g data-sel="bottom" data-name="${names.bottom}"><circle cx="392" cy="104" r="3.5" fill="#1a1b1f"/><text x="402" y="96" font-family='${SANS}' font-size="14" fill="#44464d">${names.bottom}</text></g>
   <path d="M206 -4 L320 234 L564 234 L564 -4 Z" fill="rgba(141,145,152,.13)"/>
-  <g data-sel="wall" data-name="${names.wall}"><line x1="203" y1="-2" x2="317" y2="232" stroke="${C.ochre}" stroke-width="5" stroke-linecap="round"/><text x="196" y="40" text-anchor="end" font-family="${SANS}" font-weight="600" font-size="14" fill="${C.ochre}">${names.wall}</text></g>
+  <g data-sel="wall" data-name="${names.wall}"><line x1="203" y1="-2" x2="317" y2="232" stroke="${C.ochre}" stroke-width="5" stroke-linecap="round"/><text x="196" y="40" text-anchor="end" font-family='${SANS}' font-weight="600" font-size="14" fill="${C.ochre}">${names.wall}</text></g>
   <g data-sel="ball" data-name="${names.ball}"><circle cx="248" cy="124" r="12" fill="${C.cobalt}"/><circle cx="244" cy="120" r="4" fill="rgba(255,255,255,.35)"/></g>
   </g>
 </svg>`;
@@ -125,8 +125,9 @@ export function lesson_dom(host, lang, o = {}) {
     const key = w.trim().replace(/[，。：,.:]$/, '');
     const c = N[w.trim()] || N[key] || '';
     // the space after an English word stays outside its box, so a box is just the word
-    const tail = w.length - w.trimEnd().length ? ' ' : '';
-    return `<span class="nv-w ${c}" data-sel="${pid}-${i}" data-kind="word" data-name="${key}">${w.trimEnd()}</span>${tail}`;
+    // and a coloured noun takes its colour, not the comma after it
+    const tail = w.length - w.trimEnd().length ? ' ' : '', t = w.trimEnd(), m = c ? t.match(/^(.*?)([，。：,.:]*)$/) : [t, t, ''];
+    return `<span class="nv-w ${c}" data-sel="${pid}-${i}" data-kind="word" data-name="${key}">${m[1]}</span>${m[2]}${tail}`;
   }).join('');
   el.innerHTML = `<div class="nv-kick">${T.kick}</div><div class="nv-title">${T.title}</div>
     <p class="nv-p">${words(T.p1, 'a')}</p>

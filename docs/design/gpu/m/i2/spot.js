@@ -240,7 +240,7 @@ export function make({ stage, canvas, hud, lang }) {
       const b = bad_box(), on = tip && tip[0] >= b.x0 && tip[0] <= b.x1 && tip[1] >= b.y0 && tip[1] <= b.y1;
       reset(); draw();
       const zh = lang === 'zh';
-      return { pass: one && fixed_ok && on, value: `${zh ? '各步' : 'steps'} ${verdict.map((v) => (v ? '✓' : '✗')).join(' ')}; ${zh ? '改正后' : 'corrected'} ${fixed_ok ? '✓✓✓✓' : '✗'}; ${zh ? '裂缝尖端' : 'crack tip'} (${tip ? tip.map((v) => v.toFixed(1)).join(', ') : '—'}) ${on ? (zh ? '在' : 'on') : (zh ? '不在' : 'off')} 「${zh ? '3u' : '3u'}」[${b.x0.toFixed(1)}–${b.x1.toFixed(1)}, ${b.y0.toFixed(1)}–${b.y1.toFixed(1)}]` };
+      return { pass: one && fixed_ok && on, value: `${zh ? '各步' : 'steps'} ${verdict.map((v) => (v ? '✓' : '✗')).join(' ')}; ${zh ? '改正后' : 'corrected'} ${fixed_ok ? '✓✓✓✓' : '✗'}; ${zh ? '裂缝尖端' : 'crack tip'} (${tip ? tip.map((v) => v.toFixed(1)).join(', ') : '—'}) ${on ? (zh ? '在' : 'on') : (zh ? '不在' : 'off')} ${zh ? '「3u」' : '"3u"'} [${b.x0.toFixed(1)}–${b.x1.toFixed(1)}, ${b.y0.toFixed(1)}–${b.y1.toFixed(1)}]` };
     },
   };
 }

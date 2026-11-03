@@ -125,9 +125,9 @@ export function make({ stage, canvas, hud, lang }) {
       geo = { fx: x0, fy: (H - fh) / 2, fw, fh, dx: x0 + fw + gap, dy: (H - fh) / 2 + fh - CH - 60 };
       deck.style.left = geo.dx + 'px'; deck.style.top = (geo.dy - 120) + 'px'; deck.style.width = CW + 'px'; deck.style.height = (CH + 240) + 'px';
     } else {
-      const fw = W - 16, fh = Math.min(H * 0.52, fw * 1.1);
+      const fw = W - 16, fh = Math.min(H * 0.45, fw * 0.85);
       CW = Math.min(250, W - 120); CH = Math.round(CW * 0.6);
-      geo = { fx: 8, fy: 16, fw, fh, dx: (W - CW) / 2, dy: H - CH - 96 };
+      geo = { fx: 8, fy: 28, fw, fh, dx: (W - CW) / 2, dy: Math.min(H - CH - 96, 28 + fh + 136) };
       deck.style.left = geo.dx + 'px'; deck.style.top = (geo.dy - 120) + 'px'; deck.style.width = CW + 'px'; deck.style.height = (CH + 160) + 'px';
     }
     Object.assign(fig.style, { left: geo.fx + 'px', top: geo.fy + 'px', width: geo.fw + 'px', height: geo.fh + 'px' });

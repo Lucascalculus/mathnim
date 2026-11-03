@@ -53,7 +53,7 @@ export function make({ stage, canvas, hud, lang }) {
     wrap.classList.toggle('narrow', narrow); page.el.classList.toggle('small', narrow);
     const pw = narrow ? W - 32 : Math.min(600, W - 96);
     page.el.style.width = pw + 'px'; page.el.style.left = ((W - pw) / 2) + 'px';
-    page.el.style.top = Math.max(narrow ? 28 : 24, (H - page.el.offsetHeight) / 2 - (narrow ? 40 : 10)) + 'px';
+    page.el.style.top = (narrow ? 40 : Math.max(24, (H - page.el.offsetHeight) / 2 - 10)) + 'px';
     G.fit();
   }
 
@@ -161,12 +161,20 @@ export function make({ stage, canvas, hud, lang }) {
   // ——— state: the stroke while drawing; after release, the morph from stroke to outline ———
   const S = { stroke: [], drawing: false, sel: [], outs: [], from: null, to: null, k: new Spring(0, 0.5, 0.74), chip: new Spring(0, 0.38, 0.8), fade: new Spring(1, 0.5, 1), asked: false };
   const N = 180;
+  // a hand overshoots where it began: cut the stroke at its last crossing with its own start, so the loop is simple
+  function close_loop(p) {
+    const X = (a, b, c, d) => { const r = [b[0] - a[0], b[1] - a[1]], q = [d[0] - c[0], d[1] - c[1]], den = r[0] * q[1] - r[1] * q[0]; if (Math.abs(den) < 1e-9) return null; const t = ((c[0] - a[0]) * q[1] - (c[1] - a[1]) * q[0]) / den, u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / den; return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? [a[0] + r[0] * t, a[1] + r[1] * t] : null; };
+    for (let j = p.length - 2; j > p.length / 2; j--) for (let i = 0; i < Math.min(j - 2, p.length / 2); i++) { const x = X(p[i], p[i + 1], p[j], p[j + 1]); if (x) return [x, ...p.slice(i + 1, j + 1)]; }
+    return p;
+  }
   function select(loop) {
+    loop = close_loop(loop);
     const shapes = page.sels.map((s) => ({ s, ...shape(s) }));
     const sel = shapes.filter((x) => in_poly(loop, x.c[0], x.c[1]));
     return { shapes, sel };
   }
   function release(loop) {
+    loop = close_loop(loop);
     const { shapes, sel } = select(loop);
     S.sel = sel; S.shapes = shapes;
     if (!sel.length) { S.outs = []; S.from = resample(loop, N); S.to = null; S.k.snap(0); S.fade.snap(1).to(0); S.chip.to(0); chip.style.pointerEvents = 'none'; sched.wake(); return; }
@@ -269,7 +277,7 @@ export function make({ stage, canvas, hud, lang }) {
 
   // a rough loop around some elements, as a hand would draw it (for the demo and the test)
   function hand_loop(ids, wob = 0.08, seed = 1, grow = 1) {
-    const bs = ids.map((id) => { const s = page.sels.find((x) => x.id === id || x.name === id); return { ...shape(s), b: box_in(s.el, wrap) }; });
+    const bs = ids.map((id) => { const s = page.sels.find((x) => x.id === id) || page.sels.find((x) => x.name === id); return { ...shape(s), b: box_in(s.el, wrap) }; });
     const cx = bs.reduce((a, b) => a + b.c[0], 0) / bs.length, cy = bs.reduce((a, b) => a + b.c[1], 0) / bs.length;
     let rx = 0, ry = 0; for (const b of bs) { rx = Math.max(rx, Math.abs(b.c[0] - cx)); ry = Math.max(ry, Math.abs(b.c[1] - cy)); }
     rx = (rx + 26) * grow; ry = (ry + 18) * grow;
@@ -301,7 +309,7 @@ export function make({ stage, canvas, hud, lang }) {
       ];
       let exact = 0, agree = 0, enclosed = 0, clean = 0, n = 0, caught = 0;
       for (const [ids, wob, seed, grow] of tries) {
-        const loop = hand_loop(ids, wob, seed, grow), { shapes, sel } = select(loop);
+        const loop = close_loop(hand_loop(ids, wob, seed, grow)), { shapes, sel } = select(loop);
         n++; caught += sel.length;
         // the independent answer: winding number of the loop around every centre
         const want = shapes.filter((x) => winding(loop, x.c[0], x.c[1]) !== 0).map((x) => x.s.id).sort().join();

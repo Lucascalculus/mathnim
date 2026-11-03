@@ -46,10 +46,11 @@ export function make({ stage, canvas, hud, lang }) {
 
   function geo() {
     const narrow = W < 640, cw = narrow ? 78 : 124, ch = narrow ? 66 : 98, g = narrow ? 8 : 14;
-    const tray_cols = narrow ? 4 : 8, tw = tray_cols * cw + (tray_cols - 1) * g, tx = (W - tw) / 2, ty = narrow ? 28 : 64;
+    const tray_cols = narrow ? 4 : 8, tw = tray_cols * cw + (tray_cols - 1) * g, tx = (W - tw) / 2;
     const bcols = narrow ? 2 : 4, brows = 8 / bcols, pad = narrow ? 8 : 14, head = narrow ? 38 : 46;
     const bw = bcols * cw + (bcols - 1) * g + 2 * pad, bh = head + brows * ch + (brows - 1) * g + pad, bgap = narrow ? W - 2 * bw - 24 : 36;
-    const by = ty + (narrow ? 2 : 1) * (ch + g) + (narrow ? 34 : 50), bx0 = (W - 2 * bw - bgap) / 2;
+    const above = (narrow ? 2 : 1) * (ch + g) + (narrow ? 34 : 50), ty = Math.max(narrow ? 24 : 40, (H - above - bh - 90) / 2);
+    const by = ty + above, bx0 = (W - 2 * bw - bgap) / 2;
     const bins = [0, 1].map((k) => ({ x: bx0 + k * (bw + bgap), y: by, w: bw, h: bh }));
     return { narrow, cw, ch, g, tray_cols, tx, ty, bcols, pad, head, bins, reach: narrow ? 44 : 70 };
   }
