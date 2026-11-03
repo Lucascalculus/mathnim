@@ -7,10 +7,11 @@ const SOLO = Q.get('m');
 document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
 for (const el of document.querySelectorAll('[data-zh]')) el.textContent = el.dataset[LANG];
 
-const A_IDS = ['zoom', 'pull', 'time', 'guess', 'certainty', 'morph', 'patina', 'tutor', 'explode', 'reason', 'glass', 'select'];
+const A_IDS = ['algebra', 'zoom', 'pull', 'time', 'guess', 'certainty', 'morph', 'patina', 'tutor', 'explode', 'reason', 'glass', 'select'];
 const SETS = {
   'a1': { label: { zh: '界面材质 · 第一版', en: 'Interface · first pass' }, ids: A_IDS, dir: 'a1' },
   'a2': { label: { zh: '界面材质 · 第二版', en: 'Interface · second pass' }, ids: A_IDS, dir: 'a2' },
+  'm': { label: { zh: '数学实体 · 十种', en: 'Mathematical objects · ten' }, ids: ['field', 'linmap', 'complex', 'surface', 'fourier', 'topology', 'swarm', 'newton', 'tesseract', 'chladni'], dir: 'm' },
   'b': { label: { zh: '全新十种', en: 'Ten new' }, ids: [], dir: 'b' },
   'lab': { label: { zh: '物理实验室', en: 'Physics lab' }, ids: ['caustics', 'soap', 'ink', 'metal', 'filings', 'particles', 'rd', 'loupe'], dir: 'v1' },
 };

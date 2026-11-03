@@ -68,3 +68,28 @@ course. A1 liquid glass and A2 liquid selection stay as built.
 | A10 | **The tutor as light** | The AI is a light, not a character: it travels to what it speaks about, pools there, and writes | The tutor is on every page |
 | A11 | **Exploded view** | Any composite (a formula, a figure, a sentence) comes apart in depth into labelled parts and reassembles | "What is this made of" is universal |
 | A12 | **The thread of reasoning** | Steps of an argument hang on a thread; take one away and the thread goes slack | Every derivation and proof |
+
+## Built in round A so far (2026-11-03)
+
+Liquid algebra (SDF glyphs), semantic zoom, pull a noun out, time as matter, the guess object, certainty, one
+thing in another view, liquid glass, liquid selection. Still to do from the list: memory patina, the tutor as
+light, exploded view, the thread of reasoning (Lucas then asked to focus on the most next-generation, hardest
+materials, and to add ten for mathematical objects).
+
+## Ten materials for mathematical objects (Lucas: "添加 10 个对数学实体可视化的动画和材质。refine to perfect")
+
+Each is a real GPU material that could become a manim-web primitive. The object's mathematics is computed, not
+drawn.
+
+| # | Object | Material | What is exact |
+|---|---|---|---|
+| M1 | Vector field | Light that flows along it: GPU particles leave fading trails; sources glow, sinks swallow | Trails are integral curves (RK4); brightness ∝ speed |
+| M2 | Linear map | The plane as woven fabric deformed by the matrix; tiles shade by det; a negative det shows the fabric's back | Every point moves by A; tile area = |det A| |
+| M3 | Complex function | An enamel relief: height log|f|, phase as a ring of the site's pigments; zeros are wells, poles are peaks you drag | Argument principle: winding around a loop = zeros − poles |
+| M4 | Surface z = f(x, y) | Plaster ray-marched with soft shadows; contours appear as the camera rises to straight above | Contours are exact level sets |
+| M5 | Fourier series | Machined steel epicycles that draw in ink | Partial sums of the real coefficients |
+| M6 | Topology | Glass that deforms continuously (a mug into a torus) | The genus never changes |
+| M7 | Optimisation | A swarm of balls rolling on a landscape with momentum, settling into basins | Heavy-ball dynamics on ∇f |
+| M8 | Iteration | Newton's method on z³ − 1: basins as a fractal that zooms smoothly | Each pixel is iterated, never cached |
+| M9 | Four dimensions | A tesseract turning in 4D, projected in perspective with depth | Rotation in the xw plane |
+| M10 | Eigenmodes | Chladni sand on a vibrating plate: sand gathers on the nodal lines | The modes of the plate |
