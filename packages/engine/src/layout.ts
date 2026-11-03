@@ -31,6 +31,8 @@ export interface Block {
   label(): string;
   /** When space runs out, lower priorities give up their height first (default 1; a figure's main plot: 2). */
   priority?(): number;
+  /** A remark that gives way (is left out) when its column cannot fit everything at its least height. */
+  optional?: boolean;
 }
 const prio = (b: Block): number => b.priority?.() ?? 1;
 
@@ -64,6 +66,18 @@ export class Column extends Container {
     return { h: s.reduce((a, x) => a + x.h, 0) + g, min: s.reduce((a, x) => a + x.min, 0) + g, grow: s.some((x) => x.grow) };
   }
   arrange(b: Box, env: LayoutEnv): void {
+    // what cannot fit at its least height: optional remarks give way, the last first
+    let kids = this.kids;
+    const least = (ks: Block[]) => ks.reduce((a, k) => a + k.measure(b.w, env).min, 0) + this.gap(env) * Math.max(0, ks.length - 1);
+    for (let i = kids.length - 1; i >= 0 && least(kids) > b.h + 0.5; i--) {
+      if (!kids[i].optional) continue;
+      for (const t of kids[i].things()) {
+        t.dropped = true;
+        t.why.push(`left out: its column has no room (an optional remark)`);
+      }
+      kids = kids.filter((_, j) => j !== i);
+    }
+    if (kids !== this.kids) return new Column(kids, this.o).arrange(b, env);
     const gap = this.gap(env);
     const s = this.kids.map((k) => k.measure(b.w, env));
     const nat = s.reduce((a, x) => a + x.h, 0) + gap * Math.max(0, this.kids.length - 1);
@@ -172,6 +186,8 @@ export class Spacer implements Block {
 
 export const row = (kids: Block[], o?: ContainerOpts): Row => new Row(kids, o);
 export const column = (kids: Block[], o?: ContainerOpts): Column => new Column(kids, o);
+/** Mark a block as a remark that gives way when there is no room for it. */
+export const optional = <B extends Block>(b: B): B => ((b.optional = true), b);
 export const grid = (kids: Block[], cols: number, o?: ContainerOpts & { phone_cols?: number }): Grid => new Grid(kids, cols, o);
 
 // ------------------------------------------------------------------ attached labels and avoidance

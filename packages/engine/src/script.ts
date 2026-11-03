@@ -61,6 +61,8 @@ export class Timeline {
   /** Start times of sections 2, 3, … (beats). */
   sections: number[] = [];
   duration = 0;
+  /** What happens when, in words (tools/beats shows it per section). */
+  log: { t0: number; dur: number; what: string }[] = [];
   private initial: { p: Param<number>; v: number }[] = [];
   private opacity0 = new Map<Thing, number>();
 
@@ -79,9 +81,13 @@ export class Timeline {
     this.opacity0 = new Map(all_things.map((t) => [t, t.opacity.peek()]));
     // lay the steps out in time, recording each change's starting value
     let t = 0;
+    const names = (ts: Thing[]) => ts.slice(0, 4).map((x) => x.id).join(', ') + (ts.length > 4 ? ` +${ts.length - 4}` : '');
     const plan = (s: Step, at: number): number => {
       const reduced = look().reduced_motion;
-      if (s.kind === 'wait') return s.s;
+      if (s.kind === 'wait') {
+        this.log.push({ t0: at, dur: s.s, what: `wait ${s.s.toFixed(1)} s` });
+        return s.s;
+      }
       if (s.kind === 'beat') {
         this.sections.push(at);
         return 0;
@@ -93,6 +99,7 @@ export class Timeline {
       }
       const m = intent_of(s.intent);
       const dur = reduced && m.reduced === 'instant' ? 0.001 : s.kind === 'set' && s.dur ? s.dur : m.dur;
+      this.log.push({ t0: at, dur, what: s.kind === 'set' ? `${s.intent} ${s.param.name || 'param'} → ${+s.to.toFixed(3)}` : `${s.kind}(${names(s.things)})` });
       // (a motion given a shorter time than its spring needs is scaled to arrive exactly at its end)
       const end = Math.max(1e-6, spring_step(dur, m.T, m.zeta));
       const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : spring_step(u * dur, m.T, m.zeta) / end);

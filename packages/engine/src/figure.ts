@@ -153,7 +153,10 @@ export class Figure {
     const env: LayoutEnv = { look: l, lang: this.lang, phone: this.phone };
     const pad = l.space.pad * (this.phone ? 0.75 : 1);
     const inner = w - 2 * pad;
-    for (const t of this.registry.all()) t.why = [];
+    for (const t of this.registry.all()) {
+      t.why = [];
+      t.dropped = false;
+    }
     const root = this.phone && this.phone_root ? this.phone_root : this.root;
     // (things the phone composition leaves out are not shown there)
     const placed = new Set(root.things());
@@ -188,7 +191,7 @@ export class Figure {
   private body(): Thing[] {
     const overlay = new Set<Thing>([...this.labels, ...this.handles]);
     const shown = (t: Thing) => !this.placed || this.placed.has(t) || !!(t as { plot?: Thing }).plot && this.placed.has((t as { plot?: Thing }).plot!);
-    return this.registry.ordered().filter((t) => !overlay.has(t) && shown(t));
+    return this.registry.ordered().filter((t) => !overlay.has(t) && shown(t) && !t.dropped);
   }
   /** Put the attached labels where they hide least (in order; each placed label becomes an obstacle for the next). */
   place_labels(): void {

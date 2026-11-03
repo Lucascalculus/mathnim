@@ -4,6 +4,7 @@ import { createCanvas } from '@napi-rs/canvas';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ScenePlayer } from 'manim-web/ext/player';
+import { node_player } from '../../../packages/engine/node';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { all_lessons, load_all_lessons } from '../src/course';
 
@@ -21,8 +22,8 @@ for (const s of lesson.steps) {
   if (!spec) continue;
   const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec(ctx);
   const canvas = createCanvas(1280, 720);
-  const player = new ScenePlayer(scene, canvas as any, { audio: false });
-  apply_theme(player);
+  const player = node_player(scene, canvas, 1280, 720);
+  if (player instanceof ScenePlayer) apply_theme(player);
   await player.load();
   const shots: [string, () => void][] = [['end', () => player.show_end()]];
   if (player.total_frames > 30) shots.unshift(['mid', () => { player.compute_frame(Math.floor(player.total_frames * 0.45)); player.draw(); }]);

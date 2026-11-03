@@ -9,7 +9,7 @@
 // labels); the legend sits outside the plot and each entry comes in with its line; on a phone the panels stack and
 // every word stays at its size; the contours are one GPU field instead of six polylines rebuilt per frame.
 import {
-  Figure, Field, Marker, Path, Region, beat, column, derive, quadratic, reveal, row, set, t, together, wait,
+  Figure, Field, Marker, Path, Region, beat, column, derive, optional, quadratic, reveal, row, set, t, together, wait,
   type Param, type Step, type XY,
 } from '@mathnim/engine';
 import { define_figure } from '../visual';
@@ -162,7 +162,7 @@ export function qp_figure(p: QpFigureParams): QpFigure {
   }));
   const dots_bad = track.add(position_dots(() => (!view().feasible ? predicted(view().x0, [-1, -1]).map((s) => s[0]).filter((q) => q > 10 && q < 10.4) : []), { id: 'plan_dots_bad', role: 'noun:wall' }));
   const arrow = track.add(speed_arrow(() => p0.value, () => v0.value));
-  const speed_word = fig.label(() => `v_0 = ${v0.value.toFixed(2)}\\,\\mathrm{m/s}`, () => (arrow.box.w ? ([arrow.box.x + arrow.box.w, arrow.box.y + arrow.box.h / 2] as XY) : null), { id: 'speed_word', tex: true, role: 'noun:speed', sides: ['right', 'above', 'left'], own: [arrow], within: () => track.box });
+  const speed_word = fig.label(() => `v_0 = ${v0.value.toFixed(2)}\\,\\mathrm{m/s}`, () => (arrow.box.w ? ([arrow.box.x + arrow.box.w, arrow.box.y + arrow.box.h / 2] as XY) : null), { id: 'speed_word', tex: true, role: 'noun:speed', sides: ['right', 'above', 'left'], within: () => track.box });
   void speed_word;
   const track_key = fig.legend([{ role: 'noun:plan', text: t('最优计划在接下来 2 秒里让小车到达的位置', 'where the best plan takes the cart in the next 2 s'), mark: 'dot', show: () => (grown() ? 1 : 0) }], { id: 'track_key' });
   const pad = fig.plot({
@@ -180,7 +180,7 @@ export function qp_figure(p: QpFigureParams): QpFigure {
   // side, above the cart it moves; on a phone it is all one column in reading order)
   fig.layout(row([
     column([legend, plane], { gap: 8 }),
-    column([readout, active, track, track_key, pad_title, pad], { gap: 8 }),
+    column([readout, active, track, optional(track_key), optional(pad_title), pad], { gap: 8 }),
   ], { weights: [1.08, 1], gap: 28 }), {
     // a phone: the pad the hand moves sits right under the plane it changes (both on one screen); the cart after
     phone: column([legend, plane, readout, pad, active, track, track_key], { gap: 10 }),

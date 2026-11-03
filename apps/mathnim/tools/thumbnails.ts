@@ -8,6 +8,7 @@
 import { createCanvas } from '@napi-rs/canvas';
 import { init_tex } from 'manim-web';
 import { ScenePlayer } from 'manim-web/ext/player';
+import { node_player } from '../../../packages/engine/node';
 import { load_fonts } from 'manim-web/ext/text/fonts';
 import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
 import { LANGS, lesson_langs, type Lang } from '@mathnim/core';
@@ -42,8 +43,8 @@ for (const cl of all_lessons()) {
       const spec = step.scene;
       const scene = /^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec({ vars: {}, rng: () => 0.5, lang });
       const canvas = createCanvas(640, 360);
-      const player = new ScenePlayer(scene, canvas as any, { audio: false });
-      apply_theme(player);
+      const player = node_player(scene, canvas, 640, 360);
+      if (player instanceof ScenePlayer) apply_theme(player);
       await player.load();
       player.show_end();
       fs.writeFileSync(path.join(out, `${cl.id}.${lang}.webp`), await canvas.encode('webp', 82));
@@ -73,8 +74,8 @@ if (!only.length || only.includes('features')) {
       await with_cjk(async () => {
         set_ft_lang(lang);
         const canvas = createCanvas(1280, 720);
-        const player = new ScenePlayer(v.scene(check_params(v, { ...f.params, lang }).params), canvas as any, { audio: false });
-        apply_theme(player);
+        const player = node_player(v.scene(check_params(v, { ...f.params, lang }).params), canvas, 1280, 720);
+        if (player instanceof ScenePlayer) apply_theme(player);
         await player.load();
         if (f.t !== undefined) player.seek_time(Math.min(f.t, player.duration));
         else player.show_end();

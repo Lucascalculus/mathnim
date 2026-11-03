@@ -2,7 +2,9 @@
 // draw on the CPU, and a figure is linted where a learner would see it: wide and on a phone, at the end of every
 // section of its script.
 import { createCanvas, Path2D, type Canvas } from '@napi-rs/canvas';
-import { set_canvas_factory, set_gpu_tier, set_measure_context, type Figure, type Issue } from './src/index';
+import type { Scene } from 'manim-web';
+import { ScenePlayer } from 'manim-web/ext/player';
+import { FigurePlayer, is_figure, set_canvas_factory, set_gpu_tier, set_measure_context, type Figure, type Issue } from './src/index';
 
 let ready = false;
 export function use_node_canvas(): void {
@@ -58,4 +60,13 @@ export function lint_figure(fig: Figure): FigureIssue[] {
   }
   fig.at(fig.duration);
   return out;
+}
+
+/** The player for a step's picture in node: a manim scene's, or a figure's laid out at w × h (tools: snapshots, thumbnails). */
+export function node_player(stage: unknown, canvas: Canvas, w: number, h: number): ScenePlayer | FigurePlayer {
+  if (is_figure(stage)) {
+    use_node_canvas();
+    return new FigurePlayer(stage, canvas as unknown as OffscreenCanvas, { size: { w, h }, audio: false });
+  }
+  return new ScenePlayer(stage as Scene, canvas as unknown as OffscreenCanvas, { audio: false });
 }

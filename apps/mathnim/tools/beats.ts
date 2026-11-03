@@ -13,6 +13,8 @@ import { BEAT, BEAT_LEAD, VOICE_DELAY, lesson_langs, narration_key, scene_beats,
 import fs from 'node:fs';
 import path from 'node:path';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
+import { is_figure } from '@mathnim/engine';
+import { use_node_canvas } from '../../../packages/engine/node';
 import { all_lessons, load_all_lessons } from '../src/course';
 
 const LATE = 0.5, TAIL = 3;
@@ -48,12 +50,21 @@ for (const l of all_lessons()) {
     seen++;
     const spec = (s as any).scene;
     const make = () => (/^class\b/.test(Function.prototype.toString.call(spec)) ? new spec() : spec(ctx));
-    const player: ScenePlayer = await with_cjk(async () => {
-      const p = new ScenePlayer(make(), createCanvas(320, 180) as any, { audio: false });
+    const timed: Timed = await with_cjk(async () => {
+      const stage = make();
+      if (is_figure(stage)) {
+        // an engine figure: its script is laid out in time as it is built (no frames to record)
+        use_node_canvas();
+        stage.build();
+        return { starts: stage.section_starts(), length: stage.duration, items: stage.timeline!.log };
+      }
+      const p = new ScenePlayer(stage, createCanvas(320, 180) as any, { audio: false });
       await p.load();
-      return p;
+      let f = 0;
+      const items = p.scene.segments.map((sg) => ((f += sg.n_frames), { t0: (f - sg.n_frames) * p.dt, dur: sg.n_frames * p.dt, what: what(sg) }));
+      return { starts: p.section_starts(), length: p.natural_duration, items };
     });
-    const ok = check(lesson, s.id, s.narration, player);
+    const ok = check(lesson, s.id, s.narration, timed);
     if (!ok) failed++;
   }
 }
@@ -64,17 +75,16 @@ if (!seen) {
 console.log(`\n${seen - failed}/${seen} scenes pass`);
 process.exitCode = failed ? 1 : 0;
 
-function check(lesson: Lesson, step: string, narration: L10n, p: ScenePlayer): boolean {
-  const starts = p.section_starts(), length = p.natural_duration;
-  const segs = p.scene.segments;
+/** A picture on its own clock: where its sections start, how long it is, and what happens when. */
+interface Timed { starts: number[]; length: number; items: { t0: number; dur: number; what: string }[] }
+function check(lesson: Lesson, step: string, narration: L10n, p: Timed): boolean {
+  const { starts, length, items } = p;
   const bounds = [0, ...starts.map((t) => (t < 0 ? length : t)), length];
   console.log(`\n${lesson.id}/${step} · picture ${s1(length)} s · ${starts.length} section${starts.length === 1 ? '' : 's'} (next_section)`);
   // the sections, with what plays in each
-  let f = 0;
-  const seg_at = segs.map((sg) => ((f += sg.n_frames), (f - sg.n_frames) * p.dt));
   for (let k = 0; k + 1 < bounds.length; k++) {
-    const inside = segs.filter((_, i) => seg_at[i] >= bounds[k] - 1e-6 && seg_at[i] < bounds[k + 1] - 1e-6);
-    console.log(`  section ${k}  ${s1(bounds[k]).padStart(5)}–${s1(bounds[k + 1])} s  ${inside.map(what).join(' · ') || '(nothing plays)'}`);
+    const inside = items.filter((it) => it.t0 >= bounds[k] - 1e-6 && it.t0 < bounds[k + 1] - 1e-6);
+    console.log(`  section ${k}  ${s1(bounds[k]).padStart(5)}–${s1(bounds[k + 1])} s  ${inside.map((it) => it.what).join(' · ') || '(nothing plays)'}`);
   }
   let ok = true;
   for (const lang of lesson_langs(lesson)) {
