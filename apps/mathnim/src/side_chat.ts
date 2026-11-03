@@ -18,8 +18,9 @@
 // opens above it; notes sit under their paragraph.
 // The question goes out with the lesson, the step, what is on screen, the
 // selected sentence and the learner's recent mistakes; answers stream.
-import { AskPanel, RECORDED, RECORDED_TEXT, fit_into_text, propose_page, recorded_question, worker_validator, write_page, type AskContext, type PageProposal, type SavedPicture } from '@mathnim/ai';
-import { describe_step, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
+import { AskPanel, RECORDED, RECORDED_TEXT, fit_into_text, propose_page, recorded_question, worker_validator, write_page, type AskContext, type PageProposal, type SavedPicture, type TutorHands } from '@mathnim/ai';
+import { describe_step, is_figure_player, is_text_step, tr, type Lesson, type Step } from '@mathnim/core';
+import { manifest_of } from '@mathnim/engine';
 import { esc, math_html, reading, t, ui_lang, type LessonView } from '@mathnim/present';
 import { add_answer, add_page, added_answers, added_pages, is_added_page, remove_answer, remove_page, type AddedAnswer } from './added';
 import { lesson_path, type CourseLesson } from './course';
@@ -415,6 +416,7 @@ class Note {
       backend, validate: worker_validator(), log, lesson, thread: true, read_aloud: false,
       placeholder: this.turns_shown ? t('ask_more') : t('ask_short'), history: (saved?.turns ?? []).filter((x) => x.a).map(({ q, a }) => ({ q, a })),
       context: (): AskContext => rail.context(),
+      hands: () => rail.hands(),
       // a note's passage goes with every question asked in it
       extra: () => {
         const selected = this.quote || this.phrase;
@@ -787,6 +789,12 @@ export class AskRail {
   on_text_page(): boolean {
     const s = this.view?.runtime.step;
     return !!s && is_text_step(s);
+  }
+  /** The tutor's hands in the figure on screen (an engine figure; a manim scene or a text page has none). */
+  hands(): TutorHands | null {
+    const p = this.view?.runtime.player;
+    if (!p || !is_figure_player(p) || this.on_text_page()) return null;
+    return { manifest: () => manifest_of(p.scene), act: (a) => p.act(a) };
   }
 
   /** Delete a note: its conversation, its marks in the text. */

@@ -2,6 +2,7 @@
 // CONTEXT block.
 import { UNANSWERED } from './scene';
 import type { AskContext } from '../prompt';
+import { acts_prompt } from '../acts';
 
 export const TUTOR_RULES = `You are Mathnim, a patient tutor (mathematics and machine learning). A student asked a question while working in an interactive lesson.
 You know what is on their screen, how well they know each skill, and mistakes they have made.
@@ -41,5 +42,5 @@ export function context_block(ctx: AskContext = {}, o: { max_screen?: number } =
 
 /** The user message: the student's context, then their question. */
 export function tutor_prompt(question: string, ctx: AskContext = {}): string {
-  return `${context_block(ctx)}\n\nQUESTION: ${question}`;
+  return `${context_block(ctx)}${acts_prompt(ctx)}\n\nQUESTION: ${question}`;
 }
