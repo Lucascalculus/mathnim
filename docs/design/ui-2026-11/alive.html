@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mathnim · 笔</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* 笔 (The pen): the tutor as a living pen in the margin (alive.md). No face, no body: life comes from how it moves
+   (Heider & Simmel), from looking where you look (joint attention), from thinking you can see (it underlines, circles
+   and sketches before it answers) and from a voice that remembers you. It is still when you are; it never loops. */
+:root { --w: 1200px; --side: 48px; --ink-pen: #1d2024; }
+.wrap { max-width: calc(var(--w) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+.bar { height: 64px; display: flex; align-items: center; }
+.bar .logo { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; }
+.bar .logo svg { width: 22px; height: 22px; }
+.bar nav { margin-left: auto; display: flex; gap: 22px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.me { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1.4px var(--ink); display: grid; place-items: center; font: 600 13px/1 var(--serif); color: var(--ink); }
+
+/* ---------------------------------------------------------------- the pen and its ink */
+#ink { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30; overflow: visible; }
+#ink path.m { fill: none; stroke: var(--ink-pen); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .88; }
+#ink path.m.acc { stroke: var(--accent); opacity: 1; }
+#ink path.m.thin { stroke-width: 1.1; }
+#ink path.fill { stroke: none; fill: var(--accent); opacity: 0; transition: opacity .5s; }
+#ink path.fill.on { opacity: .16; }
+#ink path.fill.ink.on { fill: var(--ink-pen); opacity: .09; }
+#ink path.dots { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1.5 4; opacity: 0; transition: opacity .4s; }
+#ink path.dots.on { opacity: .9; }
+#nib { position: absolute; left: 0; top: 0; z-index: 31; width: 0; height: 0; pointer-events: none; }
+#nib svg { position: absolute; left: -24px; top: -24px; width: 48px; height: 48px; overflow: visible; }
+#nib .ask { position: absolute; left: 10px; top: -15px; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; pointer-events: auto; transform-origin: 0 50%; box-shadow: var(--lift); white-space: nowrap; }
+.label-ink { position: absolute; z-index: 31; font: 500 11.5px/1.2 var(--sans); letter-spacing: 0; color: var(--ink2); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.label-ink.on { opacity: 1; }
+.label-ink.acc { color: var(--accent); }
+
+/* what the pen writes: its voice is serif; its questions are short and lean a little */
+.pnote { position: absolute; z-index: 29; width: 300px; }
+.pnote .pq { font: 600 14px/1.55 var(--sans); color: var(--ink); margin-bottom: 6px; }
+.pnote .pa { font: 15.5px/1.8 var(--serif); color: var(--ink2); }
+.pnote .pa mjx-container svg { font-size: 92%; }
+.pnote .w { opacity: 0; transition: opacity .12s; }
+.pnote .w.on { opacity: 1; }
+.pnote .sketch { height: 0; }
+.offer { position: absolute; z-index: 29; width: 300px; font: italic 15px/1.6 var(--serif); color: var(--ink2); cursor: pointer; padding: 2px 0; }
+.offer:hover { color: var(--ink); }
+.offer .w { opacity: 0; transition: opacity .12s; }
+.offer .w.on { opacity: 1; }
+.margin-old { position: absolute; z-index: 29; width: 260px; font: italic 14px/1.6 var(--serif); color: var(--ink2); transform: rotate(-1.2deg); }
+
+/* ---------------------------------------------------------------- home */
+.hello { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s8); padding: var(--s8) 0 var(--s9); align-items: center; }
+.hello .say-big { font: 31px/1.6 var(--serif); color: var(--ink); min-height: 4.8em; letter-spacing: .005em; }
+.hello .say-big .w { opacity: 0; transition: opacity .12s; }
+.hello .say-big .w.on { opacity: 1; }
+.hello .go { margin-top: var(--s6); display: flex; gap: var(--s4); align-items: center; }
+.hello .go .mono { color: var(--muted); }
+.hello .plate { box-shadow: 0 0 0 1px var(--hair), var(--lift-hi); }
+.rows > .mono { color: var(--muted); display: flex; justify-content: space-between; border-bottom: 1px solid var(--ink); padding-bottom: var(--s4); }
+.crow { display: grid; grid-template-columns: 300px minmax(0, 1fr) 300px; gap: var(--s6); align-items: center; padding: var(--s5) 0; border-bottom: 1px solid var(--hair); position: relative; }
+.crow .t { font-size: 22px; font-weight: 650; letter-spacing: -.02em; margin: 8px 0 6px; }
+.crow .mono { color: var(--muted); }
+.crow p { color: var(--ink2); font-size: 14.5px; line-height: 1.65; }
+.crow .ticks { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 12px; }
+.crow .ticks i { width: 4px; height: 11px; background: var(--hair2); }
+.crow .ticks i.done { background: var(--accent); }
+.crow .ticks i.cur { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.crow .ticks i.gap { width: 6px; background: none; }
+.crow .scrawl { font: italic 15px/1.6 var(--serif); color: var(--ink2); transform: rotate(-1deg); }
+.contents { aspect-ratio: 16 / 10; background: var(--white); padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.contents .h { font: 650 17px/1.25 var(--sans); }
+.contents ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.contents li { font-size: 11.5px; line-height: 1.45; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contents li span { font: 500 10px/1.6 var(--mono); color: var(--muted); margin-right: 8px; }
+
+/* ---------------------------------------------------------------- course */
+.c-head { padding: var(--s7) 0 var(--s6); max-width: 760px; }
+.c-head .back { color: var(--muted); }
+.c-head h1 { font-size: var(--t-course); line-height: 1; letter-spacing: -.045em; margin: var(--s5) 0; font-weight: 700; }
+.c-head p { color: var(--ink2); font-size: 18px; line-height: 1.7; }
+.plan { margin: var(--s7) 0 var(--s9); position: relative; }
+.plan .bays { display: flex; gap: 3px; height: 34px; }
+.plan .bay { flex: var(--m) 1 0; background: var(--wash); box-shadow: inset 0 0 0 1px var(--hair); }
+.plan .bay.done { background: var(--accent); box-shadow: none; }
+.plan .bay.current { background: var(--white); box-shadow: inset 0 0 0 2px var(--accent); }
+.plan .sep { flex: 0 0 18px; }
+.plan .names { display: flex; gap: 3px; margin-top: 10px; }
+.plan .names span { flex: var(--m) 1 0; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.plan .names .sep { flex: 0 0 18px; }
+.works { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s6) var(--s5); padding-bottom: var(--s10); }
+.work .t { font-size: 15px; font-weight: 600; line-height: 1.4; margin-top: 12px; }
+.work .mono { color: var(--muted); margin-top: 4px; }
+.work.current .plate { box-shadow: 0 0 0 1.5px var(--accent), var(--lift); }
+
+/* ---------------------------------------------------------------- lesson */
+.l-bar { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s5); }
+.l-bar .crs { color: var(--muted); font-size: 13.5px; }
+.l-bar h1 { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
+.l-bar .count { justify-self: end; color: var(--muted); }
+.strip { display: block; width: 100%; height: 30px; overflow: visible; }
+.strip .s { cursor: pointer; }
+.room { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s8); padding: var(--s6) 0 var(--s10); align-items: start; }
+.room.text { grid-template-columns: minmax(0, 640px) 300px; gap: var(--s7); }
+.room .main { min-width: 0; }
+.room .text { max-width: 640px; }
+.step-h { margin: 0 0 var(--s5); }
+.step-h .mono { color: var(--muted); }
+.step-h h2 { margin: 8px 0 0; font-size: var(--t-step); line-height: 1.25; letter-spacing: -.02em; font-weight: 650; }
+.read p { font-size: var(--t-body); line-height: 1.8; margin: 0 0 var(--s5); color: #202328; }
+.read p b { font-weight: 650; }
+.read sup { font: 600 10.5px/1 var(--mono); color: var(--accent); margin-left: 2px; }
+.read .aside-note { border-left: 2px solid var(--ink); padding: 2px 0 2px var(--s5); margin: var(--s6) 0; color: var(--ink2); font-size: 15.5px; line-height: 1.75; }
+.stage .plate.full { box-shadow: 0 0 0 1px var(--hair), var(--lift-hi); }
+.stage .aside { margin-top: 12px; color: var(--muted); font-size: 12.5px; }
+.player { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--s4); align-items: center; margin-top: var(--s5); }
+.player .pp { width: 44px; height: 44px; border-radius: 22px; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.player .pp svg { width: 14px; height: 14px; }
+.player .segs { display: flex; gap: 4px; height: 20px; align-items: center; }
+.player .segs i { flex: 1; height: 3px; background: var(--hair2); position: relative; border-radius: 2px; overflow: hidden; }
+.player .segs i b { position: absolute; inset: 0; width: var(--p, 0%); background: var(--ink); transition: width .25s linear; }
+.player .mono { color: var(--muted); }
+.say { margin-top: var(--s5); font-size: 19px; line-height: 1.75; max-width: 40em; min-height: 3.5em; }
+.quiz .q { font-size: 20px; line-height: 1.7; margin-bottom: var(--s6); }
+.quiz .opt { display: grid; grid-template-columns: 32px 1fr auto; gap: var(--s3); align-items: center; width: 100%; text-align: left; padding: 15px 18px; margin-bottom: 10px; background: var(--white); box-shadow: inset 0 0 0 1px var(--hair2); font-size: 16.5px; line-height: 1.6; }
+.quiz .opt:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.quiz .opt .mono { color: var(--muted); }
+.quiz .opt.right { box-shadow: inset 0 0 0 2px var(--accent); }
+.quiz .opt.wrong { color: var(--muted); }
+.next { margin-top: var(--s7); display: flex; align-items: center; gap: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--hair); }
+.next .peek { color: var(--faint); font-size: 14px; }
+.next .btn { margin-left: auto; }
+
+@media (max-width: 1100px) {
+  :root { --side: 24px; }
+  .hello, .crow { grid-template-columns: 1fr; gap: var(--s5); }
+  .room, .room.text { grid-template-columns: minmax(0, 1fr); }
+  .works { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* on narrow screens the pen writes in the text's own flow, just below the paragraph */
+  .pnote, .offer { position: relative !important; left: auto !important; top: auto !important; width: auto; margin: -8px 0 var(--s5) 18px; }
+  .sketch-box { height: 150px; margin: 0 0 var(--s4) 18px; }
+}
+@media (max-width: 700px) {
+  :root { --side: 20px; --t-course: 44px; }
+  .hello .say-big { font-size: 24px; }
+  .bar nav a { display: none; }
+  .l-bar h1 { display: none; }
+  .l-bar { grid-template-columns: 1fr auto; }
+  .read p { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<svg id="ink"></svg>
+<div id="nib"><svg viewBox="-24 -24 48 48"><g id="nibg"><path d="M0 0 L-13 -4.6 Q-17.5 0 -13 4.6 Z" fill="var(--ink-pen)"/><path d="M-2.6 0 L-10.5 0" stroke="var(--paper)" stroke-width="1.1" stroke-linecap="round"/><circle cx="-10.8" cy="0" r="1.3" fill="var(--accent)"/></g></svg></div>
+<script src="data.js"></script>
+<script src="base.js"></script>
+<script>
+const { courses, lesson, course, all, current, recent, esc, hours, pad, plate, kind_mark, KIND, ARROW, LOGO, reduced } = UI;
+const accent = (c) => document.documentElement.style.setProperty('--accent', c.accent);
+const sleep = (ms) => new Promise((r) => setTimeout(r, reduced() ? 0 : ms));
+const doc = (r) => ({ left: r.left + scrollX, top: r.top + scrollY, right: r.right + scrollX, bottom: r.bottom + scrollY, width: r.width, height: r.height });
+const AUTO = /auto/.test(location.search);
+
+// ---------------------------------------------------------------- hand-drawn marks
+/** A tiny seeded random, so the same mark is drawn the same way each time. */
+function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+/** A smooth path through points (Catmull–Rom as cubic Béziers): a pen's line, not a polyline. */
+function smooth(pts) {
+  if (pts.length < 2) return '';
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+/** Straight segments, each split into short pieces with a small tremor: hand-drawn, yet true to the geometry. */
+function wobble(pts, amt = 0.7, seed = 9) {
+  const r = rng(seed);
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / 14));
+    const nx = -(y1 - y0), ny = x1 - x0, l = Math.hypot(nx, ny) || 1;
+    for (let k = 1; k <= n; k++) {
+      const u = k / n, e = k === n ? 0 : (r() - .5) * amt * 2;
+      d += `L${(x0 + (x1 - x0) * u + (nx / l) * e).toFixed(1)},${(y0 + (y1 - y0) * u + (ny / l) * e).toFixed(1)}`;
+    }
+  }
+  return d;
+}
+const jitter = (pts, amt, seed = 7) => { const r = rng(seed); return pts.map(([x, y], i) => (i === 0 || i === pts.length - 1 ? [x + (r() - .5) * amt * .6, y + (r() - .5) * amt * .6] : [x + (r() - .5) * amt, y + (r() - .5) * amt])); };
+const SHAPES = {
+  underline(r, seed) { const n = 7, y = r.bottom + 3; return smooth(jitter(Array.from({ length: n }, (_, i) => [r.left - 2 + (i / (n - 1)) * (r.width + 6), y + Math.sin(i * 1.3) * .6 - i * .25]), 1.4, seed)); },
+  circle(r, seed) {
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, rx = r.width / 2 + 12, ry = r.height / 2 + 9, R = rng(seed), a0 = -2.5;
+    return smooth(Array.from({ length: 30 }, (_, i) => { const a = a0 + (i / 29) * Math.PI * 2.12, k = 1 + (R() - .5) * .05 + i * .002; return [cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]; }));
+  },
+  arrow(a, b, bend = 0.25, seed = 3) {
+    const mx = (a[0] + b[0]) / 2 + (b[1] - a[1]) * bend, my = (a[1] + b[1]) / 2 - (b[0] - a[0]) * bend;
+    const body = smooth(jitter([a, [(a[0] + mx) / 2, (a[1] + my) / 2], [mx, my], [(mx + b[0]) / 2, (my + b[1]) / 2], b], 1.5, seed));
+    const ang = Math.atan2(b[1] - my, b[0] - mx), h = 9;
+    const head = smooth([[b[0] - h * Math.cos(ang - .45), b[1] - h * Math.sin(ang - .45)], b, [b[0] - h * Math.cos(ang + .45), b[1] - h * Math.sin(ang + .45)]]);
+    return [body, head];
+  },
+  tick(x, y) { return smooth([[x - 8, y - 1], [x - 3, y + 5], [x + 10, y - 10]]); },
+  line(a, b, seed = 5) { return wobble([a, b], .6, seed); },
+};
+
+// ---------------------------------------------------------------- the pen
+/**
+ * One pen on the page. Its position and angle follow springs that can be retargeted at any time (it never jumps and
+ * never waits for itself); drawing makes the nib travel along the very line it draws; writing makes the nib lead
+ * the words, pausing at punctuation the way a voice does.
+ */
+const Pen = (() => {
+  const nib = document.getElementById('nib'), g = document.getElementById('nibg'), ink = document.getElementById('ink');
+  const s = { x: -60, y: 120, vx: 0, vy: 0, tx: -60, ty: 120, a: 180, va: 0, ta: 180, k: 120, c: 22 };
+  let busy = 0, held = false;
+  function frame() {
+    const dt = 1 / 60;
+    if (!held) {
+      s.vx += (s.k * (s.tx - s.x) - s.c * s.vx) * dt; s.x += s.vx * dt;
+      s.vy += (s.k * (s.ty - s.y) - s.c * s.vy) * dt; s.y += s.vy * dt;
+    }
+    let da = ((s.ta - s.a + 540) % 360) - 180;
+    s.va += (90 * da - 19 * s.va) * dt; s.a += s.va * dt;
+    nib.style.transform = `translate(${s.x}px, ${s.y}px)`;
+    g.setAttribute('transform', `rotate(${s.a})`);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const size = () => { ink.setAttribute('width', document.documentElement.scrollWidth); ink.setAttribute('height', document.documentElement.scrollHeight); };
+  addEventListener('resize', size);
+  /** Go somewhere (document coordinates); `soft` makes it a slower, more patient follow. */
+  function to(x, y, { soft = false } = {}) { s.tx = x; s.ty = y; s.k = soft ? 55 : 120; s.c = soft ? 15 : 22; if (reduced()) { s.x = x; s.y = y; } }
+  function jump(x, y) { s.x = s.tx = x; s.y = s.ty = y; s.vx = s.vy = 0; }
+  /** Turn the nib toward a point (joint attention: it looks where you look). */
+  function look(x, y) { s.ta = (Math.atan2(y - s.ty, x - s.tx) * 180) / Math.PI; }
+  function face(deg) { s.ta = deg; }
+  const arrive = async (x, y) => { to(x, y); for (let i = 0; i < 60; i++) { await sleep(16); if (Math.hypot(s.x - x, s.y - y) < 2) break; } };
+  /** Draw a path: the nib rides the line as it appears. */
+  async function draw(d, { cls = 'm', ms = 520 } = {}) {
+    size();
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('class', cls);
+    ink.append(p);
+    const L = p.getTotalLength();
+    if (reduced()) return p;
+    p.style.strokeDasharray = `${L}`;
+    p.style.strokeDashoffset = `${L}`;
+    const start = p.getPointAtLength(0);
+    await arrive(start.x, start.y);
+    held = true;
+    const t0 = performance.now();
+    await new Promise((done) => {
+      const step = (t) => {
+        const u = Math.min(1, (t - t0) / ms), e = u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+        const pt = p.getPointAtLength(e * L), pt2 = p.getPointAtLength(Math.min(L, e * L + 2));
+        s.x = s.tx = pt.x; s.y = s.ty = pt.y; s.vx = s.vy = 0;
+        s.ta = (Math.atan2(pt2.y - pt.y, pt2.x - pt.x) * 180) / Math.PI + 140;
+        p.style.strokeDashoffset = `${L * (1 - e)}`;
+        if (u < 1) requestAnimationFrame(step); else done();
+      };
+      requestAnimationFrame(step);
+    });
+    held = false;
+    return p;
+  }
+  /** A moment of thought: two small dips of the nib, then still. Never a loop. */
+  async function think() { for (const dy of [3, -1, 2.5, 0]) { s.ty += dy; await sleep(140); } }
+  /**
+   * Write into `el` (already holding the words as hidden spans .w): each word appears under the nib; commas and
+   * full stops are rests.
+   */
+  async function write(el, { pace = 30 } = {}) {
+    const ws = [...el.querySelectorAll('.w')];
+    for (const w of ws) {
+      w.classList.add('on');
+      const r = doc(w.getBoundingClientRect());
+      to(r.right + 4, r.bottom - 3);
+      s.ta = 125;
+      const t = w.textContent;
+      await sleep(w.dataset.tex ? 260 : /[。！？]$/.test(t) ? 380 : /[，、；：,]$/.test(t) ? 190 : pace);
+    }
+  }
+  const label = (x, y, text, acc = false) => { const el = document.createElement('div'); el.className = `label-ink${acc ? ' acc' : ''}`; el.innerHTML = text; el.style.left = `${x}px`; el.style.top = `${y}px`; document.body.append(el); requestAnimationFrame(() => el.classList.add('on')); return el; };
+  const clear = () => { ink.innerHTML = ''; document.querySelectorAll('.label-ink,.pnote,.offer,.margin-old').forEach((x) => x.remove()); };
+  return { to, jump, look, face, draw, think, write, label, clear, size, get busy() { return busy > 0; }, set busy(v) { busy = Math.max(0, busy + (v ? 1 : -1)); }, s };
+})();
+
+/** Words as hidden spans for the pen to write: characters one by one, a formula as one piece. */
+function words(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const out = [];
+  const walk = (node, wrapB) => {
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === 3) for (const ch of n.textContent) out.push(wrapB ? `<b class="w">${esc(ch)}</b>` : `<span class="w">${esc(ch)}</span>`);
+      else if (n.tagName === 'MJX-CONTAINER' || n.classList?.contains('nb') && n.querySelector('mjx-container')) out.push(`<span class="w" data-tex="1">${n.outerHTML}</span>`);
+      else if (n.tagName === 'B') walk(n, true);
+      else walk(n, wrapB);
+    });
+  };
+  walk(tmp, false);
+  return out.join('');
+}
+
+// ---------------------------------------------------------------- shared bits
+const bar = () => `<header class="wrap bar"><a class="logo" href="#/">${LOGO}Mathnim</a><nav><a href="#">数据</a><a href="#">设置</a><span class="me">L</span></nav></header>`;
+const ticks = (c) => `<span class="ticks">${c.units.map((u) => u.lessons.map((l) => `<i class="${l.status === 'done' ? 'done' : l.status === 'current' ? 'cur' : ''}"></i>`).join('')).join('<i class="gap"></i>')}</span>`;
+function course_plate(c) {
+  if (c.cover) return plate({ thumb: c.cover, title: c.title }, { full: true });
+  return `<span class="plate"><span class="contents"><span class="h">${esc(c.title)}</span><ol>${c.units.slice(0, 5).map((u, i) => `<li><span>${pad(i + 1)}</span>${esc(u.title)}</li>`).join('')}</ol></span><span class="crops"><i></i><i></i><i></i><i></i></span></span>`;
+}
+// what the pen has written on your timetable: only what the page doesn't already show, and only what is true
+const SCRAWL = {
+  econ90015: '还剩 8 课。考试是哪天？告诉我，我帮你排。',
+};
+
+// ---------------------------------------------------------------- home: it writes you a line
+async function home(app) {
+  const c = recent(), cur = current(c), p = c.progress;
+  accent(c);
+  app.innerHTML = `${bar()}
+  <main class="wrap">
+    <section class="hello">
+      <div><div class="say-big" id="hi"></div>
+        <div class="go"><a class="btn primary" id="go" href="#/lesson/6">继续 ${ARROW}</a><span class="mono">${esc(c.title)} · 第 ${all(c).indexOf(cur) + 1} 课 · 第 ${p.step} 步</span></div></div>
+      <a href="#/lesson/6">${plate(cur)}</a>
+    </section>
+    <section class="rows"><div class="mono"><span>你的课</span><span>${courses.length} 门</span></div>
+      ${courses.map((x) => `<a class="crow" href="#/course/${x.id}" style="--accent:${x.accent}">${course_plate(x)}<div><div class="mono">${x.lessonCount} 课 · ${hours(x.minutes)}${x.progress ? ` · 学过 ${x.progress.done}` : ''}</div><div class="t">${esc(x.title)}</div><p>${esc(x.summary)}</p>${ticks(x)}</div><div class="scrawl">${esc(SCRAWL[x.id] || '')}</div></a>`).join('')}
+    </section>
+  </main>`;
+  Pen.size();
+  const hi = app.querySelector('#hi'), go = app.querySelector('#go');
+  // what it says is your situation, not a welcome
+  hi.innerHTML = words('上次你停在“总量相同，时机不同”。小车还停在墙后 7.5 厘米，等你把它停好。');
+  const r0 = doc(hi.getBoundingClientRect()), gb = doc(go.getBoundingClientRect());
+  let seen = false;
+  try { seen = sessionStorage.getItem('pen-hello') === '1'; sessionStorage.setItem('pen-hello', '1'); } catch {}
+  if (seen && !AUTO) {
+    hi.querySelectorAll('.w').forEach((w) => w.classList.add('on'));
+    const last = doc([...hi.querySelectorAll('.w')].pop().getBoundingClientRect());
+    Pen.jump(last.right + 10, last.bottom - 4);
+  } else {
+    Pen.jump(r0.left - 30, r0.top + 20);
+    Pen.busy = true;
+    await sleep(300);
+    await Pen.write(hi, { pace: 34 });
+    Pen.busy = false;
+  }
+  Pen.face(160);
+}
+
+// ---------------------------------------------------------------- course: its notes on the plan
+async function coursePage(app, id) {
+  const c = course(id) || course('mpc'), L = all(c);
+  accent(c);
+  const bays = c.units.map((u) => u.lessons.map((l) => `<span class="bay ${l.status}" data-n="${L.indexOf(l) + 1}" style="--m:${l.minutes || 15}"></span>`).join('')).join('<span class="sep"></span>');
+  const names = c.units.map((u) => `<span class="mono" style="--m:${u.lessons.reduce((n, l) => n + (l.minutes || 15), 0)}">${esc(u.title)}</span>`).join('<span class="sep"></span>');
+  app.innerHTML = `${bar()}
+  <main class="wrap">
+    <section class="c-head"><a class="back mono" href="#/">← 你的课</a><h1>${esc(c.title)}</h1><p>${esc(c.summary)}</p></section>
+    <section class="plan" id="plan"><div class="bays">${bays}</div><div class="names">${names}</div></section>
+    <section class="works">${L.map((l, i) => `<a class="work ${l.status}" href="${l.status === 'current' && c.id === 'mpc' ? '#/lesson/6' : '#'}">${plate(l, { label: pad(i + 1) })}<div class="t">${esc(l.title)}</div><div class="mono">${pad(i + 1)} · ${l.minutes} 分钟${l.status === 'done' ? ' · 学过' : ''}</div></a>`).join('')}</section>
+  </main>`;
+  Pen.size();
+  if (c.id !== 'mpc') return;
+  const bay = (n) => doc(app.querySelector(`.bay[data-n="${n}"]`).getBoundingClientRect());
+  // an old note, already there: the hardest lesson, circled once, some time ago
+  const b4 = bay(4), b5 = bay(5), hard = { left: b4.left, top: b4.top, right: b5.right, bottom: b5.bottom, width: b5.right - b4.left, height: b4.height };
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('d', SHAPES.circle(hard, 21)); p.setAttribute('class', 'm thin');
+  document.getElementById('ink').append(p);
+  const old = document.createElement('div');
+  old.className = 'margin-old';
+  old.textContent = '这两课最难，留一整块时间。';
+  old.style.left = `${hard.left}px`; old.style.top = `${hard.bottom + 34}px`;
+  document.body.append(old);
+  // the pen rests beside its note, turned toward it
+  Pen.jump(hard.left - 34, hard.bottom + 44);
+  Pen.face(10);
+}
+
+// ---------------------------------------------------------------- lesson
+const STEP_OPEN = [5, 6, 8];
+async function lessonPage(app, step) {
+  const c = course('mpc'), L = lesson, at = STEP_OPEN.includes(+step) ? +step : 8;
+  accent(c);
+  Pen.clear();
+  const s = L.steps[at - 1], page = L.pages[at], next = L.steps[at], nextOpen = STEP_OPEN.find((n) => n > at) || 8;
+  const head = `<div class="step-h"><div class="mono">${KIND[s.kind]}</div><h2>${esc(s.title)}</h2></div>`;
+  const nextRow = `<div class="next"><span class="peek">下一步 · ${esc(next.title)}</span><a class="btn primary" href="#/lesson/${nextOpen}">继续 ${ARROW}</a></div>`;
+  let main;
+  if (s.kind === 'scene') main = `${head}<figure class="stage" style="margin:0" id="stage">${plate({ thumb: page.figure }, { full: true })}<div class="aside">${esc(page.caption)}</div>
+      <div class="player"><button class="pp" id="pp"><svg viewBox="0 0 14 14"><path d="M2 1l11 6-11 6z" fill="currentColor"/></svg></button><div class="segs">${page.lines.map(() => '<i><b></b></i>').join('')}</div><span class="mono" id="tm">0:00 / 0:${pad(page.seconds)}</span></div>
+      <p class="say" id="say"></p></figure>${nextRow}`;
+  else if (s.kind === 'check') main = `<div class="text quiz">${head}<div class="q">${page.q}</div>${page.options.map((o, i) => `<button class="opt" data-i="${i}"><span class="mono">${'ABCD'[i]}</span><span>${o}</span><span></span></button>`).join('')}${nextRow}</div>`;
+  else main = `<div class="text read" id="read">${head}${page.paras.map((p, i) => `<p data-i="${i}">${p}</p>`).join('')}${page.aside ? `<div class="aside-note">${page.aside}</div>` : ''}${nextRow}</div>`;
+  app.innerHTML = `<header class="wrap"><div class="l-bar"><a class="crs" href="#/course/mpc">← ${esc(c.title)}</a><h1>${esc(L.title)}</h1><span class="count mono">${pad(at)} / ${L.steps.length}</span></div><svg class="strip" id="strip"></svg></header>
+    <main class="wrap"><div class="room ${s.kind === 'scene' ? '' : 'text'}"><div class="main">${main}</div><aside class="margin" id="margin"></aside></div></main>`;
+  strip(app.querySelector('#strip'), L, at);
+  Pen.size();
+  const margin = app.querySelector('#margin'), mx = () => doc(margin.getBoundingClientRect()).left;
+  const narrow = innerWidth <= 1100;
+  // it arrives quietly beside the first thing on the page
+  const first = doc(app.querySelector('.step-h').getBoundingClientRect());
+  Pen.jump(narrow ? innerWidth - 22 : mx() + 6, first.top + 14);
+  Pen.face(180);
+  if (s.kind === 'read') read_behaviour(app, page, { mx, narrow });
+  if (s.kind === 'scene') scene_behaviour(app, page, { mx, narrow });
+  if (s.kind === 'check') quiz_behaviour(app, page, { mx, narrow });
+}
+function strip(svg, L, at) {
+  const w = svg.clientWidth || 600, n = L.steps.length, x = (i) => 8 + (i / (n - 1)) * (w - 16), y = 12;
+  let g = `<path d="M${x(0)},${y}H${x(n - 1)}" stroke="var(--hair2)"/><path d="M${x(0)},${y}H${x(at - 1)}" stroke="var(--ink)" stroke-width="1.25"/>`;
+  L.steps.forEach((s, i) => {
+    const attrs = s.n === at ? `fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"` : s.n < at ? `fill="var(--ink)" stroke="var(--ink)"` : `fill="var(--paper)" stroke="var(--faint)" stroke-width="1.25"`;
+    g += `<g class="s" data-n="${s.n}"><title>${s.n} · ${esc(s.title)}</title><rect x="${x(i) - 12}" y="0" width="24" height="24" fill="transparent"/>${kind_mark(s.kind, x(i), y, s.n === at ? 5.5 : 4, attrs)}</g>`;
+  });
+  svg.innerHTML = g;
+  svg.querySelectorAll('.s').forEach((el) => el.addEventListener('click', () => STEP_OPEN.includes(+el.dataset.n) && (location.hash = `#/lesson/${el.dataset.n}`)));
+}
+
+/** Reading: it walks beside you, looks where you point, and speaks up only when you seem to be stuck. */
+function read_behaviour(app, page, { mx, narrow }) {
+  const ps = [...app.querySelectorAll('#read p')];
+  // what it guesses you might ask at each paragraph (from the page's own questions; one prepared answer)
+  const offers = { 0: page.asks?.[0] && '为什么速度只看总量？', 1: page.note.q, 3: '0.6 秒是怎么来的？' };
+  const asked = new Set();
+  let reading = -1, since = performance.now(), lastMove = 0;
+  const pos = (i) => { const r = doc(ps[i].getBoundingClientRect()); return narrow ? [innerWidth - 22, r.top + 14] : [mx() + 6, r.top + 14]; };
+  const follow = () => {
+    if (Pen.busy) return;
+    const line = innerHeight * 0.38;
+    let best = 0, bd = 1e9;
+    ps.forEach((p, i) => { const r = p.getBoundingClientRect(), d = Math.abs(r.top + Math.min(r.height, 60) / 2 - line); if (d < bd) { bd = d; best = i; } });
+    if (best !== reading) { reading = best; since = performance.now(); }
+    const [x, y] = pos(best);
+    Pen.to(x, y, { soft: true });
+    if (performance.now() - lastMove > 1200) Pen.face(narrow ? 200 : 180);
+  };
+  addEventListener('scroll', follow, { passive: true });
+  follow();
+  // it looks where your pointer is, a little late, and looks back when you stop
+  app.querySelector('#read').addEventListener('mousemove', (e) => {
+    if (Pen.busy) return;
+    lastMove = performance.now();
+    Pen.look(e.pageX, e.pageY);
+  });
+  // it speaks up when you stay on one paragraph a while (here 3.5 s), once per paragraph
+  const watch = setInterval(async () => {
+    if (!document.body.contains(app.querySelector('#read'))) return clearInterval(watch);
+    if (Pen.busy || reading < 0 || asked.has(reading) || !offers[reading]) return;
+    if (performance.now() - since < 3500) return;
+    asked.add(reading);
+    offer(reading, offers[reading]);
+  }, 400);
+  async function offer(i, q) {
+    Pen.busy = true;
+    const [x, y] = pos(i);
+    const el = document.createElement('div');
+    el.className = 'offer';
+    el.innerHTML = words(q);
+    place(el, i, y - 12);
+    await Pen.think();
+    await Pen.write(el, { pace: 36 });
+    Pen.busy = false;
+    el.addEventListener('click', () => (i === 1 ? answer(i, el) : null), { once: true });
+    if (AUTO && i === 1) setTimeout(() => el.click(), 500);
+  }
+  function place(el, i, y) {
+    if (narrow) ps[i].after(el);
+    else { el.style.left = `${mx() + 24}px`; el.style.top = `${y}px`; document.body.append(el); }
+  }
+  /** Asked: it points at the words it is thinking about, thinks, writes, and draws what it means. */
+  async function answer(i, offerEl) {
+    Pen.busy = true;
+    const p = ps[i];
+    // 1. the words it is weighing: “刹车的平均时刻”
+    const range = document.createRange();
+    const b = p.querySelector('b:last-of-type') || p;
+    range.selectNodeContents(b);
+    const r = doc(range.getBoundingClientRect());
+    await Pen.draw(SHAPES.underline(r, 9), { cls: 'm acc', ms: 420 });
+    await Pen.think();
+    // 2. it writes: the question as you'd say it, then its answer, at the speed of thought
+    offerEl.remove();
+    const note = document.createElement('div');
+    note.className = 'pnote';
+    note.innerHTML = `<div class="pq">${esc(page.note.q)}</div><div class="pa">${words(page.note.a)}</div><div class="sketch"></div>`;
+    place(note, i, r.top - 12);
+    note.querySelector('.pq').classList.add('w', 'on');
+    await Pen.write(note.querySelector('.pa'), { pace: 26 });
+    // 3. the fine line that keeps the note tied to its words
+    if (!narrow) {
+      const nb = doc(note.getBoundingClientRect());
+      const dots = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      dots.setAttribute('d', `M${r.right + 6},${r.bottom + 3} C${r.right + 60},${r.bottom + 3} ${nb.left - 60},${nb.top + 10} ${nb.left - 10},${nb.top + 10}`);
+      dots.setAttribute('class', 'dots');
+      document.getElementById('ink').append(dots);
+      requestAnimationFrame(() => dots.classList.add('on'));
+    }
+    // 4. a sketch of the idea: the brakes as weights on a beam over the second, balanced at t_c
+    let nb = doc(note.getBoundingClientRect());
+    if (narrow) { const box = document.createElement('div'); box.className = 'sketch-box'; note.after(box); Pen.size(); const bb = doc(box.getBoundingClientRect()); nb = { ...nb, left: bb.left, bottom: bb.top - 20 }; }
+    await lever(nb.left, nb.bottom + 26, Math.min(280, nb.width));
+    Pen.busy = false;
+    const [x, y] = [nb.left - 18, nb.bottom + 110];
+    Pen.to(x, y, { soft: true });
+    Pen.face(200);
+  }
+  async function lever(x0, y0, w) {
+    note_space(140);
+    const y = y0 + 50, L = w - 20, X = (t) => x0 + 10 + t * L;
+    await Pen.draw(SHAPES.line([X(0), y], [X(1), y], 13), { ms: 380 });
+    Pen.label(X(0) - 4, y + 16, '0 秒');
+    Pen.label(X(1) - 20, y + 16, '1 秒');
+    // five equal brakes on the first half of the second
+    for (let j = 0; j < 5; j++) {
+      const cx = X((j + .5) / 10), h = 16;
+      await Pen.draw(wobble([[cx - 6, y - 1], [cx - 6, y - h], [cx + 6, y - h], [cx + 6, y - 1]], .5, 30 + j), { ms: 160 });
+    }
+    // the fulcrum where it balances
+    const tc = X(0.25);
+    await Pen.think();
+    await Pen.draw(wobble([[tc, y + 2], [tc - 9, y + 17], [tc + 9, y + 17], [tc, y + 2]], .5, 44), { cls: 'm acc', ms: 360 });
+    Pen.label(tc - 30, y + 24, '<i>t</i><sub>c</sub> = 0.25 秒', true);
+    Pen.label(X(0.5) + 6, y - 34, '早刹：重量都在前半秒');
+  }
+  function note_space() { Pen.size(); }
+  if (AUTO) { since = performance.now() - 3000; reading = 1; follow(); reading = 1; }
+}
+
+/** The scene: it watches the figure with you, and circles what the voice is talking about. */
+function scene_behaviour(app, page, { mx, narrow }) {
+  const stage = app.querySelector('#stage .plate'), say = app.querySelector('#say'), segs = [...app.querySelectorAll('.segs b')], tm = app.querySelector('#tm'), pp = app.querySelector('#pp');
+  const fig = () => doc(stage.getBoundingClientRect());
+  // where things are in the figure (fractions of the frame): the first five bars, the grey weights under them
+  const AT = { 1: [0.075, 0.175, 0.37, 0.24], 3: [0.085, 0.31, 0.64, 0.36] };
+  const rest = () => { const f = fig(); Pen.to(narrow ? innerWidth - 22 : mx() + 10, f.top + f.height * 0.45, { soft: true }); Pen.look(f.left + f.width * 0.6, f.top + f.height * 0.45); };
+  rest();
+  let line = -1, on = false;
+  const play = async () => {
+    on = true;
+    pp.innerHTML = '<svg viewBox="0 0 14 14"><path d="M3 1h3v12H3zM8 1h3v12H8z" fill="currentColor"/></svg>';
+    for (line = 0; line < page.lines.length && on; line++) {
+      say.textContent = page.lines[line];
+      segs.forEach((b, i) => b.style.setProperty('--p', i < line ? '100%' : '0%'));
+      requestAnimationFrame(() => segs[line].style.setProperty('--p', '100%'));
+      segs[line].style.transition = 'width 3.2s linear';
+      tm.textContent = `0:${pad(Math.round((line / page.lines.length) * page.seconds))} / 0:${pad(page.seconds)}`;
+      if (AT[line]) {
+        // the voice names something: the pen goes and circles it, then comes back to watch
+        await sleep(700);
+        const f = fig(), [a, b, c2, d] = AT[line];
+        const r = { left: f.left + a * f.width, top: f.top + b * f.height, width: (c2 - a) * f.width, height: (d - b) * f.height };
+        r.right = r.left + r.width; r.bottom = r.top + r.height;
+        Pen.busy = true;
+        await Pen.draw(SHAPES.circle(r, 17 + line), { cls: 'm acc', ms: 700 });
+        Pen.busy = false;
+        rest();
+        await sleep(1900);
+      } else await sleep(3200);
+    }
+    on = false;
+    pp.innerHTML = '<svg viewBox="0 0 14 14"><path d="M2 1l11 6-11 6z" fill="currentColor"/></svg>';
+  };
+  pp.addEventListener('click', () => (on ? (on = false) : play()));
+  if (AUTO) setTimeout(play, 600);
+}
+
+/** A question: it is silent until you choose; then it answers like someone who once chose the same. */
+function quiz_behaviour(app, page, { mx, narrow }) {
+  const opts = [...app.querySelectorAll('.opt')];
+  const o0 = doc(opts[0].getBoundingClientRect());
+  Pen.to(narrow ? innerWidth - 22 : mx() + 6, o0.top + 20, { soft: true });
+  Pen.face(180);
+  let done = false;
+  opts.forEach((b) => b.addEventListener('click', async () => {
+    if (done) return;
+    done = true;
+    const i = +b.dataset.i;
+    opts.forEach((o) => { const j = +o.dataset.i; o.classList.toggle('right', j === page.right); o.classList.toggle('wrong', j === i && i !== page.right); });
+    const r = doc(b.getBoundingClientRect()), right = doc(opts[page.right].getBoundingClientRect());
+    Pen.busy = true;
+    if (i === page.right) {
+      await Pen.draw(SHAPES.tick(narrow ? right.right - 22 : right.right + 26, right.top + right.height / 2), { cls: 'm acc', ms: 320 });
+      const n = note_at(right.top - 4, '对。速度一样，面积不一样。');
+      await Pen.write(n.querySelector('.pa'), { pace: 34 });
+    } else {
+      // 1. beside your choice, a person's first reaction
+      const n = note_at(r.top - 6, '我第一次也选了这个。');
+      await Pen.write(n.querySelector('.pa'), { pace: 40 });
+      await Pen.think();
+      // 2. then it draws why: the two plans' speeds over the second; the area under each is the distance
+      let nb = doc(n.getBoundingClientRect());
+      if (narrow) { const box = document.createElement('div'); box.className = 'sketch-box'; n.after(box); Pen.size(); nb = { ...doc(box.getBoundingClientRect()), bottom: doc(box.getBoundingClientRect()).top - 20 }; }
+      await vt(nb.left, nb.bottom + 20, narrow ? innerWidth - nb.left - 30 : 280);
+      const m = note_at(nb.bottom + 210, '最后速度一样，可下面的面积不一样：面积就是走过的路。B 先滑了半秒，多走了 25 厘米。', true);
+      await Pen.write(m.querySelector('.pa'), { pace: 28 });
+      await Pen.draw(SHAPES.tick(narrow ? right.right - 22 : right.right + 26, right.top + right.height / 2), { cls: 'm acc', ms: 300 });
+    }
+    Pen.busy = false;
+  }));
+  function note_at(y, text, plain = false) {
+    const n = document.createElement('div');
+    n.className = 'pnote';
+    n.innerHTML = `<div class="pa">${words(text)}</div>`;
+    if (narrow) { const after = [...app.querySelectorAll('.quiz > .pnote, .quiz > .sketch-box')].pop() || opts[opts.length - 1]; after.after(n); }
+    else { n.style.left = `${mx() + 24}px`; n.style.top = `${y}px`; document.body.append(n); }
+    return n;
+  }
+  async function vt(x0, y0, w) {
+    const H = 120, L = w - 30, X = (t) => x0 + 24 + t * L, Y = (v) => y0 + H - (v / 0.5) * (H - 20);
+    await Pen.draw(SHAPES.line([X(0), Y(0)], [X(1.02), Y(0)], 3), { ms: 260 });
+    await Pen.draw(SHAPES.line([X(0), Y(0)], [X(0), Y(0.56)], 4), { ms: 220 });
+    Pen.label(X(1) - 10, Y(0) + 8, 't');
+    Pen.label(X(0) - 18, Y(0.5) - 6, 'v');
+    // plan A brakes in the first half second; plan B coasts, then brakes
+    const A = [[X(0), Y(.5)], [X(.5), Y(0)], [X(1), Y(0)]], B = [[X(0), Y(.5) - 1], [X(.5), Y(.5) - 1], [X(1), Y(0)]];
+    const fillA = `M${X(0)},${Y(0)} L${X(0)},${Y(.5)} L${X(.5)},${Y(0)} Z`, fillB = `M${X(0)},${Y(0)} L${X(0)},${Y(.5)} L${X(.5)},${Y(.5)} L${X(1)},${Y(0)} Z`;
+    const ink = document.getElementById('ink');
+    const fb = document.createElementNS('http://www.w3.org/2000/svg', 'path'); fb.setAttribute('d', fillB); fb.setAttribute('class', 'fill ink'); ink.append(fb);
+    const fa = document.createElementNS('http://www.w3.org/2000/svg', 'path'); fa.setAttribute('d', fillA); fa.setAttribute('class', 'fill'); ink.append(fa);
+    await Pen.draw(wobble(B, .6, 52), { ms: 600 });
+    fb.classList.add('on');
+    Pen.label(X(.5) + 4, Y(.5) - 20, 'B 走 37.5 厘米');
+    await Pen.draw(wobble(A, .6, 53), { cls: 'm acc', ms: 600 });
+    fa.classList.add('on');
+    Pen.label(X(.03), Y(.12) + 2, 'A 走 12.5', true);
+  }
+  if (AUTO) setTimeout(() => opts[page.chosen].click(), 700);
+}
+
+UI.switcher('alive');
+UI.start((r) => {
+  const app = document.getElementById('app');
+  Pen.clear();
+  if (r.page === 'course') coursePage(app, r.id);
+  else if (r.page === 'lesson') lessonPage(app, r.id);
+  else home(app);
+});
+</script>
+</body>
+</html>

@@ -89,7 +89,7 @@ window.UI = (() => {
     go();
   }
   function switcher(name) {
-    const dirs = [['exhibit', '展厅'], ['atlas', '路线'], ['lens', '镜头']];
+    const dirs = [['exhibit', '展厅'], ['atlas', '路线'], ['lens', '镜头'], ['alive', '笔']];
     const el = document.createElement('nav');
     el.className = 'proto';
     el.innerHTML =
