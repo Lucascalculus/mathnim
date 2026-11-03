@@ -85,9 +85,14 @@ const tex = (t, display) => adaptor.outerHTML(mj.convert(t, { display }));
 const escape = (x) => x.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 /** Lesson prose: $$display$$, $inline$, **bold**, *italic*. */
 const md = (x) =>
-  x.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/).map((part) => {
+  // an inline formula and the punctuation right after it stay on one line (clreq: no pause mark at a line's start)
+  x.split(/(\$\$[^$]+\$\$|\$[^$]+\$[，。：；、！？）”]*)/).map((part) => {
     if (part.startsWith('$$')) return tex(part.slice(2, -2), true);
-    if (part.startsWith('$')) return tex(part.slice(1, -1), false);
+    if (part.startsWith('$')) {
+      const end = part.lastIndexOf('$'), punct = part.slice(end + 1);
+      const f = tex(part.slice(1, end), false);
+      return punct ? `<span class="nb">${f}${escape(punct)}</span>` : f;
+    }
     return escape(part).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>');
   }).join('');
 

@@ -110,5 +110,15 @@ window.UI = (() => {
     const dx = to > from ? 28 : -28;
     el.animate([{ opacity: 0, transform: `translateX(${dx}px)` }, { opacity: 1, transform: 'none' }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
   }
-  return { step_in, courses, lesson, course, all, current, recent, unit_of, esc, hours, pad, plate, kind_mark, KIND, ARROW, LOGO, SPRINGS, spring, reduced, start, switcher };
+  /** On a phone the guide rises from the dock: the page's questions, its notes, a line to write. A second tap closes it. */
+  function guide_sheet(asks = [], note = null) {
+    const open = document.querySelector('.guide-sheet');
+    if (open) return open.remove();
+    const el = document.createElement('div');
+    el.className = 'guide-sheet';
+    el.innerHTML = `<span class="mono">问这一页</span>${asks.map((q) => `<button class="gq">${q}</button>`).join('')}${note ? `<div class="gn"><span class="mono">问 · 01</span><b>${esc(note.q)}</b><div>${note.a}</div></div>` : ''}<div class="gw">问这一页……</div>`;
+    document.body.append(el);
+    if (!reduced()) el.animate([{ transform: 'translateY(16px) scale(.97)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
+  }
+  return { guide_sheet, step_in, courses, lesson, course, all, current, recent, unit_of, esc, hours, pad, plate, kind_mark, KIND, ARROW, LOGO, SPRINGS, spring, reduced, start, switcher };
 })();

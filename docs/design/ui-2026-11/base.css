@@ -60,6 +60,8 @@ p { margin: 0; }
 /* formulas typeset ahead of time (MathJax SVG): sized by the text around them */
 mjx-container { display: inline; line-height: 0; }
 mjx-container:not([display]) svg { font-size: 92%; }
+.nb { white-space: nowrap; }
+mjx-container[display="true"] svg { max-width: 100%; height: auto; }
 mjx-container[display="true"] { display: block; max-width: 100%; text-align: center; margin: var(--s5) 0; overflow-x: auto; overflow-y: hidden; }
 mjx-container svg { overflow: visible; }
 
@@ -85,6 +87,15 @@ mjx-container svg { overflow: visible; }
 .btn:active { transform: scale(.97); }
 .arrow { width: 16px; height: 10px; flex: none; }
 .btn small { font: 500 11px/1 var(--mono); letter-spacing: .06em; opacity: .8; font-weight: 500; }
+
+.guide-sheet { position: fixed; left: 12px; right: 12px; bottom: 84px; z-index: 45; background: var(--white); border-radius: var(--r-panel); box-shadow: var(--lift-hi); padding: 14px 18px 18px; max-height: 70vh; overflow: auto; transform-origin: 50% 100%; }
+.guide-sheet > .mono { color: var(--muted); display: block; margin-bottom: 6px; }
+.guide-sheet .gq { display: block; width: 100%; text-align: left; padding: 10px 0; border-bottom: 1px solid var(--hair); font-size: 15px; line-height: 1.55; color: var(--ink2); }
+.guide-sheet .gn { padding: 12px 0 4px; }
+.guide-sheet .gn .mono { color: var(--accent); }
+.guide-sheet .gn b { display: block; font-size: 14.5px; line-height: 1.55; margin: 6px 0; }
+.guide-sheet .gn div { font: 15.5px/1.75 var(--serif); color: var(--ink2); }
+.guide-sheet .gw { margin-top: 14px; border-bottom: 1.25px solid var(--ink2); height: 34px; font: 15px/34px var(--serif); color: var(--faint); }
 
 /* the prototype's own switcher: not part of any design */
 .proto {

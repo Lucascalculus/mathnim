@@ -49,8 +49,10 @@
 .room .state { display: grid; gap: 12px; align-content: center; }
 .room .state .mono { color: var(--muted); }
 .room .state .mono b { color: var(--accent); font-weight: 500; }
-.room .state .resume { color: var(--accent); font-weight: 600; font-size: 14px; display: inline-flex; gap: 8px; align-items: center; line-height: 1.4; }
-.room .state .resume span { color: var(--ink2); font-weight: 400; }
+.room .state .resume { font-size: 14px; line-height: 1.5; color: var(--ink2); }
+.room .state .resume b { color: var(--ink); font-weight: 600; white-space: nowrap; margin-right: 8px; }
+.room .state .resume b .arrow { color: var(--accent); vertical-align: 1px; margin-left: 4px; }
+.room .ticks i { width: 4px; }
 .room .ticks { display: flex; gap: 2px; flex-wrap: wrap; max-width: 100%; }
 .room .ticks i { width: 5px; height: 12px; background: var(--hair2); }
 .room .ticks i.done { background: var(--accent); }
@@ -120,7 +122,7 @@
 .strip text { font: 500 11px var(--mono); letter-spacing: .06em; fill: var(--muted); }
 
 .room-l { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--s7); padding: var(--s6) 0 var(--s10); align-items: start; transition: opacity var(--d-smooth) var(--smooth); }
-.room-l.text { grid-template-columns: minmax(0, 640px) 280px; justify-content: center; gap: var(--s8); }
+.room-l.text > article { max-width: 640px; }
 .step-h { margin: 0 0 var(--s5); display: grid; gap: 10px; }
 .step-h .mono { color: var(--muted); }
 .step-h h2 { margin: 0; font-size: var(--t-step); line-height: 1.25; letter-spacing: -.02em; font-weight: 650; }
@@ -214,7 +216,7 @@ body.playing { background: #f3f3ef; transition: background-color .6s; }
   .player .btn { display: none; }
   .say { font-size: 17.5px; }
   .read p { font-size: 17px; }
-  .next .peek { display: none; }
+  .next { display: none; }
   .dock { display: flex; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40; gap: 8px; padding: 8px; background: var(--white); border-radius: var(--r-panel); box-shadow: var(--lift-hi); }
   .dock .btn { height: 44px; border-radius: var(--r-inner); }
   .dock .btn.primary { flex: 1; justify-content: center; }
@@ -266,7 +268,7 @@ function home(app) {
   app.innerHTML = `${bar()}
   <main class="wrap">
     <section class="here">
-      <a href="#/lesson/${p.step}">${plate(cur, { full: true })}</a>
+      <a href="#/lesson/${p.step}">${plate(cur)}</a>
       <div class="label">
         <div class="cat mono"><b>${esc(c.title)}</b><span>第 ${all(c).indexOf(cur) + 1} 课 · ${cur.minutes} 分钟</span></div>
         <div class="t">${esc(cur.title)}</div>
@@ -288,7 +290,7 @@ function home(app) {
           <div class="state">
             <div class="mono">${x.progress ? `已学 <b>${x.progress.done}</b> / ${x.lessonCount}` : '还没开始'}</div>
             ${ticks(x)}
-            ${current(x) ? `<span class="resume">继续 ${ARROW}<span>${esc(current(x).title)}</span></span>` : ''}
+            ${current(x) ? `<span class="resume"><b>继续${ARROW}</b>${esc(current(x).title)}</span>` : ''}
           </div>
         </a>`).join('')}</div></div>`).join('')}
     </section>
@@ -327,7 +329,7 @@ function coursePage(app, id) {
           ${plate(l, { label: `${c.short || ''} · ${pad(n)}` })}
           <div class="label">
             <div class="cat mono"><span>${pad(n)} · ${l.minutes} 分钟</span>${l.status === 'done' ? '<span class="ok">✓ 学过</span>' : ''}</div>
-            <div class="t">${esc(l.title)}</div>
+            ${l.thumb ? `<div class="t">${esc(l.title)}</div>` : ''}
             <p>${esc(l.summary)}</p>
             ${l.status === 'current' ? `<span class="resume">继续 · 第 ${c.progress.step} 步 ${ARROW}</span>` : ''}
           </div>
@@ -347,7 +349,7 @@ function lessonPage(app, step) {
   const s = L.steps[at - 1], page = L.pages[at];
   const nextOpen = [1, 5, 6, 8].find((n) => n > at) || at;
   const next = L.steps[at] ;
-  const head = `<div class="step-h"><div class="mono">${pad(at)} / ${L.steps.length} · ${KIND[s.kind]}</div><h2>${esc(s.title)}</h2></div>`;
+  const head = `<div class="step-h"><div class="mono">${KIND[s.kind]}</div><h2>${esc(s.title)}</h2></div>`;
   const nextRow = next ? `<div class="next"><span class="peek">下一步 · <b>${esc(next.title)}</b></span><a class="btn primary" href="#/lesson/${nextOpen}">继续 ${ARROW}</a></div>` : '';
   const askBox = (asks) => `<div class="ask"><div class="mono"><span>问</span><span>${pad(at)}</span></div>${(asks || []).map((q) => `<span class="q">${q}</span>`).join('')}<div class="line">问这一页……</div></div>`;
   let body;
@@ -381,6 +383,8 @@ function lessonPage(app, step) {
   <div class="dock"><button class="btn quiet">问</button><a class="btn primary" href="#/lesson/${nextOpen}">继续 ${ARROW}</a></div>`;
   const sv = app.querySelector('#strip');
   strip(sv, L, at);
+  app.querySelector('.dock .quiet').addEventListener('click', () => UI.guide_sheet(page?.asks || [], page?.note));
+  document.querySelector('.guide-sheet')?.remove();
   sv.querySelectorAll('.s').forEach((g) => g.addEventListener('click', () => (location.hash = `#/lesson/${g.dataset.n}`)));
   addEventListener('scroll', () => app.querySelector('.l-bar')?.classList.toggle('scrolled', scrollY > 4), { passive: true });
 

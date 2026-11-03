@@ -111,7 +111,8 @@
 .u-row .tile .plate .crops { display: block; }
 
 /* ---------------------------------------------------------------- lesson */
-.l-top { padding: 68px 0 var(--s4); display: flex; align-items: baseline; gap: var(--s4); }
+.l-where { padding-top: 64px; color: var(--muted); }
+.l-top { padding: 10px 0 var(--s4); display: flex; align-items: baseline; gap: var(--s4); }
 .l-top .mono { color: var(--muted); }
 .l-top .mono b { color: var(--accent); font-weight: 500; }
 .l-top h1 { margin: 0; font-size: var(--t-step); letter-spacing: -.02em; font-weight: 650; line-height: 1.25; }
@@ -129,7 +130,7 @@
 .player .segs i b { position: absolute; inset: 0; width: var(--p, 0%); background: var(--ink); }
 .player .mono { color: var(--muted); }
 .say { margin: var(--s4) 0 0; font-size: 19px; line-height: 1.75; max-width: 40em; }
-.textcol { max-width: 640px; margin: 0 auto; padding-bottom: 200px; }
+.textcol { max-width: calc(640px + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side) 200px; }
 .read p { font-size: var(--t-body); line-height: 1.8; margin: 0 0 var(--s5); color: #202328; }
 .read p b { font-weight: 650; }
 .read .aside-note { border-left: 2px solid var(--ink); padding: 2px 0 2px var(--s5); margin: var(--s6) 0; color: var(--ink2); font-size: 15.5px; line-height: 1.75; }
@@ -175,11 +176,13 @@ sup.n:hover { background: var(--wash); }
   .sheet-c .h b { flex-basis: 100%; }
   .sheet-c .h a.more { margin-left: auto; }
   .intro h1 { font-size: 32px; }
+  .intro { padding-bottom: 132px; }
   .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
   .c-hero { height: 40vh; min-height: 260px; }
   .c-hero.toc ol { columns: 1; }
   .c-hero.toc li { font-size: 14px; line-height: 1.9; }
-  .l-top { padding-top: 64px; flex-direction: column; gap: 6px; }
+  .l-top { flex-direction: column; gap: 6px; }
+  .l-where { padding-top: 60px; }
   .full-fig .img { width: 100%; }
   .fig-under { padding: 0 var(--side); }
   .read p { font-size: 17px; }
@@ -320,7 +323,7 @@ function lessonPage(app, step) {
   clearInterval(ticker);
   document.querySelectorAll('.pop,.ask-cap').forEach((x) => x.remove());
   const s = L.steps[at - 1], page = L.pages[at];
-  const head = `<div class="l-top"><span class="mono"><b>${pad(at)}</b> · ${KIND[s.kind]}</span><h1>${esc(s.title)}</h1></div>`;
+  const head = `<div class="l-where mono">${esc(c.title)} · ${esc(L.title)}</div><div class="l-top"><span class="mono"><b>${pad(at)}</b> · ${KIND[s.kind]}</span><h1>${esc(s.title)}</h1></div>`;
   let html;
   if (page && s.kind === 'scene') {
     html = `<div class="wrap" style="max-width:${960 + 96}px">${head}</div>
@@ -418,7 +421,7 @@ function openPop(src, { quote, q, a, anchor = null, instant = false }) {
   pop.style.setProperty('--oy', '-10px');
   pop.innerHTML = `<span class="grab" title="展开"></span><button class="x" aria-label="收起">${ICON.x}</button><div class="quote">${esc(quote)}</div><div class="q">${esc(q)}</div><div class="a"></div><div class="follow">接着问……</div>`;
   document.body.append(pop);
-  pop.animate([{ transform: 'scale(.2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
+  if (!reduced()) pop.animate([{ transform: 'scale(.2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPRINGS.smooth.ms, easing: SPRINGS.smooth.css });
   const out = pop.querySelector('.a');
   if (instant) out.innerHTML = a;
   else {
@@ -439,8 +442,8 @@ function openPop(src, { quote, q, a, anchor = null, instant = false }) {
     if (!target && anchor) {
       target = document.createElement('sup');
       target.className = 'n';
-      target.textContent = String(++notes.length + (document.querySelectorAll('sup.n[data-note]').length));
       anchor.after(target);
+      document.querySelectorAll('.read-sel sup.n').forEach((s, i) => (s.textContent = String(i + 1)));
       target.addEventListener('click', () => openPop(target, { quote, q, a, instant: true }));
     }
     const p = pop.getBoundingClientRect(), t = target ? target.getBoundingClientRect() : p;
