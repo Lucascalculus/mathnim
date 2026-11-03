@@ -62,7 +62,7 @@ export class Figure {
   list(items: Val<string | L10n>[], o: { id?: string; kind?: TextKind; role?: string } = {}): ListBlock {
     return new ListBlock(items, o);
   }
-  readout(parts: Part[], o: { id?: string; role?: string; says?: L10n; kind?: TextKind } = {}): Readout {
+  readout(parts: Part[], o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind } = {}): Readout {
     return new Readout(parts, o);
   }
   legend(entries: ConstructorParameters<typeof Legend>[0], o: { id?: string } = {}): Legend {
@@ -75,7 +75,7 @@ export class Figure {
     return new CanvasBlock(paint, o);
   }
   /** A label attached to a thing or a point (CSS px, or data coordinates through `plot`). */
-  label(content: Val<string | L10n>, anchor: Val<XY | Box | null> | Thing, o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; on?: Plot; weight?: number; within?: () => Box; own?: Thing[] } = {}): Label {
+  label(content: Val<string | L10n>, anchor: Val<XY | Box | null> | Thing, o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; on?: Plot; weight?: number; within?: () => Box; own?: Thing[]; kind?: TextKind } = {}): Label {
     const to = typeof anchor === 'object' && anchor !== null && 'draw' in anchor ? (anchor as Thing) : undefined;
     const a: Val<XY | Box | null> = to
       ? () => {

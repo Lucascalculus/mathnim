@@ -9,7 +9,7 @@
 // labels); the legend sits outside the plot and each entry comes in with its line; on a phone the panels stack and
 // every word stays at its size; the contours are one GPU field instead of six polylines rebuilt per frame.
 import {
-  Figure, Field, Marker, Path, Region, beat, column, derive, optional, quadratic, reveal, row, set, t, together, wait,
+  Figure, Field, Marker, Path, Region, beat, column, derive, optional, over, quadratic, reveal, row, set, t, together, wait,
   type Param, type Step, type XY,
 } from '@mathnim/engine';
 import { define_figure } from '../visual';
@@ -162,8 +162,9 @@ export function qp_figure(p: QpFigureParams): QpFigure {
   }));
   const dots_bad = track.add(position_dots(() => (!view().feasible ? predicted(view().x0, [-1, -1]).map((s) => s[0]).filter((q) => q > 10 && q < 10.4) : []), { id: 'plan_dots_bad', role: 'noun:wall' }));
   const arrow = track.add(speed_arrow(() => p0.value, () => v0.value));
-  const speed_word = fig.label(() => `v_0 = ${v0.value.toFixed(2)}\\,\\mathrm{m/s}`, () => (arrow.box.w ? ([arrow.box.x + arrow.box.w, arrow.box.y + arrow.box.h / 2] as XY) : null), { id: 'speed_word', tex: true, role: 'noun:speed', sides: ['right', 'above', 'left'], within: () => track.box });
-  void speed_word;
+  // (v₀ is always shown, as before: beside its arrow - first behind it, where the track is usually empty - or above
+  // the cart while it stands still)
+  const speed_word = fig.label(() => `v_0 = ${v0.value.toFixed(2)}\\,\\mathrm{m/s}`, () => (arrow.box.w ? arrow.box : cart.box.w ? { x: cart.box.x, y: cart.box.y - 14, w: cart.box.w, h: 10 } : null), { id: 'speed_word', tex: true, role: 'noun:speed', sides: ['left', 'right', 'above'], own: [arrow], within: () => track.box });
   const track_key = fig.legend([{ role: 'noun:plan', text: t('最优计划在接下来 2 秒里让小车到达的位置', 'where the best plan takes the cart in the next 2 s'), mark: 'dot', show: () => (grown() ? 1 : 0) }], { id: 'track_key' });
   const pad = fig.plot({
     id: 'pad', x: [PAD.p[0], 10], y: PAD.v, x_ticks: [4, 5, 6, 7, 8, 9, 10], y_ticks: [0, 1, 2], aspect: 2.4, phone_aspect: 3.4,
@@ -207,37 +208,38 @@ export function qp_figure(p: QpFigureParams): QpFigure {
     return v.J_clip >= v.J_best - 1e-6 ? null : `clipped ${v.J_clip.toFixed(2)} < best ${v.J_best.toFixed(2)}`;
   });
 
-  // ---- the script (one section per beat of the narration)
-  const all = [plane, legend, track, cart, wall, flag, pad, state, pad_title, arrow];
+  // ---- the script (one section per beat of the narration), with the original scene's timings, so the picture
+  // keeps its pace against the same recorded voice
+  const all = [plane, legend, track, cart, wall, flag, pad, state, pad_title, arrow, speed_word];
+  const move = (p_: number, v_: number, dur: number) => over(dur, together(set(p0, p_, 'travel'), set(v0, v_, 'travel')));
   const steps: Step[] = full
     ? [
-        together(reveal(plane, track, cart, wall, flag, pad, state, pad_title, arrow, legend)),
-        wait(0.6),
+        over(1.2, reveal(...all)),
         beat(),
-        together(reveal(center_x, center_arrow, center_word, bowl)),
-        wait(1.4),
+        over(1.8, reveal(center_x, center_arrow, center_word, bowl, feasible)),
+        wait(1.2),
         beat(),
-        set(fam, 1, 'reveal', 1.2),
+        over(1.2, set(fam, 1, 'travel')),
         wait(0.8),
         beat(),
-        set(grow, 1, 'grow', 2.2),
-        together(reveal(readout, active, dots, track_key, best)),
+        over(2.2, set(grow, 1, 'grow')),
+        over(0.8, reveal(readout, active, dots, track_key, best)),
         wait(1),
         beat(),
-        set(fam, 2, 'reveal', 0.8),
-        set(fam, 3, 'reveal', 0.8),
-        wait(0.6),
-        together(set(p0, 6.4, 'travel', 1.6), set(v0, 1.5, 'travel', 1.6)),
+        over(0.8, set(fam, 2, 'travel')),
+        over(0.8, set(fam, 3, 'travel')),
+        wait(p.clip ? 0.6 : 0.1),
+        move(6.4, 1.5, 1.6),
         wait(0.4),
-        together(set(p0, 7.1, 'travel', 1.6), set(v0, 1.9, 'travel', 1.6)),
+        move(7.1, 1.9, 1.6),
         wait(0.4),
         beat(),
-        together(set(p0, 9.3, 'travel', 2.4), set(v0, 1.8, 'travel', 2.4)),
+        move(9.3, 1.8, 2.4),
         wait(1),
-        together(set(p0, p.p0, 'travel', 1.4), set(v0, p.v0, 'travel', 1.4)),
+        move(p.p0, p.v0, 1.4),
         wait(0.5),
       ]
-    : [together(reveal(...all, center_x, center_arrow, center_word, bowl, readout, active, dots, track_key, best)), wait(0.4)];
+    : [over(1, reveal(...all, center_x, center_arrow, center_word, bowl, feasible, readout, active, dots, track_key, best)), wait(0.4)];
   fig.script(...steps);
   void [feasible, best_contour, clip_contour, clip_mark, dots_bad];
   return fig;

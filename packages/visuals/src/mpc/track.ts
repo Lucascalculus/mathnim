@@ -7,23 +7,25 @@ import { Drawn, Dots, Plot, read, rgba, type Val, type XY } from '@mathnim/engin
 /** A track from p[0] to p[1] metres (x ticks every metre, numbers every `every`). */
 export function track_plot(o: { id?: string; p: [number, number]; ticks?: number[] }): Plot {
   const ticks = o.ticks ?? Array.from({ length: Math.floor(o.p[1] - o.p[0]) + 1 }, (_, i) => Math.ceil(o.p[0]) + i).filter((v) => v <= o.p[1]);
-  return new Plot({ id: o.id ?? 'track', x: o.p, y: [0, 1], x_ticks: ticks, grid: false, axes: 'x', aspect: 7, phone_aspect: 4.6, x_label: 'p\\;(\\mathrm{m})' });
+  return new Plot({ id: o.id ?? 'track', x: o.p, y: [0, 1], x_ticks: ticks, grid: false, axes: 'x', aspect: 5.2, phone_aspect: 4.2, x_label: 'p\\;(\\mathrm{m})' });
 }
 
 /** The cart: its front bumper at p (metres); a rounded body behind it on two wheels. */
 export function cart_mark(p: Val<number>, o: { id?: string } = {}): Drawn {
   return new Drawn((env, P) => {
     const g = env.g, x1 = P.X(read(p)), base = P.Y(0) - 1;
-    const len = Math.max(26, Math.min(46, P.data.w * 0.08)), h = Math.max(13, len * 0.42), r = h * 0.28;
-    const x0 = x1 - len, y0 = base - h - 5;
+    // (as long as about 0.8 m of track, like the cart of the earlier lessons)
+    const len = Math.max(30, Math.min(64, P.data.w * 0.12)), h = Math.max(14, len * 0.42), r = h * 0.28;
+    const x0 = x1 - len, y0 = base - h - Math.max(5, len * 0.12);
     g.fillStyle = env.look.palette.cobalt;
     g.beginPath();
     g.roundRect(x0, y0, len, h, r);
     g.fill();
     g.fillStyle = env.look.palette.ink;
+    const wr = Math.max(3.5, len * 0.1);
     for (const wx of [x0 + len * 0.24, x0 + len * 0.76]) {
       g.beginPath();
-      g.arc(wx, base - 3.5, 3.5, 0, Math.PI * 2);
+      g.arc(wx, base - wr, wr, 0, Math.PI * 2);
       g.fill();
     }
     return { x: x0, y: y0, w: len, h: h + 5 };
@@ -79,7 +81,8 @@ export function speed_arrow(p: Val<number>, v: Val<number>, o: { id?: string; sc
   return new Drawn((env, P) => {
     const vv = read(v);
     if (vv < 0.04) return null;
-    const g = env.g, y = P.data.y + 6, x0 = P.X(read(p)), x1 = P.X(read(p) + vv * (o.scale ?? 0.6));
+    // (above the cart, from a little behind its front, as long as its speed: as in the earlier lessons)
+    const g = env.g, y = P.data.y + 6, x0 = P.X(read(p) - 0.5), x1 = P.X(read(p) - 0.5 + vv * (o.scale ?? 0.65));
     g.strokeStyle = env.look.palette.teal;
     g.fillStyle = env.look.palette.teal;
     g.lineWidth = 2.25;

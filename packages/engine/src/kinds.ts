@@ -110,8 +110,10 @@ export type Part = { tex: Val<string> } | { text: Val<Txt> } | { value: Val<numb
  */
 export class Readout extends Thing implements Block {
   kind = 'readout';
-  constructor(public parts: Part[], public o: { id?: string; role?: string; says?: L10n; kind?: TextKind } = {}) {
-    super({ id: o.id, role: o.role ?? 'text', says: o.says, z: 5 });
+  /** `role` may follow the state (a determinant's colour says whether it scales, collapses or flips). */
+  constructor(public parts: Part[], public o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind } = {}) {
+    super({ id: o.id, role: typeof o.role === 'string' ? o.role : 'text', says: o.says, z: 5 });
+    if (o.role !== undefined && typeof o.role !== 'string') this.role_of = () => read(o.role as Val<string>);
   }
   /** The size it is set at: its kind's, or the next size down the type scale when its slot is too narrow. */
   private size_kind: TextKind | null = null;
@@ -142,7 +144,7 @@ export class Readout extends Thing implements Block {
       return ws.reduce((a, x) => a + x + sp, -sp);
     };
     // (a line of numbers cannot wrap: it steps down the type scale - readout, caption, label - until it fits)
-    for (const k of ['caption', 'label'] as TextKind[]) {
+    for (const k of ['readout', 'caption', 'label'] as TextKind[]) {
       if (total() <= b.w + 0.5 || look().type[k].size >= this.px()) continue;
       this.size_kind = k;
       this.why.push(`set at the ${k} size: the readout size does not fit ${b.w.toFixed(0)} px`);
@@ -426,15 +428,18 @@ export class Plot extends Thing implements Block {
     const g = env.g, d = this.data, p = env.look.palette, f = font_of('label');
     g.save();
     // grid
+    // (only the ticks inside the ranges: a plot that fills its box may have been given more)
+    const inx = (v: number) => v >= Math.min(...this.spec.x) - 1e-9 && v <= Math.max(...this.spec.x) + 1e-9;
+    const iny = (v: number) => v >= Math.min(...this.spec.y) - 1e-9 && v <= Math.max(...this.spec.y) + 1e-9;
     if (this.spec.grid !== false) {
       g.strokeStyle = p.faint;
       g.lineWidth = 1;
       g.beginPath();
-      for (const v of this.spec.x_ticks ?? []) {
+      for (const v of (this.spec.x_ticks ?? []).filter(inx)) {
         g.moveTo(Math.round(this.X(v)) + 0.5, d.y);
         g.lineTo(Math.round(this.X(v)) + 0.5, d.y + d.h);
       }
-      for (const v of this.spec.y_ticks ?? []) {
+      for (const v of (this.spec.y_ticks ?? []).filter(iny)) {
         g.moveTo(d.x, Math.round(this.Y(v)) + 0.5);
         g.lineTo(d.x + d.w, Math.round(this.Y(v)) + 0.5);
       }
@@ -469,14 +474,14 @@ export class Plot extends Thing implements Block {
     g.textBaseline = 'alphabetic';
     const tk = env.look.space.tick;
     g.beginPath();
-    for (const v of this.spec.x_ticks ?? []) {
+    for (const v of (this.spec.x_ticks ?? []).filter(inx)) {
       const x = this.X(v);
       g.moveTo(x, d.y + d.h);
       g.lineTo(x, d.y + d.h + tk);
       const s = fmt_tick(v);
       g.fillText(s, x - text_width(s, f) / 2, d.y + d.h + tk + f.size + 1);
     }
-    for (const v of this.spec.y_ticks ?? []) {
+    for (const v of (this.spec.y_ticks ?? []).filter(iny)) {
       const y = this.Y(v);
       g.moveTo(d.x - tk, y);
       g.lineTo(d.x, y);
@@ -593,11 +598,14 @@ export class Path extends Mark {
 export class Region extends Mark {
   kind = 'region';
   private px: XY[] = [];
-  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean } = {}) {
+  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean; fill?: number } = {}) {
     super({ ...o, role: o.role ?? 'region', z: o.z ?? 1.5 });
     this.edge = o.edge ?? true;
+    this.fill = o.fill;
   }
   edge: boolean;
+  /** Its tint's opacity (default: the role's material). */
+  fill?: number;
   draw(env: DrawEnv): void {
     const pts = read(this.pts);
     this.px = pts.map((p) => this.plot.P(p));
@@ -611,7 +619,7 @@ export class Region extends Mark {
     g.beginPath();
     this.px.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     g.closePath();
-    g.fillStyle = rgba(this.color, m.fill_opacity ?? 0.12);
+    g.fillStyle = rgba(this.color, this.fill ?? m.fill_opacity ?? 0.12);
     g.fill();
     if (this.edge) {
       g.strokeStyle = rgba(this.color, 0.6);
@@ -721,11 +729,14 @@ export class Drawn extends Mark {
 export class Arrow extends Mark {
   kind = 'arrow';
   private seg: [XY, XY] | null = null;
-  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number } = {}) {
+  /** `upto`: how much of it has grown out of its tail (0..1; a script's set() grows it). */
+  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number; upto?: Val<number> } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   draw(env: DrawEnv): void {
-    const a = this.plot.P(read(this.from)), b = this.plot.P(read(this.to)), g = env.g;
+    const a = this.plot.P(read(this.from)), b0 = this.plot.P(read(this.to)), g = env.g;
+    const k = this.o.upto === undefined ? 1 : Math.max(0, Math.min(1, read(this.o.upto)));
+    const b: XY = [a[0] + (b0[0] - a[0]) * k, a[1] + (b0[1] - a[1]) * k];
     const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
     this.seg = [a, b];
     if (L < 1) {
@@ -794,11 +805,14 @@ export class Label extends Thing {
   side: Side | null = null;
   /** Ids of the things it names (they are not obstacles to it). */
   own: string[] = [];
-  constructor(public content: Val<Txt>, public anchor: Val<XY | Box | null>, public o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing } = {}) {
+  constructor(public content: Val<Txt>, public anchor: Val<XY | Box | null>, public o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing; kind?: TextKind } = {}) {
     super({ id: o.id, role: o.role ?? 'text', says: o.says, z: o.z ?? 6 });
   }
+  private f() {
+    return font_of(this.o.kind ?? 'label', { weight: this.o.weight ?? 500 });
+  }
   size(lang: Lang): { w: number; h: number; asc: number } {
-    const f = font_of('label', { weight: this.o.weight ?? 500 }), s = txt(this.content, lang);
+    const f = this.f(), s = txt(this.content, lang);
     if (!s) return { w: 0, h: 0, asc: 0 };
     if (this.o.tex) {
       const t0 = tex_size(s, f.size);
@@ -809,7 +823,7 @@ export class Label extends Thing {
   draw(env: DrawEnv): void {
     const s = txt(this.content, env.lang);
     if (!s || this.box.w <= 0) return;
-    const f = font_of('label', { weight: this.o.weight ?? 500 }), g = env.g, sz = this.size(env.lang);
+    const f = this.f(), g = env.g, sz = this.size(env.lang);
     // a thin paper halo keeps it readable over lines it could not avoid
     if (this.o.tex) draw_tex(g, s, this.box.x, this.box.y + sz.asc, f.size, this.text_color);
     else {
@@ -827,7 +841,7 @@ export class Label extends Thing {
     return txt(this.content, lang);
   }
   override text_px(): number {
-    return font_of('label').size;
+    return this.f().size;
   }
 }
 
