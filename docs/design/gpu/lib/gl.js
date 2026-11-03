@@ -92,6 +92,7 @@ export function use(gl, prog, uniforms = {}) {
     else if (T === gl.FLOAT_VEC3) gl.uniform3fv(L, v);
     else if (T === gl.FLOAT_VEC4) gl.uniform4fv(L, v);
     else if (T === gl.INT || T === gl.BOOL) gl.uniform1i(L, v);
+    else if (T === gl.FLOAT_MAT2) gl.uniformMatrix2fv(L, false, v);
     else if (T === gl.FLOAT_MAT3) gl.uniformMatrix3fv(L, false, v);
     else if (T === gl.FLOAT_MAT4) gl.uniformMatrix4fv(L, false, v);
   }
