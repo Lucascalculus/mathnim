@@ -38,7 +38,7 @@ const DAYS = 56, HIST = -21;          // the rule runs from today to eight weeks
 const BLUR = 1.5;                      // CSS px of edge softening when R → 0
 
 export function make({ stage, canvas, hud, lang }) {
-  const zh = lang === 'zh', ctx = canvas.getContext('2d');
+  const zh = lang === 'zh', ctx = canvas.getContext('2d', { willReadFrequently: true });
   let W = 0, H = 0, dpr = 1, L = null;
   const cards = CARDS.map((c) => ({ ...c, reviews: c.reviews.slice(), show: new Spring(0, 0.38, 0.9), press: new Spring(0, 0.22, 0.6), layer: null }));
   const S = { t: 0, drag: false, hover: -1, forced: null };
@@ -62,7 +62,7 @@ export function make({ stage, canvas, hud, lang }) {
   function print(i) {
     const c = cards[i], r = L.ink(L.boxes[i]), cv = document.createElement('canvas');
     cv.width = Math.round((r.w + 2 * M) * dpr); cv.height = Math.round((r.h + 2 * M) * dpr);
-    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.translate(M, M);
+    const g = cv.getContext('2d', { willReadFrequently: true }); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.translate(M, M);
     const term = c.term[lang]; let fs = L.narrow ? 21 : 27;
     g.font = `600 ${fs}px ${SERIF}`; while (g.measureText(term).width > r.w && fs > 15) { fs--; g.font = `600 ${fs}px ${SERIF}`; }
     g.fillStyle = C.ink; g.textBaseline = 'alphabetic'; g.fillText(term, 0, fs + 2);
