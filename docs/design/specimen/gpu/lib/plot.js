@@ -82,10 +82,11 @@ export class Plot {
     return { x: this.o.x_step ?? nice_step(this.x[1] - this.x[0], Math.max(2, Math.floor(this.box.w / 64))),
              y: this.o.y_step ?? nice_step(this.y[1] - this.y[0], Math.max(2, Math.floor(this.box.h / 44))) };
   }
-  // where the axes run: through 0 when 0 is in range, else along the low edge
+  // where the axes run: through 0 when 0 is in range, else along the low edge (o.y_edge: the vertical axis on the left
+  // edge always, as a histogram wants it)
   axis_at() {
     const ax = this.y[0] <= 0 && this.y[1] >= 0 ? this.Y(0) : this.box.y + this.box.h;
-    const ay = this.x[0] <= 0 && this.x[1] >= 0 ? this.X(0) : this.box.x;
+    const ay = !this.o.y_edge && this.x[0] <= 0 && this.x[1] >= 0 ? this.X(0) : this.box.x;
     return { ax, ay };
   }
   // the scaffolding: axes, ticks with their numbers, a dot at each major crossing, the axis names in italic.
@@ -260,4 +261,53 @@ export function drags(el, items, on = {}) {
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
   el.addEventListener('pointerleave', () => { if (!st.active && st.hover) { st.hover = null; el.style.cursor = ''; on.change?.(); } });
   return st;
+}
+
+// ---------- measuring and naming ----------
+// a dimension line between a and b, set off by `off` px to the left of a → b: extension lines, two arrowheads, the
+// value in a gap at the middle, always upright. Returns the label's box (four corners) for the caller's checks.
+export function dimension(g, a, b, label, o = {}) {
+  const off = o.off ?? 18, color = o.color ?? C.ink2, dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+  const ux = dx / L, uy = dy / L, nx = uy, ny = -ux;                 // the normal on the left of a → b (canvas y is down)
+  const A = [a[0] + nx * off, a[1] + ny * off], B = [b[0] + nx * off, b[1] + ny * off];
+  g.save(); g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 0.8; g.globalAlpha *= o.alpha ?? 1;
+  g.beginPath(); g.moveTo(a[0] + nx * 4, a[1] + ny * 4); g.lineTo(a[0] + nx * (off + 5), a[1] + ny * (off + 5));
+  g.moveTo(b[0] + nx * 4, b[1] + ny * 4); g.lineTo(b[0] + nx * (off + 5), b[1] + ny * (off + 5)); g.stroke();
+  const w = text_width(g, label, { size: 12, weight: 600, tabular: true }) + 10, gap = Math.min(w, L - 16) / 2;
+  const M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+  g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(M[0] - ux * gap, M[1] - uy * gap); g.moveTo(M[0] + ux * gap, M[1] + uy * gap); g.lineTo(B[0], B[1]); g.stroke();
+  for (const [p, s] of [[A, 1], [B, -1]]) { g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(p[0] + s * ux * 6 + nx * 2.2, p[1] + s * uy * 6 + ny * 2.2); g.lineTo(p[0] + s * ux * 6 - nx * 2.2, p[1] + s * uy * 6 - ny * 2.2); g.closePath(); g.fill(); }
+  let ang = Math.atan2(uy, ux); if (ang > Math.PI / 2) ang -= Math.PI; if (ang < -Math.PI / 2) ang += Math.PI;
+  g.translate(M[0], M[1]); g.rotate(ang);
+  text(g, label, 0, 4, { size: 12, weight: 600, tabular: true, color: o.text_color ?? C.ink, align: 'center' });
+  g.restore();
+  const c = Math.cos(ang), s = Math.sin(ang), hw = w / 2, hh = 8;
+  return [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([u, v]) => [M[0] + u * c - v * s, M[1] + u * s + v * c]);
+}
+// a curly brace from a to b, its point `depth` px to the left of a → b; returns where its point is
+export function brace(g, a, b, color = C.ink2, depth = 9, w = 1.2) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = uy, ny = -ux;
+  const P = (t, h) => [a[0] + ux * t + nx * h, a[1] + uy * t + ny * h], d = depth, q = Math.min(d, L / 4);
+  g.save(); g.strokeStyle = color; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath();
+  let p = P(0, 0); g.moveTo(p[0], p[1]);
+  const c1 = P(0, d / 2), e1 = P(q, d / 2); g.quadraticCurveTo(c1[0], c1[1], e1[0], e1[1]);
+  const m0 = P(L / 2 - q, d / 2); g.lineTo(m0[0], m0[1]);
+  const c2 = P(L / 2, d / 2), tip = P(L / 2, d); g.quadraticCurveTo(c2[0], c2[1], tip[0], tip[1]);
+  g.quadraticCurveTo(c2[0], c2[1], ...P(L / 2 + q, d / 2));
+  const m1 = P(L - q, d / 2); g.lineTo(m1[0], m1[1]);
+  const c3 = P(L, d / 2); p = P(L, 0); g.quadraticCurveTo(c3[0], c3[1], p[0], p[1]);
+  g.stroke(); g.restore();
+  return tip;
+}
+// a row of choices drawn as words (the chosen one on a faint pill); returns their boxes for hit tests
+export function choice_row(g, labels, on, x, y, o = {}) {
+  const out = [], size = o.size ?? 14;
+  for (let i = 0; i < labels.length; i++) {
+    const L = labels[i], f = { size: L.math ? size + 2 : size, font: L.math ? 'serif' : 'sans', italic: !!L.math, weight: L.math ? 400 : 500, tabular: true };
+    const w = text_width(g, L.text, f);
+    if (i === on) { g.fillStyle = 'rgba(26,27,31,0.06)'; g.beginPath(); g.roundRect(x - 10, y - 19, w + 20, 28, 14); g.fill(); }
+    text(g, L.text, x, y, { ...f, color: i === on ? C.ink : TICK });
+    out.push({ x0: x - 10, x1: x + w + 10, y0: y - 19, y1: y + 9, i }); x += w + 28;
+  }
+  return out;
 }

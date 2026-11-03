@@ -347,7 +347,11 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
   <h1>通用积木</h1>
   <p class="lede">画数学用的名词：数轴、函数图像、平面、地形……每一门课都会用到。每一块都能拿在手里拖、放大、读数，下面的验收结果是页面自己量出来的。</p>
   <section class="group"><h2>量与函数</h2><div class="cells" id="cells-blk-fn"></div></section>
-  <section class="group"><h2>空间与地形</h2><div class="cells" id="cells-blk-space"></div></section>
+  <section class="group"><h2>空间</h2><div class="cells" id="cells-blk-space"></div></section>
+  <section class="group"><h2>地形与场</h2><div class="cells" id="cells-blk-field"></div></section>
+  <section class="group"><h2>随机与数据</h2><div class="cells" id="cells-blk-data"></div></section>
+  <section class="group"><h2>结构</h2><div class="cells" id="cells-blk-struct"></div></section>
+  <section class="group"><h2>波与时间</h2><div class="cells" id="cells-blk-wave"></div></section>
 </main>
 
 <div id="edge" hidden></div>
@@ -1525,8 +1529,15 @@ function build_lab() {
   // the learning loop (bins), the tutor and the map (tutor, stars)
   for (const p of ['time', 'pull', 'morph', 'why', 'stretch', 'explode', 'brush', 'ripple', 'tangle', 'bins', 'tutor', 'stars']) gpu_cell('int', p);
   // the building blocks (docs/design/BLOCKS.md): the nouns of mathematical figures, in gpu/blk/
-  for (const p of ['line', 'graph', 'tangent', 'area']) gpu_cell('blk', p, 'blk-fn');
-  for (const p of ['plane', 'contour', 'terrain']) gpu_cell('blk', p, 'blk-space');
+  const BLOCKS = {
+    fn: ['line', 'graph', 'tangent', 'area', 'measure', 'param'],
+    space: ['plane', 'vectors', 'projection', 'construct', 'space3d'],
+    field: ['contour', 'terrain', 'field', 'descent'],
+    data: ['distribution', 'fit', 'bayes', 'band'],
+    struct: ['network', 'tree', 'matrix', 'conv', 'sequence'],
+    wave: ['circle', 'fourier', 'complex', 'phase'],
+  };
+  for (const [sec, names] of Object.entries(BLOCKS)) for (const p of names) gpu_cell('blk', p, 'blk-' + sec);
 }
 
 // =====================================================================
