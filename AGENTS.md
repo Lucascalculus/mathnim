@@ -13,7 +13,7 @@ learner genuinely understand (讲明白)?
 | do anything | this file, then `docs/TASTE.md` (how Mathnim should feel) |
 | make or change a course or lesson | `docs/COURSE-PLAYBOOK.md`, then `docs/CAPABILITIES.md` (everything the libraries offer) |
 | build an interactive world | `docs/lessons/llm-finetuning/INTERACTION-BAR.md`, `packages/manim-web/docs/EXTENSIONS.md` |
-| write a visual | `packages/visuals/README.md` and a kit such as `docs/lessons/mpc/KIT.md` |
+| write a visual | `packages/engine/README.md` (new visuals are engine figures), `packages/visuals/README.md`, and a kit such as `docs/lessons/mpc/KIT.md` |
 | change the site (pages, margin, settings) | `docs/SITE-STRUCTURE.md`, `docs/ARCHITECTURE.md` |
 | set up, add a lesson, conventions | `docs/DEVELOPMENT.md` |
 | deploy | `docs/DEPLOY.md` (the AI route, what the build does to the code; marks in the code: `docs/FINGERPRINTS.md`) |
@@ -28,6 +28,8 @@ the playbook) and `/course-review` (review a lesson or course and list fixes).
 apps/mathnim/          the site: pages, course registry (src/course.ts), lessons (src/lessons/<course>/),
                        the margin tutor (src/side_chat.ts), tools (tools/: doctor, catalog, thumbs, narration, page_shots)
 packages/manim-web/    Manim in TypeScript (canvas rendering) + ext/: the interaction toolkit
+packages/engine/       Mathnim's own kernel: figures as state, rule-based layout, scripts, a renderer that draws only what changed
+packages/look/         the design system as data (nouns, roles, type, spacing, motion, taste rules)
 packages/core/         lesson format (schema.ts, content.ts), runtime, worlds, grading, learner model
 packages/present/      the lesson view (essay and game), text pages, narration, cues
 packages/visuals/      parametric visuals, one pack per course (mpc/, ft/<part>/, linalg/), loaded on demand

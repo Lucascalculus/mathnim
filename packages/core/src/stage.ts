@@ -5,7 +5,7 @@
 import type { Scene } from 'manim-web';
 import { Interaction } from 'manim-web/ext/interact';
 import { ScenePlayer, type PlayerOptions } from 'manim-web/ext/player';
-import { FigurePlayer, FigureUI, is_figure, is_figure_player, type Figure, type FigurePlayerOptions } from '@mathnim/engine';
+import { Figure, FigurePlayer, FigureUI, column, is_figure, is_figure_player, nice_ticks, type FigurePlayerOptions } from '@mathnim/engine';
 
 export type Stage = Scene | Figure;
 export type StagePlayer = ScenePlayer | FigurePlayer;
@@ -25,3 +25,14 @@ export function release_player(p: StagePlayer | null): void {
   if (p && is_figure_player(p)) p.release();
 }
 export const is_engine_ui = (ui: unknown): ui is FigureUI => !!ui && typeof ui === 'object' && (ui as { engine?: boolean }).engine === true;
+
+/**
+ * The figure a sketch question draws on when its step has no scene: its axes, over the ranges the answer is graded
+ * in (the sketch pad maps the pointer through this plot).
+ */
+export function sketch_figure(x: [number, number], y: [number, number], lang: 'en' | 'zh' = 'en'): Figure {
+  const fig = new Figure({ lang });
+  const P = fig.plot({ id: 'sketch_axes', x, y, x_ticks: nice_ticks(x[0], x[1], 6), y_ticks: nice_ticks(y[0], y[1], 5), priority: 2 });
+  fig.layout(column([P]));
+  return fig;
+}

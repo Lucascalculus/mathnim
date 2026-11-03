@@ -12,7 +12,7 @@ import path from 'node:path';
 import type { Plugin } from 'vite';
 
 const INTERNAL = /^_[a-z][a-z0-9_]*$/;
-const SOURCES = ['packages/manim-web/src', 'packages/visuals/src', 'packages/present/src', 'packages/core/src', 'packages/ai/src', 'apps/mathnim/src'];
+const SOURCES = ['packages/manim-web/src', 'packages/engine/src', 'packages/look/src', 'packages/visuals/src', 'packages/present/src', 'packages/core/src', 'packages/ai/src', 'apps/mathnim/src'];
 
 function files(dir: string, out: string[] = []): string[] {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
