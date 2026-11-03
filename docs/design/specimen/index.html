@@ -175,7 +175,6 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 .cell.gpu .stage.night .hud b{color:#fff}
 .demo-dom{height:210px;display:flex;flex-direction:column;justify-content:center;gap:12px}
 .demo-verb{display:inline-grid;place-items:center;height:44px;padding:0 22px;border-radius:22px;background:var(--vermilion);color:#fff;font-size:15px;font-weight:600;width:max-content}
-.demo-text{font-size:15px;line-height:1.85;max-width:300px}
 .lab-btn{display:inline-flex;align-items:center;height:40px;padding:0 18px;border-radius:20px;font-size:14px;font-weight:600;color:var(--ink);
   background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.66));box-shadow:inset 0 .75px 0 #fff,0 0 0 .5px rgba(26,27,31,.18),0 6px 16px -8px rgba(26,27,31,.3)}
 .lab-row{display:flex;align-items:center;gap:12px;margin-top:8px;min-height:40px}
@@ -448,13 +447,6 @@ function ring_dot(ctx, x, y, r, pigment, k, w = 1.8) {
 function label(ctx, text, x, y, pigment, size = 12, weight = 500, align = 'left', base = 'alphabetic', alpha = 1) {
   ctx.save(); ctx.font = `${weight} ${size}px ${SANS}`; ctx.textAlign = align; ctx.textBaseline = base;
   ctx.fillStyle = css(pigment, alpha); ctx.fillText(text, x, y); ctx.restore();
-}
-function hatch(ctx, x0, y0, x1, y1, side, pigment, step = 7, len = 5) {
-  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy * side, ny = ux * side;
-  const hx = (ux + nx) * Math.SQRT1_2 * len, hy = (uy + ny) * Math.SQRT1_2 * len;
-  ctx.save(); ctx.beginPath();
-  for (let s = 3; s < L; s += step) { const x = x0 + ux * s, y = y0 + uy * s; ctx.moveTo(x, y); ctx.lineTo(x + hx, y + hy); }
-  ctx.lineWidth = 0.85; ctx.strokeStyle = css(pigment, 0.8); ctx.stroke(); ctx.restore();
 }
 function dim2(ctx, p, q, text, off = 16) {
   stroke_ink(ctx, seg(ctx, p[0], p[1], q[0], q[1]), PIG.ink, 0.75, 0.8);
@@ -1347,8 +1339,8 @@ function build_materials() {
 // =====================================================================
 // THE LAB: candidate materials and learning interactions, each to be tested before it joins
 // =====================================================================
-// materials on our own WebGL2 core (from the material lab, kept in gpu/): each module exports meta and
-// make({stage, canvas, hud, lang}); browsers cap live WebGL contexts, so each is made when first seen
+// materials from the material lab, as ES modules in gpu/<group>/<name>.js (shared code in gpu/lib/): each exports
+// meta and make({stage, canvas, hud, lang}); browsers cap live WebGL contexts, so each is made when first seen
 const GPU = [];
 const gpu_io = new IntersectionObserver((es) => es.forEach((e) => {
   const g = GPU.find((x) => x.stage === e.target); if (!g) return;
@@ -1358,15 +1350,15 @@ const gpu_io = new IntersectionObserver((es) => es.forEach((e) => {
   }
   g.inst?.visible?.(e.isIntersecting);
 }), { rootMargin: '200px' });
-function gpu_cell(group, path, o = {}) {
-  const el = document.createElement('div'); el.className = 'cell gpu' + (o.wide ? ' wide' : '');
+function gpu_cell(group, name) {
+  const path = `${group}/${name}`, el = document.createElement('div'); el.className = 'cell gpu';
   el.innerHTML = '<div class="stage"><canvas></canvas><div class="hud"></div></div><h3></h3><p></p><p class="c"></p>';
   $('#cells-' + group).append(el);
   const g = { path, el, stage: el.querySelector('.stage'), canvas: el.querySelector('canvas'), hud: el.querySelector('.hud'), inst: null };
   GPU.push(g);
-  g.ready = import(`./gpu/m/${path}.js`).then((mod) => {
+  g.ready = import(`./gpu/${path}.js`).then((mod) => {
     const m = (g.mod = mod).meta;
-    g.stage.classList.toggle('night', !!m.night); el.classList.toggle('wide', !!(m.wide || o.wide));
+    g.stage.classList.toggle('night', !!m.night); el.classList.toggle('wide', !!m.wide);
     el.querySelector('h3').innerHTML = `${m.name.zh}<small>${m.name.en}</small>`;
     el.querySelector('p').textContent = m.means.zh;
     el.querySelector('p.c').textContent = '验收：' + m.test.zh;
@@ -1374,11 +1366,14 @@ function gpu_cell(group, path, o = {}) {
   }).catch((err) => { console.error('gpu ' + path, err); el.querySelector('h3').textContent = path; });
   return g;
 }
-// each GPU material's own test; returns [{path, pass, value}]
-window.__gpu_accept = async () => {
+// each GPU material's own test (or only the given paths), run with its tile on screen, since frames stop off screen;
+// returns [{path, pass, value}]
+window.__gpu_accept = async (only) => {
   const out = [];
   for (const g of GPU) {
+    if (only && !only.includes(g.path)) continue;
     await g.ready; if (!g.mod) { out.push({ path: g.path, pass: false, value: 'not loaded' }); continue; }
+    g.stage.scrollIntoView({ block: 'center' }); await new Promise((r) => setTimeout(r, 150));
     if (!g.inst) g.inst = g.mod.make({ stage: g.stage, canvas: g.canvas, hud: g.hud, lang: 'zh' });
     try { out.push({ path: g.path, ...(await g.inst.accept()) }); } catch (err) { out.push({ path: g.path, pass: false, value: String(err.message || err) }); }
   }
@@ -1472,10 +1467,10 @@ function build_lab() {
     const up = () => { on = false; m.st.drag = false; redraw(m.paint); };
     m.canvas.addEventListener('pointerup', up); m.canvas.addEventListener('pointercancel', up);
   }, { x: 0.9, z: -0.4 });
-  for (const p of ['d/nib', 'd/fold', 'd/rope', 'd/sand', 'd/layers']) gpu_cell('mat', p);
+  for (const p of ['nib', 'fold', 'thread', 'sand', 'layers']) gpu_cell('mat', p);
 
   // ---------- harder, more beautiful materials ----------
-  for (const p of ['v1/ink', 'm/field', 'a1/algebra', 'a1/glass']) gpu_cell('rare', p);
+  for (const p of ['ink', 'field', 'algebra', 'glass']) gpu_cell('rare', p);
 
   // ---------- interactions ----------
   const truth = (t) => { const z = OPT.z, a1 = CART.s * z[0], a2 = CART.s * z[1], v1 = CART.v0 + a1, p = positions(z); if (t <= 1) return CART.p0 + CART.v0 * t + a1 * t * t / 2; if (t <= 2) return p[1] + v1 * (t - 1) + a2 * (t - 1) ** 2 / 2; return p[2] + (v1 + a2) * (t - 2); };
@@ -1518,7 +1513,9 @@ function build_lab() {
     form(tb.dom.querySelector('.hint'), miss ? [{ wall: '还差一点：谷底在哪儿？球为什么到不了？', slide: '还差一点：球碰到墙以后，做了什么？', low: '还差一点：它最后停在什么样的地方？' }[miss]] : ['讲全了。']);
   });
   tb.dom.after(row);
-  gpu_cell('int', 'a1/time'); gpu_cell('int', 'a1/pull'); gpu_cell('int', 'a1/morph', { wide: true });
+  // time, a noun pulled out, another view; then text (why, stretch), formula and figure (explode, brush, ripple, tangle),
+  // the learning loop (bins), the tutor and the map (tutor, stars)
+  for (const p of ['time', 'pull', 'morph', 'why', 'stretch', 'explode', 'brush', 'ripple', 'tangle', 'bins', 'tutor', 'stars']) gpu_cell('int', p);
 }
 
 // =====================================================================

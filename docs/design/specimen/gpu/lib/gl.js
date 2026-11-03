@@ -1,13 +1,5 @@
-// A small WebGL2 core for the material lab: programs with named uniforms, float targets, ping-pong
-// buffers, a full-screen triangle, and a frame scheduler that stops drawing when nothing changes.
-// No library: this is the size of thing manim-web could own.
-
-export const PAPER = [0.984, 0.980, 0.969];
-export const PIG = {
-  ink: [0.102, 0.106, 0.122], graphite: [0.553, 0.569, 0.596], paper: PAPER,
-  cobalt: [0.17, 0.35, 0.85], ochre: [0.80, 0.54, 0.14], teal: [0.07, 0.54, 0.63],
-  violet: [0.42, 0.31, 0.79], viridian: [0.10, 0.54, 0.42], vermilion: [0.93, 0.27, 0.13],
-};
+// A small WebGL2 core for the GPU materials: programs with named uniforms, float targets, ping-pong buffers,
+// a full-screen triangle, canvas textures. No library: this is the size of thing manim-web could own.
 
 export function context(canvas, o = {}) {
   const gl = canvas.getContext('webgl2', { antialias: o.antialias ?? false, alpha: o.alpha ?? false, premultipliedAlpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance', depth: o.depth ?? false });
@@ -20,12 +12,12 @@ export function context(canvas, o = {}) {
 }
 
 // the full-screen triangle: no buffers, gl_VertexID only
-export const FS_VS = `#version 300 es
+const FS_VS = `#version 300 es
 out vec2 uv;
 void main(){ vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2); uv = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
 
 // shared GLSL: palette, noise, colour science
-export const GLSL_COMMON = `
+const GLSL_COMMON = `
 const vec3 PAPER = vec3(0.984, 0.980, 0.969);
 const vec3 INK = vec3(0.102, 0.106, 0.122);
 const vec3 GRAPHITE = vec3(0.553, 0.569, 0.596);
@@ -56,7 +48,7 @@ vec3 cie_xyz(float l){
 vec3 xyz_to_lin_srgb(vec3 c){ return mat3(3.2406, -0.9689, 0.0557, -1.5372, 1.8758, -0.2040, -0.4986, 0.0415, 1.0570) * c; }
 `;
 
-export function shader(gl, type, src) {
+function shader(gl, type, src) {
   const s = gl.createShader(type);
   gl.shaderSource(s, src); gl.compileShader(s);
   if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
@@ -152,26 +144,6 @@ export function fit_canvas(canvas, cap = 2, scale = 1) {
   return false;
 }
 
-// The scheduler: a material asks for frames while it is changing and returns false when it has settled.
-// Frames stop when nothing moves (quiet at rest) and while the tile is off screen.
-export function scheduler(step) {
-  let raf = 0, last = 0, visible = true, awake_until = 0;
-  const s = {
-    frames: 0, fps: 0, _t0: 0, _f0: 0,
-    wake(ms = 1500) { awake_until = Math.max(awake_until, performance.now() + ms); if (!raf && visible) raf = requestAnimationFrame(tick); },
-    set_visible(v) { visible = v; if (v) s.wake(300); },
-  };
-  function tick(t) {
-    raf = 0;
-    const dt = Math.min(1 / 20, last ? (t - last) / 1000 : 1 / 60); last = t;
-    const busy = step(dt, t / 1000);
-    s.frames++;
-    if (t - s._t0 > 500) { s.fps = (s.frames - s._f0) * 1000 / (t - s._t0); s._t0 = t; s._f0 = s.frames; }
-    if (visible && (busy || t < awake_until)) raf = requestAnimationFrame(tick); else last = 0;
-  }
-  return s;
-}
-
 // pointer in canvas uv (0..1, y up), with drag state
 export function pointer(canvas, on) {
   const P = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, down: false, inside: false };
@@ -184,42 +156,17 @@ export function pointer(canvas, on) {
   return P;
 }
 
-// small matrix helpers (column-major, like GLSL)
-export const m4 = {
-  persp(fovy, aspect, n, f) { const t = 1 / Math.tan(fovy / 2); return new Float32Array([t / aspect, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0]); },
-  look(eye, at, up = [0, 1, 0]) {
-    const z = norm(sub(eye, at)), x = norm(cross(up, z)), y = cross(z, x);
-    return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]);
-  },
-  mul(a, b) { const o = new Float32Array(16); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + j] * b[i * 4 + k]; o[i * 4 + j] = s; } return o; },
-  inv(m) {
-    const a = m, o = new Float32Array(16);
-    const b00 = a[0] * a[5] - a[1] * a[4], b01 = a[0] * a[6] - a[2] * a[4], b02 = a[0] * a[7] - a[3] * a[4], b03 = a[1] * a[6] - a[2] * a[5], b04 = a[1] * a[7] - a[3] * a[5], b05 = a[2] * a[7] - a[3] * a[6];
-    const b06 = a[8] * a[13] - a[9] * a[12], b07 = a[8] * a[14] - a[10] * a[12], b08 = a[8] * a[15] - a[11] * a[12], b09 = a[9] * a[14] - a[10] * a[13], b10 = a[9] * a[15] - a[11] * a[13], b11 = a[10] * a[15] - a[11] * a[14];
-    const det = 1 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
-    o[0] = (a[5] * b11 - a[6] * b10 + a[7] * b09) * det; o[1] = (a[2] * b10 - a[1] * b11 - a[3] * b09) * det; o[2] = (a[13] * b05 - a[14] * b04 + a[15] * b03) * det; o[3] = (a[10] * b04 - a[9] * b05 - a[11] * b03) * det;
-    o[4] = (a[6] * b08 - a[4] * b11 - a[7] * b07) * det; o[5] = (a[0] * b11 - a[2] * b08 + a[3] * b07) * det; o[6] = (a[14] * b02 - a[12] * b05 - a[15] * b01) * det; o[7] = (a[8] * b05 - a[10] * b02 + a[11] * b01) * det;
-    o[8] = (a[4] * b10 - a[5] * b08 + a[7] * b06) * det; o[9] = (a[1] * b08 - a[0] * b10 - a[3] * b06) * det; o[10] = (a[12] * b04 - a[13] * b02 + a[15] * b00) * det; o[11] = (a[9] * b02 - a[8] * b04 - a[11] * b00) * det;
-    o[12] = (a[5] * b07 - a[4] * b09 - a[6] * b06) * det; o[13] = (a[0] * b09 - a[1] * b07 + a[2] * b06) * det; o[14] = (a[13] * b01 - a[12] * b03 - a[14] * b00) * det; o[15] = (a[8] * b03 - a[9] * b01 + a[10] * b00) * det;
-    return o;
-  },
-};
-export const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-export const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-export const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-export const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-export const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-export const norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-export const lerp = (a, b, t) => a + (b - a) * t;
-export const smooth = (t) => t * t * (3 - 2 * t);
 
-// a grid mesh of (n+1)^2 vertices in [0,1]^2 drawn as triangles; positions come from gl_VertexID in the shader
-export function grid_indices(gl, n) {
-  const idx = new Uint32Array(n * n * 6); let k = 0;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const a = j * (n + 1) + i, b = a + 1, c = a + n + 1, d = c + 1; idx.set([a, b, d, a, d, c], k); k += 6; }
-  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
-  const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
-  gl.bindVertexArray(null);
-  return { vao, count: idx.length, n };
+// a 2D canvas as a mipmapped texture (y flipped to GL's convention)
+export function upload(gl, cv, o = {}) {
+  const t = texture(gl, cv.width, cv.height, { type: 'u8', mip: true });
+  gl.bindTexture(gl.TEXTURE_2D, t.tex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, !!o.premul);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  const af = gl.getExtension('EXT_texture_filter_anisotropic'); if (af) gl.texParameterf(gl.TEXTURE_2D, af.TEXTURE_MAX_ANISOTROPY_EXT, 8);
+  return t;
 }

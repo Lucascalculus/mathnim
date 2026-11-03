@@ -69,10 +69,25 @@ His words, in order, so you can hear the bar:
     spring, light; and from the cloud session's material lab the broad-nib pen, folding paper, a thread, sand that
     builds a histogram, paper layers), harder materials (ink in water, vector field as light, liquid algebra, liquid
     glass) and learning interactions (sketch your guess, teach back, time as matter, pull a noun out, one thing in
-    another view). The lab's materials are ES modules in `gpu/` (our own WebGL2 core in `gpu/lib/`), so the page
-    must be served over http, not opened as a file.
+    another view; and from the second round of interface materials: a chain of why, definitions that unfold in the
+    sentence, the exploded formula, brushing between formula and figure, a ripple of recomputation, numbers you drag
+    with rolling digits, magnetic bins, the tutor as light, a constellation of what you know).
+
+    The lab's materials are ES modules in `gpu/<section>/<name>.js`, one folder per section of the page (`mat`,
+    `rare`, `int`). Their shared code is in `gpu/lib/`:
+    - `gl`: our WebGL2 core;
+    - `ui`: palette, fonts, the frame scheduler, springs, 2D helpers;
+    - `geom`, `odometer`, `text` (line breaking), `lesson` (the sample page).
+
+    The page must be served over http, not opened as a file.
   - `motion`: seventeen animations. The first seven are interface effects; the last ten help show mathematics.
-  - Inside the page: `window.__fx_all()` plays every effect; `window.__gpu_accept()` runs the GPU materials' tests.
+  - Inside the page:
+    - `window.__fx_all()` plays every effect.
+    - `window.__gpu_accept()` runs the lab materials' tests, each with its tile scrolled on screen; pass paths such
+      as `['int/why']` to run some.
+    - The tests need frames: a hidden browser pane gives false failures. Headless Chrome needs
+      `--use-angle=swiftshader --enable-unsafe-swiftshader` (instead of `--disable-gpu`) for the WebGL ones.
+    - `mat/thread` fails its own length test (also in the cloud session's original).
 - Published unlisted at https://lab.penghaolun.com/p/0y7r2k8c6i/ (noindex). After changing the specimen, run
   `npm run specimen` (copies it into `apps/mathnim/public/p/…`) before a deploy.
 - `docs/design/specimen/shots/`: reference screenshots of where the work stands.
