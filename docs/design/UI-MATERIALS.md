@@ -93,3 +93,35 @@ drawn.
 | M8 | Iteration | Newton's method on z³ − 1: basins as a fractal that zooms smoothly | Each pixel is iterated, never cached |
 | M9 | Four dimensions | A tesseract turning in 4D, projected in perspective with depth | Rotation in the xw plane |
 | M10 | Eigenmodes | Chladni sand on a vibrating plate: sand gathers on the nodal lines | The modes of the plate |
+
+### Results (all ten built and passing their own tests, 2026-11-03)
+
+| # | Material | Measured |
+|---|---|---|
+| M1 | Vector field as light (long exposure, RK4) | radius drift after a full turn in a vortex 0.000 % |
+| M2 | Linear map as fabric (weave, wrinkles along σ₂, back side) | unit-square area vs \|det A\| 0.30 %; back shown for det < 0 |
+| M3 | Complex function in cloisonné (silver wires = conformal grid) | 38/38 windings = zeros − poles; right angles to 0.000° |
+| M4 | Surface in plaster and water | water = {f < c} on 100 % of pixels |
+| M5 | Fourier series in machined steel washers | error falls with every term; full rebuild 1e-11 px |
+| M6 | Topology in glass (mug → torus) | χ = 0 at every sampled frame |
+| M7 | Optimisation as a swarm (heavy ball) | 228/228 at minima; β = 0 keeps 114/114 in their basins |
+| M8 | Newton's method (live iteration, zoom to a found boundary) | basins equal to 0.02 %; every root's neighbourhood correct |
+| M9 | Tesseract in steel | edge error 4e-16; inner and outer cubes swap at 90° |
+| M10 | Chladni sand | 82 % of sand on the nodal set (10 % of the plate) |
+
+## Ten that need only a 2D engine (Lucas: "再加十个 2D 的，只用 2D 引擎就能跑的")
+
+Canvas 2D only (no WebGL), so each can live in manim-web's renderer as it is.
+
+| # | Material | What is exact |
+|---|---|---|
+| D1 | A broad-nib pen that writes any path | Stroke width = nib width × |sin(direction − nib angle)| |
+| D2 | Paper that folds along a line | The folded part is the reflection of the plane in the crease |
+| D3 | Marbling | Every tine stroke is an exact, invertible, area-preserving map (Jaffer & Lu) |
+| D4 | Engraving: shading 3D forms with hatching | Line density follows the true Lambert shading |
+| D5 | A thread between two things | Verlet rope of fixed length: slack or taut |
+| D6 | Sand that builds a histogram | Each grain is one observation; pile height = count |
+| D7 | Halftone density | Dot area = density, exactly |
+| D8 | Shape morph that conserves area | Every in-between has the same area |
+| D9 | Guilloché | A rosette is a sum of rotations |
+| D10 | Paper layers in depth | Shadow offset ∝ height above the page |

@@ -12,6 +12,7 @@ const SETS = {
   'a1': { label: { zh: '界面材质 · 第一版', en: 'Interface · first pass' }, ids: A_IDS, dir: 'a1' },
   'a2': { label: { zh: '界面材质 · 第二版', en: 'Interface · second pass' }, ids: A_IDS, dir: 'a2' },
   'm': { label: { zh: '数学实体 · 十种', en: 'Mathematical objects · ten' }, ids: ['field', 'linmap', 'complex', 'surface', 'fourier', 'topology', 'swarm', 'newton', 'tesseract', 'chladni'], dir: 'm' },
+  'd': { label: { zh: '二维 · 十种', en: '2D only · ten' }, ids: ['nib', 'fold', 'marble', 'engrave', 'rope', 'sand', 'halftone', 'shapemorph', 'guilloche', 'layers'], dir: 'd' },
   'b': { label: { zh: '全新十种', en: 'Ten new' }, ids: [], dir: 'b' },
   'lab': { label: { zh: '物理实验室', en: 'Physics lab' }, ids: ['caustics', 'soap', 'ink', 'metal', 'filings', 'particles', 'rd', 'loupe'], dir: 'v1' },
 };
