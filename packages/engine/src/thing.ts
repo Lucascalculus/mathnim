@@ -1,7 +1,7 @@
 // Things: every object on a figure has an id, a kind, a role in the grammar of the look and a sentence that says what
 // it is. The registry knows them all - their boxes and meanings - which is what linking text to figure, lassoing,
 // the tutor's light, accessibility and the doctor's description are built on.
-import { color_of, look, material_of, text_color_of, type Look, type Material } from '@mathnim/look';
+import { color_of, look, material_of, resolve_color, text_color_of, type Look, type Material } from '@mathnim/look';
 import type { Box, Ctx2D, XY } from './geom';
 import { param, type Param } from './state';
 import type { L10n, Lang } from './text';
@@ -18,6 +18,36 @@ export interface DrawEnv {
 
 /** What a placed label must keep clear of. */
 export type Obstacle = { box: Box; weight?: number } | { seg: [XY, XY]; weight?: number } | { pt: XY; r: number; weight?: number };
+
+/**
+ * The freedom layer: what a figure may say about how one thing looks, over what its role gives it. A role is the
+ * default (one noun, one colour, everywhere); a style is an override, for a picture the grammar does not cover. The
+ * lint reports overrides as warnings, never blocks them, and describe() lists them.
+ */
+export interface Style {
+  /** Stroke and fill colour: a palette key ('cobalt', 'ink2', 'muted', 'accent', 'coral' …), a role ('noun:wall'), or '#rrggbb'. */
+  color?: string;
+  /** Text colour (default: `color` as given, else the role's colour darkened to read). */
+  text?: string;
+  /** Stroke width (CSS px). */
+  width?: number;
+  /** Dashes [on, off] (CSS px); null draws solid even when the role is dashed. */
+  dash?: [number, number] | null;
+  /** Opacity of the strokes (0..1). */
+  alpha?: number;
+  /** Fill colour (default: `color`) and its opacity. */
+  fill?: string;
+  fill_alpha?: number;
+  /** Text size (CSS px), weight and family. */
+  size?: number;
+  weight?: number;
+  family?: 'sans' | 'serif' | 'mono';
+  italic?: boolean;
+  /** A paper backing behind text (its opacity): readable over lines. */
+  backing?: number;
+}
+/** The keys of a style that override how text reads (the lint relaxes its text rules for these). */
+const TEXT_KEYS: (keyof Style)[] = ['text', 'size', 'color'];
 
 let auto_id = 0;
 
@@ -39,24 +69,49 @@ export abstract class Thing {
   /** Things drawn as part of this one (a plot's marks). */
   children: Thing[] = [];
   parent: Thing | null = null;
-  constructor(o: { id?: string; role?: string; says?: L10n; z?: number } = {}) {
+  /** Overrides of how it looks (see Style). */
+  style: Style;
+  constructor(o: { id?: string; role?: string; says?: L10n; z?: number; style?: Style } = {}) {
     this.id = o.id ?? `t${++auto_id}`;
     this.role = o.role ?? 'text';
     this.says = o.says;
     this.z = o.z ?? 0;
+    this.style = o.style ?? {};
     this.opacity = param(1, { name: this.id + '.opacity', range: [0, 1] });
   }
   /** A role that follows the state (read while drawing, so the thing is drawn again when it changes). */
   role_of?: () => string;
   get color(): string {
-    return color_of(this.role_of?.() ?? this.role, look());
+    return this.style.color ? resolve_color(this.style.color, look()) : color_of(this.role_of?.() ?? this.role, look());
   }
-  /** Its colour as text (the noun's hue, dark enough to read). */
+  /** Its colour as text (the noun's hue, dark enough to read; or what its style asks for). */
   get text_color(): string {
-    return text_color_of(this.role_of?.() ?? this.role, look());
+    const s = this.style.text ?? this.style.color;
+    return s ? resolve_color(s, look()) : text_color_of(this.role_of?.() ?? this.role, look());
   }
+  get fill_color(): string {
+    return this.style.fill ? resolve_color(this.style.fill, look()) : this.color;
+  }
+  /** Its role's material with the style's overrides. */
   get material(): Material {
-    return material_of(this.role, look());
+    const m = material_of(this.role, look()), s = this.style;
+    if (s.width === undefined && s.dash === undefined && s.alpha === undefined && s.fill_alpha === undefined && s.weight === undefined) return m;
+    const out: Material = { ...m };
+    if (s.width !== undefined) out.stroke = s.width;
+    if (s.dash !== undefined) out.dash = s.dash ?? undefined;
+    if (s.alpha !== undefined) out.stroke_opacity = s.alpha;
+    if (s.fill_alpha !== undefined) out.fill_opacity = s.fill_alpha;
+    if (s.weight !== undefined) out.weight = s.weight as Material['weight'];
+    return out;
+  }
+  /** Does its style override how its text reads (size or colour)? */
+  get text_styled(): boolean {
+    return TEXT_KEYS.some((k) => this.style[k] !== undefined);
+  }
+  /** Its style's overrides, for describe(). */
+  style_note(): string {
+    const e = Object.entries(this.style).filter(([, v]) => v !== undefined);
+    return e.length ? ` style{${e.map(([k, v]) => `${k}:${Array.isArray(v) ? v.join('/') : v}`).join(',')}}` : '';
   }
   /** Draw with the env's context (already scaled to CSS px). Reading params here makes the thing depend on them. */
   abstract draw(env: DrawEnv): void;

@@ -10,7 +10,7 @@ import { look } from '@mathnim/look';
 import { Mark } from './kinds';
 import { make_canvas } from './render';
 import { read, type Val } from './state';
-import type { DrawEnv, Obstacle } from './thing';
+import type { DrawEnv, Obstacle, Style } from './thing';
 import type { L10n } from './text';
 
 export type Tier = 'webgpu' | 'webgl2' | 'cpu';
@@ -270,6 +270,8 @@ export interface FieldOpts {
   mode?: 'linear' | 'sqrt';
   /** Deepest tint at the low end (a bowl's bottom) rather than the high end. */
   low_deep?: boolean;
+  /** Overrides (`color`, line `width`, line `alpha`, tint `fill_alpha`). */
+  style?: Style;
   /** Tint and line opacity. */
   fill?: number;
   line?: number;
@@ -287,16 +289,16 @@ export class Field extends Mark {
   private cpu_buf: { vals: Float32Array; img: ImageData } | null = null;
   private cpu_g: CanvasRenderingContext2D | null = null;
   constructor(public field: FieldKind, public fo: FieldOpts = {}) {
-    super({ id: fo.id, role: fo.role ?? 'region', says: fo.says, z: fo.z ?? 1.2 });
+    super({ id: fo.id, role: fo.role ?? 'region', says: fo.says, z: fo.z ?? 1.2, style: fo.style });
   }
   private pack(env: DrawEnv, w: number, h: number): Float32Array<ArrayBuffer> {
     const U = this.U, s = this.plot.spec, m = this.material;
     U.fill(0);
     const n = parseInt(this.color.slice(1), 16), lv = (this.fo.levels ?? []).slice(0, 8);
     U.set([s.x[0], s.x[1], s.y[0], s.y[1]], 0);
-    U.set([w, h, (this.fo.line_px ?? 1.25) * env.dpr, lv.length], 4);
-    U.set([((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, this.fo.fill ?? m.fill_opacity ?? 0.16], 8);
-    U.set([0, 0, 0, this.fo.line ?? 0.35], 12);
+    U.set([w, h, (this.fo.line_px ?? this.style.width ?? 1.25) * env.dpr, lv.length], 4);
+    U.set([((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, this.fo.fill ?? this.style.fill_alpha ?? m.fill_opacity ?? 0.16], 8);
+    U.set([0, 0, 0, this.fo.line ?? this.style.alpha ?? 0.35], 12);
     const [v0, v1] = this.fo.range ?? [0, 1];
     U.set([v0, v1, this.fo.mode === 'sqrt' ? 1 : 0, this.fo.low_deep === false ? 0 : 1], 16);
     U.set(lv, 20);

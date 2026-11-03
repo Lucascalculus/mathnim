@@ -21,6 +21,8 @@ export interface Palette {
   scaffold: string;
   /** The faintest rules (grid lines). */
   faint: string;
+  /** The site's quiet grey for marks (a clipped plan, minor numbers): lighter than ink2, so not for body text. */
+  muted: string;
   /** Pigments: each names one noun of a course (see `nouns`). */
   cobalt: string;
   ochre: string;
@@ -33,12 +35,12 @@ export interface Palette {
 export const PALETTES: Record<ThemeName, Palette> = {
   light: {
     bg: '#FFFFFF', bg_top: '#FFFFFF', bg_bottom: '#F5F5F7',
-    ink: '#111113', ink2: '#5B5B62', scaffold: '#9A9AA1', faint: '#E6E6EA',
+    ink: '#111113', ink2: '#5B5B62', scaffold: '#9A9AA1', faint: '#E6E6EA', muted: '#86868B',
     cobalt: '#2563EB', ochre: '#B8860B', vermilion: '#E4572E', viridian: '#1F8A5B', violet: '#7C3AED', teal: '#0D9488',
   },
   dark: {
     bg: '#0E1014', bg_top: '#12151B', bg_bottom: '#0B0D10',
-    ink: '#ECEFF4', ink2: '#A3AAB6', scaffold: '#6B7280', faint: '#2A2F38',
+    ink: '#ECEFF4', ink2: '#A3AAB6', scaffold: '#6B7280', faint: '#2A2F38', muted: '#8B93A1',
     cobalt: '#58C4DD', ochre: '#F7D96F', vermilion: '#FC6255', viridian: '#83C167', violet: '#9A72AC', teal: '#5CD0B3',
   },
 };
@@ -51,10 +53,10 @@ export type Pigment = 'cobalt' | 'ochre' | 'vermilion' | 'viridian' | 'violet' |
  * nouns here (reviewed), never in a lesson. Unknown nouns fall back to ink, and the lint reports them.
  */
 export const NOUNS: Record<string, Pigment> = {
-  // control (MPC)
+  // control (MPC): as the course has always drawn them (a speed limit gold, the wall coral)
   'plan': 'cobalt', 'best-plan': 'cobalt', 'cart': 'cobalt', 'prediction': 'cobalt',
-  'wall': 'ochre', 'limit': 'ochre', 'terminal-set': 'viridian', 'goal': 'viridian',
-  'motor': 'ink', 'speed': 'teal', 'state': 'ink', 'cost': 'cobalt',
+  'wall': 'vermilion', 'limit': 'ochre', 'terminal-set': 'viridian', 'goal': 'viridian',
+  'motor': 'ink', 'speed': 'ochre', 'state': 'ink', 'cost': 'cobalt',
   // probability, statistics
   'data': 'ink', 'mean': 'cobalt', 'density': 'cobalt', 'sample': 'ink',
   // linear algebra
@@ -228,6 +230,19 @@ export function color_of(role: string, l: Look = current): string {
   if (r === 'verb') return p.vermilion;
   if (r === 'muted') return p.ink2;
   return p.ink;
+}
+/** Palette keys a figure may name directly (a style override), and the old site's names for the same pigments. */
+const ALIASES: Record<string, keyof Palette> = { accent: 'cobalt', gold: 'ochre', coral: 'vermilion', good: 'viridian', purple: 'violet', paper: 'bg' };
+/**
+ * A colour a figure asked for (the freedom layer): a palette key ('cobalt', 'ink2', 'muted', or the old names 'accent',
+ * 'gold', 'coral', 'good', 'purple'), a role ('noun:wall', 'verb'), or any '#rrggbb'. It follows the theme unless it is
+ * a hex.
+ */
+export function resolve_color(c: string, l: Look = current): string {
+  if (c.startsWith('#')) return c;
+  const k = (ALIASES[c] ?? c) as keyof Palette;
+  if (k in l.palette) return l.palette[k];
+  return color_of(c, l);
 }
 /** Contrast ratio of two #rrggbb colours (WCAG 2). */
 export function contrast(a: string, b: string): number {

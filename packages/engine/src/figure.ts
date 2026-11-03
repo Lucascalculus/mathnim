@@ -9,13 +9,13 @@
 //   f.script(reveal(P), beat(), set(a, 2));
 import { look, known_noun, type Look } from '@mathnim/look';
 import { inflate, overlap, type Box, type XY } from './geom';
-import { CanvasBlock, Handle, Label, Legend, ListBlock, Plot, Readout, TextBlock, type Part, type PlotSpec } from './kinds';
-import { Column, place_label, type Block, type LayoutEnv, type Side } from './layout';
+import { CanvasBlock, Handle, Label, Legend, ListBlock, Plot, Readout, TextBlock, type LabelOpts, type LegendEntry, type Part, type PlotSpec } from './kinds';
+import { Column, place_at, place_label, type Block, type LayoutEnv } from './layout';
 import { Renderer, paint_background } from './render';
 import { Timeline, type Step } from './script';
 import { derive, now_version, param, read, untracked, type Derived, type Param, type ParamSpec, type Val } from './state';
 import { tr, type L10n, type Lang, type TextKind } from './text';
-import { Registry, contrast, type DrawEnv, type Obstacle, type Thing } from './thing';
+import { Registry, contrast, type DrawEnv, type Obstacle, type Style, type Thing } from './thing';
 
 export type Listener = (type: string, data: Record<string, unknown>) => void;
 export interface Issue { severity: 'error' | 'warning'; rule: string; thing?: string; message: string; fix?: string }
@@ -56,16 +56,16 @@ export class Figure {
   derive<T>(f: () => T, name = ''): Derived<T> {
     return derive(f, name);
   }
-  caption(content: Val<string | L10n>, o: { id?: string; role?: string; kind?: TextKind; align?: 'left' | 'center' | 'right'; max_lines?: number; weight?: number } = {}): TextBlock {
+  caption(content: Val<string | L10n>, o: { id?: string; role?: string; kind?: TextKind; align?: 'left' | 'center' | 'right'; max_lines?: number; weight?: number; style?: Style } = {}): TextBlock {
     return new TextBlock(content, { kind: 'caption', ...o });
   }
   list(items: Val<string | L10n>[], o: { id?: string; kind?: TextKind; role?: string } = {}): ListBlock {
     return new ListBlock(items, o);
   }
-  readout(parts: Part[], o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind } = {}): Readout {
+  readout(parts: Part[], o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind; style?: Style } = {}): Readout {
     return new Readout(parts, o);
   }
-  legend(entries: ConstructorParameters<typeof Legend>[0], o: { id?: string } = {}): Legend {
+  legend(entries: LegendEntry[], o: ConstructorParameters<typeof Legend>[1] = {}): Legend {
     return new Legend(entries, o);
   }
   plot(spec: PlotSpec): Plot {
@@ -75,7 +75,7 @@ export class Figure {
     return new CanvasBlock(paint, o);
   }
   /** A label attached to a thing or a point (CSS px, or data coordinates through `plot`). */
-  label(content: Val<string | L10n>, anchor: Val<XY | Box | null> | Thing, o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; on?: Plot; weight?: number; within?: () => Box; own?: Thing[]; kind?: TextKind } = {}): Label {
+  label(content: Val<string | L10n>, anchor: Val<XY | Box | null> | Thing, o: Omit<LabelOpts, 'to'> & { on?: Plot; within?: () => Box; own?: Thing[] } = {}): Label {
     const to = typeof anchor === 'object' && anchor !== null && 'draw' in anchor ? (anchor as Thing) : undefined;
     const a: Val<XY | Box | null> = to
       ? () => {
@@ -108,10 +108,22 @@ export class Figure {
     this.asides.push(tr(s, this.lang));
   }
   /** How the figure is composed; a phone may get its own composition of the same things (`phone`). */
-  layout(root: Block, o: { phone?: Block } = {}): void {
+  layout(root: Block, o: { phone?: Block; pad?: number; design_w?: number } = {}): void {
     this.root = root;
     this.phone_root = o.phone ?? null;
+    this.pad = o.pad ?? null;
+    this.design_w = o.design_w ?? null;
   }
+  /**
+   * A desktop composition made for one width (px): laid out at that width and drawn scaled to the stage, text, lines
+   * and all, as a manim scene was (a figure placed in the manim frame keeps its proportions at any size). The phone
+   * composition is laid out at its own size.
+   */
+  design_w: number | null = null;
+  /** Stage px per layout px (1 unless the figure has a design width). */
+  view_scale = 1;
+  /** The space around the composition on a desktop (px; default the look's), e.g. 0 for a manim frame placed edge to edge. */
+  pad: number | null = null;
   phone_root: Block | null = null;
   script(...steps: Step[]): void {
     this.steps = steps;
@@ -150,8 +162,18 @@ export class Figure {
     this.build();
     const l = look();
     this.phone = w < l.layout.phone_below;
+    // (a design width: lay out at it, report the stage's size)
+    this.view_scale = !this.phone && this.design_w ? w / this.design_w : 1;
+    if (this.view_scale !== 1) {
+      const s = this.view_scale, r = this.layout_at(this.design_w!, h === undefined ? undefined : h / s);
+      return { w, h: r.h * s };
+    }
+    return this.layout_at(w, h);
+  }
+  private layout_at(w: number, h?: number): { w: number; h: number } {
+    const l = look();
     const env: LayoutEnv = { look: l, lang: this.lang, phone: this.phone };
-    const pad = l.space.pad * (this.phone ? 0.75 : 1);
+    const pad = this.phone ? l.space.pad * 0.75 : this.pad ?? l.space.pad;
     const inner = w - 2 * pad;
     for (const t of this.registry.all()) {
       t.why = [];
@@ -198,8 +220,8 @@ export class Figure {
     const obstacles: { o: Obstacle; owner: string }[] = [];
     for (const t of this.body()) if (t.visible()) for (const o of t.obstacles()) obstacles.push({ o, owner: t.id });
     for (const h of this.handles) for (const o of h.obstacles()) obstacles.push({ o, owner: h.id });
-    const gap = look().space.label_gap;
     for (const l of this.labels) {
+      const gap = l.o.gap ?? look().space.label_gap;
       const a = untracked(() => read(l.anchor));
       const sz = untracked(() => l.size(this.lang));
       if (!a || !sz.w || !l.visible()) {
@@ -208,16 +230,20 @@ export class Figure {
       }
       const bounds = (l as Label & { within?: () => Box }).within?.() ?? inflate(this.frame, -4);
       const own = l.o.to?.id;
-      const p = place_label(a, sz.w, sz.h, { sides: l.o.sides, gap, bounds, obstacles: obstacles.filter((x) => !l.own.includes(x.owner)) });
-      l.box = p.box;
+      // (the figure may place it itself: no search, its first side as it is)
+      const p = l.o.avoid === false
+        ? { box: place_at(a, l.o.sides?.[0] ?? 'right', sz.w, sz.h, gap), side: l.o.sides?.[0] ?? 'right', why: `${l.o.sides?.[0] ?? 'right'} (placed by the figure, no avoidance)` }
+        : place_label(a, sz.w, sz.h, { sides: l.o.sides, gap, bounds, obstacles: obstacles.filter((x) => !l.own.includes(x.owner)) });
+      const off = l.o.offset ? untracked(() => read(l.o.offset!)) : undefined;
+      l.box = off ? { ...p.box, x: p.box.x + off[0], y: p.box.y + off[1] } : p.box;
       l.side = p.side;
-      l.why = [`attached to ${own ?? 'a point'}: ${p.why}`];
-      obstacles.push({ o: { box: inflate(p.box, 2), weight: 3 }, owner: l.id });
+      l.why = [`attached to ${own ?? 'a point'}: ${p.why}${off ? `, moved by (${off[0]}, ${off[1]}) px` : ''}`];
+      obstacles.push({ o: { box: inflate(l.box, 2), weight: 3 }, owner: l.id });
     }
   }
   /** Draw a frame; returns false when nothing changed (and nothing was drawn). */
   draw(g: CanvasRenderingContext2D, dpr: number, o: { force?: boolean } = {}): boolean {
-    const env: DrawEnv = { g, look: look(), lang: this.lang, dpr, frame: this.frame };
+    const env: DrawEnv = { g, look: look(), lang: this.lang, dpr: dpr * this.view_scale, frame: this.frame };
     return this.renderer.frame(this.body(), [...this.labels, ...this.handles], env, now_version(), {
       force: o.force,
       before: () => this.place_labels(),
@@ -247,9 +273,12 @@ export class Figure {
     }
     // text size and contrast
     for (const t of texts) {
-      if (t.text_px() < l.layout.min_text) out.push({ severity: 'error', rule: 'min-text', thing: t.id, message: `'${t.id}' is set at ${t.text_px().toFixed(1)} px (at least ${l.layout.min_text})` });
+      // (a size or colour the figure chose itself is its call: reported, not blocked)
+      const sev = t.text_styled ? 'warning' : 'error', own = t.text_styled ? ' (its style chose this)' : '';
+      const shown = t.text_px() * this.view_scale;
+      if (shown < l.layout.min_text - 0.05) out.push({ severity: sev, rule: 'min-text', thing: t.id, message: `'${t.id}' is shown at ${shown.toFixed(1)} px (at least ${l.layout.min_text})${own}` });
       const c = contrast(t.text_color, l.palette.bg);
-      if (c < l.taste.min_contrast - 0.01) out.push({ severity: 'error', rule: 'contrast', thing: t.id, message: `'${t.id}' has contrast ${c.toFixed(2)}:1 (at least ${l.taste.min_contrast})` });
+      if (c < l.taste.min_contrast - 0.01) out.push({ severity: sev, rule: 'contrast', thing: t.id, message: `'${t.id}' has contrast ${c.toFixed(2)}:1 (at least ${l.taste.min_contrast})${own}` });
       const s = t.text(this.lang);
       if (l.taste.instructions.some((re) => re.test(s))) out.push({ severity: 'warning', rule: 'instruction', thing: t.id, message: `'${t.id}' tells the learner what to do ("${s.slice(0, 30)}…")`, fix: 'design speaks before words: let the handle or the layout say it, and drop the sentence' });
     }
@@ -275,7 +304,7 @@ export class Figure {
       .filter((t) => t.box.w > 0 || t.kind === 'plot')
       .map((t) => {
         const b = t.box, s = t.text(this.lang);
-        return `${t.id}: ${t.kind} role=${t.role} at (${b.x.toFixed(0)}, ${b.y.toFixed(0)}) ${b.w.toFixed(0)}×${b.h.toFixed(0)}${t.visible() ? '' : ' hidden'}${s ? ` "${s.slice(0, 60)}"` : ''}${t.says ? ` — ${tr(t.says, this.lang)}` : ''}`;
+        return `${t.id}: ${t.kind} role=${t.role}${t.style_note()} at (${b.x.toFixed(0)}, ${b.y.toFixed(0)}) ${b.w.toFixed(0)}×${b.h.toFixed(0)}${t.visible() ? '' : ' hidden'}${s ? ` "${s.slice(0, 60)}"` : ''}${t.says ? ` — ${tr(t.says, this.lang)}` : ''}`;
       }).join('\n');
   }
   /** Why a thing is where it is. */
