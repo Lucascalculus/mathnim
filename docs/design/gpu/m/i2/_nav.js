@@ -68,9 +68,9 @@ const seg_len = (p, i) => { const a = p[i % p.length], b = p[(i + 1) % p.length]
 const PAGE = {
   zh: {
     kick: '模型预测控制 · 第 4 课', title: '约束起作用的时候',
-    p1: '把|球|放开，|它会|沿着|山谷|滚下去。|可是|谷底|在|墙的|另一边，|球|到不了。',
+    p1: '把|球|放开，|它会|沿着|山谷|滚下去。|可是|谷底|在|墙|的|另一边，|球|到不了。',
     cap: '图 4.2　从正上方看代价的山谷',
-    p2: '球|被|墙|挡住，|停在|墙边。|这道墙|就是|起作用的约束：|它的|乘子|λ|大于零。',
+    p2: '球|被|墙|挡住，|停在|墙|边。|这道|墙|就是|起作用的约束|：|它的|乘子|λ|大于零。',
     f: [['min', 'op'], ['½ aᵀHa', 't', 'H'], ['+', 'op'], ['gᵀa', 't', 'g'], ['使得', 'op'], ['Ga ≤ b', 't', 'G']],
     parts: { valley: '山谷', bottom: '谷底', wall: '墙', ball: '球' },
   },
@@ -84,7 +84,7 @@ const PAGE = {
   },
 };
 // words that are nouns of the figure, coloured as in the figure
-const NOUN = { zh: { 球: 'cobalt', 墙: 'ochre', 墙的: 'ochre', 这道墙: 'ochre', 墙边: 'ochre' }, en: { ball: 'cobalt', 'ball.': 'cobalt', wall: 'ochre', 'wall.': 'ochre' } };
+const NOUN = { zh: { 球: 'cobalt', 墙: 'ochre' }, en: { ball: 'cobalt', 'ball.': 'cobalt', wall: 'ochre', 'wall.': 'ochre' } };
 
 export const PAGE_CSS = `
 .nv-page{position:absolute;font-family:${SERIF};color:${C.ink}}
@@ -106,12 +106,15 @@ export const PAGE_CSS = `
 `;
 
 const FIG = (names) => `<svg viewBox="0 0 560 230">
+  <defs><clipPath id="nv-clip"><rect x="0" y="0" width="560" height="230" rx="10"/></clipPath></defs>
   <rect x="0" y="0" width="560" height="230" rx="10" fill="#f3f1ec"/>
-  <g data-sel="valley" data-name="${names.valley}">${Array.from({ length: 7 }, (_, i) => { const k = 7 - i; return `<ellipse cx="392" cy="104" rx="${k * 25}" ry="${k * 14.5}" transform="rotate(-24 392 104)" fill="rgba(47,91,210,${(0.016 + i * 0.007).toFixed(3)})" stroke="rgba(26,27,31,${k % 3 ? 0.2 : 0.42})" stroke-width="${k % 3 ? 1 : 1.5}"/>`; }).join('')}</g>
+  <g clip-path="url(#nv-clip)">
+  <g class="valley">${Array.from({ length: 7 }, (_, i) => { const k = 7 - i; return `<ellipse cx="392" cy="104" rx="${k * 25}" ry="${k * 14.5}" transform="rotate(-24 392 104)" fill="rgba(47,91,210,${(0.016 + i * 0.007).toFixed(3)})" stroke="rgba(26,27,31,${k % 3 ? 0.2 : 0.42})" stroke-width="${k % 3 ? 1 : 1.5}"/>`; }).join('')}</g>
   <g data-sel="bottom" data-name="${names.bottom}"><circle cx="392" cy="104" r="3.5" fill="#1a1b1f"/><text x="402" y="96" font-family="${SANS}" font-size="14" fill="#44464d">${names.bottom}</text></g>
-  <path d="M206 -4 L320 234 L564 234 L564 -4 Z" fill="rgba(141,145,152,.16)"/>
+  <path d="M206 -4 L320 234 L564 234 L564 -4 Z" fill="rgba(141,145,152,.13)"/>
   <g data-sel="wall" data-name="${names.wall}"><line x1="203" y1="-2" x2="317" y2="232" stroke="${C.ochre}" stroke-width="5" stroke-linecap="round"/><text x="196" y="40" text-anchor="end" font-family="${SANS}" font-weight="600" font-size="14" fill="${C.ochre}">${names.wall}</text></g>
   <g data-sel="ball" data-name="${names.ball}"><circle cx="248" cy="124" r="12" fill="${C.cobalt}"/><circle cx="244" cy="120" r="4" fill="rgba(255,255,255,.35)"/></g>
+  </g>
 </svg>`;
 
 // builds the page into `host`; returns {el, sels: [{id, kind, name, el}], ref(id) → element}
@@ -121,7 +124,9 @@ export function lesson_dom(host, lang, o = {}) {
   const words = (s, pid) => (lang === 'zh' ? s.split('|') : s.split(/(?<= )/)).map((w, i) => {
     const key = w.trim().replace(/[，。：,.:]$/, '');
     const c = N[w.trim()] || N[key] || '';
-    return `<span class="nv-w ${c}" data-sel="${pid}-${i}" data-kind="word" data-name="${key}">${w}</span>`;
+    // the space after an English word stays outside its box, so a box is just the word
+    const tail = w.length - w.trimEnd().length ? ' ' : '';
+    return `<span class="nv-w ${c}" data-sel="${pid}-${i}" data-kind="word" data-name="${key}">${w.trimEnd()}</span>${tail}`;
   }).join('');
   el.innerHTML = `<div class="nv-kick">${T.kick}</div><div class="nv-title">${T.title}</div>
     <p class="nv-p">${words(T.p1, 'a')}</p>
