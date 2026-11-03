@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>材质实验室</title>
+<style>
+:root{
+  --paper:#fbfaf7; --ink:#1a1b1f; --ink-2:#44464d; --graphite:#8d9198; --graphite-t:#62666d;
+  --cobalt:#2f5bd2; --ochre:#c8861a; --teal:#11899e; --violet:#6a4ec4; --viridian:#13876a; --vermilion:#e3472c;
+  --rule:rgba(26,27,31,.10);
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --serif:ui-serif,"Songti SC","STSong","Noto Serif SC","Source Han Serif SC",Georgia,serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+header{max-width:1240px;margin:0 auto;padding:56px 24px 8px}
+header h1{font-size:30px;font-weight:600;letter-spacing:-.01em;margin:0 0 10px}
+header p{font-size:16px;line-height:1.7;color:var(--ink-2);max-width:720px;margin:0}
+.bar{display:flex;gap:6px;margin:22px 0 0;flex-wrap:wrap}
+.bar button{font:inherit;font-size:14px;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--rule);background:#fff;color:var(--ink);cursor:pointer}
+.bar button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+main{max-width:1240px;margin:0 auto;padding:24px 24px 96px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 28px}
+.tile{min-width:0}
+.tile.wide{grid-column:1 / -1}
+.stage{position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:#f3f1ec;touch-action:none;
+  box-shadow:0 0 0 1px rgba(26,27,31,.06),0 1px 2px rgba(26,27,31,.04)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage .hud{position:absolute;left:12px;bottom:12px;padding:4px 9px;border-radius:7px;background:rgba(251,250,247,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;pointer-events:none;letter-spacing:.01em}
+.stage.night .hud{color:rgba(255,255,255,.78);background:rgba(16,17,21,.6)}
+.stage .hud:empty{display:none}
+.stage .hud b{font-weight:600;color:var(--ink)}
+.stage.night .hud b{color:#fff}
+.cap{display:flex;gap:14px;align-items:baseline;margin:14px 2px 0}
+.cap .n{font-size:13px;color:var(--graphite-t);font-variant-numeric:tabular-nums;min-width:20px}
+.cap h2{font-size:18px;font-weight:600;margin:0}
+.cap h2 small{font-size:13px;font-weight:500;color:var(--graphite-t);margin-left:8px}
+.means{margin:6px 2px 0 36px;font-family:var(--serif);font-size:16px;line-height:1.7;color:var(--ink)}
+.test{margin:8px 2px 0 36px;font-size:13px;line-height:1.55;color:var(--ink-2);font-variant-numeric:tabular-nums;display:flex;gap:8px;align-items:flex-start}
+.test i{flex:none;width:16px;height:16px;border-radius:8px;border:1.5px dashed var(--graphite);margin-top:1px}
+.test.pass i{border:none;background:var(--viridian);box-shadow:inset 0 0 0 4px var(--viridian),inset 0 0 0 5.5px #fff}
+.test.fail i{border:1.5px solid var(--vermilion)}
+@media (max-width:760px){
+  header{padding:32px 16px 4px} header h1{font-size:24px}
+  main{grid-template-columns:1fr;padding:16px 16px 80px;gap:32px}
+  .means,.test{margin-left:0}
+}
+body.solo header{display:none}
+body.solo main{display:block;max-width:none;padding:0}
+body.solo .tile{display:none}
+body.solo .tile.show{display:block}
+body.solo .stage{aspect-ratio:auto;height:100vh;border-radius:0}
+body.solo .cap,body.solo .means,body.solo .test{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1 data-zh="材质实验室" data-en="The material lab"></h1>
+  <p data-zh="每种材质只表达一件数学上确切的事，每一帧都是模型的真实状态。下面的数字由页面自己测出。" data-en="Each material means one exact mathematical thing, and every frame is a true state of the model. The page measures the numbers below itself."></p>
+  <div class="bar" id="ver"></div>
+</header>
+<main id="grid"></main>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
