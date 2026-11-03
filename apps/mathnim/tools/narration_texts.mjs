@@ -9,7 +9,7 @@ const out = path.resolve(here, '../node_modules/.cache/narration_texts.mjs');
 await build({
   entryPoints: [path.join(here, 'narration_texts.ts')], bundle: true, platform: 'node', format: 'esm', outfile: out, target: 'node20',
   external: ['@napi-rs/canvas', 'mediabunny'], logLevel: 'error',
-  alias: { 'manim-web': pk('manim-web/src'), '@mathnim/core': pk('core/src'), '@mathnim/present': pk('present/src'), '@mathnim/ai': pk('ai/src'), '@mathnim/visuals': pk('visuals/src') },
+  alias: { 'manim-web': pk('manim-web/src'), '@mathnim/core': pk('core/src'), '@mathnim/present': pk('present/src'), '@mathnim/ai': pk('ai/src'), '@mathnim/visuals': pk('visuals/src'), '@mathnim/engine': pk('engine/src'), '@mathnim/look': pk('look/src') },
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
 });
 await import(pathToFileURL(out).href);

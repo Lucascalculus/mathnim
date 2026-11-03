@@ -19,6 +19,8 @@ import { lint_lesson_text } from './text_lint';
 import { with_cjk } from '../../../packages/visuals/tools/cjk_font';
 import { DragHandle } from 'manim-web/ext/interact';
 import { all_lessons, load_all_lessons } from '../src/course';
+import { is_figure, type Figure } from '@mathnim/engine';
+import { lint_figure } from '../../../packages/engine/node';
 
 // the fine-tuning lessons are loaded on demand in the app; the tools check them all
 await load_all_lessons();
@@ -34,6 +36,8 @@ async function check(what: string, make: () => any) {
 }
 async function check_row(what: string, make: () => any): Promise<Row> {
   try {
+    const stage = make();
+    if (is_figure(stage)) return figure_row(what, stage);
     const player = new ScenePlayer(make(), createCanvas(960, 540) as any, { audio: false });
     apply_white(player);
     await player.load();
@@ -42,6 +46,20 @@ async function check_row(what: string, make: () => any): Promise<Row> {
   } catch (e: any) {
     return { what, ok: false, errors: [`crash: ${e?.message ?? e}`], warnings: [] };
   }
+}
+
+/**
+ * An engine figure: laid out wide and on a phone, linted at the end of every section (the taste rules, overlaps,
+ * text size, contrast, targets, its own invariants), timed by its sections like a scene.
+ */
+function figure_row(what: string, fig: Figure): Row {
+  const issues = lint_figure(fig);
+  const msg = (i: (typeof issues)[number]) => `[${i.size} @${i.time.toFixed(1)}s] ${i.rule}: ${i.message}${i.fix ? ` (${i.fix})` : ''}`;
+  return {
+    what: `${what} [engine]`, ok: !issues.some((i) => i.severity === 'error'),
+    errors: issues.filter((i) => i.severity === 'error').map(msg), warnings: issues.filter((i) => i.severity === 'warning').map(msg),
+    seconds: fig.duration, sections: fig.section_starts().length, starts: fig.section_starts(),
+  };
 }
 
 /**
@@ -70,10 +88,17 @@ async function check_world(what: string, step: ExploreStep, make: () => any) {
 async function world_row(what: string, step: ExploreStep, make: () => any): Promise<Row> {
   const errors: string[] = [];
   try {
-    const player = new ScenePlayer(make(), createCanvas(960, 540) as any, { audio: false });
-    apply_white(player);
-    await player.load();
-    player.show_end();
+    const stage = make();
+    // (a figure needs no player to be played headlessly: its script's end state is a pure function of time)
+    const player = is_figure(stage) ? { scene: stage } : new ScenePlayer(stage, createCanvas(960, 540) as any, { audio: false });
+    if (is_figure(stage)) {
+      stage.build();
+      stage.at(stage.duration);
+    } else {
+      apply_white(player as ScenePlayer);
+      await (player as ScenePlayer).load();
+      (player as ScenePlayer).show_end();
+    }
     const goals = [...(step.goal ? [{ id: 'goal', ...step.goal }] : []), ...(step.goals ?? [])];
     const reached: string[] = [];
     const world = new WorldSession({ goals, detectors: step.detectors, lines: step.lines, stars: step.stars }, player.scene, ctx, (o) => {

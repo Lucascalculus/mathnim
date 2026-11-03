@@ -1,7 +1,7 @@
 // Home (/): get back to learning and pick a course. Course pages (/<slug>):
 // what the course is, how it is laid out, and where the learner is in it.
 // (docs/SITE-STRUCTURE.md)
-import { tr, type L10n, type Lang } from '@mathnim/core';
+import { is_figure_player, make_player, tr, type L10n, type Lang, type StagePlayer } from '@mathnim/core';
 import { esc, icon, math_html, t, ui_lang } from '@mathnim/present';
 import { progress_mark, type Progress } from '../progress_mark';
 import { ScenePlayer } from 'manim-web/ext/player';
@@ -345,7 +345,7 @@ function play_cover(root: HTMLElement, c: Course): () => void {
   const fig = root.querySelector<HTMLElement>('.hero-feature');
   const canvas = fig?.querySelector('canvas');
   const m = c.cover_motion;
-  let player: ScenePlayer | null = null;
+  let player: StagePlayer | null = null;
   let alive = true;
   if (!fig || !canvas || !m || matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
   void (async () => {
@@ -354,8 +354,8 @@ function play_cover(root: HTMLElement, c: Course): () => void {
       const v = get_visual(m.visual);
       if (!v || !alive) return;
       const raw = 'lang' in v.params ? { ...m.params, lang: ui_lang() } : { ...m.params };
-      player = new ScenePlayer(v.scene(check_params(v, raw).params), canvas, { audio: false });
-      apply_theme(player);
+      player = make_player(v.scene(check_params(v, raw).params), canvas, { audio: false });
+      if (!is_figure_player(player)) apply_theme(player);
       await player.load();
       if (!alive) return;
       if (m.rate) player.set_rate(m.rate);

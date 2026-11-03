@@ -13,6 +13,8 @@ import { Juice } from 'manim-web/ext/juice';
 import { export_video } from 'manim-web/ext/export';
 import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
+import type { Scene } from 'manim-web';
+import { is_engine_ui, is_figure_player, type StagePlayer } from '@mathnim/core';
 import {
   BEAT, BEAT_LEAD, VOICE_DELAY, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, scene_beats, tr, unbeat,
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Recording, type Response, type RuntimeEvent, type TextStep, type Vars,
@@ -38,7 +40,7 @@ export interface ViewOptions {
   dark?: boolean;
   /** Show the scene linter and scene description under the stage. */
   dev?: boolean;
-  /** Called for each scene player (apply a theme, effects...), including visuals embedded in text pages. */
+  /** Called for each scene player (apply a theme, effects...), including visuals embedded in text pages (a figure's player draws with the look and is not passed). */
   on_player?: (p: ScenePlayer) => void;
   tex?: TexRenderer;
   /** Folder with pre-generated narration audio (default '/narration'). */
@@ -346,13 +348,13 @@ export class LessonView {
   }
 
   // ---------------------------------------------------------------- player + bar
-  private bind_player(p: ScenePlayer): void {
-    this.o.on_player?.(p);
+  private bind_player(p: StagePlayer): void {
+    if (!is_figure_player(p)) this.o.on_player?.(p);
     this.step_player = p;
     const seek = this.el.seek as HTMLInputElement;
     // (the figure's notes are known once it is built: its first frame)
     let noted = false;
-    p.opts.on_frame = (t) => {
+    p.opts.on_frame = (t: number) => {
       if (!noted) {
         noted = true;
         this.el.aside.textContent = asides(p);
@@ -368,7 +370,7 @@ export class LessonView {
     if (this.o.dev) queueMicrotask(() => this.dev_report(p));
   }
   /** The player of the step on screen (bind_player), and a scene's narration with the recording it is said with. */
-  private step_player: ScenePlayer | null = null;
+  private step_player: StagePlayer | null = null;
   private timing: { text: string; rec: Recording } | null = null;
   /** A step's narration: said without its beats; a scene with beats (§) has its picture wait for the voice at each. */
   private say_narration(text: string): void {
@@ -473,7 +475,7 @@ export class LessonView {
       const b = this.el.export as HTMLButtonElement;
       b.disabled = true;
       try {
-        const blob = await export_video(p, { on_progress: (f) => (b.textContent = t('exporting', { p: Math.round(f * 100) })) });
+        const blob = await export_video(p as ScenePlayer, { on_progress: (f) => (b.textContent = t('exporting', { p: Math.round(f * 100) })) });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `${this.lesson.id}-${this.runtime.step?.id ?? 'scene'}.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`;
@@ -686,6 +688,11 @@ export class LessonView {
           const hb = this.button(t('hint'), () => this.runtime.hint());
           hb.dataset.role = 'hint';
           this.el.actions.append(hb);
+        }
+        // (a figure's glass handles are their own affordance: no layer over them)
+        if (is_engine_ui(e.ui)) {
+          this.pending_cue = null;
+          break;
         }
         // the game view gives every snap, drop and win a sound and a little motion
         this.juice = this.game ? new Juice(e.ui) : null;
@@ -983,7 +990,7 @@ export class LessonView {
     if (!player) return;
     const items = [...card.querySelectorAll<HTMLElement>('.mn-scrub')].map((el) => {
       const spec = specs[el.dataset.k!];
-      const tracker = spec.tracker(player.scene);
+      const tracker = spec.tracker(player.scene as Scene);
       const step = spec.step ?? (spec.max - spec.min) / 100;
       const show = () => {
         const v = tracker.get_value();
@@ -1313,7 +1320,7 @@ export class LessonView {
   }
   /** Pixel <-> data mapping through the scene camera and optional axes. */
   private mapping(axes?: (scene: any) => AxesLike): SketchMapping {
-    const p = this.runtime.player!;
+    const p = this.runtime.player! as ScenePlayer;
     const cam = p.scene.camera as any;
     const ax = axes ? axes(p.scene) : null;
     const rect = () => this.canvas.getBoundingClientRect();
@@ -1529,9 +1536,18 @@ export class LessonView {
   }
 
   // ---------------------------------------------------------------- dev overlay
-  private dev_report(p: ScenePlayer): void {
+  private dev_report(p: StagePlayer): void {
     const box = this.el.dev;
     if (!box) return;
+    if (is_figure_player(p)) {
+      // a figure lints and describes itself (on the state drawn last)
+      const run_fig = () => {
+        if (!p.loaded) return void setTimeout(run_fig, 100);
+        const issues = p.scene.lint();
+        box.innerHTML = `<b>Lint</b> (${issues.length})\n${issues.map((i) => `<span class="${i.severity}">[${i.severity}] ${i.rule}</span> ${i.message.replace(/</g, '&lt;')}`).join('\n') || 'no issues'}\n\n<b>Figure</b> (${p.scene.phone ? 'phone' : 'wide'} layout, ${p.stats.drawn} frames drawn, ${p.stats.skipped} skipped)\n${p.scene.describe().replace(/</g, '&lt;')}`;
+      };
+      return run_fig();
+    }
     const run = () => {
       if (!p.loaded) return void setTimeout(run, 100);
       const frame = p.frame;

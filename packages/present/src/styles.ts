@@ -24,6 +24,11 @@ export const CSS = `
 .mn-app.mn-dark .mn-stage{background:#101318}
 .mn-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mn-stage canvas:focus-visible{outline:3px solid var(--mn-accent);outline-offset:-3px}
+/* an engine figure: the canvas is drawn at the size it is shown (FigurePlayer.fit); wide, it fills the stage; on a phone it is laid out at the stage's width and the stage grows to the figure's height */
+.mn-stage.mn-flow:not(.mn-flow-phone) canvas{width:100%!important;height:100%!important;aspect-ratio:auto!important;margin:0!important}
+.mn-stage.mn-flow-phone,.mn-vis-stage.mn-flow-phone{height:auto!important;aspect-ratio:auto!important;min-height:0!important}
+.mn-stage.mn-flow-phone canvas,.mn-vis-stage.mn-flow-phone canvas{position:relative!important;display:block;width:100%!important;aspect-ratio:auto!important;margin:0!important}
+.mn-vis-stage.mn-flow:not(.mn-flow-phone) canvas{width:100%!important;height:100%!important}
 .mn-sketch{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M17 2l5 5L8 21l-6 1 1-6z' fill='%23fff' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") 2 22,crosshair;touch-action:none}
 /* subtitles sit under the figure, never over it */
 .mn-caption{min-height:46px;margin:-2px 0 -4px;padding:0 8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:var(--mn-caption,16px);line-height:1.4;color:var(--mn-fg);transition:opacity .25s}

@@ -15,7 +15,7 @@ import { palette } from '../theme';
 import { label, fit } from '../ft/f/kit';
 import { tex } from '../linalg/kit';
 
-export { LANG_SPEC, pick, resolve_lang, ft_lang, type Lang } from '../ft/f/kit';
+export { LANG_SPEC, pick, resolve_lang, figure_lang, ft_lang, type Lang } from '../ft/f/kit';
 export { Choice, listen, emit, live_label, txt, type Listener, type UiLike } from '../ft/c/kit';
 export { tex, texs, backed } from '../linalg/kit';
 export { label, fit };

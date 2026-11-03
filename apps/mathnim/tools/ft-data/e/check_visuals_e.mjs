@@ -20,7 +20,7 @@ await build({
   },
   bundle: true, platform: 'node', format: 'esm', outfile: out, target: 'node20',
   external: ['@napi-rs/canvas', 'mediabunny'], logLevel: 'error',
-  alias: { 'manim-web': manim_src, '@mathnim/visuals': pk('visuals/src') },
+  alias: { 'manim-web': manim_src, '@mathnim/visuals': pk('visuals/src'), '@mathnim/engine': pk('engine/src'), '@mathnim/look': pk('look/src') },
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
 });
 process.env.MANIM_WEB_FONTS = pk('manim-web/src/ext/text/fonts');

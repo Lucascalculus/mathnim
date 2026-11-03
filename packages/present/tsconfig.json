@@ -22,6 +22,12 @@
       ],
       "@mathnim/core": [
         "../core/src/index.ts"
+      ],
+      "@mathnim/engine": [
+        "../engine/src/index.ts"
+      ],
+      "@mathnim/look": [
+        "../look/src/index.ts"
       ]
     }
   },

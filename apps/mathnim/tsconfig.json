@@ -36,6 +36,12 @@
       ],
       "@mathnim/visuals/*": [
         "../../packages/visuals/src/*"
+      ],
+      "@mathnim/engine": [
+        "../../packages/engine/src/index.ts"
+      ],
+      "@mathnim/look": [
+        "../../packages/look/src/index.ts"
       ]
     }
   },

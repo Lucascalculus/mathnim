@@ -26,7 +26,7 @@ set_text_hinting(false);
 export const CJK_SIZE_ADJUST = 0.71;
 export { aside, asides_of } from './aside';
 
-export { define_visual, type ParamSpec, type ParamSpecs, type Params, type Visual } from './visual';
+export { define_figure, define_visual, type FigureVisual, type ParamSpec, type ParamSpecs, type Params, type Visual } from './visual';
 export { check_params, describe_param, type ParamCheck } from './params';
 export { catalog, get_visual, list_visuals, register } from './registry';
 export { THEMES, apply_palette, palette, set_theme, theme, type Palette, type ThemeName } from './theme';

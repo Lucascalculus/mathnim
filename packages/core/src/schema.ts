@@ -20,6 +20,7 @@
 //   the questions, which are numbered 1/3, 2/3, ...
 import type { Scene } from 'manim-web';
 import type { Interaction } from 'manim-web/ext/interact';
+import type { Stage } from './stage';
 import type { BKTParams } from './learner/bkt';
 import type { XY } from './grading/sketch';
 import type { Block, CodeContent, DeriveContent, L10n, Lang, ReadContent } from './content';
@@ -36,8 +37,8 @@ export interface LessonContext {
   lang?: Lang;
 }
 
-/** A scene for a step: a manim-web Scene class, or a factory using the variant values. */
-export type SceneSpec = (new () => Scene) | ((ctx: LessonContext) => Scene);
+/** A scene for a step: a manim-web Scene class, or a factory using the variant values (a Scene or an engine Figure). */
+export type SceneSpec = (new () => Scene) | ((ctx: LessonContext) => Stage);
 
 export interface Skill {
   id: string;
@@ -83,10 +84,10 @@ export interface ExploreStep extends StepBase {
   kind: 'explore';
   scene: SceneSpec;
   prompt: L10n;
-  /** Add drag handles / sliders to the scene; report events through `world`. */
-  setup?: (scene: Scene, ui: Interaction, ctx: LessonContext, world: WorldApi) => void;
+  /** Add drag handles / sliders to the scene; report events through `world`. (A step whose figure is an engine Figure gets a FigureUI as `ui`: attach() hands it to the visual's explore.) */
+  setup?: (scene: Stage, ui: Interaction, ctx: LessonContext, world: WorldApi) => void;
   /** A single goal (shorthand for `goals: [{ id: 'goal', ... }]`). */
-  goal?: { check: (scene: Scene, ctx: LessonContext, world: WorldApi) => boolean; message?: L10n };
+  goal?: { check: (scene: Stage, ctx: LessonContext, world: WorldApi) => boolean; message?: L10n };
   /** All must be reached; each is announced when reached. */
   goals?: Goal[];
   detectors?: Detector[];
@@ -110,7 +111,7 @@ export interface ExploreStep extends StepBase {
    * world.emit). The lesson doctor runs it headlessly to prove the goals can
    * be reached - and that they are not reached before anyone acts.
    */
-  solve?: (scene: Scene, ctx: LessonContext, world: WorldApi) => void;
+  solve?: (scene: Stage, ctx: LessonContext, world: WorldApi) => void;
   /**
    * The controls to point at, in order (handle or item labels, as given to
    * add_handle / items): only the first unused one pulses and gets the coach
@@ -119,7 +120,7 @@ export interface ExploreStep extends StepBase {
    */
   cue?: L10n[];
   /** Buttons next to Continue (e.g. "Serve", "Pour"): they act on the world. */
-  actions?: { id: string; label: L10n; run: (scene: Scene, ctx: LessonContext, world: WorldApi) => void; primary?: boolean }[];
+  actions?: { id: string; label: L10n; run: (scene: Stage, ctx: LessonContext, world: WorldApi) => void; primary?: boolean }[];
 }
 /** A draggable number in a prompt, bound to a ValueTracker of the scene. */
 export interface ScrubSpec {

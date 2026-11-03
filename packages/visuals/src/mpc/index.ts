@@ -9,7 +9,7 @@ import { mpc_pd_compare } from './pd_compare';
 import { mpc_replan_push } from './replan_push';
 import { mpc_weights } from './weights';
 import { mpc_gain_horizon } from './gain_horizon';
-import { mpc_qp_plane } from './qp_plane';
+import { mpc_qp_plane } from './qp_figure';
 import { mpc_explicit_map } from './explicit_map';
 
 export * as mpc_math from './math';

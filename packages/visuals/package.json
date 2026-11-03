@@ -11,6 +11,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "manim-web": "*"
+    "manim-web": "*",
+    "@mathnim/engine": "*",
+    "@mathnim/look": "*"
   }
 }

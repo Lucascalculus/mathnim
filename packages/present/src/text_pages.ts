@@ -5,23 +5,23 @@
 // the behaviour: copy buttons, code tabs, footnote links, embedded visuals.
 // LessonView puts the article in its reading column and the outline or
 // progress in the side panel.
-import { tr, code_line_count, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type TextStep, expr } from '@mathnim/core';
+import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type TextStep, expr } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { AffordanceLayer } from 'manim-web/ext/affordance';
-import { Interaction } from 'manim-web/ext/interact';
-import { ScenePlayer, preload } from 'manim-web/ext/player';
+import { preload, type ScenePlayer } from 'manim-web/ext/player';
+import { load_tex } from '@mathnim/engine';
 import { highlight_lines, lang_label } from './highlight';
 import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
 import { display_math_html, esc, math_html } from './math';
 
 /** The notes a figure keeps beside itself (@mathnim/visuals' aside()), as one line. */
-export const asides = (p: ScenePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
+export const asides = (p: StagePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
 
 /** A visual ready to embed: its scene, and the handles to add when it has played. */
 export interface EmbeddedVisual {
-  scene: () => Scene;
-  explore?: (scene: Scene, ui: Interaction) => void;
+  scene: () => Stage;
+  explore?: (scene: Stage, ui: StageUI) => void;
 }
 /** Finds a visual by name with checked parameters (the app passes @mathnim/visuals); null when unknown. */
 export type VisualResolver = (name: string, params?: Record<string, unknown>) => EmbeddedVisual | null;
@@ -343,8 +343,8 @@ async function copy_text(code: string, pre: HTMLElement, btn: HTMLButtonElement,
 
 /** An embedded visual: loads when scrolled into view, plays once, then (optionally) becomes explorable. */
 class VisualSlot {
-  private player: ScenePlayer | null = null;
-  private ui: Interaction | null = null;
+  private player: StagePlayer | null = null;
+  private ui: StageUI | null = null;
   private aff: AffordanceLayer | null = null;
   private cue: CueGuide | null = null;
   private io: IntersectionObserver | null = null;
@@ -378,10 +378,11 @@ class VisualSlot {
   private async load(v: EmbeddedVisual): Promise<void> {
     if (this.player || this.disposed) return;
     await preload();
+    await load_tex();
     if (this.disposed) return;
     const canvas = this.fig.querySelector('canvas')!;
-    const p = new ScenePlayer(v.scene(), canvas, { audio: false });
-    this.ctx.on_player?.(p);
+    const p = make_player(v.scene(), canvas, { audio: false });
+    if (!is_figure_player(p)) this.ctx.on_player?.(p);
     await p.load();
     if (this.disposed) return;
     this.player = p;
@@ -398,9 +399,13 @@ class VisualSlot {
   private explorable(v: EmbeddedVisual): void {
     const p = this.player;
     if (!p || this.ui || !this.b.explore || !v.explore || this.disposed) return;
-    this.ui = new Interaction(p);
+    this.ui = make_ui(p);
     v.explore(p.scene, this.ui);
     p.start_live();
+    if (is_engine_ui(this.ui)) {
+      this.hint.innerHTML = t('visual_explore', undefined, this.ctx.lang);
+      return;
+    }
     this.aff = new AffordanceLayer(this.ui, { color: this.ctx.accent ?? '#2f5bd3', hint: drag_hint(this.ui.handles, this.ctx.lang) });
     this.cue = new CueGuide(this.aff, this.ui); // one pulsing control at a time
     setTimeout(() => this.aff?.coach(this.cue?.target()), 400);
@@ -428,6 +433,7 @@ class VisualSlot {
     this.ui?.dispose();
     this.player?.pause();
     this.player?.stop_live();
+    if (this.player && is_figure_player(this.player)) this.player.release();
   }
 }
 

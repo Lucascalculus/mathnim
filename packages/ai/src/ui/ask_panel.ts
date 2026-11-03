@@ -16,6 +16,7 @@
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { Interaction } from 'manim-web/ext/interact';
 import type { ScenePlayer } from 'manim-web/ext/player';
+import { is_engine_ui, make_ui, type StagePlayer, type StageUI } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { type EventLog } from '@mathnim/core';
 import { CueGuide, Narrator, define_ui, drag_hint, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
@@ -195,7 +196,7 @@ export class AskPanel {
   root: HTMLElement;
   private list: HTMLElement;
   private input: HTMLInputElement;
-  private players: ScenePlayer[] = [];
+  private players: StagePlayer[] = [];
   /** This session's questions with the start of each answer (sent as context with the next question). */
   private history: { q: string; a: string }[] = [];
   private narrator: Narrator | null = null;
@@ -482,7 +483,7 @@ export class AskPanel {
     canvas.width = 1280;
     canvas.height = 720;
     const tb = performance.now();
-    let player: ScenePlayer;
+    let player: StagePlayer;
     try {
       player = await load_visual(route.visual, route.params, canvas);
     } catch (e) {
@@ -655,17 +656,19 @@ export class AskPanel {
 }
 
 /** Replay, and the scene's handles once it has played; returns what attaches the handles now. */
-function attach_controls(player: ScenePlayer, controls: HTMLElement, setup: ((scene: Scene, ui: Interaction) => void) | null, color: string): () => void {
-  let ui: Interaction | null = null;
+function attach_controls(player: StagePlayer, controls: HTMLElement, setup: ((scene: any, ui: any) => void) | null, color: string): () => void {
+  let ui: StageUI | null = null;
   let aff: AffordanceLayer | null = null;
   let cue: CueGuide | null = null;
   const hint = document.createElement('span');
   hint.className = 'mn-help';
   const explorable = () => {
     if (!setup || ui) return;
-    ui = new Interaction(player);
+    ui = make_ui(player);
     setup(player.scene, ui);
     player.start_live();
+    hint.innerHTML = t('visual_explore');
+    if (is_engine_ui(ui)) return; // (a figure's glass handles are their own affordance)
     aff = new AffordanceLayer(ui, { color, hint: drag_hint(ui.handles) });
     cue = new CueGuide(aff, ui); // one pulsing control at a time
     setTimeout(() => aff?.coach(cue?.target()), 400);
@@ -691,7 +694,7 @@ function attach_controls(player: ScenePlayer, controls: HTMLElement, setup: ((sc
 }
 
 /** Draw a kept picture (an earlier visit's answer, or one placed in the text) into `body`, as it ended, ready to explore. */
-export async function draw_saved(body: HTMLElement, pic: SavedPicture): Promise<ScenePlayer | null> {
+export async function draw_saved(body: HTMLElement, pic: SavedPicture): Promise<StagePlayer | null> {
   const picture = document.createElement('div');
   picture.className = 'mn-picture';
   const canvas = document.createElement('canvas');
