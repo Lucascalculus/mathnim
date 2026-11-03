@@ -61,6 +61,12 @@ function rope_step(R, h, pin, eyes, floor = 1e9) {
       const a = x[i], b = x[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1e-9, wa = inv(i), wb = inv(i + 1), w = wa + wb; if (!w) continue;
       const c = (d - R.l) / d / w; a[0] += dx * c * wa; a[1] += dy * c * wa; b[0] -= dx * c * wb; b[1] -= dy * c * wb;
     }
+    // a thread does not fold back on itself: neighbours two apart keep a little distance
+    for (let i = 0; i < n - 2; i++) {
+      const a = x[i], b = x[i + 2], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1e-9, m = 1.5 * R.l; if (d >= m) continue;
+      const wa = inv(i), wb = inv(i + 2), w = wa + wb; if (!w) continue;
+      const c = (d - m) / d / w * 0.5; a[0] += dx * c * wa; a[1] += dy * c * wa; b[0] -= dx * c * wb; b[1] -= dy * c * wb;
+    }
     for (const e of eyes) {
       if (!e.on) continue;
       // the segment nearest the eyelet, searched near the last one so the rope slides through rather than jumping
@@ -98,9 +104,9 @@ export function make({ stage, canvas, hud, lang }) {
   function geo() {
     const W = G.W, H = G.H, narrow = W < 600;
     const top = narrow ? 70 : Math.max(64, H * 0.1), gap = narrow ? Math.min(96, (H - 300) / 5.6) : Math.min(104, (H - 230) / 5.6);
-    const ax = narrow ? 64 : Math.max(150, W * 0.5 - 250), d = narrow ? 30 : 48;
+    const ax = narrow ? 68 : Math.max(150, W * 0.5 - 250), d = narrow ? 34 : 48;
     const rows = [top, ...T.steps.map((_, k) => top + (k + 1) * gap)], seat_y = top + 5 * gap;
-    return { narrow, W, H, ax, d, top, gap, rows, seat_y, tx: ax + d + (narrow ? 34 : 64), pin: [ax + d, top], floor: H - 30, slot: (k) => [ax + (k % 2 ? d : -d), rows[k + 1]], aside: (k) => [narrow ? 20 : ax - d - 84, rows[k + 1]] };
+    return { narrow, W, H, ax, d, top, gap, rows, seat_y, tx: ax + d + (narrow ? 34 : 64), pin: [ax + d, top], floor: H - 30, slot: (k) => [ax + (k % 2 ? d : -d), rows[k + 1]], aside: (k) => [ax + d + (narrow ? 34 : 64) + (narrow ? 12 : 14), rows[k + 1]] };
   }
   function build() {
     L = geo();
@@ -139,8 +145,9 @@ export function make({ stage, canvas, hud, lang }) {
       g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.restore();
       g.strokeStyle = 'rgba(26,27,31,.42)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke();
       // the hole the thread runs through, and the thread in it
-      if (b.on) { g.fillStyle = C.ink; g.beginPath(); g.arc(x, y, 1.6, 0, Math.PI * 2); g.fill(); }
-      g.fillStyle = C.ink2; g.font = `600 ${L.narrow ? 10 : 11}px ${SANS}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(b.k + 1), x, y + (L.narrow ? 6.5 : 7.5)); g.textAlign = 'left';
+      // a bead on the thread shows its hole; one taken off shows which step it is
+      if (b.on) { g.fillStyle = C.ink; g.beginPath(); g.arc(x, y, 1.8, 0, Math.PI * 2); g.fill(); continue; }
+      g.fillStyle = C.ink2; g.font = `600 ${L.narrow ? 10 : 11}px ${SANS}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(b.k + 1), x, y + 0.5); g.textAlign = 'left';
     }
     // the conclusion: solid while it holds, a hollow ring when it hangs without support
     const [wx, wy] = weight();
@@ -159,7 +166,8 @@ export function make({ stage, canvas, hud, lang }) {
       g.globalAlpha = 1;
     };
     line(T.given, L.tx, L.top, 1, 400);
-    for (const b of beads) line(`${b.k + 1}　${b.t}`.replace('　', zh ? '　' : '  '), L.tx, L.rows[b.k + 1], b.on ? 1 : 0.34, 400, !b.on);
+    // a step taken off the thread sits at the start of its own line, and the line makes room for it
+    for (const b of beads) { const out = Math.max(0, Math.min(1, b.on ? 0 : 1 - Math.hypot(b.pos.x - L.aside(b.k)[0], b.pos.y - L.aside(b.k)[1]) / 120)); line(b.t, L.tx + out * (L.narrow ? 34 : 40), L.rows[b.k + 1], b.on ? 1 : 0.34, 400, !b.on); }
     line(T.end, Math.max(L.tx, wx + 30), wy, 0.4 + 0.6 * hk, 600);
   }
   function wrap_text(g, t, w) {
