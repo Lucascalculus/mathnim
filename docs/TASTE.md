@@ -32,7 +32,14 @@ idea to a colleague in their own words and say when they would use it.
 - Product logic must stay simple: "你这个产品逻辑太复杂了" was said about a
   flow with too many states, not about the visuals.
 
-## 3. No instructional copy
+## 3. Design speaks before words
+
+The rule above all others in the interface (Lucas, 2026-11-03): **"当页面设计、排版、或动画能指引某个功能时，就不要用语言。
+需要语言时，要简洁。同时又需要保证这个设计确实能让人明白是干这个的。"**
+- If layout, form or motion can show what something does, use no words for it.
+- When words are needed, as few as carry the meaning (a verb on a button, a number with its unit).
+- And it must actually be understood: a wordless design that a first-time learner misreads has failed; check it
+  on someone who has not seen it (or say plainly that it was not checked).
 
 Never write sentences that tell the learner what to do ("读到哪儿冒出疑问，就在
 这儿问。", "点一下就问 · 或直接打字"). Guide with the thing itself:
