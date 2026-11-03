@@ -19,20 +19,24 @@
 
 /* ---------------------------------------------------------------- the pen and its ink */
 #ink { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30; overflow: visible; }
-#ink path.m { fill: none; stroke: var(--ink-pen); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .88; }
-#ink path.m.acc { stroke: var(--accent); opacity: 1; }
-#ink path.m.thin { stroke-width: 1.1; }
+#ink { mix-blend-mode: multiply; }
+#ink path.m { fill: var(--ink-pen); stroke: none; opacity: .9; }
+#ink path.m.acc { fill: var(--accent); opacity: 1; }
 #ink path.fill { stroke: none; fill: var(--accent); opacity: 0; transition: opacity .5s; }
 #ink path.fill.on { opacity: .16; }
 #ink path.fill.ink.on { fill: var(--ink-pen); opacity: .09; }
+#ink path.fill.solid { fill: var(--ink-pen); }
+#ink path.fill.solid.on { opacity: .86; }
 #ink path.dots { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1.5 4; opacity: 0; transition: opacity .4s; }
 #ink path.dots.on { opacity: .9; }
 #nib { position: absolute; left: 0; top: 0; z-index: 31; width: 0; height: 0; pointer-events: none; }
-#nib svg { position: absolute; left: -24px; top: -24px; width: 48px; height: 48px; overflow: visible; }
+#nib svg { position: absolute; left: -24px; top: -24px; width: 48px; height: 48px; overflow: visible; filter: drop-shadow(0 1px 1px rgba(22, 24, 27, .22)); }
 #nib .ask { position: absolute; left: 10px; top: -15px; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; pointer-events: auto; transform-origin: 0 50%; box-shadow: var(--lift); white-space: nowrap; }
-.label-ink { position: absolute; z-index: 31; font: 500 11.5px/1.2 var(--sans); letter-spacing: 0; color: var(--ink2); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.label-ink { position: absolute; z-index: 31; font: 13px/1.2 var(--serif); letter-spacing: 0; color: var(--ink2); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
 .label-ink.on { opacity: 1; }
 .label-ink.acc { color: var(--accent); }
+.label-ink i { font-style: italic; }
+.label-ink sub { font-size: 72%; vertical-align: -.25em; line-height: 0; }
 
 /* what the pen writes: its voice is serif; its questions are short and lean a little */
 .pnote { position: absolute; z-index: 29; width: 300px; }
@@ -42,11 +46,11 @@
 .pnote .w { opacity: 0; transition: opacity .12s; }
 .pnote .w.on { opacity: 1; }
 .pnote .sketch { height: 0; }
-.offer { position: absolute; z-index: 29; width: 300px; font: italic 15px/1.6 var(--serif); color: var(--ink2); cursor: pointer; padding: 2px 0; }
+.offer { position: absolute; z-index: 29; width: 300px; font: 15.5px/1.65 var(--serif); color: var(--ink2); cursor: pointer; padding: 2px 0; transition: color .15s; }
 .offer:hover { color: var(--ink); }
 .offer .w { opacity: 0; transition: opacity .12s; }
 .offer .w.on { opacity: 1; }
-.margin-old { position: absolute; z-index: 29; width: 260px; font: italic 14px/1.6 var(--serif); color: var(--ink2); transform: rotate(-1.2deg); }
+.margin-old { position: absolute; z-index: 29; width: 260px; font: 14.5px/1.65 var(--serif); color: var(--ink2); }
 
 /* ---------------------------------------------------------------- home */
 .hello { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s8); padding: var(--s8) 0 var(--s9); align-items: center; }
@@ -66,7 +70,7 @@
 .crow .ticks i.done { background: var(--accent); }
 .crow .ticks i.cur { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .crow .ticks i.gap { width: 6px; background: none; }
-.crow .scrawl { font: italic 15px/1.6 var(--serif); color: var(--ink2); transform: rotate(-1deg); }
+.crow .scrawl { font: 15px/1.7 var(--serif); color: var(--ink2); }
 .contents { aspect-ratio: 16 / 10; background: var(--white); padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
 .contents .h { font: 650 17px/1.25 var(--sans); }
 .contents ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
@@ -152,7 +156,7 @@
 <body>
 <div id="app"></div>
 <svg id="ink"></svg>
-<div id="nib"><svg viewBox="-24 -24 48 48"><g id="nibg"><path d="M0 0 L-13 -4.6 Q-17.5 0 -13 4.6 Z" fill="var(--ink-pen)"/><path d="M-2.6 0 L-10.5 0" stroke="var(--paper)" stroke-width="1.1" stroke-linecap="round"/><circle cx="-10.8" cy="0" r="1.3" fill="var(--accent)"/></g></svg></div>
+<div id="nib"><svg viewBox="-24 -24 48 48"><g id="nibg"><path d="M0.4 0 C-3.2 -0.9 -8.6 -3.1 -12.6 -3.9 L-16.2 -3.9 Q-17.4 0 -16.2 3.9 L-12.6 3.9 C-8.6 3.1 -3.2 0.9 0.4 0 Z" fill="var(--ink-pen)"/><path d="M-1.8 0 L-9.2 0" stroke="var(--paper)" stroke-width=".75" stroke-linecap="round"/><circle cx="-10.3" cy="0" r="1.05" fill="var(--paper)"/><circle cx="0" cy="0" r=".7" fill="var(--accent)"/></g></svg></div>
 <script src="data.js"></script>
 <script src="base.js"></script>
 <script>
@@ -214,6 +218,7 @@ const SHAPES = {
  * never waits for itself); drawing makes the nib travel along the very line it draws; writing makes the nib lead
  * the words, pausing at punctuation the way a voice does.
  */
+const NS = 'http://www.w3.org/2000/svg';
 const Pen = (() => {
   const nib = document.getElementById('nib'), g = document.getElementById('nibg'), ink = document.getElementById('ink');
   const s = { x: -60, y: 120, vx: 0, vy: 0, tx: -60, ty: 120, a: 180, va: 0, ta: 180, k: 120, c: 22 };
@@ -241,14 +246,69 @@ const Pen = (() => {
   function face(deg) { s.ta = deg; }
   const arrive = async (x, y) => { to(x, y); for (let i = 0; i < 60; i++) { await sleep(16); if (Math.hypot(s.x - x, s.y - y) < 2) break; } };
   /** Draw a path: the nib rides the line as it appears. */
+  let seq = 0;
+  /**
+   * A centreline as ink: an outline whose width rises from a fine entry, holds, and thins into a long tail, with a
+   * slow tremor of pressure, the way a nib lays down a line. `w` is the full width.
+   */
+  function outline(d, w, seed) {
+    const probe = document.createElementNS(NS, 'path');
+    probe.setAttribute('d', d);
+    ink.append(probe);
+    const L = probe.getTotalLength(), n = Math.max(10, Math.ceil(L / 1.4)), pts = [];
+    for (let i = 0; i <= n; i++) { const q = probe.getPointAtLength((L * i) / n); pts.push([q.x, q.y]); }
+    probe.remove();
+    const ph = rng(seed)() * 6.28;
+    const half = (u) => {
+      const a = Math.min(1, u / 0.07), b = Math.min(1, (1 - u) / 0.24);
+      const taper = Math.sin((a * Math.PI) / 2) * Math.pow(b, 0.8);
+      return Math.max(0.18, (w / 2) * (0.3 + 0.7 * taper) * (1 + 0.09 * Math.sin(u * 7.5 + ph)));
+    };
+    const lf = [], rt = [];
+    pts.forEach(([x, y], i) => {
+      const [x0, y0] = pts[Math.max(0, i - 1)], [x1, y1] = pts[Math.min(n, i + 1)];
+      let tx = x1 - x0, ty = y1 - y0; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+      const h = half(i / n);
+      lf.push([x - ty * h, y + tx * h]); rt.push([x + ty * h, y - tx * h]);
+    });
+    const f = (p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`;
+    const he = half(1), hs = half(0);
+    return `M${f(lf[0])}` + lf.slice(1).map((p) => `L${f(p)}`).join('') + `A${he.toFixed(2)},${he.toFixed(2)} 0 0 1 ${f(rt[n])}` + rt.slice(0, -1).reverse().map((p) => `L${f(p)}`).join('') + `L${f(rt[0])}A${hs.toFixed(2)},${hs.toFixed(2)} 0 0 1 ${f(lf[0])}Z`;
+  }
+  const WIDTH = { m: 1.9, 'm acc': 2.05, 'm thin': 1.35 };
+  /** A mark already on the page (an old note): inked at once. */
+  function mark(d, cls = 'm', seed = 1) {
+    size();
+    const o = document.createElementNS(NS, 'path');
+    o.setAttribute('d', outline(d, WIDTH[cls] || 1.9, seed));
+    o.setAttribute('class', cls.replace('thin', ''));
+    ink.append(o);
+    return o;
+  }
   async function draw(d, { cls = 'm', ms = 520 } = {}) {
     size();
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const id = `ink${++seq}`, W = WIDTH[cls] || 1.9;
+    // the centreline (also the path the nib rides) and, revealed through it, the inked outline
+    const p = document.createElementNS(NS, 'path');
     p.setAttribute('d', d);
-    p.setAttribute('class', cls);
-    ink.append(p);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', '#fff');
+    p.setAttribute('stroke-width', W + 6);
+    p.setAttribute('stroke-linecap', 'round');
+    const m = document.createElementNS(NS, 'mask');
+    m.setAttribute('id', id);
+    m.setAttribute('maskUnits', 'userSpaceOnUse');
+    m.setAttribute('x', 0); m.setAttribute('y', 0); m.setAttribute('width', ink.getAttribute('width')); m.setAttribute('height', ink.getAttribute('height'));
+    m.append(p);
+    ink.append(m);
+    const o = document.createElementNS(NS, 'path');
+    o.setAttribute('d', outline(d, W, seq));
+    o.setAttribute('class', cls.replace('thin', ''));
+    o.setAttribute('mask', `url(#${id})`);
+    ink.append(o);
     const L = p.getTotalLength();
-    if (reduced()) return p;
+    const finish = () => { o.removeAttribute('mask'); m.remove(); };
+    if (reduced()) { finish(); return o; }
     p.style.strokeDasharray = `${L}`;
     p.style.strokeDashoffset = `${L}`;
     const start = p.getPointAtLength(0);
@@ -267,7 +327,8 @@ const Pen = (() => {
       requestAnimationFrame(step);
     });
     held = false;
-    return p;
+    finish();
+    return o;
   }
   /** A moment of thought: two small dips of the nib, then still. Never a loop. */
   async function think() { for (const dy of [3, -1, 2.5, 0]) { s.ty += dy; await sleep(140); } }
@@ -288,7 +349,7 @@ const Pen = (() => {
   }
   const label = (x, y, text, acc = false) => { const el = document.createElement('div'); el.className = `label-ink${acc ? ' acc' : ''}`; el.innerHTML = text; el.style.left = `${x}px`; el.style.top = `${y}px`; document.body.append(el); requestAnimationFrame(() => el.classList.add('on')); return el; };
   const clear = () => { ink.innerHTML = ''; document.querySelectorAll('.label-ink,.pnote,.offer,.margin-old').forEach((x) => x.remove()); };
-  return { to, jump, look, face, draw, think, write, label, clear, size, get busy() { return busy > 0; }, set busy(v) { busy = Math.max(0, busy + (v ? 1 : -1)); }, s };
+  return { to, jump, look, face, draw, mark, think, write, label, clear, size, get busy() { return busy > 0; }, set busy(v) { busy = Math.max(0, busy + (v ? 1 : -1)); }, s };
 })();
 
 /** Words as hidden spans for the pen to write: characters one by one, a formula as one piece. */
@@ -373,9 +434,7 @@ async function coursePage(app, id) {
   const bay = (n) => doc(app.querySelector(`.bay[data-n="${n}"]`).getBoundingClientRect());
   // an old note, already there: the hardest lesson, circled once, some time ago
   const b4 = bay(4), b5 = bay(5), hard = { left: b4.left, top: b4.top, right: b5.right, bottom: b5.bottom, width: b5.right - b4.left, height: b4.height };
-  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p.setAttribute('d', SHAPES.circle(hard, 21)); p.setAttribute('class', 'm thin');
-  document.getElementById('ink').append(p);
+  Pen.mark(SHAPES.circle(hard, 21), 'm thin', 21);
   const old = document.createElement('div');
   old.className = 'margin-old';
   old.textContent = '这两课最难，留一整块时间。';
@@ -517,20 +576,25 @@ function read_behaviour(app, page, { mx, narrow }) {
   async function lever(x0, y0, w) {
     note_space(140);
     const y = y0 + 50, L = w - 20, X = (t) => x0 + 10 + t * L;
-    await Pen.draw(SHAPES.line([X(0), y], [X(1), y], 13), { ms: 380 });
+    await Pen.draw(SHAPES.line([X(0), y], [X(1), y], 13), { cls: 'm thin', ms: 380 });
     Pen.label(X(0) - 4, y + 16, '0 秒');
     Pen.label(X(1) - 20, y + 16, '1 秒');
     // five equal brakes on the first half of the second
     for (let j = 0; j < 5; j++) {
-      const cx = X((j + .5) / 10), h = 16;
-      await Pen.draw(wobble([[cx - 6, y - 1], [cx - 6, y - h], [cx + 6, y - h], [cx + 6, y - 1]], .5, 30 + j), { ms: 160 });
+      const cx = X((j + .5) / 10), h = 13, w = 10, box = [[cx - w / 2, y - 1.5], [cx - w / 2, y - h], [cx + w / 2, y - h], [cx + w / 2, y - 1.5], [cx - w / 2, y - 1.5]];
+      await Pen.draw(wobble(box, .35, 30 + j), { cls: 'm thin', ms: 150 });
+      const f = document.createElementNS(NS, 'path');
+      f.setAttribute('d', wobble(box, .35, 30 + j) + 'Z');
+      f.setAttribute('class', 'fill solid');
+      document.getElementById('ink').append(f);
+      requestAnimationFrame(() => f.classList.add('on'));
     }
     // the fulcrum where it balances
     const tc = X(0.25);
     await Pen.think();
     await Pen.draw(wobble([[tc, y + 2], [tc - 9, y + 17], [tc + 9, y + 17], [tc, y + 2]], .5, 44), { cls: 'm acc', ms: 360 });
     Pen.label(tc - 30, y + 24, '<i>t</i><sub>c</sub> = 0.25 秒', true);
-    Pen.label(X(0.5) + 6, y - 34, '早刹：重量都在前半秒');
+    Pen.label(X(0.02), y - 36, '早刹：重量都在前半秒');
   }
   function note_space() { Pen.size(); }
   if (AUTO) { since = performance.now() - 3000; reading = 1; follow(); reading = 1; }
@@ -541,7 +605,7 @@ function scene_behaviour(app, page, { mx, narrow }) {
   const stage = app.querySelector('#stage .plate'), say = app.querySelector('#say'), segs = [...app.querySelectorAll('.segs b')], tm = app.querySelector('#tm'), pp = app.querySelector('#pp');
   const fig = () => doc(stage.getBoundingClientRect());
   // where things are in the figure (fractions of the frame): the first five bars, the grey weights under them
-  const AT = { 1: [0.075, 0.175, 0.37, 0.24], 3: [0.085, 0.31, 0.64, 0.36] };
+  const AT = { 1: [0.085, 0.178, 0.352, 0.238], 3: [0.088, 0.31, 0.64, 0.36] };
   const rest = () => { const f = fig(); Pen.to(narrow ? innerWidth - 22 : mx() + 10, f.top + f.height * 0.45, { soft: true }); Pen.look(f.left + f.width * 0.6, f.top + f.height * 0.45); };
   rest();
   let line = -1, on = false;
@@ -617,10 +681,12 @@ function quiz_behaviour(app, page, { mx, narrow }) {
   }
   async function vt(x0, y0, w) {
     const H = 120, L = w - 30, X = (t) => x0 + 24 + t * L, Y = (v) => y0 + H - (v / 0.5) * (H - 20);
-    await Pen.draw(SHAPES.line([X(0), Y(0)], [X(1.02), Y(0)], 3), { ms: 260 });
-    await Pen.draw(SHAPES.line([X(0), Y(0)], [X(0), Y(0.56)], 4), { ms: 220 });
-    Pen.label(X(1) - 10, Y(0) + 8, 't');
-    Pen.label(X(0) - 18, Y(0.5) - 6, 'v');
+    await Pen.draw(wobble([[X(0), Y(0)], [X(1.06), Y(0)]], .5, 3), { cls: 'm thin', ms: 260 });
+    await Pen.draw(wobble([[X(1.06) - 5, Y(0) - 3.2], [X(1.06), Y(0)], [X(1.06) - 5, Y(0) + 3.2]], .2, 6), { cls: 'm thin', ms: 120 });
+    await Pen.draw(wobble([[X(0), Y(0)], [X(0), Y(0.62)]], .5, 4), { cls: 'm thin', ms: 220 });
+    await Pen.draw(wobble([[X(0) - 3.2, Y(0.62) + 5], [X(0), Y(0.62)], [X(0) + 3.2, Y(0.62) + 5]], .2, 8), { cls: 'm thin', ms: 120 });
+    Pen.label(X(1.06) + 6, Y(0) - 8, '<i>t</i>');
+    Pen.label(X(0) - 16, Y(0.62) - 4, '<i>v</i>');
     // plan A brakes in the first half second; plan B coasts, then brakes
     const A = [[X(0), Y(.5)], [X(.5), Y(0)], [X(1), Y(0)]], B = [[X(0), Y(.5) - 1], [X(.5), Y(.5) - 1], [X(1), Y(0)]];
     const fillA = `M${X(0)},${Y(0)} L${X(0)},${Y(.5)} L${X(.5)},${Y(0)} Z`, fillB = `M${X(0)},${Y(0)} L${X(0)},${Y(.5)} L${X(.5)},${Y(.5)} L${X(1)},${Y(0)} Z`;
@@ -632,7 +698,7 @@ function quiz_behaviour(app, page, { mx, narrow }) {
     Pen.label(X(.5) + 4, Y(.5) - 20, 'B 走 37.5 厘米');
     await Pen.draw(wobble(A, .6, 53), { cls: 'm acc', ms: 600 });
     fa.classList.add('on');
-    Pen.label(X(.03), Y(.12) + 2, 'A 走 12.5', true);
+    Pen.label(X(.03), Y(.12) + 2, 'A 走 12.5 厘米', true);
   }
   if (AUTO) setTimeout(() => opts[page.chosen].click(), 700);
 }
