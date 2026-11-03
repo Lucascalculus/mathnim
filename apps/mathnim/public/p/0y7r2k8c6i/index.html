@@ -161,7 +161,7 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 .cell p{margin:0 0 6px;font-size:14.5px;line-height:1.65;color:var(--ink-2)}
 .cell p.c{font-size:13px;color:var(--graphite-t)}
 /* materials on our own WebGL2 core (gpu/): bigger stages, so the lab is two columns */
-#lab .cells{grid-template-columns:repeat(2,minmax(0,1fr))}
+#lab .cells,#blocks .cells{grid-template-columns:repeat(2,minmax(0,1fr))}
 .cell.gpu{--rule:rgba(26,27,31,.10)}
 .cell.gpu.wide{grid-column:1 / -1}
 .cell.gpu .stage{position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:#f3f1ec;touch-action:none;
@@ -241,7 +241,7 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
   .course.wide{grid-column:auto}
   #meta{bottom:84px;left:6px;flex-wrap:wrap;max-width:230px}
   .sheet{padding:20px 16px 100px}
-  .cells,#lab .cells{grid-template-columns:1fr}
+  .cells,#lab .cells,#blocks .cells{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){ *{transition-duration:.15s!important} }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.45s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
@@ -250,7 +250,7 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
 </head>
 <body>
 
-<div id="meta"><b>样本</b><button data-go="home">首页</button><button data-go="lesson">MPC 课</button><button data-go="attn">注意力课</button><button data-go="materials">材质</button><button data-go="lab">实验</button><button data-go="motion">动效</button><button data-go="back">学完回来</button><button data-go="reset">重来</button></div>
+<div id="meta"><b>样本</b><button data-go="home">首页</button><button data-go="lesson">MPC 课</button><button data-go="attn">注意力课</button><button data-go="materials">材质</button><button data-go="lab">实验</button><button data-go="motion">动效</button><button data-go="blocks">积木</button><button data-go="back">学完回来</button><button data-go="reset">重来</button></div>
 
 <main id="home" class="view">
   <header class="top"><span class="wordmark">Mathnim</span><span class="top-r">数据</span></header>
@@ -340,6 +340,14 @@ h1{font-size:38px;line-height:1.18;font-weight:650;letter-spacing:-.025em;margin
   <table class="fxtab" id="fx-table"><thead><tr><th style="width:24%">名字 · 用途</th><th>验收标准</th><th style="width:30%">实测</th></tr></thead><tbody></tbody></table>
   <section class="group"><h2>界面 · 每一页都用得上</h2><div class="cells" id="cells-motion"></div></section>
   <section class="group"><h2>数学 · 帮着把数学看出来</h2><div class="cells" id="cells-math"></div></section>
+</main>
+
+<main id="blocks" class="view sheet" hidden>
+  <a class="kicker" data-home>Mathnim · 积木</a>
+  <h1>通用积木</h1>
+  <p class="lede">画数学用的名词：数轴、函数图像、平面、地形……每一门课都会用到。每一块都能拿在手里拖、放大、读数，下面的验收结果是页面自己量出来的。</p>
+  <section class="group"><h2>量与函数</h2><div class="cells" id="cells-blk-fn"></div></section>
+  <section class="group"><h2>空间与地形</h2><div class="cells" id="cells-blk-space"></div></section>
 </main>
 
 <div id="edge" hidden></div>
@@ -1350,15 +1358,15 @@ const gpu_io = new IntersectionObserver((es) => es.forEach((e) => {
   }
   g.inst?.visible?.(e.isIntersecting);
 }), { rootMargin: '200px' });
-function gpu_cell(group, name) {
+function gpu_cell(group, name, into = group) {
   const path = `${group}/${name}`, el = document.createElement('div'); el.className = 'cell gpu';
   el.innerHTML = '<div class="stage"><canvas></canvas><div class="hud"></div></div><h3></h3><p></p><p class="c"></p>';
-  $('#cells-' + group).append(el);
+  $('#cells-' + into).append(el);
   const g = { path, el, stage: el.querySelector('.stage'), canvas: el.querySelector('canvas'), hud: el.querySelector('.hud'), inst: null };
   GPU.push(g);
   g.ready = import(`./gpu/${path}.js`).then((mod) => {
     const m = (g.mod = mod).meta;
-    g.stage.classList.toggle('night', !!m.night); el.classList.toggle('wide', !!m.wide);
+    g.stage.classList.toggle('night', !!m.night); el.classList.toggle('wide', !!m.wide); if (m.aspect) g.stage.style.aspectRatio = m.aspect;
     el.querySelector('h3').innerHTML = `${m.name.zh}<small>${m.name.en}</small>`;
     el.querySelector('p').textContent = m.means.zh;
     el.querySelector('p.c').textContent = '验收：' + m.test.zh;
@@ -1516,6 +1524,9 @@ function build_lab() {
   // time, a noun pulled out, another view; then text (why, stretch), formula and figure (explode, brush, ripple, tangle),
   // the learning loop (bins), the tutor and the map (tutor, stars)
   for (const p of ['time', 'pull', 'morph', 'why', 'stretch', 'explode', 'brush', 'ripple', 'tangle', 'bins', 'tutor', 'stars']) gpu_cell('int', p);
+  // the building blocks (docs/design/BLOCKS.md): the nouns of mathematical figures, in gpu/blk/
+  for (const p of ['line', 'graph', 'tangent', 'area']) gpu_cell('blk', p, 'blk-fn');
+  for (const p of ['plane', 'contour', 'terrain']) gpu_cell('blk', p, 'blk-space');
 }
 
 // =====================================================================
@@ -2831,7 +2842,7 @@ function go(to, after) {
   if (to === 'back') return come_back();
   if (to === 'reset') { reset_all(); to = view; }
   const swap = () => {
-    for (const v of ['home', 'lesson', 'attn', 'materials', 'lab', 'motion']) document.getElementById(v).hidden = v !== to;
+    for (const v of ['home', 'lesson', 'attn', 'materials', 'lab', 'motion', 'blocks']) document.getElementById(v).hidden = v !== to;
     const is_lesson = LESSONS.includes(to);
     $('#island').hidden = !is_lesson; $('#edge').hidden = !is_lesson;
     view = to;
@@ -2890,7 +2901,7 @@ let rt = 0;
 addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (view === 'home') layout_home(); if (view === 'lesson') { layout_lesson(); relayout_notes(); paint_scale(); } if (view === 'attn') { layout_attn(); relayout_notes(); paint_scale(); } if (view === 'materials' || view === 'lab') layout_cells(view); if (view === 'motion') fx_layout(); for (const g of GPU) g.inst?.resize?.(); }, 120); });
 if (location.search.includes('eyes')) $('#meta').hidden = true;
 const start = new URLSearchParams(location.search).get('v');
-go(['lesson', 'attn', 'materials', 'lab', 'motion'].includes(start) ? start : 'home');
+go(['lesson', 'attn', 'materials', 'lab', 'motion', 'blocks'].includes(start) ? start : 'home');
 </script>
 </body>
 </html>

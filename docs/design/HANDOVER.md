@@ -81,6 +81,10 @@ His words, in order, so you can hear the bar:
 
     The page must be served over http, not opened as a file.
   - `motion`: seventeen animations. The first seven are interface effects; the last ten help show mathematics.
+  - `blocks`: the building blocks, the nouns of mathematical figures (number line, graph, tangent, area, the plane
+    under a matrix, contour map, plaster terrain so far); the plan for all of them is `docs/design/BLOCKS.md`. They
+    are modules in `gpu/blk/`, on a shared kit `gpu/lib/plot.js` (nice ticks, a plot, adaptive sampling, the glass
+    bead, the marks of the grammar) and `gpu/lib/contour.js` (marching squares and the shared landscape).
   - Inside the page:
     - `window.__fx_all()` plays every effect.
     - `window.__gpu_accept()` runs the lab materials' tests, each with its tile scrolled on screen; pass paths such
