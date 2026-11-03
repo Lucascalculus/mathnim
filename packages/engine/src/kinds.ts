@@ -1,7 +1,7 @@
 // The core kinds: text blocks (caption, list, readout), legends, plots and the marks drawn in them, attached labels,
 // glass handles, and a canvas block (the escape hatch). Courses add their own kinds as plugins (define_kind).
 import { color_of, look, material_of, text_color_of, type Look } from '@mathnim/look';
-import { clamp, type Box, type XY } from './geom';
+import { bounds_of, clamp, type Box, type XY } from './geom';
 import type { Block, LayoutEnv, Side, Size } from './layout';
 import { param, read, untracked, type Param, type Val } from './state';
 import { draw_tex, tex_size } from './tex';
@@ -132,24 +132,31 @@ export class Readout extends Thing implements Block {
       return tabular_width(p.template ?? '−0.00', f);
     });
   }
+  /** The size it fits a slot of width w at: its kind, or the next size down the type scale (a line of numbers cannot wrap). */
+  private fit_kind(w: number, lang: Lang): TextKind | null {
+    const own = this.o.kind ?? 'readout', was = this.size_kind;
+    let out: TextKind | null = null;
+    this.size_kind = null;
+    const total = () => {
+      const ws = this.widths(lang), sp = this.px() * 0.28;
+      return ws.reduce((a, x) => a + x + sp, -sp);
+    };
+    for (const k of ['readout', 'caption', 'label'] as TextKind[]) {
+      if (total() <= w + 0.5 || look().type[k].size >= look().type[out ?? own].size) continue;
+      this.size_kind = out = k;
+    }
+    this.size_kind = was;
+    return out;
+  }
   measure(w: number, env: LayoutEnv): Size {
-    this.arrange({ x: 0, y: 0, w, h: 0 }, env);
-    const h = this.px() * 1.5;
+    const k = this.fit_kind(w, env.lang), h = look().type[k ?? this.o.kind ?? 'readout'].size * 1.5;
     return { h, min: h };
   }
   arrange(b: Box, env: LayoutEnv): void {
-    this.size_kind = null;
-    const total = () => {
-      const ws = this.widths(env.lang), sp = this.px() * 0.28;
-      return ws.reduce((a, x) => a + x + sp, -sp);
-    };
-    // (a line of numbers cannot wrap: it steps down the type scale - readout, caption, label - until it fits)
-    for (const k of ['readout', 'caption', 'label'] as TextKind[]) {
-      if (total() <= b.w + 0.5 || look().type[k].size >= this.px()) continue;
-      this.size_kind = k;
-      this.why.push(`set at the ${k} size: the readout size does not fit ${b.w.toFixed(0)} px`);
-    }
-    this.box = { x: b.x, y: b.y, w: Math.min(b.w, total()), h: this.px() * 1.5 };
+    this.size_kind = this.fit_kind(b.w, env.lang);
+    if (this.size_kind) this.why.push(`set at the ${this.size_kind} size: its own does not fit ${b.w.toFixed(0)} px`);
+    const ws = this.widths(env.lang), sp = this.px() * 0.28;
+    this.box = { x: b.x, y: b.y, w: Math.min(b.w, ws.reduce((a, x) => a + x + sp, -sp)), h: this.px() * 1.5 };
   }
   things(): Thing[] {
     return [this];
@@ -970,13 +977,4 @@ function cut_polyline(pl: XY[], u: number): XY[] {
   }
   return out;
 }
-function bounds(pts: XY[]): Box {
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const [x, y] of pts) {
-    x0 = Math.min(x0, x);
-    y0 = Math.min(y0, y);
-    x1 = Math.max(x1, x);
-    y1 = Math.max(y1, y);
-  }
-  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
-}
+const bounds = bounds_of;

@@ -92,9 +92,9 @@ export function training_curves_figure(p: TrainingCurvesParams): Figure {
   } else {
     const cv = preset_curves(p.preset);
     series = [
-      { name: t('训练 loss', 'train loss'), ys: cv.train, role: 'noun:train-loss', right: false },
-      { name: t('验证 loss（只算回答）', 'val loss (answer tokens only)'), ys: cv.val, role: 'noun:val-loss', right: false },
-      { name: t('任务指标', 'task metric'), ys: cv.metric, role: 'noun:metric', right: true },
+      { name: t('train loss', '训练 loss'), ys: cv.train, role: 'noun:train-loss', right: false },
+      { name: t('val loss (answer tokens only)', '验证 loss（只算回答）'), ys: cv.val, role: 'noun:val-loss', right: false },
+      { name: t('task metric', '任务指标'), ys: cv.metric, role: 'noun:metric', right: true },
     ];
     lr = [0, 2.6];
     mr = [0, 0.8];
@@ -102,20 +102,20 @@ export function training_curves_figure(p: TrainingCurvesParams): Figure {
     xt = [0, 1, 2, 3];
   }
   const custom = p.preset === 'custom';
-  const xlab = { text: custom ? t('训练进度 →', 'training →') : t('轮数', 'epochs') };
-  const L = fig.plot({ id: 'loss_panel', x: xr, y: lr, x_ticks: xt, x_label: xlab, phone_aspect: 1.1, says: t('左：两条 loss', 'left: the losses') });
-  const R = fig.plot({ id: 'metric_panel', x: xr, y: mr, x_ticks: xt, x_label: xlab, phone_aspect: 1.1, says: t('右：任务指标', 'right: the task metric') });
+  const xlab = { text: custom ? t('training →', '训练进度 →') : t('epochs', '轮数') };
+  const L = fig.plot({ id: 'loss_panel', x: xr, y: lr, x_ticks: xt, x_label: xlab, phone_aspect: 1.1, says: t('left: the losses', '左：两条 loss') });
+  const R = fig.plot({ id: 'metric_panel', x: xr, y: mr, x_ticks: xt, x_label: xlab, phone_aspect: 1.1, says: t('right: the task metric', '右：任务指标') });
   const curves = series.map((s, i) => {
     const P = s.right ? R : L, lo = P.spec.y[0], hi = P.spec.y[1];
     const pts = s.ys.map((y, k): XY => [xr[0] + ((xr[1] - xr[0]) * k) / Math.max(1, s.ys.length - 1), Math.min(hi, Math.max(lo, y))]);
     return P.add(new Path(pts, { id: `curve_${i}`, role: s.role, width: 3, upto: draw }));
   });
   const legend = fig.legend(series.map((s) => ({ role: s.role, text: s.name, mark: 'line' as const })), { id: 'legend' });
-  const title = (zh: string, en: string, id: string) => fig.caption(t(zh, en), { id, kind: 'label', weight: 600 });
-  const lt = title(custom ? 'loss' : 'loss', custom ? 'losses' : 'loss', 'loss_title');
-  const rt = title(custom ? '指标' : '留出集上的任务指标', custom ? 'metrics' : 'task metric on held-out set', 'metric_title');
-  const diag = p.show_answer && ANSWERS[p.preset] ? fig.caption(t(ANSWERS[p.preset][1], ANSWERS[p.preset][0]), { id: 'diagnosis' }) : null;
-  fig.aside(custom ? t('你的数据', 'your numbers') : t('示意：典型形状，不是某次真实训练', 'illustration: typical shapes, not a real run'));
+  const title = (en: string, zh: string, id: string) => fig.caption(t(en, zh), { id, kind: 'label', weight: 600 });
+  const lt = title(custom ? 'losses' : 'loss', 'loss', 'loss_title');
+  const rt = title(custom ? 'metrics' : 'task metric on held-out set', custom ? '指标' : '留出集上的任务指标', 'metric_title');
+  const diag = p.show_answer && ANSWERS[p.preset] ? fig.caption(t(ANSWERS[p.preset][0], ANSWERS[p.preset][1]), { id: 'diagnosis' }) : null;
+  fig.aside(custom ? t('your numbers', '你的数据') : t('illustration: typical shapes, not a real run', '示意：典型形状，不是某次真实训练'));
   // (small multiples: the two panels stay side by side on a phone too, so loss and metric are read at the same epoch)
   fig.layout(column([legend, row([column([lt, L], { gap: 6 }), column([rt, R], { gap: 6 })], { gap: 32, phone: 'row' }), ...(diag ? [diag] : [])], { gap: 12 }));
   // (the original scene's timings and order: the axes and their titles, then the curves drawn on, 2.2 s in all;

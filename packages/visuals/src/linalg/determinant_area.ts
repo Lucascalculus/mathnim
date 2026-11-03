@@ -64,7 +64,7 @@ export function determinant_figure(p: DeterminantAreaParams): DeterminantFigure 
   // ---- the plane
   const ticks = Array.from({ length: 2 * Math.ceil(ext * 2) + 1 }, (_, i) => i - Math.ceil(ext * 2));
   // (the faint grid is the plane before A moves it: the moved grid is read against it)
-  const P = fig.plot({ id: 'plane', x: [-ext, ext], y: [-ext, ext], x_ticks: ticks, y_ticks: ticks, aspect: 'equal', fill: true, axes: 'origin', numbers: false, priority: 2, says: t('平面：网格跟着 A 一起变', 'the plane: the grid moves with A') });
+  const P = fig.plot({ id: 'plane', x: [-ext, ext], y: [-ext, ext], x_ticks: ticks, y_ticks: ticks, aspect: 'equal', fill: true, axes: 'origin', numbers: false, priority: 2, says: t('the plane: the grid moves with A', '平面：网格跟着 A 一起变') });
   const drawn = fig.param('drawn', 0, { range: [0, 1], doc: 'how much of the moved grid is drawn' });
   const grown = fig.param('grown', 0, { range: [0, 1], doc: 'how far î and ĵ have grown' });
   const n = Math.ceil(ext * 4);
@@ -83,9 +83,9 @@ export function determinant_figure(p: DeterminantAreaParams): DeterminantFigure 
   };
   // one region per state of the determinant (only one has points at a time), so each keeps its colour and name
   const para = (['noun:determinant', 'noun:collapsed', 'noun:flipped'] as const).map((role) =>
-    P.add(new Region(() => (sign_role(det.value) === role ? corners() : []), { id: `area_${role.split(':')[1]}`, role: role.replace('noun', 'region'), fill: 0.28, says: t('单位正方形变成的平行四边形', 'the unit square, moved by A') })));
-  const i_hat = P.add(new Arrow([0, 0], () => [a.value, c.value], { id: 'i_hat', role: 'noun:i-hat', upto: grown, says: t('î 落到的位置：A 的第一列', 'where î lands: the first column of A') }));
-  const j_hat = P.add(new Arrow([0, 0], () => [b.value, d.value], { id: 'j_hat', role: 'noun:j-hat', upto: grown, says: t('ĵ 落到的位置：A 的第二列', 'where ĵ lands: the second column of A') }));
+    P.add(new Region(() => (sign_role(det.value) === role ? corners() : []), { id: `area_${role.split(':')[1]}`, role: role.replace('noun', 'region'), fill: 0.28, says: t('the unit square, moved by A', '单位正方形变成的平行四边形') })));
+  const i_hat = P.add(new Arrow([0, 0], () => [a.value, c.value], { id: 'i_hat', role: 'noun:i-hat', upto: grown, says: t('where î lands: the first column of A', 'î 落到的位置：A 的第一列') }));
+  const j_hat = P.add(new Arrow([0, 0], () => [b.value, d.value], { id: 'j_hat', role: 'noun:j-hat', upto: grown, says: t('where ĵ lands: the second column of A', 'ĵ 落到的位置：A 的第二列') }));
   // the flash where the plane collapses (a ring at the origin, there for a moment)
   const flash = P.add(new Marker([0, 0], { id: 'flash', role: 'noun:collapsed', shape: 'ring', r: 18 }));
   // orientation: the short turn from î to ĵ
@@ -129,20 +129,20 @@ export function determinant_figure(p: DeterminantAreaParams): DeterminantFigure 
   const matrix = fig.readout([{ tex: () => {
     const m = M.get();
     return `A = \\begin{bmatrix} \\color{${I_C}}{${f1(m[0][0])}} & \\color{${J_C}}{${f1(m[0][1])}} \\\\ \\color{${I_C}}{${f1(m[1][0])}} & \\color{${J_C}}{${f1(m[1][1])}} \\end{bmatrix}`;
-  } }], { id: 'matrix', kind: 'display', says: t('矩阵 A：两列是 î 和 ĵ 落到的位置', "the matrix A: its columns are where î and ĵ land") });
+  } }], { id: 'matrix', kind: 'display', says: t("the matrix A: its columns are where î and ĵ land", '矩阵 A：两列是 î 和 ĵ 落到的位置') });
   const formula = fig.readout([{ tex: `\\det A = \\color{${I_C}}{a}\\color{${J_C}}{d} - \\color{${J_C}}{b}\\color{${I_C}}{c}` }], { id: 'det_formula', kind: 'display' });
   const det_ro = fig.readout([{ tex: '\\det A =' }, { value: () => det.value, decimals: 2, template: '−0.00' }], { id: 'det_readout', role: () => sign_role(det.value), kind: 'display' });
   const message = fig.caption(() => {
     const dv = det.value;
-    if (dv > DET_ZERO) return t('面积乘以 [|det A|](noun:determinant)，方向不变', 'areas are scaled by [|det A|](noun:determinant); the orientation is kept');
-    if (dv < -DET_ZERO) return t('[det A < 0](noun:flipped)：方向翻转了', '[det A < 0](noun:flipped): the orientation is flipped');
-    return t('[det A = 0](noun:collapsed)：平面被压成一条线', '[det A = 0](noun:collapsed): the plane is squashed onto a line');
+    if (dv > DET_ZERO) return t('areas are scaled by [|det A|](noun:determinant); the orientation is kept', '面积乘以 [|det A|](noun:determinant)，方向不变');
+    if (dv < -DET_ZERO) return t('[det A < 0](noun:flipped): the orientation is flipped', '[det A < 0](noun:flipped)：方向翻转了');
+    return t('[det A = 0](noun:collapsed): the plane is squashed onto a line', '[det A = 0](noun:collapsed)：平面被压成一条线');
   }, { id: 'det_message' });
 
   fig.layout(row([P, column([matrix, formula, det_ro, message], { gap: 22 })], { weights: [1.5, 1], gap: 28, align: 'center' }));
   // the hand moves each column's tip
-  fig.handle(P, a, c, { id: 'i_handle', says: t('î 的终点', 'the tip of î') });
-  fig.handle(P, b, d, { id: 'j_handle', says: t('ĵ 的终点', 'the tip of ĵ') });
+  fig.handle(P, a, c, { id: 'i_handle', says: t('the tip of î', 'î 的终点') });
+  fig.handle(P, b, d, { id: 'j_handle', says: t('the tip of ĵ', 'ĵ 的终点') });
   fig.check('the readout is the area', () => {
     const q = corners(), area = Math.abs(((q[1][0] * q[3][1]) - (q[3][0] * q[1][1])));
     return Math.abs(area - Math.abs(det.peek())) < 1e-9 ? null : `area ${area} but |det| ${Math.abs(det.peek())}`;

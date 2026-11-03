@@ -22,8 +22,8 @@ export function bowl_figure(p: { a: number; lang: string }): Figure {
   const curve = P.add(new Path(() => XS.map((u): XY => [u, a.value * u * u]), { id: 'curve', role: 'noun:cost' }));
   const dot = P.add(new Marker(() => [x.value, a.value * x.value ** 2], { id: 'dot', role: 'noun:cost' }));
   fig.label('y = a x^2', dot, { id: 'dot_word', tex: true });       // attached: placed where it hides least
-  fig.handle(P, x, null, { id: 'x_handle', says: t('曲线上的点', 'a point on the curve') }); // glass, on in explore
-  fig.layout(row([P, column([fig.caption(t('[代价](noun:cost)是一个碗', 'the [cost](noun:cost) is a bowl'), { id: 'cap' })])]));
+  fig.handle(P, x, null, { id: 'x_handle', says: t('a point on the curve', '曲线上的点') }); // glass, on in explore
+  fig.layout(row([P, column([fig.caption(t('the [cost](noun:cost) is a bowl', '[代价](noun:cost)是一个碗'), { id: 'cap' })])]));
   fig.script(reveal(P, curve, dot), beat(), set(a, 2, 'travel'), wait(1)); // beat(): a § of the narration
   fig.check('the dot is on the curve', () => (Math.abs(a.peek() * x.peek() ** 2 - dot.where()![1]) < 1e-9 ? null : 'off'));
   return fig;

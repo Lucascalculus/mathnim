@@ -282,12 +282,15 @@ export class Field extends Mark {
   /** The tier the last frame was drawn with, and how long it took (ms). */
   last: { tier: Tier; ms: number } = { tier: 'cpu', ms: 0 };
   private u = new Float32Array(16);
+  private U = new Float32Array(new ArrayBuffer(N_VEC4 * 16));
   private cpu_c: ReturnType<typeof make_canvas> | null = null;
+  private cpu_buf: { vals: Float32Array; img: ImageData } | null = null;
   constructor(public field: FieldKind, public fo: FieldOpts = {}) {
     super({ id: fo.id, role: fo.role ?? 'region', says: fo.says, z: fo.z ?? 1.2 });
   }
   private pack(env: DrawEnv, w: number, h: number): Float32Array<ArrayBuffer> {
-    const U = new Float32Array(new ArrayBuffer(N_VEC4 * 16)), s = this.plot.spec, m = this.material;
+    const U = this.U, s = this.plot.spec, m = this.material;
+    U.fill(0);
     const n = parseInt(this.color.slice(1), 16), lv = (this.fo.levels ?? []).slice(0, 8);
     U.set([s.x[0], s.x[1], s.y[0], s.y[1]], 0);
     U.set([w, h, (this.fo.line_px ?? 1.25) * env.dpr, lv.length], 4);
@@ -373,14 +376,16 @@ export class Field extends Mark {
   private draw_cpu(env: DrawEnv, W: number, H: number): void {
     const k = 0.5 / env.dpr, w = Math.max(2, Math.round(W * k)), h = Math.max(2, Math.round(H * k));
     const U = this.pack(env, w, h), s = this.plot.spec, f = this.field.cpu, u = this.u;
-    const vals = new Float32Array((w + 1) * (h + 1));
+    if (!this.cpu_buf || this.cpu_buf.img.width !== w || this.cpu_buf.img.height !== h) this.cpu_buf = null;
+    const vals = this.cpu_buf?.vals ?? new Float32Array((w + 1) * (h + 1));
     for (let j = 0; j <= h; j++) {
       const y = s.y[1] - ((j + 0.5) / h) * (s.y[1] - s.y[0]);
       for (let i = 0; i <= w; i++) vals[j * (w + 1) + i] = f(s.x[0] + ((i + 0.5) / w) * (s.x[1] - s.x[0]), y, u);
     }
     if (!this.cpu_c || this.cpu_c.width !== w || this.cpu_c.height !== h) this.cpu_c = make_canvas(w, h);
     const cg = this.cpu_c.getContext('2d') as CanvasRenderingContext2D;
-    const img = cg.createImageData(w, h), px = img.data;
+    const img = this.cpu_buf?.img ?? cg.createImageData(w, h), px = img.data;
+    this.cpu_buf = { vals, img };
     const [r, g, b, fill] = [U[8], U[9], U[10], U[11]], la0 = U[15], lpx = Math.max(1, U[6] * k * 1.6), n = U[7];
     const [v0, v1, mode, inv] = [U[16], U[17], U[18], U[19]];
     const sq = mode > 0.5, a0 = sq ? Math.sqrt(Math.max(v0, 0)) : v0, span = 1 / Math.max(1e-6, (sq ? Math.sqrt(Math.max(v1, 0)) : v1) - a0);
