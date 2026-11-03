@@ -1,12 +1,12 @@
 // The core kinds: text blocks (caption, list, readout), legends, plots and the marks drawn in them, attached labels,
 // glass handles, and a canvas block (the escape hatch). Courses add their own kinds as plugins (define_kind).
-import { color_of, look, material_of, text_color_of, type Look } from '@mathnim/look';
+import { color_of, look, material_of, resolve_color, text_color_of, type Look } from '@mathnim/look';
 import { bounds_of, clamp, type Box, type XY } from './geom';
 import type { Block, LayoutEnv, Side, Size } from './layout';
 import { param, read, untracked, type Param, type Val } from './state';
 import { draw_tex, tex_size } from './tex';
 import { break_lines, font_css, font_of, parse_marks, tr, text_width, type L10n, type Lang, type Line, type Span, type TextKind } from './text';
-import { Thing, rgba, type DrawEnv, type Obstacle } from './thing';
+import { Thing, rgba, type DrawEnv, type Obstacle, type Style } from './thing';
 
 type Txt = string | L10n;
 const txt = (v: Val<Txt>, lang: Lang): string => tr(read(v), lang);
@@ -17,12 +17,13 @@ const txt = (v: Val<Txt>, lang: Lang): string => tr(read(v), lang);
 export class TextBlock extends Thing implements Block {
   kind = 'text';
   lines: Line[] = [];
-  constructor(public content: Val<Txt>, public o: { id?: string; role?: string; kind?: TextKind; align?: 'left' | 'center' | 'right'; weight?: number; says?: L10n; z?: number; max_lines?: number; lang?: Lang } = {}) {
-    super({ id: o.id, role: o.role ?? (o.kind === 'caption' ? 'text' : 'text'), says: o.says, z: o.z ?? 5 });
+  constructor(public content: Val<Txt>, public o: { id?: string; role?: string; kind?: TextKind; align?: 'left' | 'center' | 'right'; weight?: number; says?: L10n; z?: number; max_lines?: number; lang?: Lang; style?: Style } = {}) {
+    super({ id: o.id, role: o.role ?? (o.kind === 'caption' ? 'text' : 'text'), says: o.says, z: o.z ?? 5, style: o.style });
   }
   lang: Lang = 'en';
   font() {
-    return font_of(this.o.kind ?? 'caption', { weight: this.o.weight });
+    const st = this.style;
+    return font_of(this.o.kind ?? 'caption', { weight: st.weight ?? this.o.weight, size: st.size, family: st.family, italic: st.italic });
   }
   line_h(l: Look = look()): number {
     return this.font().size * l.type[this.o.kind ?? 'caption'].line;
@@ -52,6 +53,11 @@ export class TextBlock extends Thing implements Block {
     const f = this.font(), g = env.g, lh = this.line_h(env.look);
     this.lines = break_lines(this.spans(env.lang), f, this.box.w);
     g.textBaseline = 'alphabetic';
+    if (this.style.backing) {
+      const w = Math.max(0, ...this.lines.map((l) => l.width)), n = Math.min(this.lines.length, this.o.max_lines ?? Infinity);
+      const x0 = this.o.align === 'center' ? this.box.x + (this.box.w - w) / 2 : this.o.align === 'right' ? this.box.x + this.box.w - w : this.box.x;
+      backing(g, { x: x0 - 4, y: this.box.y - 2, w: w + 8, h: n * lh + 4 }, env, this.style.backing);
+    }
     let y = this.box.y + lh / 2 + f.size * 0.36;
     for (const line of this.lines.slice(0, this.o.max_lines ?? Infinity)) {
       const x0 = this.o.align === 'center' ? this.box.x + (this.box.w - line.width) / 2 : this.o.align === 'right' ? this.box.x + this.box.w - line.width : this.box.x;
@@ -101,8 +107,8 @@ export class ListBlock implements Block {
   }
 }
 
-/** A piece of a readout: TeX, or text. */
-export type Part = { tex: Val<string> } | { text: Val<Txt> } | { value: Val<number>; decimals?: number; template?: string } | { gap: number };
+/** A piece of a readout: TeX, text, a number, or a space (in ems); any piece may have its own colour (a unit in grey). */
+export type Part = ({ tex: Val<string> } | { text: Val<Txt> } | { value: Val<number>; decimals?: number; template?: string } | { gap: number }) & { color?: string; size?: number };
 
 /**
  * A readout line: symbols, numbers and their units, set on one baseline. A number reserves the width of its widest
@@ -111,8 +117,8 @@ export type Part = { tex: Val<string> } | { text: Val<Txt> } | { value: Val<numb
 export class Readout extends Thing implements Block {
   kind = 'readout';
   /** `role` may follow the state (a determinant's colour says whether it scales, collapses or flips). */
-  constructor(public parts: Part[], public o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind } = {}) {
-    super({ id: o.id, role: typeof o.role === 'string' ? o.role : 'text', says: o.says, z: 5 });
+  constructor(public parts: Part[], public o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind; style?: Style } = {}) {
+    super({ id: o.id, role: typeof o.role === 'string' ? o.role : 'text', says: o.says, z: 5, style: o.style });
     if (o.role !== undefined && typeof o.role !== 'string') this.role_of = () => read(o.role as Val<string>);
   }
   /** The size it is set at: its kind's, or the next size down the type scale when its slot is too narrow. */
@@ -121,13 +127,17 @@ export class Readout extends Thing implements Block {
     return this.size_kind ?? this.o.kind ?? 'readout';
   }
   private px(): number {
-    return look().type[this.k()].size;
+    return this.style.size ?? look().type[this.k()].size;
+  }
+  private f(size?: number) {
+    return font_of(this.k(), { size: size ?? this.style.size, weight: this.style.weight, family: this.style.family });
   }
   private widths(lang: Lang): number[] {
-    const px = this.px(), f = font_of(this.k());
+    const px = this.px();
     return this.parts.map((p) => {
+      const f = this.f(p.size), q = p.size ?? px;
       if ('gap' in p) return p.gap * px - px * 0.28;
-      if ('tex' in p) return untracked(() => tex_size(read(p.tex), px).w);
+      if ('tex' in p) return untracked(() => tex_size(read(p.tex), q).w);
       if ('text' in p) return untracked(() => text_width(txt(p.text, lang), f));
       return tabular_width(p.template ?? '−0.00', f);
     });
@@ -136,6 +146,7 @@ export class Readout extends Thing implements Block {
   private fit_kind(w: number, lang: Lang): TextKind | null {
     const own = this.o.kind ?? 'readout', was = this.size_kind;
     let out: TextKind | null = null;
+    if (this.style.size) return null; // (a size the figure chose is kept)
     this.size_kind = null;
     const total = () => {
       const ws = this.widths(lang), sp = this.px() * 0.28;
@@ -149,7 +160,7 @@ export class Readout extends Thing implements Block {
     return out;
   }
   measure(w: number, env: LayoutEnv): Size {
-    const k = this.fit_kind(w, env.lang), h = look().type[k ?? this.o.kind ?? 'readout'].size * 1.5;
+    const k = this.fit_kind(w, env.lang), h = (this.style.size ?? look().type[k ?? this.o.kind ?? 'readout'].size) * 1.5;
     return { h, min: h };
   }
   arrange(b: Box, env: LayoutEnv): void {
@@ -165,25 +176,27 @@ export class Readout extends Thing implements Block {
     return `readout '${this.id}'`;
   }
   draw(env: DrawEnv): void {
-    const px = this.px(), f = font_of(this.k()), g = env.g, sp = px * 0.28;
+    const px = this.px(), f = this.f(), g = env.g, sp = px * 0.28;
     const ws = this.widths(env.lang);
     this.box = { ...this.box, w: ws.reduce((a, x) => a + x + sp, -sp) };
     let x = this.box.x;
     const y = this.box.y + this.box.h / 2 + px * 0.36;
+    if (this.style.backing) backing(g, { x: x - 4, y: this.box.y, w: this.box.w + 8, h: this.box.h }, env, this.style.backing);
     this.parts.forEach((p, i) => {
+      const col = p.color ? resolve_color(p.color, env.look) : this.text_color, pf = p.size ? this.f(p.size) : f;
       if ('gap' in p) {
         /* space */
-      } else if ('tex' in p) draw_tex(g, read(p.tex), x, y, px, this.text_color);
+      } else if ('tex' in p) draw_tex(g, read(p.tex), x, y, p.size ?? px, col);
       else {
-        g.font = font_css(f);
-        g.fillStyle = this.text_color;
+        g.font = font_css(pf);
+        g.fillStyle = col;
         g.textBaseline = 'alphabetic';
         if ('text' in p) g.fillText(txt(p.text, env.lang), x, y);
         else {
           const v = read(p.value), s = Number.isFinite(v) ? v.toFixed(p.decimals ?? 2).replace('-', '−') : '—';
           // numbers sit right-aligned in their reserved width, each digit in a cell of the same width, so the
           // digits never move sideways as the value changes (canvas text has no tabular figures of its own)
-          fill_tabular(g, s, x + ws[i], y, f);
+          fill_tabular(g, s, x + ws[i], y, pf);
         }
       }
       x += ws[i] + sp;
@@ -197,29 +210,46 @@ export class Readout extends Thing implements Block {
   }
 }
 
+/** One entry of a legend: a swatch in its role's colour and material (or its own style), and its name. */
+export interface LegendEntry { role: string; text?: Txt; tex?: string; mark?: 'line' | 'dot' | 'square' | 'cross' | 'region'; show?: Val<number>; style?: Style }
 /** A key to the marks of a plot: a swatch in each role's colour and material, and its name. */
 export class Legend extends Thing implements Block {
   kind = 'legend';
   private rows: { x: number; y: number; w: number; lines: string[] }[] = [];
-  constructor(public entries: { role: string; text?: Txt; tex?: string; mark?: 'line' | 'dot' | 'square' | 'cross' | 'region'; show?: Val<number> }[], o: { id?: string } = {}) {
-    super({ id: o.id ?? 'legend', role: 'text', z: 5 });
+  /** `stack`: one entry per line; `backing`: a paper card behind it (a legend inside a plot, over its lines). */
+  constructor(public entries: LegendEntry[], public lo: { id?: string; stack?: boolean; style?: Style; gap?: number; line_h?: number; swatch?: number } = {}) {
+    super({ id: lo.id ?? 'legend', role: 'text', z: 5, style: lo.style });
+  }
+  private font() {
+    return font_of('label', { size: this.style.size, weight: this.style.weight, family: this.style.family });
+  }
+  private lh(): number {
+    return this.font().size * (this.lo.line_h ?? 1.7);
+  }
+  private sw(): number {
+    return this.lo.swatch ?? 16;
   }
   private entry_w(i: number, lang: Lang): number {
-    const e = this.entries[i], f = font_of('label'), px = f.size;
-    return 22 + (e.text ? text_width(tr(e.text, lang), f) : 0) + (e.tex ? px * 0.35 + tex_size(e.tex, px).w : 0);
+    const e = this.entries[i], f = this.font(), px = f.size;
+    return this.sw() + 6 + (e.text ? text_width(tr(e.text, lang), f) : 0) + (e.tex ? (e.text ? px * 0.35 : 0) + tex_size(e.tex, px).w : 0);
+  }
+  /** Its width with every entry on one line (or, stacked, its widest entry). */
+  natural_w(lang: Lang): number {
+    const ws = this.entries.map((_, i) => untracked(() => this.entry_w(i, lang)));
+    return this.lo.stack ? Math.max(0, ...ws) : ws.reduce((a, x) => a + x, 0) + (this.lo.gap ?? 18) * Math.max(0, ws.length - 1);
   }
   /** Entries flow like words; one too wide for the line wraps its own text (a phone). */
   private flow(w: number, lang: Lang): { x: number; y: number; w: number; lines: string[] }[] {
-    const f = font_of('label'), lh = f.size * 1.7, gap = 18;
+    const f = this.font(), lh = this.lh(), gap = this.lo.gap ?? 18;
     let x = 0, y = 0;
     return this.entries.map((e, i) => {
       let ew = untracked(() => this.entry_w(i, lang)), lines: string[] = e.text ? [tr(e.text, lang)] : [];
       if (ew > w && e.text) {
-        const tw = Math.max(40, w - 22 - (e.tex ? f.size * 0.35 + tex_size(e.tex, f.size).w : 0));
+        const tw = Math.max(40, w - this.sw() - 6 - (e.tex ? f.size * 0.35 + tex_size(e.tex, f.size).w : 0));
         lines = break_lines(tr(e.text, lang), f, tw).map((l) => l.spans.map((sp) => sp.s).join(''));
         ew = w;
       }
-      if (x > 0 && x + ew > w) {
+      if (x > 0 && (x + ew > w || this.lo.stack)) {
         x = 0;
         y += lh;
       }
@@ -233,14 +263,14 @@ export class Legend extends Thing implements Block {
     });
   }
   measure(w: number, env: LayoutEnv): Size {
-    const f = this.flow(w, env.lang), h = (f.length ? Math.max(...f.map((r) => r.y + (Math.max(1, r.lines.length) - 1) * font_of('label').size * 1.7)) : 0) + font_of('label').size * 1.7;
+    const f = this.flow(w, env.lang), lh = this.lh(), h = (f.length ? Math.max(...f.map((r) => r.y + (Math.max(1, r.lines.length) - 1) * lh)) : 0) + lh;
     return { h, min: h };
   }
   arrange(b: Box, env: LayoutEnv): void {
     this.rows = this.flow(b.w, env.lang);
     const h = this.measure(b.w, env).h;
     this.box = { x: b.x, y: b.y, w: Math.max(0, ...this.rows.map((r) => r.x + r.w)), h };
-    this.why.push('above its plot, outside the data (rule: legend outside the plot)');
+    this.why.push('in its slot of the layout');
   }
   things(): Thing[] {
     return [this];
@@ -249,12 +279,14 @@ export class Legend extends Thing implements Block {
     return 'legend';
   }
   draw(env: DrawEnv): void {
-    const g = env.g, f = font_of('label'), px = f.size, lh = px * 1.7;
+    const g = env.g, f = this.font(), px = f.size, lh = this.lh();
+    if (this.style.backing) backing(g, { x: this.box.x - 8, y: this.box.y - 3, w: this.box.w + 16, h: this.box.h + 6 }, env, this.style.backing);
     this.entries.forEach((e, i) => {
       const r = this.rows[i];
       if (!r) return;
-      const x = this.box.x + r.x, cy = this.box.y + r.y + lh / 2;
-      const col = color_of(e.role), m = material_of(e.role);
+      const x = this.box.x + r.x, cy = this.box.y + r.y + lh / 2, es = e.style ?? {};
+      const col = es.color ? resolve_color(es.color, env.look) : color_of(e.role), m0 = material_of(e.role);
+      const m = { ...m0, ...(es.width !== undefined ? { stroke: es.width } : {}), ...(es.dash !== undefined ? { dash: es.dash ?? undefined } : {}), ...(es.fill_alpha !== undefined ? { fill_opacity: es.fill_alpha } : {}) };
       // an entry can come in with what it names (its place is kept, so nothing moves)
       const shown = e.show === undefined ? 1 : Math.max(0, Math.min(1, read(e.show)));
       if (shown <= 0.001) return;
@@ -262,22 +294,24 @@ export class Legend extends Thing implements Block {
       g.globalAlpha = a0 * shown;
       g.save();
       g.strokeStyle = col;
-      g.fillStyle = col;
+      g.fillStyle = es.fill ? resolve_color(es.fill, env.look) : col;
       g.lineWidth = m.stroke ?? 2;
+      if (es.alpha !== undefined) g.globalAlpha *= es.alpha;
       if (m.dash) g.setLineDash(m.dash);
       const mk = e.mark ?? 'line';
+      const sw = this.sw(), mid = x + sw / 2;
       if (mk === 'line') {
         g.beginPath();
         g.moveTo(x, cy);
-        g.lineTo(x + 16, cy);
+        g.lineTo(x + sw, cy);
         g.stroke();
       } else if (mk === 'dot') {
         g.beginPath();
-        g.arc(x + 8, cy, 5, 0, Math.PI * 2);
+        g.arc(mid, cy, 5, 0, Math.PI * 2);
         g.fill();
       } else if (mk === 'square') {
-        g.lineWidth = 2;
-        g.strokeRect(x + 3, cy - 5, 10, 10);
+        g.lineWidth = es.width ?? 2;
+        g.strokeRect(mid - 5, cy - 5, 10, 10);
       } else if (mk === 'cross') {
         g.lineWidth = 2.5;
         g.beginPath();
@@ -292,9 +326,10 @@ export class Legend extends Thing implements Block {
         g.strokeRect(x, cy - 6, 16, 12);
       }
       g.restore();
-      let tx = x + 22;
+      let tx = x + sw + 6;
       g.font = font_css(f);
-      const tcol = e.role.startsWith('scaffold') || e.role === 'muted' ? look().palette.ink2 : text_color_of(e.role);
+      const ts = es.text ?? es.color;
+      const tcol = ts ? resolve_color(ts, env.look) : e.role.startsWith('scaffold') || e.role === 'muted' ? look().palette.ink2 : text_color_of(e.role);
       g.fillStyle = tcol;
       g.textBaseline = 'alphabetic';
       if (e.text) {
@@ -310,7 +345,10 @@ export class Legend extends Thing implements Block {
     return this.entries.map((e) => (e.text ? tr(e.text, lang) : '') + (e.tex ?? '')).join(' · ');
   }
   override text_px(): number {
-    return font_of('label').size;
+    return this.font().size;
+  }
+  override get text_styled(): boolean {
+    return super.text_styled || this.entries.some((e) => e.style?.color !== undefined || e.style?.text !== undefined);
   }
 }
 
@@ -341,6 +379,23 @@ export interface PlotSpec {
   priority?: number;
   /** With aspect 'equal': widen the shorter range so the plot fills its box (a plane of vectors has no edge). */
   fill?: boolean;
+  /** The ticks that carry a number (default: every tick), e.g. every other metre on a track. */
+  x_numbers?: number[];
+  y_numbers?: number[];
+  /** TeX after the last x number (a unit: '\\,\\mathrm{m}' gives "10 m"). */
+  x_unit?: string;
+  /** Set the numbers in TeX (as a manim figure did) rather than in the text face. */
+  number_tex?: boolean;
+  /** Where the grid lines are (default: at the ticks), or none. */
+  grid_at?: { x?: number[]; y?: number[] };
+  /** Tick marks: outside the axis (default), across it, or none; and their length (px; numbered ticks may be longer). */
+  tick_marks?: { x?: 'out' | 'cross' | 'none'; y?: 'out' | 'cross' | 'none'; len?: number; numbered_len?: number };
+  /** The axis labels' size (px; default the numbers'). */
+  label_px?: number;
+  /** The box the layout gives is the data area itself (numbers and labels go outside it): a manim box carries over. */
+  data_box?: boolean;
+  /** Overrides: axes colour (`color`), numbers and labels (`text`), their size (`size`), axis width (`width`). */
+  style?: Style;
 }
 
 /**
@@ -352,14 +407,27 @@ export class Plot extends Thing implements Block {
   data: Box = { x: 0, y: 0, w: 1, h: 1 };
   marks: Thing[] = [];
   constructor(public spec: PlotSpec) {
-    super({ id: spec.id ?? 'plot', role: 'scaffold', says: spec.says, z: 1 });
+    super({ id: spec.id ?? 'plot', role: 'scaffold', says: spec.says, z: 1, style: spec.style });
+  }
+  /** Blocks set inside the data area, in a corner (a legend over the plot's empty corner). */
+  insets: { block: Block & Thing; corner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; pad: number; w?: number }[] = [];
+  /** Put a block inside the data area, in a corner (`w`: its width; default: its natural width). */
+  inset(block: Block & Thing, corner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-left', o: { pad?: number; w?: number } = {}): void {
+    this.insets.push({ block, corner, pad: o.pad ?? 10, w: o.w });
+  }
+  private nfont() {
+    return font_of('label', { size: this.style.size });
+  }
+  private num_w(v: number): number {
+    return this.spec.number_tex ? tex_size(fmt_tick(v).replace('−', '-'), this.nfont().size).w : text_width(fmt_tick(v), this.nfont());
   }
   /** Margins for tick numbers and axis labels. */
   private margins(): { l: number; r: number; t: number; b: number } {
-    const px = font_of('label').size, lab = px * 1.25;
+    const px = this.nfont().size, lab = (this.spec.label_px ?? px) * 1.25;
     if (this.spec.numbers === false) return { l: 6, r: 6, t: this.spec.y_label ? lab + 6 : 6, b: 6 + (this.spec.x_label ? lab : 0) };
-    const ywid = Math.max(0, ...(this.spec.y_ticks ?? []).map((v) => text_width(fmt_tick(v), font_of('label')))) + 8;
-    return { l: ywid + 4, r: 10, t: this.spec.y_label ? lab + 6 : 8, b: px * 1.4 + 6 + (this.spec.x_label ? lab : 0) };
+    const ywid = Math.max(0, ...(this.spec.y_numbers ?? this.spec.y_ticks ?? []).map((v) => this.num_w(v))) + 8;
+    const unit = this.spec.x_unit ? tex_size(this.spec.x_unit, px).w : 0;
+    return { l: ywid + 4, r: 10 + unit, t: this.spec.y_label ? lab + 6 : 8, b: px * 1.4 + 6 + (this.spec.x_label ? lab : 0) };
   }
   private phone = false;
   priority(): number {
@@ -381,7 +449,10 @@ export class Plot extends Thing implements Block {
   private asked: { x: [number, number]; y: [number, number] } | null = null;
   arrange(b: Box, env: LayoutEnv): void {
     this.phone = env.phone;
-    const m = this.margins();
+    const m0 = this.margins();
+    // (a data box: the margins lie outside the box given)
+    if (this.spec.data_box && !env.phone) b = { x: b.x - m0.l, y: b.y - m0.t, w: b.w + m0.l + m0.r, h: b.h + m0.t + m0.b };
+    const m = m0;
     let dw = Math.max(10, b.w - m.l - m.r), dh = Math.max(10, b.h - m.t - m.b);
     if (this.spec.fill && this.spec.aspect === 'equal') {
       // keep one unit the same length both ways and show more of the plane on the long side
@@ -402,9 +473,16 @@ export class Plot extends Thing implements Block {
     this.data = { x, y, w: dw, h: dh };
     this.box = { x: x - m.l, y: b.y, w: dw + m.l + m.r, h: dh + m.t + m.b };
     this.why.push(`data area ${dw.toFixed(0)}×${dh.toFixed(0)} px${a ? ', aspect kept' : ''}${env.phone ? ', phone layout' : ''}`);
+    for (const it of this.insets) {
+      const nat = (it.block as Block & { natural_w?: (l: Lang) => number }).natural_w?.(env.lang);
+      const w = Math.min(dw - 2 * it.pad, it.w ?? nat ?? dw * 0.5), h = it.block.measure(w, env).h;
+      const ix = it.corner.endsWith('left') ? x + it.pad : x + dw - it.pad - w, iy = it.corner.startsWith('top') ? y + it.pad : y + dh - it.pad - h;
+      it.block.arrange({ x: ix, y: iy, w, h }, env);
+      it.block.why.push(`inside plot '${this.id}', ${it.corner} (placed by the figure)`);
+    }
   }
   things(): Thing[] {
-    return [this, ...this.marks];
+    return [this, ...this.marks, ...this.insets.flatMap((it) => it.block.things())];
   }
   label(): string {
     return `plot '${this.id}'`;
@@ -432,7 +510,9 @@ export class Plot extends Thing implements Block {
     return m;
   }
   draw(env: DrawEnv): void {
-    const g = env.g, d = this.data, p = env.look.palette, f = font_of('label');
+    const g = env.g, d = this.data, p = env.look.palette, f = this.nfont();
+    const axis_col = this.style.color ? resolve_color(this.style.color, env.look) : p.scaffold;
+    const num_col = this.style.text ? resolve_color(this.style.text, env.look) : p.ink2;
     g.save();
     // grid
     // (only the ticks inside the ranges: a plot that fills its box may have been given more)
@@ -442,11 +522,11 @@ export class Plot extends Thing implements Block {
       g.strokeStyle = p.faint;
       g.lineWidth = 1;
       g.beginPath();
-      for (const v of (this.spec.x_ticks ?? []).filter(inx)) {
+      for (const v of (this.spec.grid_at?.x ?? this.spec.x_ticks ?? []).filter(inx)) {
         g.moveTo(Math.round(this.X(v)) + 0.5, d.y);
         g.lineTo(Math.round(this.X(v)) + 0.5, d.y + d.h);
       }
-      for (const v of (this.spec.y_ticks ?? []).filter(iny)) {
+      for (const v of (this.spec.grid_at?.y ?? this.spec.y_ticks ?? []).filter(iny)) {
         g.moveTo(d.x, Math.round(this.Y(v)) + 0.5);
         g.lineTo(d.x + d.w, Math.round(this.Y(v)) + 0.5);
       }
@@ -454,8 +534,8 @@ export class Plot extends Thing implements Block {
     }
     if (this.spec.axes === 'origin') {
       // a plane of vectors: its two axes cross at the origin, and that is all
-      g.strokeStyle = p.scaffold;
-      g.lineWidth = 1.25;
+      g.strokeStyle = axis_col;
+      g.lineWidth = this.style.width ?? 1.25;
       g.beginPath();
       g.moveTo(d.x, Math.round(this.Y(0)) + 0.5);
       g.lineTo(d.x + d.w, Math.round(this.Y(0)) + 0.5);
@@ -466,8 +546,8 @@ export class Plot extends Thing implements Block {
       return;
     }
     // axes on the left and the bottom
-    g.strokeStyle = p.scaffold;
-    g.lineWidth = 1.25;
+    g.strokeStyle = axis_col;
+    g.lineWidth = this.style.width ?? 1.25;
     g.beginPath();
     if (this.spec.axes !== 'x') {
       g.moveTo(d.x, d.y);
@@ -477,35 +557,48 @@ export class Plot extends Thing implements Block {
     g.stroke();
     // ticks and their numbers (ink-2: numbers are never grey scaffolding)
     g.font = font_css(f);
-    g.fillStyle = p.ink2;
+    g.fillStyle = num_col;
     g.textBaseline = 'alphabetic';
-    const tk = env.look.space.tick;
+    const tm = this.spec.tick_marks ?? {}, tk0 = tm.len ?? env.look.space.tick;
+    const tk = tm.x === 'cross' ? tk0 / 2 : tm.x === 'none' ? 0 : tk0;
+    const numbered = (v: number, list?: number[]) => this.spec.numbers !== false && (!list || list.some((u) => Math.abs(u - v) < 1e-9));
+    const num = (s: string, x: number, y: number, align: 'center' | 'right', unit = '') => {
+      if (this.spec.number_tex || unit) {
+        const src = s.replace('−', '-') + unit, w = tex_size(src, f.size).w, w0 = unit ? tex_size(s.replace('−', '-'), f.size).w : w;
+        draw_tex(g, src, align === 'center' ? x - w0 / 2 : x - w, y, f.size, num_col);
+      } else g.fillText(s, align === 'center' ? x - text_width(s, f) / 2 : x - text_width(s, f), y);
+    };
+    const xs = (this.spec.x_ticks ?? []).filter(inx), last_n = [...xs].reverse().find((v) => numbered(v, this.spec.x_numbers));
     g.beginPath();
-    for (const v of (this.spec.x_ticks ?? []).filter(inx)) {
-      const x = this.X(v);
-      g.moveTo(x, d.y + d.h);
-      g.lineTo(x, d.y + d.h + tk);
-      const s = fmt_tick(v);
-      g.fillText(s, x - text_width(s, f) / 2, d.y + d.h + tk + f.size + 1);
+    for (const v of xs) {
+      const x = this.X(v), on = numbered(v, this.spec.x_numbers), len = on && tm.numbered_len ? tm.numbered_len : tk0;
+      if (tm.x !== 'none') {
+        g.moveTo(x, d.y + d.h - (tm.x === 'cross' ? len / 2 : 0));
+        g.lineTo(x, d.y + d.h + (tm.x === 'cross' ? len / 2 : len));
+      }
+      if (on) num(fmt_tick(v), x, d.y + d.h + tk + f.size + 1, 'center', v === last_n && this.spec.x_unit ? this.spec.x_unit : '');
     }
+    const tky = tm.y === 'none' ? 0 : tm.y === 'cross' ? tk0 / 2 : tk0;
     for (const v of (this.spec.y_ticks ?? []).filter(iny)) {
       const y = this.Y(v);
-      g.moveTo(d.x - tk, y);
-      g.lineTo(d.x, y);
-      const s = fmt_tick(v);
-      g.fillText(s, d.x - tk - 3 - text_width(s, f), y + f.size * 0.35);
+      if (tm.y !== 'none') {
+        g.moveTo(d.x - tky, y);
+        g.lineTo(d.x + (tm.y === 'cross' ? tky : 0), y);
+      }
+      if (numbered(v, this.spec.y_numbers)) num(fmt_tick(v), d.x - Math.max(tky, 3) - 3, y + f.size * 0.35, 'right');
     }
     g.stroke();
     // axis labels: x under its numbers at the right end, y above the axis at the top (outside the data)
     const xl = this.spec.x_label, yl = this.spec.y_label;
+    const lpx = this.spec.label_px ?? f.size;
     if (typeof xl === 'string') {
-      const s = tex_size(xl, f.size);
-      draw_tex(g, xl, d.x + d.w - s.w, d.y + d.h + tk + f.size * 2.5 + s.asc * 0.4, f.size, p.ink2);
+      const s = tex_size(xl, lpx);
+      draw_tex(g, xl, d.x + d.w - s.w, d.y + d.h + tk + f.size * 1.5 + lpx + s.asc * 0.4, lpx, num_col);
     } else if (xl) {
       const s = tr(xl.text, env.lang);
       g.fillText(s, d.x + d.w - text_width(s, f), d.y + d.h + tk + f.size * 2.75);
     }
-    if (typeof yl === 'string') draw_tex(g, yl, d.x - 4, d.y - 8, f.size, p.ink2);
+    if (typeof yl === 'string') draw_tex(g, yl, d.x - 4, d.y - 8, lpx, num_col);
     else if (yl) g.fillText(tr(yl.text, env.lang), d.x - 4, d.y - 8);
     g.restore();
   }
@@ -539,7 +632,7 @@ export function fmt_tick(v: number): string {
 /** Something drawn in a plot's data coordinates. */
 export abstract class Mark extends Thing {
   plot!: Plot;
-  constructor(o: { id?: string; role?: string; says?: L10n; z?: number } = {}) {
+  constructor(o: { id?: string; role?: string; says?: L10n; z?: number; style?: Style } = {}) {
     super({ ...o, z: o.z ?? 2 });
   }
   protected clip(env: DrawEnv): void {
@@ -563,7 +656,7 @@ export abstract class Mark extends Thing {
 export class Path extends Mark {
   kind = 'path';
   private px: XY[][] = [];
-  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number> } = {}) {
+  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; style?: Style } = {}) {
     super(o);
     this.o = o;
   }
@@ -581,11 +674,15 @@ export class Path extends Mark {
     g.save();
     this.clip(env);
     this.stroke_style(env);
-    if (this.o.width) g.lineWidth = this.o.width;
-    if (this.o.alpha !== undefined) g.globalAlpha *= this.o.alpha;
+    if (this.o.width && this.style.width === undefined) g.lineWidth = this.o.width;
+    if (this.o.alpha !== undefined && this.style.alpha === undefined) g.globalAlpha *= this.o.alpha;
     g.beginPath();
     for (const pl of this.px) pl.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     if (this.o.closed) g.closePath();
+    if (this.style.fill && this.o.closed) {
+      g.fillStyle = rgba(this.fill_color, this.style.fill_alpha ?? 1);
+      g.fill();
+    }
     g.stroke();
     g.restore();
     const all = this.px.flat();
@@ -605,7 +702,7 @@ export class Path extends Mark {
 export class Region extends Mark {
   kind = 'region';
   private px: XY[] = [];
-  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean; fill?: number } = {}) {
+  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean; fill?: number; style?: Style } = {}) {
     super({ ...o, role: o.role ?? 'region', z: o.z ?? 1.5 });
     this.edge = o.edge ?? true;
     this.fill = o.fill;
@@ -626,11 +723,12 @@ export class Region extends Mark {
     g.beginPath();
     this.px.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     g.closePath();
-    g.fillStyle = rgba(this.color, this.fill ?? m.fill_opacity ?? 0.12);
+    g.fillStyle = rgba(this.fill_color, this.style.fill_alpha ?? this.fill ?? m.fill_opacity ?? 0.12);
     g.fill();
     if (this.edge) {
-      g.strokeStyle = rgba(this.color, 0.6);
+      g.strokeStyle = rgba(this.color, this.style.alpha ?? 0.6);
       g.lineWidth = m.stroke ?? 2;
+      g.setLineDash(m.dash ?? []);
       g.stroke();
     }
     g.restore();
@@ -647,7 +745,7 @@ export type MarkerShape = 'dot' | 'cross' | 'square' | 'ring' | 'arrow';
 export class Marker extends Mark {
   kind = 'marker';
   private at: XY | null = null;
-  constructor(public pos: Val<XY | null>, public o: { id?: string; role?: string; says?: L10n; shape?: MarkerShape; r?: number; z?: number; dir?: Val<XY>; clip?: boolean } = {}) {
+  constructor(public pos: Val<XY | null>, public o: { id?: string; role?: string; says?: L10n; shape?: MarkerShape; r?: number; z?: number; dir?: Val<XY>; clip?: boolean; style?: Style } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   r(): number {
@@ -663,18 +761,22 @@ export class Marker extends Mark {
     const [x, y] = this.at, r = this.r(), g = env.g, col = this.color, shape = this.o.shape ?? 'dot';
     g.save();
     if (this.o.clip !== false) this.clip(env);
+    const st = this.style;
     g.strokeStyle = col;
     g.fillStyle = col;
-    g.lineWidth = 2.75;
+    g.lineWidth = st.width ?? 2.75;
     g.lineCap = 'round';
+    if (st.alpha !== undefined) g.globalAlpha *= st.alpha;
+    if (st.dash) g.setLineDash(st.dash);
     if (shape === 'dot') {
+      // (a paper ring keeps it apart from the lines under it; `width` is the ring's)
       g.beginPath();
-      g.arc(x, y, r + 2, 0, Math.PI * 2);
+      g.arc(x, y, r + (st.width ?? 2), 0, Math.PI * 2);
       g.fillStyle = env.look.palette.bg;
       g.fill();
       g.beginPath();
       g.arc(x, y, r, 0, Math.PI * 2);
-      g.fillStyle = col;
+      g.fillStyle = this.fill_color;
       g.fill();
     } else if (shape === 'ring') {
       g.beginPath();
@@ -688,7 +790,7 @@ export class Marker extends Mark {
       g.lineTo(x + r, y - r);
       g.stroke();
     } else if (shape === 'square') {
-      g.lineWidth = 2.25;
+      g.lineWidth = st.width ?? 2.25;
       g.strokeRect(x - r, y - r, 2 * r, 2 * r);
     } else {
       // an arrow on the border pointing at something off the chart
@@ -715,7 +817,7 @@ export class Marker extends Mark {
 /** A mark that draws itself in a plot's coordinates (a cart, a wall, an arrow); it returns its box (CSS px) or null. */
 export class Drawn extends Mark {
   kind = 'drawn';
-  constructor(public paint: (env: DrawEnv, plot: Plot) => Box | null, o: { id?: string; role?: string; says?: L10n; z?: number; avoid?: boolean } = {}) {
+  constructor(public paint: (env: DrawEnv, plot: Plot, self: Drawn) => Box | null, o: { id?: string; role?: string; says?: L10n; z?: number; avoid?: boolean; style?: Style } = {}) {
     super(o);
     this.avoid = o.avoid ?? true;
   }
@@ -723,7 +825,7 @@ export class Drawn extends Mark {
   draw(env: DrawEnv): void {
     const g = env.g;
     g.save();
-    const b = this.paint(env, this.plot);
+    const b = this.paint(env, this.plot, this);
     g.restore();
     this.box = b ?? { x: 0, y: 0, w: 0, h: 0 };
   }
@@ -737,7 +839,7 @@ export class Arrow extends Mark {
   kind = 'arrow';
   private seg: [XY, XY] | null = null;
   /** `upto`: how much of it has grown out of its tail (0..1; a script's set() grows it). */
-  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number; upto?: Val<number> } = {}) {
+  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number; upto?: Val<number>; style?: Style; head?: number } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   draw(env: DrawEnv): void {
@@ -750,8 +852,9 @@ export class Arrow extends Mark {
       this.box = { x: 0, y: 0, w: 0, h: 0 };
       return;
     }
-    const w = this.o.width ?? 3.5, head = Math.min(L * 0.45, 9 + w * 2), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+    const w = this.style.width ?? this.o.width ?? 3.5, head = Math.min(L * 0.45, this.o.head ?? 9 + w * 2), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
     g.save();
+    if (this.style.alpha !== undefined) g.globalAlpha *= this.style.alpha;
     g.strokeStyle = this.color;
     g.fillStyle = this.color;
     g.lineWidth = w;
@@ -782,7 +885,7 @@ export class Arrow extends Mark {
 export class Dots extends Mark {
   kind = 'dots';
   private px: XY[] = [];
-  constructor(public pts: Val<XY[]>, public o: { id?: string; role?: string; says?: L10n; r?: number; z?: number } = {}) {
+  constructor(public pts: Val<XY[]>, public o: { id?: string; role?: string; says?: L10n; r?: number; z?: number; style?: Style } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   draw(env: DrawEnv): void {
@@ -790,7 +893,8 @@ export class Dots extends Mark {
     const g = env.g, r = this.o.r ?? 4;
     g.save();
     this.clip(env);
-    g.fillStyle = this.color;
+    g.fillStyle = this.fill_color;
+    if (this.style.fill_alpha !== undefined) g.globalAlpha *= this.style.fill_alpha;
     for (const [x, y] of this.px) {
       g.beginPath();
       g.arc(x, y, r, 0, Math.PI * 2);
@@ -806,17 +910,25 @@ export class Dots extends Mark {
 
 // ------------------------------------------------------------------ attached labels
 
+/**
+ * How a label is placed. By default the renderer chooses among `sides` the place that hides least. Overrides, for a
+ * spot the rules get wrong: `avoid: false` takes the first side as it is (no search); `gap` is its distance from the
+ * anchor (px); `offset` moves it after it is placed (px); `side: 'center'` with `avoid: false` puts its centre exactly
+ * on the anchor (an exact position).
+ */
+export interface LabelOpts { id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing; kind?: TextKind; style?: Style; avoid?: boolean; gap?: number; offset?: Val<[number, number]> }
 /** A label attached to a thing or a point; the renderer chooses its side so it hides as little as possible. */
 export class Label extends Thing {
   kind = 'label';
   side: Side | null = null;
   /** Ids of the things it names (they are not obstacles to it). */
   own: string[] = [];
-  constructor(public content: Val<Txt>, public anchor: Val<XY | Box | null>, public o: { id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing; kind?: TextKind } = {}) {
-    super({ id: o.id, role: o.role ?? 'text', says: o.says, z: o.z ?? 6 });
+  constructor(public content: Val<Txt>, public anchor: Val<XY | Box | null>, public o: LabelOpts = {}) {
+    super({ id: o.id, role: o.role ?? 'text', says: o.says, z: o.z ?? 6, style: o.style });
   }
   private f() {
-    return font_of(this.o.kind ?? 'label', { weight: this.o.weight ?? 500 });
+    const st = this.style;
+    return font_of(this.o.kind ?? 'label', { weight: st.weight ?? this.o.weight ?? 500, size: st.size, family: st.family, italic: st.italic });
   }
   size(lang: Lang): { w: number; h: number; asc: number } {
     const f = this.f(), s = txt(this.content, lang);
@@ -831,15 +943,18 @@ export class Label extends Thing {
     const s = txt(this.content, env.lang);
     if (!s || this.box.w <= 0) return;
     const f = this.f(), g = env.g, sz = this.size(env.lang);
-    // a thin paper halo keeps it readable over lines it could not avoid
+    // a paper backing (when asked) or a thin paper halo keeps it readable over lines it could not avoid
+    if (this.style.backing) backing(g, { x: this.box.x - 3, y: this.box.y - 1, w: this.box.w + 6, h: this.box.h + 2 }, env, this.style.backing);
     if (this.o.tex) draw_tex(g, s, this.box.x, this.box.y + sz.asc, f.size, this.text_color);
     else {
       g.font = font_css(f);
       g.textBaseline = 'alphabetic';
-      g.lineWidth = 4;
-      g.strokeStyle = rgba(env.look.palette.bg, 0.85);
-      g.lineJoin = 'round';
-      g.strokeText(s, this.box.x, this.box.y + sz.asc);
+      if (!this.style.backing) {
+        g.lineWidth = 4;
+        g.strokeStyle = rgba(env.look.palette.bg, 0.85);
+        g.lineJoin = 'round';
+        g.strokeText(s, this.box.x, this.box.y + sz.asc);
+      }
       g.fillStyle = this.text_color;
       g.fillText(s, this.box.x, this.box.y + sz.asc);
     }
@@ -978,3 +1093,14 @@ function cut_polyline(pl: XY[], u: number): XY[] {
   return out;
 }
 const bounds = bounds_of;
+
+/** A paper card behind text (rounded a little), at an opacity: words stay readable over the lines under them. */
+export function backing(g: CanvasRenderingContext2D, b: Box, env: DrawEnv, alpha: number): void {
+  g.save();
+  g.fillStyle = rgba(env.look.palette.bg, alpha);
+  g.beginPath();
+  if (g.roundRect) g.roundRect(b.x, b.y, b.w, b.h, 4);
+  else g.rect(b.x, b.y, b.w, b.h);
+  g.fill();
+  g.restore();
+}

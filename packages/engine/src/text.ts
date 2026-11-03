@@ -15,9 +15,9 @@ export const tr = (s: string | L10n, lang: Lang): string => (typeof s === 'strin
 export type TextKind = 'label' | 'caption' | 'readout' | 'display';
 export interface FontSpec { size: number; weight: number; family: 'sans' | 'serif' | 'mono'; italic?: boolean }
 export const font_css = (f: FontSpec, l: Look = look()): string => `${f.italic ? 'italic ' : ''}${f.weight} ${f.size}px ${l.fonts[f.family]}`;
-export function font_of(kind: TextKind, o: { weight?: number; scale?: number } = {}, l: Look = look()): FontSpec {
+export function font_of(kind: TextKind, o: { weight?: number; scale?: number; size?: number; family?: FontSpec['family']; italic?: boolean } = {}, l: Look = look()): FontSpec {
   const t0 = l.type[kind];
-  return { size: t0.size * (o.scale ?? 1), weight: o.weight ?? t0.weight, family: 'sans' };
+  return { size: o.size ?? t0.size * (o.scale ?? 1), weight: o.weight ?? t0.weight, family: o.family ?? 'sans', italic: o.italic };
 }
 
 // ------------------------------------------------------------------ measuring

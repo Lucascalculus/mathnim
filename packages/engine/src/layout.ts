@@ -184,7 +184,45 @@ export class Spacer implements Block {
   }
 }
 
+/**
+ * Exact placement (the freedom layer): each block in its own rectangle of a design frame, the frame scaled to fit the
+ * box and centred. The default frame is manim's (x −7.11..7.11, y −4..4, y up), so a manim figure's boxes carry over
+ * as they are. On a phone the blocks fall back to a column, in order, unless the figure gives a phone composition.
+ */
+export class Place implements Block {
+  constructor(public items: { block: Block; at: [number, number, number, number] }[], public o: { frame?: { x: [number, number]; y: [number, number] } } = {}) {}
+  private fr() {
+    return this.o.frame ?? { x: [-64 / 9, 64 / 9] as [number, number], y: [-4, 4] as [number, number] };
+  }
+  label(): string {
+    return 'place';
+  }
+  things(): Thing[] {
+    return this.items.flatMap((it) => it.block.things());
+  }
+  priority(): number {
+    return Math.max(1, ...this.items.map((it) => prio(it.block)));
+  }
+  measure(w: number, env: LayoutEnv): Size {
+    if (env.phone) return new Column(this.items.map((it) => it.block)).measure(w, env);
+    const f = this.fr(), h = (w * (f.y[1] - f.y[0])) / (f.x[1] - f.x[0]);
+    return { h, min: h * 0.6 };
+  }
+  arrange(b: Box, env: LayoutEnv): void {
+    if (env.phone) return new Column(this.items.map((it) => it.block)).arrange(b, env);
+    const f = this.fr(), FW = f.x[1] - f.x[0], FH = f.y[1] - f.y[0];
+    const k = Math.min(b.w / FW, b.h / FH), ox = b.x + (b.w - FW * k) / 2, oy = b.y + (b.h - FH * k) / 2;
+    for (const { block, at } of this.items) {
+      const [x0, x1, y0, y1] = at;
+      block.arrange({ x: ox + (x0 - f.x[0]) * k, y: oy + (f.y[1] - y1) * k, w: (x1 - x0) * k, h: (y1 - y0) * k }, env);
+      block.things()[0]?.why.push(`placed by the figure at x ${x0}..${x1}, y ${y0}..${y1} of its frame`);
+    }
+  }
+}
+
 export const row = (kids: Block[], o?: ContainerOpts): Row => new Row(kids, o);
+/** Exact placement: `place([[block, [x0, x1, y0, y1]], …])` in a frame (default manim's, y up). */
+export const place = (items: [Block, [number, number, number, number]][], o?: { frame?: { x: [number, number]; y: [number, number] } }): Place => new Place(items.map(([block, at]) => ({ block, at })), o);
 export const column = (kids: Block[], o?: ContainerOpts): Column => new Column(kids, o);
 /** Mark a block as a remark that gives way when there is no room for it. */
 export const optional = <B extends Block>(b: B): B => ((b.optional = true), b);

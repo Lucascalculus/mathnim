@@ -53,9 +53,27 @@ Read a ported figure before writing one: `packages/visuals/src/mpc/qp_figure.ts`
 | world | `fig.report_with(() => …)`, `fig.emit`, `fig.listen`; a subclass adds `set_state` etc. for goals and `solve()` |
 | checks | `fig.check(name, () => null \| problem)`; `fig.lint()`; `fig.describe()`; `fig.explain(id)` |
 
+## Overrides (the freedom layer)
+
+Roles are the default, not a cage: anything manim could draw, a figure can draw. Every override is reported by the
+lint as a warning (never an error) and listed by `describe()`, so a reviewer sees where a figure left the grammar.
+
+| | |
+|---|---|
+| any thing's look | `style: { color, text, width, dash, alpha, fill, fill_alpha, size, weight, family, italic, backing }`; colours are palette keys (`cobalt`, `ink2`, `muted`, the old `accent` `gold` `coral` `good` `purple`), roles (`noun:wall`) or `#rrggbb` |
+| labels placed by hand | `fig.label(…, { avoid: false, sides: ['right'], gap: 0, offset: [dx, dy] \| () => […] })`; `sides: ['center']` with `avoid: false` puts it exactly on its anchor; `style.backing` gives it a paper card |
+| exact positions | `place([[block, [x0, x1, y0, y1]], …])` in a frame (default manim's: x ±7.11, y ±4, y up); `fig.layout(root, { pad: 0, design_w: 984 })` lays the desktop out at one width and draws it scaled, text and all, as a manim scene; a plot's `data_box: true` makes the box it is given its data area |
+| plots | `x_numbers` (which ticks carry a number), `x_unit` ("10 m"), `number_tex`, `grid_at`, `tick_marks: { x: 'cross', y: 'none', len }`, `label_px`, `style` (axes, numbers); `plot.inset(block, 'top-left')` puts a legend inside the data area |
+| legends, readouts | entries and parts take their own `style` / `color` / `size`; `stack`, `swatch`, `line_h`, `gap` |
+| your own drawing | `Drawn` (in a plot's coordinates; gets the plot and itself) and `fig.canvas(...)` (a block of your own) |
+
+A port from manim: `packages/visuals/src/mpc/qp_figure.ts` (the scene's rectangles, sizes, dashes and timings, and a
+phone composition of its own); compare old and new with `node apps/mathnim/tools/side_by_side.cjs`.
+
 ## The rules the lint enforces
 
-Text overlaps no text; nothing leaves the figure; text is at least 12 px and 4.5:1 against the stage; a handle's
+Text overlaps no text; nothing leaves the figure; text is shown at least 12 px and 4.5:1 against the stage (a size or
+colour the figure's style chose is a warning); a handle's
 target is at least 44 px; one vermilion `verb` per screen; every noun is one the look knows (add new ones to
 `NOUNS` in `@mathnim/look`, reviewed); no instructions in the figure ("drag …"); your own `check`s hold. The doctor
 lints every figure wide (960 × 540) and on a phone (360 wide) at the end of every section of its script.
