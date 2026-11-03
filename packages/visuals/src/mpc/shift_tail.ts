@@ -78,6 +78,6 @@ export const mpc_shift_tail = define_figure<ShiftTailParams>({
   topics: ['mpc', 'terminal set', 'recursive feasibility', 'invariant set', 'control'],
   params: { N: { type: 'integer', min: 3, max: 12, default: 8, doc: 'horizon of the terminal-set MPC whose plan is shown' }, lang: LANG_SPEC },
   examples: [{}, { lang: 'zh' }, { N: 5 }],
-  ids: ['plane', 'xf', 'plan', 'xN', 'tail', 'next', 'steps', 'conclusion'],
+  ids: ['plane', 'xf', 'plan', 'xN', 'tail', 'next', 'steps.0', 'conclusion'],
   figure: shift_tail_figure,
 });

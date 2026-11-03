@@ -113,11 +113,16 @@ export class Readout extends Thing implements Block {
   constructor(public parts: Part[], public o: { id?: string; role?: string; says?: L10n; kind?: TextKind } = {}) {
     super({ id: o.id, role: o.role ?? 'text', says: o.says, z: 5 });
   }
+  /** The size it is set at: its kind's, or the next size down the type scale when its slot is too narrow. */
+  private size_kind: TextKind | null = null;
+  private k(): TextKind {
+    return this.size_kind ?? this.o.kind ?? 'readout';
+  }
   private px(): number {
-    return look().type[this.o.kind ?? 'readout'].size;
+    return look().type[this.k()].size;
   }
   private widths(lang: Lang): number[] {
-    const px = this.px(), f = font_of(this.o.kind ?? 'readout');
+    const px = this.px(), f = font_of(this.k());
     return this.parts.map((p) => {
       if ('gap' in p) return p.gap * px - px * 0.28;
       if ('tex' in p) return untracked(() => tex_size(read(p.tex), px).w);
@@ -126,14 +131,23 @@ export class Readout extends Thing implements Block {
     });
   }
   measure(w: number, env: LayoutEnv): Size {
+    this.arrange({ x: 0, y: 0, w, h: 0 }, env);
     const h = this.px() * 1.5;
-    void w;
-    void env;
     return { h, min: h };
   }
   arrange(b: Box, env: LayoutEnv): void {
-    const ws = this.widths(env.lang), sp = this.px() * 0.28;
-    this.box = { x: b.x, y: b.y, w: Math.min(b.w, ws.reduce((a, x) => a + x + sp, -sp)), h: this.px() * 1.5 };
+    this.size_kind = null;
+    const total = () => {
+      const ws = this.widths(env.lang), sp = this.px() * 0.28;
+      return ws.reduce((a, x) => a + x + sp, -sp);
+    };
+    // (a line of numbers cannot wrap: it steps down the type scale - readout, caption, label - until it fits)
+    for (const k of ['caption', 'label'] as TextKind[]) {
+      if (total() <= b.w + 0.5 || look().type[k].size >= this.px()) continue;
+      this.size_kind = k;
+      this.why.push(`set at the ${k} size: the readout size does not fit ${b.w.toFixed(0)} px`);
+    }
+    this.box = { x: b.x, y: b.y, w: Math.min(b.w, total()), h: this.px() * 1.5 };
   }
   things(): Thing[] {
     return [this];
@@ -142,7 +156,7 @@ export class Readout extends Thing implements Block {
     return `readout '${this.id}'`;
   }
   draw(env: DrawEnv): void {
-    const px = this.px(), f = font_of(this.o.kind ?? 'readout'), g = env.g, sp = px * 0.28;
+    const px = this.px(), f = font_of(this.k()), g = env.g, sp = px * 0.28;
     const ws = this.widths(env.lang);
     this.box = { ...this.box, w: ws.reduce((a, x) => a + x + sp, -sp) };
     let x = this.box.x;

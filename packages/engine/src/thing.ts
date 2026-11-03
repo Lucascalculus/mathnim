@@ -34,6 +34,8 @@ export abstract class Thing {
   box: Box = { x: 0, y: 0, w: 0, h: 0 };
   /** Why it is where it is (explain()). */
   why: string[] = [];
+  /** Left out by the layout on this device (an optional remark with no room). */
+  dropped = false;
   /** Things drawn as part of this one (a plot's marks). */
   children: Thing[] = [];
   parent: Thing | null = null;
@@ -70,7 +72,7 @@ export abstract class Thing {
   }
   /** Is it on screen now? */
   visible(): boolean {
-    return this.opacity.value > 0.001 && (!this.parent || this.parent.visible());
+    return !this.dropped && this.opacity.value > 0.001 && (!this.parent || this.parent.visible());
   }
 }
 

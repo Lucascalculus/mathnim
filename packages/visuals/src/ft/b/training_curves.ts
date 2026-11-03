@@ -137,6 +137,6 @@ export const training_curves = define_figure<TrainingCurvesParams>({
     lang: LANG_SPEC,
   },
   examples: [{}, { preset: 'overfit', lang: 'zh' }, { preset: 'lr_high', show_answer: true }, { preset: 'mask_bug', show_answer: true, lang: 'zh' }, { preset: 'custom', series: '{"train":[2.1,1.5,1.2,1.0],"val":[2.0,1.6,1.5,1.6],"task acc":[0.2,0.4,0.5,0.48]}' }],
-  ids: ['loss_panel', 'metric_panel', 'legend', 'diagnosis'],
+  ids: ['loss_panel', 'metric_panel', 'legend'],
   figure: training_curves_figure,
 });

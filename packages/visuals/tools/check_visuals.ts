@@ -23,6 +23,9 @@ import { apply_palette, check_params, list_visuals, palette, set_theme, type The
 // the fine-tuning visuals (src/ft/<part>/index.ts) register themselves; the launcher collects the parts that exist
 import 'mathnim:ft-visuals';
 import { with_cjk } from './cjk_font';
+import { is_figure, type Figure } from '@mathnim/engine';
+import { make_look, set_look } from '@mathnim/look';
+import { lint_figure, render_figure, use_node_canvas } from '../../engine/node';
 
 const argv = process.argv.slice(2);
 const opt = (name: string) => {
@@ -97,6 +100,10 @@ async function check_one(v: Visual<any>, ex: Record<string, unknown>, ei: number
   try {
     const canvas = createCanvas(W, H);
     const scene = v.scene(pc.params);
+    if (is_figure(scene)) {
+      await check_figure(v, scene, row, frames, theme, ex);
+      return { row, frames };
+    }
     const player = new ScenePlayer(scene, canvas as any, { audio: false });
     apply_palette(player);
     const t0 = performance.now();
@@ -180,6 +187,75 @@ async function check_one(v: Visual<any>, ex: Record<string, unknown>, ei: number
     row.errors.push(`crash: ${e?.stack?.split('\n').slice(0, 4).join(' | ') ?? e}`);
   }
   return { row, frames };
+}
+
+/**
+ * An engine figure: the taste lint wide and on a phone at the end of every section (lint_figure), frames along the
+ * script and the phone layout, each handle dragged to the corners of its ranges (lint again), the declared ids, and
+ * the cost of one live frame while a handle moves (the renderer redraws only what changed).
+ */
+async function check_figure(v: Visual<any>, fig: Figure, row: Row, frames: [string, Canvas][], theme: ThemeName, ex: Record<string, unknown>): Promise<void> {
+  use_node_canvas();
+  set_look(make_look(theme));
+  const t0 = performance.now();
+  fig.build();
+  row.build_s = (performance.now() - t0) / 1000;
+  row.seconds = fig.duration;
+  if (fig.duration > 30) row.warnings.push(`duration ${fig.duration.toFixed(1)} s is over 30 s`);
+  const seen = new Set<string>();
+  const push = (is: ReturnType<typeof lint_figure>, where = '') => {
+    for (const i of is) {
+      const key = i.rule + i.message;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      (i.severity === 'error' ? row.errors : row.warnings).push(`${where}[${i.size} @${i.time.toFixed(1)} s] ${i.rule}: ${i.message}`);
+    }
+  };
+  push(lint_figure(fig));
+  for (const f of FRACTIONS) frames.push([`${(fig.duration * f).toFixed(1)} s`, render_figure(fig, W, H, fig.duration * f)]);
+  frames.push(['end', render_figure(fig, W, H)]);
+  // the phone layout, scaled to the sheet's cell
+  const ph = render_figure(fig, 360);
+  const cell = createCanvas(W, H), cg = cell.getContext('2d'), k = Math.min(W / ph.width, H / ph.height);
+  cg.fillStyle = '#ffffff';
+  cg.fillRect(0, 0, W, H);
+  cg.drawImage(ph as any, (W - ph.width * k) / 2, 0, ph.width * k, ph.height * k);
+  frames.push([`phone (360 × ${ph.height})`, cell]);
+  // handles: every corner of their ranges
+  fig.layout_for(W, H);
+  fig.at(fig.duration);
+  for (const h of fig.handles) {
+    const ps = [h.px, ...(h.py ? [h.py] : [])], start = ps.map((p) => p.peek());
+    const ranges = ps.map((p) => p.spec.range ?? [p.peek() - 1, p.peek() + 1]);
+    for (const corner of [[0, 0], [1, 1], [1, 0], [0, 1]]) {
+      ps.forEach((p, i) => p.set(ranges[i][corner[i] ?? 0], true));
+      push(lint_figure_now(fig), `handle ${h.id} at (${ps.map((p) => p.peek().toFixed(2)).join(', ')}) `);
+    }
+    ps.forEach((p, i) => p.set(start[i], true));
+  }
+  // one live frame while the first handle moves: only what depends on it is drawn again
+  const g = createCanvas(W, H).getContext('2d') as unknown as CanvasRenderingContext2D;
+  fig.draw(g, 1, { force: true });
+  const h = fig.handles[0];
+  if (h) {
+    const t1 = performance.now();
+    for (let i = 0; i < 20; i++) {
+      h.px.set(h.px.peek() + (i % 2 ? 0.05 : -0.05), true);
+      fig.draw(g, 1);
+    }
+    row.live_ms = (performance.now() - t1) / 20;
+    if (row.live_ms > 16) row.warnings.push(`a live frame takes ${row.live_ms.toFixed(1)} ms (slow for dragging)`);
+    frames.push([`explore (${fig.handles.length} handles)`, render_figure(fig, W, H)]);
+  }
+  // every declared id must exist with the default parameters; other examples may switch parts off
+  for (const id of v.ids ?? []) if (!fig.registry.get(id) && !fig.labels.some((l) => l.id === id)) (Object.keys(ex).length ? row.warnings : row.errors).push(`id '${id}' is declared but the figure has no thing with that id`);
+  set_look(make_look('light'));
+}
+/** Lint the figure as it is now (wide), as lint_figure reports. */
+function lint_figure_now(fig: Figure): ReturnType<typeof lint_figure> {
+  const g = createCanvas(W, H).getContext('2d') as unknown as CanvasRenderingContext2D;
+  fig.draw(g, 1, { force: true });
+  return fig.lint().map((i) => ({ ...i, size: 'wide', time: fig.duration }));
 }
 
 function sheet(title: string, parts: { theme: ThemeName; frames: [string, Canvas][]; row: Row }[]): Canvas {

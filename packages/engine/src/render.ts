@@ -72,10 +72,11 @@ export class Renderer {
     this.info.set(t, { deps, sig, quiet: i && i.sig === sig ? i.quiet + 1 : 0 });
     this.stats.things_drawn++;
   }
-  private paint_layer(things: Thing[], env: DrawEnv, w: number, h: number): Canvas {
+  private paint_layer(things: Thing[], env: DrawEnv, w: number, h: number, background?: (g: CanvasRenderingContext2D, frame: Box) => void): Canvas {
     const c = make_canvas(w, h);
     const g = c.getContext('2d') as CanvasRenderingContext2D;
     g.setTransform(env.dpr, 0, 0, env.dpr, 0, 0);
+    background?.(g, env.frame);
     for (const t of things) this.draw_one(t, { ...env, g });
     this.stats.layers_rebuilt++;
     return c;
@@ -99,8 +100,9 @@ export class Renderer {
     const below = first < 0 ? things : things.slice(0, first), above = first < 0 ? [] : things.slice(last + 1);
     const middle = first < 0 ? [] : things.slice(first, last + 1);
     const same = (a: Thing[], b: Thing[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+    // (the background is baked into the bottom layer: an opaque copy replaces clearing and repainting it)
     if (!this.below || !same(below, this.below_set) || below.some((t) => this.changed(t))) {
-      this.below = this.paint_layer(below, env, W, H);
+      this.below = this.paint_layer(below, env, W, H, o.background);
       this.below_set = below;
     }
     if (!this.above || !same(above, this.above_set) || above.some((t) => this.changed(t))) {
@@ -109,10 +111,7 @@ export class Renderer {
     }
     const g = env.g;
     g.setTransform(1, 0, 0, 1, 0, 0);
-    g.clearRect(0, 0, W, H);
-    g.setTransform(env.dpr, 0, 0, env.dpr, 0, 0);
-    o.background?.(g, env.frame);
-    g.setTransform(1, 0, 0, 1, 0, 0);
+    if (!o.background) g.clearRect(0, 0, W, H);
     g.drawImage(this.below as CanvasImageSource, 0, 0);
     g.setTransform(env.dpr, 0, 0, env.dpr, 0, 0);
     for (const t of middle) this.draw_one(t, env);

@@ -198,7 +198,11 @@ function gl(): GL | null {
   try {
     const c = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(4, 4) : typeof document !== 'undefined' ? document.createElement('canvas') : null;
     const g = c?.getContext('webgl2', { premultipliedAlpha: true, antialias: false, preserveDrawingBuffer: true }) as WebGL2RenderingContext | null;
-    if (c && g) gl_ctx = { c, g, progs: new Map() };
+    // a software rasteriser is not a GPU (Chrome falls back to one where the real GPU is blocklisted): shading every
+    // device pixel there costs more than the CPU tier's half-resolution field, so use that instead
+    const info = g?.getExtension('WEBGL_debug_renderer_info');
+    const renderer = g && info ? String(g.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
+    if (c && g && !/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) gl_ctx = { c, g, progs: new Map() };
   } catch {
     gl_ctx = null;
   }
@@ -365,9 +369,9 @@ export class Field extends Mark {
     // (a WebGPU canvas is an image source with its current texture until the task ends)
     this.blit(env, Wg.c as unknown as CanvasImageSource, W, H);
   }
-  /** The CPU tier: the same formula at half resolution, smoothed when drawn. */
+  /** The CPU tier: the same formula at half the CSS resolution (a field is soft), smoothed when drawn. */
   private draw_cpu(env: DrawEnv, W: number, H: number): void {
-    const k = 0.5, w = Math.max(2, Math.round(W * k)), h = Math.max(2, Math.round(H * k));
+    const k = 0.5 / env.dpr, w = Math.max(2, Math.round(W * k)), h = Math.max(2, Math.round(H * k));
     const U = this.pack(env, w, h), s = this.plot.spec, f = this.field.cpu, u = this.u;
     const vals = new Float32Array((w + 1) * (h + 1));
     for (let j = 0; j <= h; j++) {
@@ -377,29 +381,29 @@ export class Field extends Mark {
     if (!this.cpu_c || this.cpu_c.width !== w || this.cpu_c.height !== h) this.cpu_c = make_canvas(w, h);
     const cg = this.cpu_c.getContext('2d') as CanvasRenderingContext2D;
     const img = cg.createImageData(w, h), px = img.data;
-    const [r, g, b, fill] = [U[8], U[9], U[10], U[11]], la0 = U[15], lpx = (U[6] * k), n = U[7];
+    const [r, g, b, fill] = [U[8], U[9], U[10], U[11]], la0 = U[15], lpx = Math.max(1, U[6] * k * 1.6), n = U[7];
     const [v0, v1, mode, inv] = [U[16], U[17], U[18], U[19]];
-    const shade = (v: number) => {
-      let t = mode > 0.5 ? (Math.sqrt(Math.max(v, 0)) - Math.sqrt(Math.max(v0, 0))) / Math.max(1e-6, Math.sqrt(Math.max(v1, 0)) - Math.sqrt(Math.max(v0, 0))) : (v - v0) / Math.max(1e-6, v1 - v0);
-      t = Math.min(1, Math.max(0, t));
-      return inv > 0.5 ? 1 - t : t;
-    };
-    const ss = (e0: number, e1: number, x: number) => {
-      const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
-      return t * t * (3 - 2 * t);
-    };
+    const sq = mode > 0.5, a0 = sq ? Math.sqrt(Math.max(v0, 0)) : v0, span = 1 / Math.max(1e-6, (sq ? Math.sqrt(Math.max(v1, 0)) : v1) - a0);
+    const levels = Array.from({ length: n }, (_, q) => U[20 + q]), e0 = lpx * 0.5 - 0.5, e1 = lpx * 0.5 + 0.5, ie = 1 / (e1 - e0);
+    const R = r * 255, G = g * 255, B = b * 255, W1 = w + 1;
     for (let j = 0; j < h; j++)
       for (let i = 0; i < w; i++) {
-        const v = vals[j * (w + 1) + i], fw = Math.max(1e-6, Math.abs(vals[j * (w + 1) + i + 1] - v) + Math.abs(vals[(j + 1) * (w + 1) + i] - v));
+        const at = j * W1 + i, v = vals[at];
+        const fw = Math.max(1e-6, Math.abs(vals[at + 1] - v) + Math.abs(vals[at + W1] - v));
         let line = 0;
         for (let q = 0; q < n; q++) {
-          const dd = Math.abs(v - U[20 + q]) / fw;
-          line = Math.max(line, 1 - ss(lpx * 0.5 - 0.5, lpx * 0.5 + 0.5, dd));
+          // 1 − smoothstep(e0, e1, distance in pixels to the level)
+          let x = (Math.abs(v - levels[q]) / fw - e0) * ie;
+          x = x < 0 ? 0 : x > 1 ? 1 : x;
+          const l = 1 - x * x * (3 - 2 * x);
+          if (l > line) line = l;
         }
-        const a = fill * shade(v), A = a + line * la0 * (1 - a), o = (j * w + i) * 4;
-        px[o] = r * 255;
-        px[o + 1] = g * 255;
-        px[o + 2] = b * 255;
+        let tt = ((sq ? Math.sqrt(v > 0 ? v : 0) : v) - a0) * span;
+        tt = tt < 0 ? 0 : tt > 1 ? 1 : tt;
+        const a = fill * (inv > 0.5 ? 1 - tt : tt), A = a + line * la0 * (1 - a), o = (j * w + i) * 4;
+        px[o] = R;
+        px[o + 1] = G;
+        px[o + 2] = B;
         px[o + 3] = A * 255;
       }
     cg.putImageData(img, 0, 0);
