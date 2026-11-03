@@ -526,7 +526,7 @@ def L_evaluation():
                        (T(r"Macro: every disease counts the same, however rare.", r"macro：每种病权重相同，不管多罕见。"), True)],
                       T(r"Choose the average by what should count equally: classes (macro) or instances (micro).", r"按“什么该被同等看待”来选平均：类别（macro）还是实例（micro）。"))),
 
-            derive('micro-acc', T('Why micro-F1 equals accuracy for single-label problems', '为什么单标签多分类里 micro-F1 等于准确率'),
+            derive('micro-acc', T('Deeper: why micro-F1 equals accuracy for single-label problems', '深入：为什么单标签多分类里 micro-F1 等于准确率'),
                    [(r"\sum_c TP_c = M", T(r"Summing the diagonal counts every correctly classified instance once; call that number $M$.", r"把对角线加起来，每个分类正确的实例恰好算一次；记这个数为 $M$。")),
                     (r"y = a,\ \hat y = b,\ b \neq a", T(r"Each wrong instance has exactly one true class $a$ and one predicted class $b \ne a$ (single-label: one label each).", r"每个分类错误的实例恰有一个真类 $a$ 和一个预测类 $b \ne a$（单标签：各一个标签）。")),
                     (r"\Rightarrow\ FN_a \mathrel{+}= 1,\ FP_b \mathrel{+}= 1", T(r"It is missed by class $a$ (FN) and wrongly claimed by class $b$ (FP): the same mistake counted once on each side.", r"它被 $a$ 类漏掉（FN），又被 $b$ 类错认（FP）：同一个错误在两边各记一次。")),
@@ -555,7 +555,7 @@ def L_evaluation():
                          ps(r"$SST$ is the squared error of the “baseline” that always predicts the mean $\bar y$ (the regression Zero-R). So $R^2 = 1$ is perfect, 0 is no better than the mean, and negative is worse. Here $SST = «sst»$, so $R^2 = «r2»$.", r"$SST$ 是总是预测均值 $\bar y$ 的“基线”（回归里的 Zero-R）的平方误差。所以 $R^2 = 1$ 是完美，0 是不比均值好，负数是更糟。这里 $SST = «sst»$，所以 $R^2 = «r2»$。", sst=f2(SST), r2=f2(R2))),
                  chapter=T('Regression', '回归')),
 
-            derive('mean-median', T('Why MSE chases outliers and MAE does not', '为什么 MSE 追着离群点跑，而 MAE 不会'),
+            derive('mean-median', T('Deeper: why MSE chases outliers and MAE does not', '深入：为什么 MSE 追着离群点跑，而 MAE 不会'),
                    [(r"\min_c \sum_i (y_i - c)^2", T(r"Suppose the model can only predict one constant $c$. Which $c$ minimises the squared error?", r"假设模型只能预测一个常数 $c$。哪个 $c$ 让平方误差最小？")),
                     (r"\frac{d}{dc} = -2\sum_i (y_i - c) = 0", T(r"Differentiate and set to zero.", r"求导并令其为零。")),
                     (r"c = \frac{1}{N}\sum_i y_i = \bar y", T(r"The squared-error optimum is the **mean**. One huge $y_i$ drags the mean, so the fit chases it.", r"平方误差的最优解是**均值**。一个巨大的 $y_i$ 会拽动均值，拟合就追着它走。")),
@@ -746,7 +746,7 @@ def L_bias_variance():
                  p(T(r"High variance: a different random training set gives very different predictions on the evaluation set. Low variance: similar predictions, **whether or not they are correct**. Zero-R has zero variance (always the majority class) and high bias.", r"方差高：换一份随机训练集，在评估集上的预测就大不相同。方差低：预测相似，**不管对不对**。Zero-R 的方差为零（永远预测多数类）而偏差很高。")),
                  chapter=T('The decomposition', '偏差-方差分解')),
 
-            read('expectation', T('A bit about expectations', '期望：推导要用的几个事实'),
+            read('expectation', T('Deeper: the facts about expectations the derivation needs', '深入：推导要用的几个期望性质'),
                  p(T(r"The **expectation** $E[X]$ of a random variable is the average over unlimited samples. For a discrete $X$ with mass function $p$, and for a continuous one with density $p$:", r"随机变量的**期望** $E[X]$ 是无限多次抽样的平均。离散 $X$（概率质量函数 $p$）和连续 $X$（密度 $p$）分别是：")),
                  math_(r"E[X] = \sum_x x\,p(x), \qquad E[X] = \int x\,p(x)\,dx"),
                  p(T(r"The deck's example: a Bernoulli $X \in \{0, 1\}$ with $p(0) = p(1) = \tfrac12$ has $E[X] = 0 \cdot \tfrac12 + 1 \cdot \tfrac12 = \tfrac12$. The average of $n$ samples approaches it as $n$ grows (0.8 for 10 samples, 0.44 for 100, 0.5138 for 10000 in the deck's run). “An expectation is an average with unlimited samples.”", r"课件的例子：伯努利 $X \in \{0, 1\}$，$p(0) = p(1) = \tfrac12$，则 $E[X] = 0 \cdot \tfrac12 + 1 \cdot \tfrac12 = \tfrac12$。$n$ 个样本的平均随 $n$ 增大逼近它（课件的一次运行：10 个样本 0.8，100 个 0.44，10000 个 0.5138）。“期望就是无限样本的平均。”")),
@@ -762,7 +762,7 @@ def L_bias_variance():
                        (T(r"6: the most extreme face.", r"6：最极端的一面。"), T(r"The expectation is a probability-weighted average of all faces, not the maximum.", r"期望是所有面按概率加权的平均，不是最大值。"))],
                       T(r"An expectation is an average over unlimited repetitions.", r"期望是无限次重复的平均。"))),
 
-            derive('decomp', T('The bias-variance decomposition, line by line', '偏差-方差分解：一行一行推'),
+            derive('decomp', T('Deeper: the bias-variance decomposition, line by line', '深入：一行一行推出偏差-方差分解'),
                    [(r"Y = f(x) + \varepsilon,\quad E[\varepsilon] = 0,\ \text{Var}(\varepsilon) = \sigma^2", T(r"Setup at one fixed input $x$. The truth is a function $f$; the observed target adds noise $\varepsilon$ (annotation or measurement error: unknown, unmeasurable). The noise has mean 0, variance $\sigma^2$, and is **independent of the training set**, hence of $\hat f$. We write $B$ for bias, $V$ for variance, $G$ for the generalisation error.", r"在某个固定的输入 $x$ 上设定。真相是函数 $f$；观测到的目标加了噪声 $\varepsilon$（标注或测量误差：未知、不可测）。噪声均值 0、方差 $\sigma^2$，并且**与训练集独立**，因此也与 $\hat f$ 独立。我们记偏差为 $B$、方差为 $V$、泛化误差为 $G$。")),
                     (r"G = E\big[(Y - \hat f(x))^2\big] = E\big[(f - \hat f + \varepsilon)^2\big]", T(r"The expected squared prediction error, averaged over training sets (through $\hat f$) and noise. Substitute $Y = f + \varepsilon$; write $f$ for $f(x)$ and $\hat f$ for $\hat f(x)$.", r"期望平方预测误差，对训练集（通过 $\hat f$）和噪声取平均。代入 $Y = f + \varepsilon$；$f$ 记 $f(x)$，$\hat f$ 记 $\hat f(x)$。")),
                     (r"= E\big[(f - \hat f)^2\big] + 2E\big[\varepsilon\,(f - \hat f)\big] + E[\varepsilon^2]", T(r"Expand $(A + B)^2 = A^2 + 2AB + B^2$ with $A = f - \hat f$, $B = \varepsilon$, and split the expectation of the sum.", r"按 $(A + B)^2 = A^2 + 2AB + B^2$ 展开，$A = f - \hat f$，$B = \varepsilon$，并把和的期望拆开。")),
@@ -820,9 +820,9 @@ def L_bias_variance():
                  table([T('–', '–'), T('Model bias / variance', '模型偏差/方差'), T('Evaluation bias / variance', '评估偏差/方差')],
                        [T('About', '关于'), T('the learned model $\\hat f$', '学出来的模型 $\\hat f$'), T('the number we report', '我们报告的那个数')],
                        [T('Source of randomness', '随机性来源'), T('which training set we drew', '抽到了哪份训练集'), T('which test instances we drew (and how we split)', '抽到了哪些测试实例（以及怎么划分）')],
-                       [T('Cure', '对策'), T('change the model: complexity, data', '改模型：复杂度、数据'), T('change the evaluation: more test data, cross-validation, stratification', '改评估：更多测试数据、交叉验证、分层')])),
+                       [T('Cure', '对策'), T('change the model: complexity, data', '改模型：复杂度、数据'), T('change the evaluation: more test data, cross-validation, stratification', '改评估：更多测试数据、交叉验证、分层')]), chapter=T('Evaluation itself: bias and variance', '评估本身的偏差与方差')),
 
-            derive('eval-var', T('How noisy is a test accuracy?', '测试准确率有多吵？'),
+            derive('eval-var', T('Deeper: how noisy is a test accuracy?', '深入：测试准确率有多吵？'),
                    [(r"A = \frac{1}{n}\sum_{i=1}^{n} X_i,\quad X_i \in \{0, 1\}", T(r"Accuracy $A$ on $n$ independent test instances is the mean of $n$ indicator variables $X_i$: each is 1 (instance $i$ correct) with probability $p$, the model's true accuracy, and 0 otherwise.", r"$n$ 个独立测试实例上的准确率 $A$，是 $n$ 个指示变量 $X_i$ 的均值：每个以概率 $p$（模型的真实准确率）取 1（正确），否则取 0。")),
                     (r"E[A] = p", T(r"The estimate is **unbiased** here: its expectation is the true accuracy (as long as the test set was not used to choose the model).", r"这里估计是**无偏的**：期望就是真实准确率（前提是测试集没用来选过模型）。")),
                     (r"\text{Var}(X_i) = p(1 - p)", T(r"A 0/1 variable: $E[X^2] = p$, so $\text{Var} = p - p^2$.", r"0/1 变量：$E[X^2] = p$，所以 $\text{Var} = p - p^2$。")),
@@ -852,7 +852,7 @@ def L_bias_variance():
                        (T(r"Not much: the standard deviation of each estimate is about 4 points, so the gap is within the noise. Use more test data or cross-validation.", r"结论很有限：每个估计的标准差约 4 个点，差距在噪声之内。要用更多测试数据或交叉验证。"), True),
                        (T(r"A is better, because it is closer to 80%.", r"A 更好，因为它更接近 80%。"), T(r"Nothing makes 80% special. Closeness to a round number is not evidence.", r"80% 并不特殊。接近整数不是证据。"))],
                       T(r"Compare the gap with the evaluation variance before declaring a winner.", r"宣布赢家之前，先拿差距和评估方差比。")),
-                 chapter=T('Evaluation itself: bias and variance', '评估本身的偏差与方差')),
+                 ),
 
             number('ck-bias', T('Model bias and MSE from predictions', '由预测算模型偏差和 MSE'), DEC,
                    T(r"A regression model predicts $\hat y = (10, 16, 7, 17)$ for actual values $y = (12, 15, 9, 20)$. Using the lecture's definition (the average signed error $\frac{1}{N}\sum (y_i - \hat y_i)$), what is the model bias?", r"一个回归模型对实际值 $y = (12, 15, 9, 20)$ 预测 $\hat y = (10, 16, 7, 17)$。按课件的定义（带符号误差的平均 $\frac{1}{N}\sum (y_i - \hat y_i)$），模型偏差是多少？"),

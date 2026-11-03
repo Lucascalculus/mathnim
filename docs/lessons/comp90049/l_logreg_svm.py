@@ -219,7 +219,7 @@ def L_logreg():
              p(T(r"Products of many numbers below 1 underflow on a computer and are awkward to differentiate, so we take the log (it is increasing, so the best $\boldsymbol{\theta}$ does not change) and flip the sign to get something to *minimise*. Next page: the algebra.",
                  r"许多小于 1 的数相乘，计算机会下溢，求导也麻烦。所以取对数（它是递增的，最优 $\boldsymbol{\theta}$ 不变），再变号，得到要*最小化*的量。下一页是代数过程。"))),
 
-        derive('ce', T('Cross-entropy loss from maximum likelihood', '从最大似然得到交叉熵损失'),
+        derive('ce', T('Deeper: cross-entropy loss from maximum likelihood', '深入：从最大似然得到交叉熵损失'),
                [(r"\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} p_i^{\,y_i}\,(1-p_i)^{\,1-y_i}", T(r"The likelihood from the last page ($y_i$ short for $y^{(i)}$).", r"上一页的似然（$y_i$ 是 $y^{(i)}$ 的简写）。")),
                 (r"\log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \log\!\left[ p_i^{\,y_i}(1-p_i)^{\,1-y_i} \right]", T(r"Take the log: the log of a product is the sum of the logs. Because $\log$ is increasing, $\arg\max \mathcal{L} = \arg\max \log\mathcal{L}$.", r"取对数：乘积的对数是对数之和。因为 $\log$ 递增，$\arg\max \mathcal{L} = \arg\max \log\mathcal{L}$。")),
                 (r"\log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \Big[ y_i \log p_i + (1-y_i)\log(1-p_i) \Big]", T(r"The log of a power brings the exponent down: $\log a^{b} = b \log a$. The switch is now a weight in front of each log.", r"幂的对数把指数拿下来：$\log a^{b} = b \log a$。开关变成了每个对数前面的权重。")),
@@ -241,7 +241,7 @@ def L_logreg():
                    (T('The 0.9 model: $-\\ln(1-0.9) = 2.303$ against $0.916$.', '0.9 的模型：$-\\ln(1-0.9) = 2.303$，对比 $0.916$。'), True)],
                   T('Confidently wrong is what the loss punishes hardest.', '有把握地错，是这个损失罚得最重的。'))),
 
-        derive('sig-deriv', T('A tool for the gradient: $\\sigma\'(z) = \\sigma(z)(1 - \\sigma(z))$', '求梯度要用的工具：$\\sigma\'(z) = \\sigma(z)(1 - \\sigma(z))$'),
+        derive('sig-deriv', T('Deeper: the tool for the gradient, $\\sigma\'(z) = \\sigma(z)(1 - \\sigma(z))$', '深入：求梯度要用的工具 $\\sigma\'(z) = \\sigma(z)(1 - \\sigma(z))$'),
                [(r"\sigma(z) = \frac{1}{1 + e^{-z}} = (1 + e^{-z})^{-1}", T("Write the sigmoid as a power so the chain rule applies.", "把 sigmoid 写成幂的形式，好用链式法则。")),
                 (r"\sigma'(z) = -(1 + e^{-z})^{-2} \cdot \frac{d}{dz}\left(1 + e^{-z}\right)", T(r"Chain rule: the derivative of $u^{-1}$ is $-u^{-2}$, times the derivative of the inside $u = 1 + e^{-z}$.", r"链式法则：$u^{-1}$ 的导数是 $-u^{-2}$，再乘里面 $u = 1 + e^{-z}$ 的导数。")),
                 (r"\sigma'(z) = -(1 + e^{-z})^{-2} \cdot (-e^{-z}) = \frac{e^{-z}}{(1 + e^{-z})^{2}}", T(r"The inside has derivative $-e^{-z}$; the two minus signs cancel.", r"里面的导数是 $-e^{-z}$；两个负号抵消。")),
@@ -250,7 +250,7 @@ def L_logreg():
                 (r"\sigma'(z) = \sigma(z)\,\big(1 - \sigma(z)\big)", T("The derivative is built from the function itself. It is largest ($0.25$) at $z = 0$ and near 0 on the flat ends.", "导数由函数自己构成。它在 $z = 0$ 处最大（$0.25$），在两端的平坦处接近 0。"))],
                intro=T(r"We need this once, for the gradient on the next page.", r"下一页求梯度要用到它，这里一次推完。"), skill=LL),
 
-        derive('grad', T('The gradient of the loss, line by line', '损失的梯度，逐行推导'),
+        derive('grad', T('Deeper: the gradient of the loss, line by line', '深入：损失的梯度，逐行推导'),
                [(r"\ell = -\big[\, y \ln p + (1-y)\ln(1-p) \,\big],\quad p = \sigma(z),\quad z = \boldsymbol{\theta}^\top \mathbf{x}", T(r"Loss of one instance. Three links in a chain: $\theta_j \to z \to p \to \ell$.", r"一个实例的损失。链上有三环：$\theta_j \to z \to p \to \ell$。")),
                 (r"\frac{\partial \ell}{\partial \theta_j} = \frac{\partial \ell}{\partial p} \cdot \frac{\partial p}{\partial z} \cdot \frac{\partial z}{\partial \theta_j}", T("Chain rule: multiply the derivative of each link.", "链式法则：把每一环的导数相乘。")),
                 (r"\frac{\partial \ell}{\partial p} = -\frac{y}{p} + \frac{1-y}{1-p}", T(r"Differentiate the loss in $p$. The derivative of $\ln p$ is $1/p$; of $\ln(1-p)$ it is $-1/(1-p)$, which flips the sign of the second term.", r"损失对 $p$ 求导。$\ln p$ 的导数是 $1/p$；$\ln(1-p)$ 的导数是 $-1/(1-p)$，使第二项变号。")),
@@ -295,7 +295,7 @@ def L_logreg():
                outro=T(r"With $\eta = 0.01$ the same step would send $J$ **up** to 25.3: the gradient is a *sum* and the features (age, hours) are large, so the step overshoots. That is slide 41’s “feature scaling issues”: standardise the features, or divide the gradient by $N$.", r"如果用 $\eta = 0.01$，同样的一步会让 $J$ **上升**到 25.3：梯度是*求和*，而且特征（年龄、工时）数值大，一步迈过头。这就是第 41 页说的“特征缩放问题”：把特征标准化，或者把梯度除以 $N$。"), skill=LG),
 
         # -------------------------------------------------------------- deeper: convexity, regularisation, squared error
-        derive('convex', T('Why there is one optimum: the loss is convex', '为什么只有一个最优点：损失是凸的'),
+        derive('convex', T('Deeper: one optimum, because the loss is convex', '深入：损失是凸的，所以只有一个最优点'),
                [(r"\frac{\partial J}{\partial \theta_j} = \sum_i (p_i - y_i)\,x_{ij}", T(r"The gradient from before ($x_{ij}$ is feature $j$ of instance $i$).", r"前面的梯度（$x_{ij}$ 是实例 $i$ 的特征 $j$）。")),
                 (r"\frac{\partial p_i}{\partial \theta_k} = p_i(1-p_i)\,x_{ik}", T(r"Differentiate again, with respect to $\theta_k$. Only $p_i$ depends on $\theta$; its derivative is $\sigma'(z_i)\,\partial z_i/\partial\theta_k$. ($y_i$ is a constant and disappears.)", r"再求一次导，对 $\theta_k$。只有 $p_i$ 依赖 $\theta$；它的导数是 $\sigma'(z_i)\,\partial z_i/\partial\theta_k$。（$y_i$ 是常数，消失。）")),
                 (r"\frac{\partial^2 J}{\partial \theta_j\, \partial \theta_k} = \sum_i p_i(1-p_i)\,x_{ij}\,x_{ik}", T("This is entry $(j, k)$ of the Hessian, the matrix of second derivatives.", "这是 Hessian（二阶导数矩阵）的第 $(j, k)$ 个元素。")),
@@ -315,7 +315,7 @@ def L_logreg():
                 T(r"It also restores a finite, unique optimum on separable data (the penalty grows as $\|\boldsymbol{\theta}\|$ does).", r"它还使可分数据上的最优点重新有限且唯一（权重变大时惩罚也变大）。"),
                 T(r"Penalising $\sum|\theta_j|$ instead ($L_1$) sets many weights exactly to 0: a built-in feature selector (lecture 12). $\lambda$ is chosen by cross-validation.", r"改罚 $\sum|\theta_j|$（$L_1$）会使许多权重恰好为 0：自带的特征选择（第 12 讲）。$\lambda$ 用交叉验证来选。"))),
 
-        read('squared', T('Why not squared error with a sigmoid?', '为什么不在 sigmoid 上用平方误差？'),
+        read('squared', T('Deeper: why not squared error with a sigmoid?', '深入：为什么不在 sigmoid 上用平方误差？'),
              p(T(r"Regression's habit would be to keep squared error, $\tfrac12(p - y)^2$, and just put the sigmoid inside $p$. It runs, but it is the wrong partner, for two reasons that the chain rule shows at once.",
                  r"回归的习惯是保留平方误差 $\tfrac12(p - y)^2$，把 sigmoid 放进 $p$ 里。它能跑，但搭配不对，原因有两个，链式法则一眼就能看出来。")),
              svg(drawn(fig_loss_vs_z), T('Loss against the score z for a positive example: cross-entropy keeps rising for confident mistakes, squared error flattens at 1.', '正例的损失随得分 z 变化：交叉熵对有把握的错误持续上升，平方误差在 1 处变平。')),
@@ -681,7 +681,7 @@ def L_svm():
                 T(r"**No solution if the data are not linearly separable**: the constraints $y_i(\mathbf{w}^\top \mathbf{x}_i + b) \ge 1$ cannot all hold, and the QP is infeasible.", r"**数据线性不可分时无解**：约束 $y_i(\mathbf{w}^\top \mathbf{x}_i + b) \ge 1$ 不可能全部成立，QP 无可行解。")),
              p(T(r"Both are fixed by letting some points break the rules for a price: the soft margin, later in this lesson. First, the machinery that explains support vectors and makes kernels possible.",
                  r"两者都靠“让一些点付出代价、允许它们违规”来解决：本课后面的软间隔。先讲能解释支持向量、并使核方法成为可能的那套工具。")),
-             chapter=T('Deeper: the dual and kernels', '深入：对偶问题与核')),
+             chapter=T('The dual and kernels', '对偶问题与核')),
 
         derive('toy', T('Optimising under a constraint: the deck\'s toy problem', '带约束的优化：课件里的小例子'),
                [(r"\min_z\ (z-1)^2 \quad \text{s.t.}\quad z - 3 \ge 0", T(r"Slide 13. Without the constraint the minimum is at $z = 1$, which breaks $z \ge 3$. The answer must lie on the allowed set, and by the picture it is the allowed point closest to 1: $z^* = 3$. Now find it by a method that will also work for the SVM.", r"第 13 页。没有约束时最小点在 $z = 1$，但它违反 $z \ge 3$。答案必须在允许的集合里，从图上看是离 1 最近的允许点：$z^* = 3$。现在用一种同样适用于 SVM 的方法把它求出来。")),
@@ -692,7 +692,7 @@ def L_svm():
                 (r"z^* = 3,\quad \alpha^* = 4,\quad (z^*-1)^2 = 4", T(r"The constraint is **active** ($\alpha > 0$): it pushes back with force 4. Had the unconstrained minimum been allowed, we would have found $\alpha = 0$. The SVM does exactly this, with one multiplier per training point.", r"约束是**起作用的**（$\alpha > 0$）：它以力 4 顶了回来。若无约束的最小点本来就被允许，我们会得到 $\alpha = 0$。SVM 做的正是这件事，每个训练点一个乘子。"))],
                intro=T(r"To see why only some points matter, and why kernels work, we need one tool: the Lagrangian. Learn it on the deck's one-variable example.", r"要看清为什么只有一些点起作用、为什么核方法行得通，需要一个工具：拉格朗日函数。先在课件的一元例子上学会它。"), skill=SO),
 
-        derive('lagrangian', T('The SVM Lagrangian and the two stationarity conditions', 'SVM 的拉格朗日函数与两个驻点条件'),
+        derive('lagrangian', T('Deeper: the SVM Lagrangian and the two stationarity conditions', '深入：SVM 的拉格朗日函数与两个驻点条件'),
                [(r"\min_{\mathbf{w},b}\ \tfrac12\|\mathbf{w}\|^2 \quad \text{s.t.}\quad y_i(\mathbf{w}^\top \mathbf{x}_i + b) - 1 \ge 0", T("The primal, with each constraint written as “something $\\ge 0$”, as in the toy.", "原问题，每个约束写成“某个量 $\\ge 0$”的形式，和刚才的小例子一样。")),
                 (r"\mathcal{L}(\mathbf{w}, b, \boldsymbol{\alpha}) = \tfrac12\|\mathbf{w}\|^2 - \sum_{i=1}^{n} \alpha_i \big[ y_i(\mathbf{w}^\top \mathbf{x}_i + b) - 1 \big],\quad \alpha_i \ge 0", T(r"One multiplier $\alpha_i$ per training point: the price of its constraint.", r"每个训练点一个乘子 $\alpha_i$：它的约束的价格。")),
                 (r"P^{*} = \min_{\mathbf{w},b}\ \max_{\boldsymbol{\alpha} \ge 0}\ \mathcal{L}", T(r"$P^*$, the primal value. Why this is the same problem: if some constraint is violated, its bracket is negative, so $-\alpha_i[\cdot]$ can be made arbitrarily large and the max is $+\infty$. If all hold, the best $\alpha_i$ are 0 and the max equals $\tfrac12\|\mathbf{w}\|^2$. So the inner max enforces the constraints automatically.", r"$P^*$ 是原问题的值。为什么这是同一个问题：若某个约束被违反，它的括号为负，$-\alpha_i[\cdot]$ 可以任意大，max 是 $+\infty$。若全部满足，最优的 $\alpha_i$ 为 0，max 等于 $\tfrac12\|\mathbf{w}\|^2$。所以内层的 max 自动强制了约束。")),
@@ -701,7 +701,7 @@ def L_svm():
                 (r"\frac{\partial \mathcal{L}}{\partial b} = -\sum_i \alpha_i y_i = 0 \ \Rightarrow\ \sum_{i=1}^{n} \alpha_i y_i = 0", T(r"Then in $b$. Only the term $-b\sum_i\alpha_i y_i$ contains $b$. The condition says the total push on the boundary from the $+1$ points equals that from the $-1$ points (forces balance).", r"再对 $b$。只有 $-b\sum_i\alpha_i y_i$ 这一项含 $b$。这个条件说：$+1$ 点对边界的总推力等于 $-1$ 点的总推力（力平衡）。"))],
                intro=T(r"The same recipe as the toy, now with $n$ constraints. Part 1: set up and differentiate.", r"和小例子同一套办法，只是现在有 $n$ 个约束。第 1 部分：建立并求导。"), skill=SO),
 
-        derive('dual', T('The dual problem', '对偶问题'),
+        derive('dual', T('Deeper: the dual problem', '深入：对偶问题'),
                [(r"\mathcal{L} = \tfrac12\,\mathbf{w}^\top\mathbf{w} - \sum_i \alpha_i y_i\,\mathbf{w}^\top \mathbf{x}_i - b\sum_i \alpha_i y_i + \sum_i \alpha_i", T("Start from the Lagrangian and expand the bracket.", "从拉格朗日函数出发，把括号展开。")),
                 (r"\mathcal{L} = \tfrac12\,\mathbf{w}^\top\mathbf{w} - \mathbf{w}^\top\Big(\sum_i \alpha_i y_i \mathbf{x}_i\Big) + \sum_i \alpha_i", T(r"The $b$ term vanishes because $\sum_i \alpha_i y_i = 0$. In the second term, pull $\mathbf{w}^\top$ out of the sum.", r"$b$ 项消失，因为 $\sum_i \alpha_i y_i = 0$。第二项里把 $\mathbf{w}^\top$ 提到求和外面。")),
                 (r"\mathcal{L} = \tfrac12\,\mathbf{w}^\top\mathbf{w} - \mathbf{w}^\top\mathbf{w} + \sum_i \alpha_i = \sum_i \alpha_i - \tfrac12\,\mathbf{w}^\top\mathbf{w}", T(r"The bracket is exactly $\mathbf{w}$ (the first stationarity condition).", r"括号里恰好是 $\mathbf{w}$（第一个驻点条件）。")),
@@ -711,7 +711,7 @@ def L_svm():
                intro=T(r"Part 2: put $\mathbf{w} = \sum_i \alpha_i y_i \mathbf{x}_i$ and $\sum_i \alpha_i y_i = 0$ back into $\mathcal{L}$ to eliminate $\mathbf{w}$ and $b$.", r"第 2 部分：把 $\mathbf{w} = \sum_i \alpha_i y_i \mathbf{x}_i$ 与 $\sum_i \alpha_i y_i = 0$ 代回 $\mathcal{L}$，消掉 $\mathbf{w}$ 和 $b$。"),
                outro=T(r"Look at where the data appear: **only inside dot products** $\mathbf{x}_i^\top \mathbf{x}_j$, both in training and in prediction. That is the door to kernels.", r"看看数据出现在哪里：**只出现在点积** $\mathbf{x}_i^\top \mathbf{x}_j$ 里，训练和预测都是。这就是通向核方法的门。"), skill=SO),
 
-        read('kkt', T('Complementary slackness: why only support vectors count', '互补松弛：为什么只有支持向量起作用'),
+        read('kkt', T('Deeper: complementary slackness, or why only support vectors count', '深入：互补松弛，为什么只有支持向量起作用'),
              p(T(r"At the optimum the **KKT conditions** hold. The one that matters for interpretation is complementary slackness, as in the toy example:",
                  r"在最优点，**KKT 条件**成立。对解释最重要的是互补松弛，和小例子里一样：")),
              math_(r"\alpha_i\,\big[\, y_i(\mathbf{w}^\top \mathbf{x}_i + b) - 1 \,\big] = 0, \qquad i = 1, \dots, n"),
@@ -727,7 +727,7 @@ def L_svm():
                    (T('zero: the constraint is not tight, so it costs nothing.', '零：约束没取等号，不花代价。'), True)],
                   T('$\\alpha_i[y_i f(\\mathbf{x}_i) - 1] = 0$ with the bracket equal to $1.5 \\neq 0$ forces $\\alpha_i = 0$.', '$\\alpha_i[y_i f(\\mathbf{x}_i) - 1] = 0$，而括号等于 $1.5 \\neq 0$，所以 $\\alpha_i = 0$。'))),
 
-        derive('check', T('The dual solved by hand on the figure\'s data', '在图中的数据上手算对偶问题'),
+        derive('check', T('Deeper: the dual solved by hand on the figure\'s data', '深入：在图中的数据上手算对偶问题'),
                [(r"\mathbf{x}_1 = (3,3),\ y_1 = +1;\qquad \mathbf{x}_3 = (1,1),\ y_3 = -1", T(r"The data of the figure. By eye the two circled points are the support vectors, so every other $\alpha_i = 0$. (We verify afterwards that the others are outside the street.)", r"图中的数据。目测圈出的两个点是支持向量，所以其他 $\alpha_i$ 都为 0。（最后会验证其余点都在街外。）")),
                 (r"\sum_i \alpha_i y_i = \alpha_1 - \alpha_3 = 0 \ \Rightarrow\ \alpha_1 = \alpha_3 = \alpha", T("The balance constraint: the two forces are equal.", "平衡约束：两个力相等。")),
                 (r"\mathbf{x}_1^\top\mathbf{x}_1 = 18,\quad \mathbf{x}_3^\top\mathbf{x}_3 = 2,\quad \mathbf{x}_1^\top\mathbf{x}_3 = 6", T("The dot products the dual needs.", "对偶问题需要的点积。")),
@@ -740,7 +740,7 @@ def L_svm():
                outro=T(r"Every other point has $y_i f(\mathbf{x}_i) > 1$ (for example $(4,5)$ gives $2.5$, $(0,1)$ gives $1.5$), so $\alpha_i = 0$ was right.", r"其余的点都满足 $y_i f(\mathbf{x}_i) > 1$（例如 $(4,5)$ 得 $2.5$，$(0,1)$ 得 $1.5$），所以 $\alpha_i = 0$ 是对的。"),
                blank=(4, '1/4', T(r"Solve $2 - 8\alpha = 0$.", r"解 $2 - 8\alpha = 0$。")), skill=SO),
 
-        read('kernel', T('The kernel trick', '核技巧'),
+        read('kernel', T('Deeper: the kernel trick', '深入：核技巧'),
              callout('note', T('Beyond the deck', '超出课件的内容'),
                      T(r"The deck says kernel methods are not covered. This page and the next are for depth; the exam will not ask you to derive kernels. Knowing the idea and the names is enough.", r"课件说核方法不在范围内。这一页和下一页是为了加深理解；考试不会要求推导核。知道想法和名字就够了。")),
              p(T(r"Some data are not linearly separable in the original space, but become so after a feature map $\phi$ that adds features (squares, products). The dual shows how to use $\phi$ without paying for it: the data enter only as dot products, so replace each by a **kernel**",
@@ -755,7 +755,7 @@ def L_svm():
              p(T(r"The RBF kernel is a similarity: 1 when $\mathbf{x} = \mathbf{z}$, falling to 0 with distance. Large $\gamma$ makes each support vector's reach tiny, so the boundary wiggles around single points (overfit); small $\gamma$ makes it smooth, nearly linear. A valid kernel must give a symmetric positive semi-definite Gram matrix $[K(\mathbf{x}_i, \mathbf{x}_j)]$ (Mercer's condition); that guarantees it equals a dot product for *some* $\phi$.",
                  r"RBF 核是一种相似度：$\mathbf{x} = \mathbf{z}$ 时为 1，随距离增大衰减到 0。$\gamma$ 大，每个支持向量的影响范围很小，边界围着单个点扭动（过拟合）；$\gamma$ 小，边界光滑、近乎线性。合法的核必须使 Gram 矩阵 $[K(\mathbf{x}_i, \mathbf{x}_j)]$ 对称半正定（Mercer 条件），这保证它对*某个* $\phi$ 等于点积。"))),
 
-        derive('kernel-ex', T('A kernel is a dot product in disguise: $(\\mathbf{x}^\\top \\mathbf{z})^2$', '核是伪装的点积：$(\\mathbf{x}^\\top \\mathbf{z})^2$'),
+        derive('kernel-ex', T('Deeper: a kernel is a dot product in disguise, as $(\\mathbf{x}^\\top \\mathbf{z})^2$ shows', '深入：核是伪装的点积，以 $(\\mathbf{x}^\\top \\mathbf{z})^2$ 为例'),
                [(r"K(\mathbf{x}, \mathbf{z}) = (\mathbf{x}^\top \mathbf{z})^2,\qquad \mathbf{x}, \mathbf{z} \in \mathbb{R}^2", T("The degree-2 polynomial kernel (with $c = 0$) on two features.", "两个特征上的二次多项式核（$c = 0$）。")),
                 (r"(x_1 z_1 + x_2 z_2)^2 = x_1^2 z_1^2 + 2\,x_1 x_2 z_1 z_2 + x_2^2 z_2^2", T("Expand the square.", "展开平方。")),
                 (r"= \big(x_1^2,\ \sqrt{2}\,x_1 x_2,\ x_2^2\big) \cdot \big(z_1^2,\ \sqrt{2}\,z_1 z_2,\ z_2^2\big)", T(r"Regroup as a dot product of two 3-vectors: put $\sqrt2$ in each so the middle product is $2x_1x_2z_1z_2$. So the explicit feature map is $\phi(\mathbf{x}) = (x_1^2, \sqrt2\,x_1x_2, x_2^2)$.", r"重新组合成两个三维向量的点积：每边放一个 $\sqrt2$，使中间项乘出 $2x_1x_2z_1z_2$。所以显式的特征映射是 $\phi(\mathbf{x}) = (x_1^2, \sqrt2\,x_1x_2, x_2^2)$。")),
@@ -803,7 +803,7 @@ def L_svm():
                            [r'$\alpha_i = C$', r'$\xi_i > 0$', T('inside the street or misclassified', '在街内或被分错')]),
                      p(T(r"$C$ is the most any single point can push, which is why a small $C$ stops an outlier from dragging the boundary.", r"$C$ 是单个点能施加的最大推力，这就是为什么小 $C$ 能阻止离群点拉偏边界。")))),
 
-        derive('hinge', T('The soft margin is a loss plus a penalty: the hinge loss', '软间隔就是"损失 + 惩罚"：hinge 损失'),
+        derive('hinge', T('Deeper: the soft margin is the hinge loss plus a penalty', '深入：软间隔就是 hinge 损失加惩罚'),
                [(r"\xi_i \ge 1 - y_i f(\mathbf{x}_i), \qquad \xi_i \ge 0, \qquad f(\mathbf{x}) = \mathbf{w}^\top\mathbf{x} + b", T(r"The two constraints on slack, restated with the score $f$.", r"关于松弛的两个约束，用得分 $f$ 重写。")),
                 (r"\xi_i = \max\!\big(0,\ 1 - y_i f(\mathbf{x}_i)\big)", T(r"The objective charges $C\xi_i$, so for fixed $(\mathbf{w}, b)$ each $\xi_i$ sits at the *smallest* value both constraints allow: the larger of the two bounds.", r"目标对 $\xi_i$ 收费 $C\xi_i$，所以对固定的 $(\mathbf{w}, b)$，每个 $\xi_i$ 取两个约束允许的*最小*值：两个下界中较大的那个。")),
                 (r"\min_{\mathbf{w},b}\ \ \tfrac12\|\mathbf{w}\|^2 + C \sum_{i=1}^{n} \max\!\big(0,\ 1 - y_i f(\mathbf{x}_i)\big)", T("Substitute: the slack variables are gone and the constraints with them. An unconstrained problem.", "代入：松弛变量没有了，约束也随之消失。变成无约束问题。")),

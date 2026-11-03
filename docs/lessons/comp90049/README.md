@@ -36,7 +36,9 @@ they occur, practice at the end. A good default arc (break it when the idea asks
 4. **A worked exam-style calculation** (Section B style): small numbers, by hand, logs where the exam uses them
    (log base 2 for entropy), each step said in words. Use the decks' own worked examples or ones like them.
 5. **Deeper** (a chapter of its own): the derivation or topic the slides only gesture at, done properly (see
-   the lesson table). Rigour, not trivia.
+   the lesson table). Rigour, not trivia. Every such page is titled `Deeper: …` / `深入：…` (one colon, sentence
+   case after it), so the learner sees in the contents what goes past the decks and the exam; chapter names
+   stay topical and never say "Deeper" themselves.
 6. **Traps**: one or two in-page `quiz` blocks where a classic mistake happens.
 7. **Exam practice** (end): 3-6 checkpoints — `number` for Section B calculations (state rounding; give a
    tolerance), `choice` with feedback on every wrong option naming the misconception, and at least one `text`
