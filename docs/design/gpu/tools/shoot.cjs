@@ -1,10 +1,10 @@
 // Headless check of the lab: for each material, open it alone, play its opening, run its own test, save a shot.
 // usage: node shoot.cjs <out_dir> <v> <id,id,...> [w] [h] [wait_ms]
 const { chromium } = require('playwright');
-const [out = 'shots', v = '1', ids = '', W = '1280', H = '800', WAIT = '1500'] = process.argv.slice(2);
+const [out = 'shots', v = 'a1', ids = '', W = '1280', H = '800', WAIT = '1500', DPR = '1'] = process.argv.slice(2);
 (async () => {
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const p = await b.newPage({ viewport: { width: +W, height: +H }, deviceScaleFactor: 1 });
+  const p = await b.newPage({ viewport: { width: +W, height: +H }, deviceScaleFactor: +DPR, isMobile: +W < 600, hasTouch: +W < 600 });
   const logs = [];
   p.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.text().slice(0, 1500)); });
   p.on('pageerror', (e) => logs.push('pageerror ' + e.message));
@@ -17,7 +17,9 @@ const [out = 'shots', v = '1', ids = '', W = '1280', H = '800', WAIT = '1500'] =
     if (process.env.DEMO) { await p.evaluate(() => window.__demo()); await p.waitForTimeout(+process.env.DEMO); await p.screenshot({ path: `${out}/${id}-demo.png` }); }
     const r = await p.evaluate(async (id) => (await window.__accept([id]))[0], id).catch((e) => ({ error: String(e) }));
     await p.waitForTimeout(400);
-    await p.screenshot({ path: `${out}/${id}.png` });
+    await p.screenshot({ path: `${out}/${id}${+W < 600 ? '-phone' : ''}.png` });
+    if (process.env.ACTS) for (const [js, wait, name] of JSON.parse(process.env.ACTS)) { await p.evaluate(js); await p.waitForTimeout(wait); await p.screenshot({ path: `${out}/${id}-${name}${+W < 600 ? '-phone' : ''}.png` }); }
+    if (process.env.ACT) { await p.evaluate(process.env.ACT); await p.waitForTimeout(+(process.env.ACT_WAIT || 1500)); await p.screenshot({ path: `${out}/${id}-act${+W < 600 ? '-phone' : ''}.png` }); }
     console.log(id, JSON.stringify(r), logs.length ? '\n  ' + logs.join('\n  ') : '');
   }
   await b.close();

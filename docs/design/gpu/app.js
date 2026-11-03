@@ -2,15 +2,17 @@
 // and an acceptance run that each material answers with a measured number.
 const Q = new URLSearchParams(location.search);
 const LANG = Q.get('lang') === 'en' ? 'en' : 'zh';
-const VER = Q.get('v') || '1';
+const VER = { '1': 'lab' }[Q.get('v')] || Q.get('v') || 'a1';
 const SOLO = Q.get('m');
 document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
 for (const el of document.querySelectorAll('[data-zh]')) el.textContent = el.dataset[LANG];
 
+const A_IDS = ['zoom', 'pull', 'time', 'guess', 'certainty', 'morph', 'patina', 'tutor', 'explode', 'reason', 'glass', 'select'];
 const SETS = {
-  '1': { label: { zh: '第一版 · 十种', en: 'First pass · ten' }, ids: ['caustics', 'soap', 'ink', 'metal', 'filings', 'particles', 'rd', 'loupe', 'plaster', 'foil'], dir: 'v1' },
-  '2': { label: { zh: '第二版 · 十种', en: 'Second pass · ten' }, ids: ['caustics', 'soap', 'ink', 'metal', 'filings', 'particles', 'rd', 'loupe', 'plaster', 'foil'], dir: 'v2' },
-  'new': { label: { zh: '全新十种', en: 'Ten new' }, ids: [], dir: 'new' },
+  'a1': { label: { zh: '界面材质 · 第一版', en: 'Interface · first pass' }, ids: A_IDS, dir: 'a1' },
+  'a2': { label: { zh: '界面材质 · 第二版', en: 'Interface · second pass' }, ids: A_IDS, dir: 'a2' },
+  'b': { label: { zh: '全新十种', en: 'Ten new' }, ids: [], dir: 'b' },
+  'lab': { label: { zh: '物理实验室', en: 'Physics lab' }, ids: ['caustics', 'soap', 'ink', 'metal', 'filings', 'particles', 'rd', 'loupe'], dir: 'v1' },
 };
 const bar = document.getElementById('ver');
 for (const [k, s] of Object.entries(SETS)) {
@@ -19,7 +21,7 @@ for (const [k, s] of Object.entries(SETS)) {
   bar.append(b);
 }
 
-const set = SETS[VER] || SETS['1'];
+const set = SETS[VER] || SETS.a1;
 const grid = document.getElementById('grid');
 const tiles = [];
 if (SOLO) document.body.classList.add('solo');
@@ -55,6 +57,7 @@ async function load(id) {
   }, { rootMargin: '200px' });
   for (const t of tiles) io.observe(t.el);
   addEventListener('resize', () => { for (const t of tiles) t.inst?.resize?.(); });
+  window.__tiles = tiles;
   window.__ready = true;
 })();
 
