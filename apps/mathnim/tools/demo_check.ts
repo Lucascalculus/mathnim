@@ -3,7 +3,7 @@
 // checked), and the bilingual text, markup and TeX (text_lint.ts, as the doctor checks the hand-made lessons); the
 // catalog entry's lessons and units must match the files. Blocks a model does not write (interactive figures,
 // questions in the page) are checked by the text lint, then left out of the format check.
-//   node tools/demo_check.mjs <course-id>
+//   node tools/demo_check.mjs <course-id> [lesson,...]
 import { grade_blank, is_bilingual, type DeriveStep, type L10n, type Lesson } from '@mathnim/core';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
 import { init_tex } from 'manim-web';
@@ -45,7 +45,10 @@ const report = (where: string, list: string[], kind: 'error' | 'warning') => {
   if (kind === 'error') errors += list.length;
 };
 const listed = new Set(entry.units.flatMap((u) => u.lessons));
+// an optional second argument checks only some lessons (ids, or the part after '<course>-'), comma-separated
+const only = process.argv[3]?.split(',');
 for (const l of entry.lessons) {
+  if (only && !only.some((o) => l.id === o || l.id === `${id}-${o}`)) continue;
   if (!listed.has(l.id)) report(l.id, ['in lessons but in no unit'], 'error');
   const file = path.join(DEMO, id, `${l.id}.json`);
   if (!fs.existsSync(file)) {

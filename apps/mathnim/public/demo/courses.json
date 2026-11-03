@@ -4308,5 +4308,1663 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "comp90049",
+  "title": {
+   "en": "Introduction to Machine Learning, in depth",
+   "zh": "机器学习导论 · 深入过一遍"
+  },
+  "summary": {
+   "en": "Concepts and probability, k-NN, decision trees, naive Bayes, linear and logistic regression, SVMs, evaluation and the bias-variance trade-off, feature selection, perceptrons, neural networks and backpropagation, ensembles, clustering, semi- and self-supervised learning, anomaly detection, fairness",
+   "zh": "基本概念与概率、k 近邻、决策树、朴素贝叶斯、线性回归与逻辑回归、SVM、评估与偏差-方差、特征选择、感知机、神经网络与反向传播、集成学习、聚类、半监督与自监督、异常检测、公平性"
+  },
+  "audience": {
+   "en": "Students who have met machine learning before and want to review COMP90049 for the exam: every topic once, with the derivations done properly.",
+   "zh": "学过机器学习、要为 COMP90049 期末复习的同学：每个话题过一遍，公式推导做扎实。"
+  },
+  "outcomes": [
+   {
+    "en": "Explain and compare every method of the subject in a few lines, the way Section A asks",
+    "zh": "用几行话解释和比较这门课的每个方法，正是 A 部分的考法"
+   },
+   {
+    "en": "Do the calculations of Section B by hand: entropy and information gain, naive Bayes, distances, gradient and backpropagation steps, metrics, PMI, clustering",
+    "zh": "手算 B 部分的计算：熵与信息增益、朴素贝叶斯、距离、梯度与反向传播、评估指标、PMI、聚类"
+   },
+   {
+    "en": "Derive the key results yourself and choose and justify a method for a new problem (Section C)",
+    "zh": "自己推出关键结论，并为新问题选择方法、说出理由（C 部分）"
+   }
+  ],
+  "lang": "zh",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "origin": {
+   "decks": 21,
+   "exams": 0,
+   "note": {
+    "en": "Written by an AI (Claude) from the 21 lecture decks of COMP90049 (Semester 2, 2026) and standard textbooks · not edited by a person",
+    "zh": "由 AI（Claude）根据 COMP90049（2026 年第二学期）的 21 份课件和标准教材编写 · 未经人工修改"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "Foundations",
+     "zh": "基础"
+    },
+    "lessons": [
+     "comp90049-start",
+     "comp90049-concepts",
+     "comp90049-probability"
+    ]
+   },
+   {
+    "title": {
+     "en": "Classic classifiers",
+     "zh": "经典分类器"
+    },
+    "lessons": [
+     "comp90049-knn",
+     "comp90049-trees",
+     "comp90049-naive-bayes"
+    ]
+   },
+   {
+    "title": {
+     "en": "Linear models",
+     "zh": "线性模型"
+    },
+    "lessons": [
+     "comp90049-linreg",
+     "comp90049-logreg",
+     "comp90049-svm"
+    ]
+   },
+   {
+    "title": {
+     "en": "Evaluation and features",
+     "zh": "评估与特征"
+    },
+    "lessons": [
+     "comp90049-evaluation",
+     "comp90049-bias-variance",
+     "comp90049-features"
+    ]
+   },
+   {
+    "title": {
+     "en": "Neural networks and ensembles",
+     "zh": "神经网络与集成"
+    },
+    "lessons": [
+     "comp90049-perceptron",
+     "comp90049-mlp",
+     "comp90049-backprop",
+     "comp90049-ensembles"
+    ]
+   },
+   {
+    "title": {
+     "en": "Beyond supervised learning",
+     "zh": "监督学习之外"
+    },
+    "lessons": [
+     "comp90049-clustering",
+     "comp90049-semi",
+     "comp90049-self",
+     "comp90049-anomaly",
+     "comp90049-fairness"
+    ]
+   },
+   {
+    "title": {
+     "en": "Before the exam",
+     "zh": "考前"
+    },
+    "lessons": [
+     "comp90049-drill"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "comp90049-start",
+    "title": {
+     "en": "Start here: the exam and the map of the subject",
+     "zh": "从这里开始：考试与整门课的地图"
+    },
+    "summary": {
+     "en": "What the exam asks and how to spend your time, the three ingredients of machine learning, every model placed on four axes, and how the course is laid out.",
+     "zh": "考试怎么考、时间怎么分，机器学习的三个要素，每个模型在四条轴上的位置，以及这门课怎么排。"
+    },
+    "minutes": 12,
+    "meta": {
+     "title": {
+      "en": "Start here: the exam and the map of the subject",
+      "zh": "从这里开始：考试与整门课的地图"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "start.exam",
+       "name": {
+        "en": "The exam: format and strategy",
+        "zh": "考试：形式与策略"
+       }
+      },
+      {
+       "id": "start.map",
+       "name": {
+        "en": "The model map: four axes, every model placed",
+        "zh": "模型地图：四条轴，每个模型的位置"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-concepts",
+    "title": {
+     "en": "Machine learning concepts: data, types and generalisation",
+     "zh": "机器学习的基本概念：数据、属性类型与泛化"
+    },
+    "summary": {
+     "en": "The vocabulary of the subject, the learning settings, how to convert between attribute types and what each choice costs, and why a model is judged on data it has not seen.",
+     "zh": "这门课的词汇、各种学习设定、属性类型怎么互相转换及每种选择的代价，以及为什么要用没见过的数据来评判模型。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Machine learning concepts: data, types and generalisation",
+      "zh": "机器学习的基本概念：数据、属性类型与泛化"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "concepts.vocab",
+       "name": {
+        "en": "Instances, attributes, labels",
+        "zh": "实例、属性、标签"
+       }
+      },
+      {
+       "id": "concepts.settings",
+       "name": {
+        "en": "Learning settings and tasks",
+        "zh": "学习设定与任务"
+       }
+      },
+      {
+       "id": "concepts.attrs",
+       "name": {
+        "en": "Attribute types",
+        "zh": "属性类型"
+       }
+      },
+      {
+       "id": "concepts.convert",
+       "name": {
+        "en": "Converting and cleaning attributes",
+        "zh": "属性转换与清洗"
+       }
+      },
+      {
+       "id": "concepts.generalise",
+       "name": {
+        "en": "Generalisation and held-out data",
+        "zh": "泛化与留出数据"
+       }
+      },
+      {
+       "id": "concepts.bias",
+       "name": {
+        "en": "Inductive bias",
+        "zh": "归纳偏置"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-probability",
+    "title": {
+     "en": "Probability and maximum likelihood, from the definition",
+     "zh": "概率与最大似然：从定义出发"
+    },
+    "summary": {
+     "en": "The rules of probability derived from one definition, Bayes' rule and its base-rate trap, the distributions of the subject, expectation, maximum likelihood by calculus, and entropy as expected surprise.",
+     "zh": "从一条定义推出全部概率规则，贝叶斯公式及其“基础概率”陷阱，这门课用到的分布，期望，用微积分求最大似然，以及把熵讲成“期望的惊讶”。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Probability and maximum likelihood, from the definition",
+      "zh": "概率与最大似然：从定义出发"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "probability.rules",
+       "name": {
+        "en": "Rules of probability",
+        "zh": "概率规则"
+       }
+      },
+      {
+       "id": "probability.bayes",
+       "name": {
+        "en": "Bayes' rule",
+        "zh": "贝叶斯公式"
+       }
+      },
+      {
+       "id": "probability.dists",
+       "name": {
+        "en": "Distributions and expectation",
+        "zh": "分布与期望"
+       }
+      },
+      {
+       "id": "probability.mle",
+       "name": {
+        "en": "Maximum likelihood",
+        "zh": "最大似然"
+       }
+      },
+      {
+       "id": "probability.entropy",
+       "name": {
+        "en": "Entropy",
+        "zh": "熵"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-knn",
+    "title": {
+     "en": "k-nearest neighbours",
+     "zh": "k 近邻（k-nearest neighbours）"
+    },
+    "summary": {
+     "en": "The method that just remembers: how it predicts, every distance and voting rule on the exam, how to choose k, and why scaling and high dimensions break it.",
+     "zh": "什么都不学、只靠记忆的方法：怎么预测，考试里的每一种距离和投票规则，k 怎么选，以及为什么特征缩放和高维会把它搞坏。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "k-nearest neighbours",
+      "zh": "k 近邻（k-nearest neighbours）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "knn.algorithm",
+       "name": {
+        "en": "The k-NN algorithm and lazy learning",
+        "zh": "k 近邻算法与惰性学习"
+       }
+      },
+      {
+       "id": "knn.distance",
+       "name": {
+        "en": "Distances and similarities by hand",
+        "zh": "手算各种距离与相似度"
+       }
+      },
+      {
+       "id": "knn.voting",
+       "name": {
+        "en": "Voting schemes and ties",
+        "zh": "投票规则与平局"
+       }
+      },
+      {
+       "id": "knn.k",
+       "name": {
+        "en": "Choosing k: the bias-variance knob",
+        "zh": "选 k：偏差-方差旋钮"
+       }
+      },
+      {
+       "id": "knn.scaling",
+       "name": {
+        "en": "Scaling features",
+        "zh": "特征缩放"
+       }
+      },
+      {
+       "id": "knn.curse",
+       "name": {
+        "en": "The curse of dimensionality",
+        "zh": "维度灾难"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-trees",
+    "title": {
+     "en": "Decision trees",
+     "zh": "决策树（decision trees）"
+    },
+    "summary": {
+     "en": "Build a tree by asking the question that removes the most uncertainty: entropy, information gain, gain ratio, stopping and pruning, numeric splits, regression trees, and why gain is mutual information.",
+     "zh": "每一步问那个最能消除不确定性的问题来建树：熵、信息增益、增益率、停止与剪枝、数值特征的切分、回归树，以及为什么信息增益就是互信息。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Decision trees",
+      "zh": "决策树（decision trees）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "trees.id3",
+       "name": {
+        "en": "The ID3 algorithm and baselines",
+        "zh": "ID3 算法与基线"
+       }
+      },
+      {
+       "id": "trees.entropy",
+       "name": {
+        "en": "Entropy and information gain by hand",
+        "zh": "手算熵与信息增益"
+       }
+      },
+      {
+       "id": "trees.gainratio",
+       "name": {
+        "en": "Gain ratio and the many-values bias",
+        "zh": "增益率与多取值偏差"
+       }
+      },
+      {
+       "id": "trees.overfit",
+       "name": {
+        "en": "Stopping, overfitting and pruning",
+        "zh": "停止、过拟合与剪枝"
+       }
+      },
+      {
+       "id": "trees.numeric",
+       "name": {
+        "en": "Numeric attributes and regression trees",
+        "zh": "数值特征与回归树"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-naive-bayes",
+    "title": {
+     "en": "Naive Bayes: counting, smoothing, and why it works",
+     "zh": "朴素贝叶斯：计数、平滑，以及它为什么管用"
+    },
+    "summary": {
+     "en": "From argmax P(y|x) to the naive Bayes rule, estimation by counting, the zero-probability problem and smoothing (with Laplace as a Dirichlet prior), logs, the linear view and its limits.",
+     "zh": "从 argmax P(y|x) 推到朴素贝叶斯公式，计数估计，零概率问题与平滑（含拉普拉斯平滑作为狄利克雷先验），对数、线性视角及其局限。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Naive Bayes: counting, smoothing, and why it works",
+      "zh": "朴素贝叶斯：计数、平滑，以及它为什么管用"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "nb.derivation",
+       "name": {
+        "en": "Derive the naive Bayes classifier",
+        "zh": "推导朴素贝叶斯分类器"
+       }
+      },
+      {
+       "id": "nb.independence",
+       "name": {
+        "en": "Conditional independence and its consequences",
+        "zh": "条件独立及其后果"
+       }
+      },
+      {
+       "id": "nb.estimation",
+       "name": {
+        "en": "Estimate priors and likelihoods by counting (MLE)",
+        "zh": "用计数（最大似然）估计先验与似然"
+       }
+      },
+      {
+       "id": "nb.smoothing",
+       "name": {
+        "en": "Zero probabilities and smoothing",
+        "zh": "零概率与平滑"
+       }
+      },
+      {
+       "id": "nb.gaussian",
+       "name": {
+        "en": "Gaussian naive Bayes",
+        "zh": "高斯朴素贝叶斯"
+       }
+      },
+      {
+       "id": "nb.logspace",
+       "name": {
+        "en": "Computing in log space",
+        "zh": "在对数空间计算"
+       }
+      },
+      {
+       "id": "nb.linear",
+       "name": {
+        "en": "Naive Bayes as a linear classifier; calibration vs ranking",
+        "zh": "朴素贝叶斯作为线性分类器；校准与排序"
+       }
+      },
+      {
+       "id": "nb.proscons",
+       "name": {
+        "en": "Strengths, weaknesses, generative view",
+        "zh": "优缺点与生成式视角"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-linreg",
+    "title": {
+     "en": "Linear regression: the loss, the closed form, and gradient descent",
+     "zh": "线性回归：损失、闭式解与梯度下降"
+    },
+    "summary": {
+     "en": "The linear model and its squared-error loss, the normal equation derived by matrix calculus, least squares as maximum likelihood under Gaussian noise, gradient descent versus the closed form, and how to judge a fit.",
+     "zh": "线性模型与平方误差损失，用矩阵微积分推出正规方程，最小二乘即高斯噪声下的最大似然，梯度下降与闭式解的对比，以及怎样评判拟合。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Linear regression: the loss, the closed form, and gradient descent",
+      "zh": "线性回归：损失、闭式解与梯度下降"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "lr.model",
+       "name": {
+        "en": "The linear model and its assumptions",
+        "zh": "线性模型及其假设"
+       }
+      },
+      {
+       "id": "lr.loss",
+       "name": {
+        "en": "Squared-error loss and optimisation by derivatives",
+        "zh": "平方误差损失与用导数优化"
+       }
+      },
+      {
+       "id": "lr.closedform",
+       "name": {
+        "en": "Closed-form solution: the normal equation",
+        "zh": "闭式解：正规方程"
+       }
+      },
+      {
+       "id": "lr.mle",
+       "name": {
+        "en": "Least squares as maximum likelihood",
+        "zh": "最小二乘即最大似然"
+       }
+      },
+      {
+       "id": "lr.gd",
+       "name": {
+        "en": "Gradient descent and the learning rate",
+        "zh": "梯度下降与学习率"
+       }
+      },
+      {
+       "id": "lr.eval",
+       "name": {
+        "en": "Evaluating a regression",
+        "zh": "评估回归"
+       }
+      },
+      {
+       "id": "lr.proscons",
+       "name": {
+        "en": "Strengths and weaknesses of linear regression",
+        "zh": "线性回归的优缺点"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-logreg",
+    "title": {
+     "en": "Logistic regression",
+     "zh": "逻辑回归"
+    },
+    "summary": {
+     "en": "From a probability to the sigmoid, the cross-entropy loss from maximum likelihood, its gradient line by line, why it is convex, and why not squared error.",
+     "zh": "从概率到 sigmoid，由最大似然得到交叉熵损失，逐行推出它的梯度，为什么它是凸的，以及为什么不用平方误差。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Logistic regression",
+      "zh": "逻辑回归"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "logreg.logit",
+       "name": {
+        "en": "Odds, log-odds and the sigmoid",
+        "zh": "几率、对数几率与 sigmoid"
+       }
+      },
+      {
+       "id": "logreg.model",
+       "name": {
+        "en": "The model, boundary and prediction",
+        "zh": "模型、边界与预测"
+       }
+      },
+      {
+       "id": "logreg.loss",
+       "name": {
+        "en": "Likelihood, cross-entropy and its gradient",
+        "zh": "似然、交叉熵与它的梯度"
+       }
+      },
+      {
+       "id": "logreg.gd",
+       "name": {
+        "en": "Gradient descent and the learning rate",
+        "zh": "梯度下降与学习率"
+       }
+      },
+      {
+       "id": "logreg.convex",
+       "name": {
+        "en": "Convexity of the loss",
+        "zh": "损失的凸性"
+       }
+      },
+      {
+       "id": "logreg.multi",
+       "name": {
+        "en": "Multiclass: one-vs-rest and softmax",
+        "zh": "多类：一对多与 softmax"
+       }
+      },
+      {
+       "id": "logreg.compare",
+       "name": {
+        "en": "Logistic regression compared with other models",
+        "zh": "逻辑回归与其他模型的比较"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-svm",
+    "title": {
+     "en": "Support vector machines",
+     "zh": "支持向量机"
+    },
+    "summary": {
+     "en": "The widest street between two classes: the margin 2/‖w‖ derived, the primal, Lagrangian and dual line by line, why only support vectors count, kernels, the soft margin and the hinge loss.",
+     "zh": "两类之间最宽的街道：推出间隔 2/‖w‖，逐行推导原问题、拉格朗日函数与对偶问题，为什么只有支持向量起作用，核方法，软间隔与 hinge 损失。"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "Support vector machines",
+      "zh": "支持向量机"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "svm.margin",
+       "name": {
+        "en": "Hyperplane, margins and the margin width",
+        "zh": "超平面、间隔与间隔宽度"
+       }
+      },
+      {
+       "id": "svm.primal",
+       "name": {
+        "en": "The hard-margin primal",
+        "zh": "硬间隔原问题"
+       }
+      },
+      {
+       "id": "svm.dual",
+       "name": {
+        "en": "Lagrangian, dual and support vectors (KKT)",
+        "zh": "拉格朗日函数、对偶与支持向量（KKT）"
+       }
+      },
+      {
+       "id": "svm.kernel",
+       "name": {
+        "en": "Kernel trick (beyond the deck)",
+        "zh": "核技巧（超出课件）"
+       }
+      },
+      {
+       "id": "svm.soft",
+       "name": {
+        "en": "Kernels and the hinge loss",
+        "zh": "核与 hinge 损失"
+       }
+      },
+      {
+       "id": "svm.compare",
+       "name": {
+        "en": "Soft margin, slack and C; comparison with logistic regression",
+        "zh": "软间隔、松弛与 C；与逻辑回归的比较"
+       }
+      },
+      {
+       "id": "svm.multi",
+       "name": {
+        "en": "Multiclass SVM",
+        "zh": "多类 SVM"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-evaluation",
+    "title": {
+     "en": "Evaluation: splits, validation and metrics",
+     "zh": "评估：数据划分、验证与指标"
+    },
+    "summary": {
+     "en": "Why training accuracy lies, how holdout, stratification and cross-validation estimate performance on unseen data, and every metric of the confusion matrix, with micro, macro and weighted averages by hand.",
+     "zh": "为什么训练准确率会骗人，留出法、分层和交叉验证怎样估计模型在新数据上的表现，以及混淆矩阵上的各种指标，包括手算 micro、macro、加权平均。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Evaluation: splits, validation and metrics",
+      "zh": "评估：数据划分、验证与指标"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "eval.splits",
+       "name": {
+        "en": "Train, validation and test; holdout and stratification",
+        "zh": "训练/验证/测试；留出与分层"
+       }
+      },
+      {
+       "id": "eval.cv",
+       "name": {
+        "en": "Cross-validation and tuning",
+        "zh": "交叉验证与调参"
+       }
+      },
+      {
+       "id": "eval.confusion",
+       "name": {
+        "en": "Confusion matrix, accuracy, baselines",
+        "zh": "混淆矩阵、准确率与基线"
+       }
+      },
+      {
+       "id": "eval.prf",
+       "name": {
+        "en": "Precision, recall, F-score and the threshold",
+        "zh": "精确率、召回率、F 值与阈值"
+       }
+      },
+      {
+       "id": "eval.multi",
+       "name": {
+        "en": "Multiclass averaging: macro, micro, weighted",
+        "zh": "多分类平均：macro、micro、加权"
+       }
+      },
+      {
+       "id": "eval.regression",
+       "name": {
+        "en": "Regression metrics",
+        "zh": "回归指标"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-bias-variance",
+    "title": {
+     "en": "Bias, variance and learning curves",
+     "zh": "偏差、方差与学习曲线"
+    },
+    "summary": {
+     "en": "Underfitting and overfitting read from learning curves, the bias-variance decomposition derived line by line, and how evaluation itself has bias and variance.",
+     "zh": "从学习曲线读出欠拟合与过拟合，一行一行推导偏差-方差分解，以及评估本身也有偏差和方差。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Bias, variance and learning curves",
+      "zh": "偏差、方差与学习曲线"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "bv.fit",
+       "name": {
+        "en": "Underfitting, overfitting and complexity",
+        "zh": "欠拟合、过拟合与模型复杂度"
+       }
+      },
+      {
+       "id": "bv.curves",
+       "name": {
+        "en": "Reading learning curves",
+        "zh": "读学习曲线"
+       }
+      },
+      {
+       "id": "bv.decomp",
+       "name": {
+        "en": "The bias-variance decomposition",
+        "zh": "偏差-方差分解"
+       }
+      },
+      {
+       "id": "bv.remedy",
+       "name": {
+        "en": "Remedies for high bias and high variance",
+        "zh": "高偏差与高方差的对策"
+       }
+      },
+      {
+       "id": "bv.evalbv",
+       "name": {
+        "en": "Evaluation bias and variance",
+        "zh": "评估的偏差与方差"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-features",
+    "title": {
+     "en": "Feature selection: filters, wrappers, embedded",
+     "zh": "特征选择：过滤、包装、嵌入"
+    },
+    "summary": {
+     "en": "Why select features, mutual information and chi-squared by hand, why filters miss interactions, what greedy wrappers cost in model fits, and how L1 regularisation selects while it trains.",
+     "zh": "为什么要选特征，手算互信息和卡方，过滤法为什么看不见交互，贪心包装法要花多少次模型拟合，以及 L1 正则如何边训练边选特征。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Feature selection: filters, wrappers, embedded",
+      "zh": "特征选择：过滤、包装、嵌入"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "features.why",
+       "name": {
+        "en": "Why select features; the families",
+        "zh": "为什么选特征；各类方法"
+       }
+      },
+      {
+       "id": "features.filter",
+       "name": {
+        "en": "Filters and their blind spots",
+        "zh": "过滤法及其盲点"
+       }
+      },
+      {
+       "id": "features.mi",
+       "name": {
+        "en": "PMI, mutual information, information gain",
+        "zh": "PMI、互信息、信息增益"
+       }
+      },
+      {
+       "id": "features.wrapper",
+       "name": {
+        "en": "Wrappers: forward, backward, cost",
+        "zh": "包装法：前向、后向、代价"
+       }
+      },
+      {
+       "id": "features.embedded",
+       "name": {
+        "en": "Embedded methods and L1 regularisation",
+        "zh": "嵌入法与 L1 正则"
+       }
+      },
+      {
+       "id": "features.compare",
+       "name": {
+        "en": "Choosing between the families",
+        "zh": "在各类方法之间选择"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-perceptron",
+    "title": {
+     "en": "The perceptron: a neuron that learns from its mistakes",
+     "zh": "感知机：从错误中学习的神经元"
+    },
+    "summary": {
+     "en": "The single artificial neuron, its learning rule traced by hand, why the rule is stochastic gradient descent, the convergence theorem and why XOR defeats it.",
+     "zh": "单个人工神经元、手算它的学习规则、为什么这条规则就是随机梯度下降、收敛定理，以及 XOR 为什么难倒它。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "The perceptron: a neuron that learns from its mistakes",
+      "zh": "感知机：从错误中学习的神经元"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "perceptron.neuron",
+       "name": {
+        "en": "The computational neuron and its decision boundary",
+        "zh": "计算神经元及其决策边界"
+       }
+      },
+      {
+       "id": "perceptron.rule",
+       "name": {
+        "en": "The perceptron learning rule and algorithm",
+        "zh": "感知机学习规则与算法"
+       }
+      },
+      {
+       "id": "perceptron.sgd",
+       "name": {
+        "en": "The rule as stochastic gradient descent on the perceptron loss",
+        "zh": "把规则看作感知机损失上的随机梯度下降"
+       }
+      },
+      {
+       "id": "perceptron.convergence",
+       "name": {
+        "en": "Convergence on separable data",
+        "zh": "线性可分数据上的收敛"
+       }
+      },
+      {
+       "id": "perceptron.xor",
+       "name": {
+        "en": "Linear separability and XOR",
+        "zh": "线性可分与 XOR"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-mlp",
+    "title": {
+     "en": "Multi-layer perceptrons: stacking units",
+     "zh": "多层感知机：把单元叠起来"
+    },
+    "summary": {
+     "en": "Layers, weights and activations, the forward pass by hand, loss functions, why hidden layers need non-linearity, how XOR is solved, what universal approximation does and does not say, and why the perceptron rule cannot train a hidden layer.",
+     "zh": "层、权重和激活函数，手算前向传播，损失函数，为什么隐藏层需要非线性，XOR 怎么解，万能逼近定理说了什么没说什么，以及为什么感知机规则训练不了隐藏层。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Multi-layer perceptrons: stacking units",
+      "zh": "多层感知机：把单元叠起来"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mlp.layers",
+       "name": {
+        "en": "Layers, units and the forward pass",
+        "zh": "层、单元与前向传播"
+       }
+      },
+      {
+       "id": "mlp.activations",
+       "name": {
+        "en": "Activation and output functions",
+        "zh": "激活函数与输出函数"
+       }
+      },
+      {
+       "id": "mlp.loss",
+       "name": {
+        "en": "Loss functions: squared error and cross-entropy",
+        "zh": "损失函数：平方误差与交叉熵"
+       }
+      },
+      {
+       "id": "mlp.xor",
+       "name": {
+        "en": "Non-linearity, XOR and feature learning",
+        "zh": "非线性、XOR 与特征学习"
+       }
+      },
+      {
+       "id": "mlp.power",
+       "name": {
+        "en": "Representational power and its limits",
+        "zh": "表示能力及其局限"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-backprop",
+    "title": {
+     "en": "Backpropagation: the gradient of every weight",
+     "zh": "反向传播：求出每个权重的梯度"
+    },
+    "summary": {
+     "en": "Why gradient descent needs a gradient for every weight, the chain rule, the generalised delta rule derived line by line, a full numeric forward and backward pass, and why it is so cheap.",
+     "zh": "梯度下降为什么要每个权重的梯度；链式法则；逐行推出广义 delta 规则；一次完整的前向与反向数值计算；以及它为什么这么省。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Backpropagation: the gradient of every weight",
+      "zh": "反向传播：求出每个权重的梯度"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "backprop.why",
+       "name": {
+        "en": "Why backpropagation: the gradient of every weight",
+        "zh": "为什么要反向传播：每个权重的梯度"
+       }
+      },
+      {
+       "id": "backprop.activations",
+       "name": {
+        "en": "Activation functions and their derivatives",
+        "zh": "激活函数及其导数"
+       }
+      },
+      {
+       "id": "backprop.delta",
+       "name": {
+        "en": "The generalised delta rule",
+        "zh": "广义 delta 规则"
+       }
+      },
+      {
+       "id": "backprop.algorithm",
+       "name": {
+        "en": "The backpropagation algorithm, traced numerically",
+        "zh": "反向传播算法与数值演算"
+       }
+      },
+      {
+       "id": "backprop.efficiency",
+       "name": {
+        "en": "Why backpropagation is cheap",
+        "zh": "反向传播为什么高效"
+       }
+      },
+      {
+       "id": "backprop.training",
+       "name": {
+        "en": "Learning rate, local minima, vanishing gradients, overfitting",
+        "zh": "学习率、局部极小、梯度消失、过拟合"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-ensembles",
+    "title": {
+     "en": "Ensembles: voting, stacking, bagging, boosting",
+     "zh": "集成学习：投票、堆叠、装袋、提升"
+    },
+    "summary": {
+     "en": "Why many models beat one: when voting helps, how stacking, bagging, random forests and AdaBoost build their members, why averaging cuts variance, and where AdaBoost's weights come from.",
+     "zh": "为什么多个模型胜过一个：投票什么时候有用；堆叠、装袋、随机森林、AdaBoost 怎样造出成员；为什么平均能降方差；AdaBoost 的权重从哪来。"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "Ensembles: voting, stacking, bagging, boosting",
+      "zh": "集成学习：投票、堆叠、装袋、提升"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "ensembles.voting",
+       "name": {
+        "en": "Voting and when an ensemble works",
+        "zh": "投票，以及集成什么时候有效"
+       }
+      },
+      {
+       "id": "ensembles.stacking",
+       "name": {
+        "en": "Stacking and nested cross-validation",
+        "zh": "堆叠与嵌套交叉验证"
+       }
+      },
+      {
+       "id": "ensembles.bagging",
+       "name": {
+        "en": "Bagging, the bootstrap and random forests",
+        "zh": "装袋、自助采样与随机森林"
+       }
+      },
+      {
+       "id": "ensembles.variance",
+       "name": {
+        "en": "Why averaging reduces variance",
+        "zh": "为什么平均能降低方差"
+       }
+      },
+      {
+       "id": "ensembles.adaboost",
+       "name": {
+        "en": "Boosting and AdaBoost",
+        "zh": "提升与 AdaBoost"
+       }
+      },
+      {
+       "id": "ensembles.compare",
+       "name": {
+        "en": "Bagging versus boosting versus stacking",
+        "zh": "装袋、提升与堆叠的比较"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-clustering",
+    "title": {
+     "en": "Clustering: k-means, hierarchical, and how to judge a clustering",
+     "zh": "聚类：k-means、层次聚类，以及怎么评价聚类"
+    },
+    "summary": {
+     "en": "What clustering is for, k-means as coordinate descent on WCSS, agglomerative clustering with single, complete and average linkage by hand, and the WCSS, BCSS and Calinski-Harabasz measures.",
+     "zh": "聚类是做什么的，k-means 作为对 WCSS 的坐标下降，用单链、全链、平均链手算层次聚类，以及 WCSS、BCSS 和 Calinski-Harabasz 指标。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Clustering: k-means, hierarchical, and how to judge a clustering",
+      "zh": "聚类：k-means、层次聚类，以及怎么评价聚类"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "clustering.what",
+       "name": {
+        "en": "Unsupervised learning and kinds of clustering",
+        "zh": "无监督学习与聚类的种类"
+       }
+      },
+      {
+       "id": "clustering.kmeans",
+       "name": {
+        "en": "k-means: algorithm, convergence, limits, choosing K",
+        "zh": "k-means：算法、收敛、局限、选 K"
+       }
+      },
+      {
+       "id": "clustering.hier",
+       "name": {
+        "en": "Agglomerative clustering and linkages",
+        "zh": "凝聚层次聚类与各种链接"
+       }
+      },
+      {
+       "id": "clustering.eval",
+       "name": {
+        "en": "Cluster evaluation: WCSS, BCSS, CH index",
+        "zh": "聚类评价：WCSS、BCSS、CH 指数"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-semi",
+    "title": {
+     "en": "Semi-supervised and active learning",
+     "zh": "半监督学习与主动学习"
+    },
+    "summary": {
+     "en": "Learning when labels are scarce: self-training and why it can fail, the assumptions semi-supervised learning needs, active learning with uncertainty sampling and query by committee, and data augmentation.",
+     "zh": "标签稀缺时怎么学：自训练及其失败方式，半监督学习需要的假设，用不确定性采样和委员会查询的主动学习，以及数据增强。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Semi-supervised and active learning",
+      "zh": "半监督学习与主动学习"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "semi.setting",
+       "name": {
+        "en": "The semi-supervised setting and its assumptions",
+        "zh": "半监督的设定与假设"
+       }
+      },
+      {
+       "id": "semi.selftrain",
+       "name": {
+        "en": "Self-training and confirmation bias",
+        "zh": "自训练与确认偏差"
+       }
+      },
+      {
+       "id": "semi.active",
+       "name": {
+        "en": "Active learning and query strategies",
+        "zh": "主动学习与查询策略"
+       }
+      },
+      {
+       "id": "semi.augment",
+       "name": {
+        "en": "Data augmentation",
+        "zh": "数据增强"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-self",
+    "title": {
+     "en": "Self-supervised learning: labels from the data itself",
+     "zh": "自监督学习：从数据本身造标签"
+    },
+    "summary": {
+     "en": "Why unlabelled data is enough to learn from, pretext tasks, the contrastive (InfoNCE) loss term by term with numbers, why the representations transfer, and how next-token prediction becomes a language model.",
+     "zh": "为什么没有标注也能学，前置任务有哪些，对比损失（InfoNCE）逐项拆开并带数字算一遍，表示为什么能迁移，以及“预测下一个词”怎么变成语言模型。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Self-supervised learning: labels from the data itself",
+      "zh": "自监督学习：从数据本身造标签"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "self.setting",
+       "name": {
+        "en": "Learning settings compared",
+        "zh": "各种学习设定的区别"
+       }
+      },
+      {
+       "id": "self.pretext",
+       "name": {
+        "en": "Pretext tasks and the pretrain-then-transfer pipeline",
+        "zh": "前置任务与预训练—迁移流程"
+       }
+      },
+      {
+       "id": "self.contrastive",
+       "name": {
+        "en": "Contrastive learning",
+        "zh": "对比学习"
+       }
+      },
+      {
+       "id": "self.infonce",
+       "name": {
+        "en": "The InfoNCE loss and temperature",
+        "zh": "InfoNCE 损失与温度"
+       }
+      },
+      {
+       "id": "self.transfer",
+       "name": {
+        "en": "Why representations transfer",
+        "zh": "表示为什么能迁移"
+       }
+      },
+      {
+       "id": "self.lm",
+       "name": {
+        "en": "Next-token prediction and language models",
+        "zh": "下一词预测与语言模型"
+       }
+      },
+      {
+       "id": "self.transformer",
+       "name": {
+        "en": "Transformer: positions, attention, decoding",
+        "zh": "Transformer：位置、注意力、解码"
+       }
+      },
+      {
+       "id": "self.llm",
+       "name": {
+        "en": "LLM training: pre-train then fine-tune",
+        "zh": "大模型训练：预训练再微调"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-anomaly",
+    "title": {
+     "en": "Anomaly detection: statistical, proximity, density, clustering",
+     "zh": "异常检测：统计、邻近、密度、聚类"
+    },
+    "summary": {
+     "en": "What counts as an anomaly and why it is hard to learn, then the four unsupervised families with every score computed by hand: z-score and Mahalanobis, k-th neighbour distance, relative density and a full LOF, and CBLOF.",
+     "zh": "什么算异常、为什么难学，然后是四类无监督方法，每个分数都手算：z 分数与马氏距离、第 k 邻居距离、相对密度与完整的 LOF、CBLOF。"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "Anomaly detection: statistical, proximity, density, clustering",
+      "zh": "异常检测：统计、邻近、密度、聚类"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "anomaly.definition",
+       "name": {
+        "en": "Anomaly types, settings, why it is hard",
+        "zh": "异常的类型、设定、为什么难"
+       }
+      },
+      {
+       "id": "anomaly.statistical",
+       "name": {
+        "en": "Statistical detection: z-score, Mahalanobis, Grubbs",
+        "zh": "统计检测：z 分数、马氏距离、Grubbs"
+       }
+      },
+      {
+       "id": "anomaly.proximity",
+       "name": {
+        "en": "Proximity-based detection",
+        "zh": "基于邻近的检测"
+       }
+      },
+      {
+       "id": "anomaly.density",
+       "name": {
+        "en": "Density-based detection and LOF",
+        "zh": "基于密度的检测与 LOF"
+       }
+      },
+      {
+       "id": "anomaly.clustering",
+       "name": {
+        "en": "Clustering-based detection (CBLOF)",
+        "zh": "基于聚类的检测（CBLOF）"
+       }
+      },
+      {
+       "id": "anomaly.compare",
+       "name": {
+        "en": "Choosing a method",
+        "zh": "选择方法"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-fairness",
+    "title": {
+     "en": "Bias and fairness: where it comes from, how to measure it, what to do",
+     "zh": "偏差与公平：从哪来、怎么量、怎么办"
+    },
+    "summary": {
+     "en": "Sources of bias along the ML pipeline, why removing the sensitive attribute is not enough, the group fairness criteria computed from confusion matrices, why they cannot all hold when base rates differ, and mitigation before, during and after training.",
+     "zh": "机器学习流程中偏差的来源，为什么去掉敏感属性不够，用混淆矩阵算各个群体公平准则，为什么基础率不同时它们不能同时成立，以及训练前、中、后的缓解办法。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Bias and fairness: where it comes from, how to measure it, what to do",
+      "zh": "偏差与公平：从哪来、怎么量、怎么办"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "fairness.sources",
+       "name": {
+        "en": "Sources of bias",
+        "zh": "偏差的来源"
+       }
+      },
+      {
+       "id": "fairness.unawareness",
+       "name": {
+        "en": "Fairness through unawareness and proxies",
+        "zh": "“不知道敏感属性”式公平与代理变量"
+       }
+      },
+      {
+       "id": "fairness.criteria",
+       "name": {
+        "en": "Fairness criteria from confusion matrices",
+        "zh": "用混淆矩阵计算公平准则"
+       }
+      },
+      {
+       "id": "fairness.conflict",
+       "name": {
+        "en": "Why fairness criteria conflict",
+        "zh": "公平准则为什么冲突"
+       }
+      },
+      {
+       "id": "fairness.mitigation",
+       "name": {
+        "en": "Mitigation: pre-, in-, post-processing",
+        "zh": "缓解：预处理、训练中、后处理"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "comp90049-drill",
+    "title": {
+     "en": "The drill: a method sheet and practice for every section",
+     "zh": "练习：方法表，以及 A、B、C 三部分的练习"
+    },
+    "summary": {
+     "en": "Every calculation family on one sheet, then Section A short answers, Section B calculations with fresh numbers and a backpropagation step, and two Section C design questions.",
+     "zh": "所有计算类型汇成一张表；然后是 A 部分简答、B 部分换了数的计算（含一步反向传播）、以及两道 C 部分设计题。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "The drill: a method sheet and practice for every section",
+      "zh": "练习：方法表，以及 A、B、C 三部分的练习"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "drill.short",
+       "name": {
+        "en": "Section A: explain and compare in a few lines",
+        "zh": "A 部分：几行话解释与比较"
+       }
+      },
+      {
+       "id": "drill.method",
+       "name": {
+        "en": "Section B: the calculations by hand",
+        "zh": "B 部分：手算"
+       }
+      },
+      {
+       "id": "drill.design",
+       "name": {
+        "en": "Section C: design and justify",
+        "zh": "C 部分：设计并说明理由"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
  }
 ]
