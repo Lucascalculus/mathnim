@@ -285,6 +285,7 @@ export class Field extends Mark {
   private U = new Float32Array(new ArrayBuffer(N_VEC4 * 16));
   private cpu_c: ReturnType<typeof make_canvas> | null = null;
   private cpu_buf: { vals: Float32Array; img: ImageData } | null = null;
+  private cpu_g: CanvasRenderingContext2D | null = null;
   constructor(public field: FieldKind, public fo: FieldOpts = {}) {
     super({ id: fo.id, role: fo.role ?? 'region', says: fo.says, z: fo.z ?? 1.2 });
   }
@@ -382,8 +383,13 @@ export class Field extends Mark {
       const y = s.y[1] - ((j + 0.5) / h) * (s.y[1] - s.y[0]);
       for (let i = 0; i <= w; i++) vals[j * (w + 1) + i] = f(s.x[0] + ((i + 0.5) / w) * (s.x[1] - s.x[0]), y, u);
     }
-    if (!this.cpu_c || this.cpu_c.width !== w || this.cpu_c.height !== h) this.cpu_c = make_canvas(w, h);
-    const cg = this.cpu_c.getContext('2d') as CanvasRenderingContext2D;
+    // (a canvas kept in CPU memory: writing pixels into a GPU-backed one forces a synchronous upload, which can stall
+    // for seconds while the GPU process is busy; only the finished small image goes to the GPU, when it is drawn)
+    if (!this.cpu_c || this.cpu_c.width !== w || this.cpu_c.height !== h) {
+      this.cpu_c = make_canvas(w, h);
+      this.cpu_g = this.cpu_c.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+    }
+    const cg = this.cpu_g!;
     const img = this.cpu_buf?.img ?? cg.createImageData(w, h), px = img.data;
     this.cpu_buf = { vals, img };
     const [r, g, b, fill] = [U[8], U[9], U[10], U[11]], la0 = U[15], lpx = Math.max(1, U[6] * k * 1.6), n = U[7];
