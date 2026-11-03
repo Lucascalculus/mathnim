@@ -27,7 +27,8 @@ export const CSS = `
 /* an engine figure: the canvas is drawn at the size it is shown (FigurePlayer.fit); wide, it fills the stage; on a phone it is laid out at the stage's width and the stage grows to the figure's height */
 .mn-stage.mn-flow:not(.mn-flow-phone) canvas{width:100%!important;height:100%!important;aspect-ratio:auto!important;margin:0!important}
 .mn-stage.mn-flow-phone,.mn-vis-stage.mn-flow-phone{height:auto!important;aspect-ratio:auto!important;min-height:0!important}
-.mn-stage.mn-flow-phone canvas,.mn-vis-stage.mn-flow-phone canvas{position:relative!important;display:block;width:100%!important;aspect-ratio:auto!important;margin:0!important}
+.mn-stage.mn-flow-phone canvas.mn-canvas,.mn-vis-stage.mn-flow-phone canvas{position:relative!important;display:block;width:100%!important;aspect-ratio:auto!important;margin:0!important}
+.mn-stage.mn-flow-phone canvas.mn-sketch{height:100%!important}
 .mn-vis-stage.mn-flow:not(.mn-flow-phone) canvas{width:100%!important;height:100%!important}
 .mn-sketch{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M17 2l5 5L8 21l-6 1 1-6z' fill='%23fff' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") 2 22,crosshair;touch-action:none}
 /* subtitles sit under the figure, never over it */

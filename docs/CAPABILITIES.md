@@ -64,8 +64,8 @@ A world: the learner moves handles/sliders/scrubs to reach goals; detectors give
 |---|---|---|
 | `scene` | `SceneSpec` |  |
 | `prompt` | `L10n` |  |
-| `setup?` | `(scene: Scene, ui: Interaction, ctx: LessonContext, world: WorldApi) => void` | Add drag handles / sliders to the scene; report events through `world`. |
-| `goal?` | `{ check: (scene: Scene, ctx: LessonContext, world: WorldApi) => boolean; message?: L10n }` | A single goal (shorthand for `goals: [{ id: 'goal', ... }]`). |
+| `setup?` | `(scene: Stage, ui: Interaction, ctx: LessonContext, world: WorldApi) => void` | Add drag handles / sliders to the scene; report events through `world`. (A step whose figure is an engine Figure gets a FigureUI as `ui`: attach() hands it to the visual's explore.) |
+| `goal?` | `{ check: (scene: Stage, ctx: LessonContext, world: WorldApi) => boolean; message?: L10n }` | A single goal (shorthand for `goals: [{ id: 'goal', ... }]`). |
 | `goals?` | `Goal[]` | All must be reached; each is announced when reached. |
 | `detectors?` | `Detector[]` |  |
 | `lines?` | `Line[]` | Narration triggered on enter, idle, goal, an event or a finding. |
@@ -75,9 +75,9 @@ A world: the learner moves handles/sliders/scrubs to reach goals; detectors give
 | `idle_s?` | `number` | Seconds without interaction before 'idle' lines (default 15). |
 | `hints?` | `L10n[]` |  |
 | `scrub?` | `Record<string, ScrubSpec>` | Numbers in the prompt the learner can drag: write `{scrub:lambda}` in the prompt and give the tracker here. The number and the scene stay in sync. |
-| `solve?` | `(scene: Scene, ctx: LessonContext, world: WorldApi) => void` | A scripted player that wins the world by acting on the scene (trackers, world.emit). The lesson doctor runs it headlessly to prove the goals can be reached - and that they are not reached before anyone acts. |
+| `solve?` | `(scene: Stage, ctx: LessonContext, world: WorldApi) => void` | A scripted player that wins the world by acting on the scene (trackers, world.emit). The lesson doctor runs it headlessly to prove the goals can be reached - and that they are not reached before anyone acts. |
 | `cue?` | `L10n[]` | The controls to point at, in order (handle or item labels, as given to add_handle / items): only the first unused one pulses and gets the coach demonstration; when it has been used the cue moves on. Default: every control in creation order (handles, then items). world.cue() changes it later. |
-| `actions?` | `{ id: string; label: L10n; run: (scene: Scene, ctx: LessonContext, world: WorldApi) => voi` | Buttons next to Continue (e.g. "Serve", "Pour"): they act on the world. |
+| `actions?` | `{ id: string; label: L10n; run: (scene: Stage, ctx: LessonContext, world: WorldApi) => voi` | Buttons next to Continue (e.g. "Serve", "Pour"): they act on the world. |
 
 ### `checkpoint` (CheckpointStep)
 
@@ -222,7 +222,7 @@ export type Block =
 
 ## Visuals
 
-64 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+64 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
 
 ### econ
 
@@ -288,7 +288,7 @@ export type Block =
   - params: `sample: one of single|multiturn|tool_call ="single" - which real sample: 'single' (long system prompt, one question, short answer), 'multiturn' (two turns), 'tool_call' (a tool call and its result)`; `start: one of all|assistant ="all" - where the cards start: 'all' trained (no mask, the plain LM-dataset default) or 'assistant' (assistant-only loss)`; `prompt_weight: number in [0, 1] =0 - λ, the weight of masked tokens in the loss (0 = fully masked; 0.01-0.5 is the range studied by Huerta-Enochian 2024)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: fine-tuning, sft, loss mask, chat template, prompt loss weight, eos, tool calling
   - used in: `ft/b/b1_sft_mechanics.ts`, `ft/b/b2_data_sources.ts`
-- **`training_curves`**: Training curves to diagnose (a figure): train loss and answer-only validation loss, and a task metric. Presets (illustrations): 'healthy', 'overfit' (val U-shape, metric falls), 'lr_high' (spikes), 'mask_bug' (train loss collapses on a repeated prompt, answer-only val and metric flat); or 'custom' with the learner's own numbers as JSON series.
+- **`training_curves`** *(engine)*: Training curves to diagnose (a figure): train loss and answer-only validation loss, and a task metric. Presets (illustrations): 'healthy', 'overfit' (val U-shape, metric falls), 'lr_high' (spikes), 'mask_bug' (train loss collapses on a repeated prompt, answer-only val and metric flat); or 'custom' with the learner's own numbers as JSON series.
   - params: `preset: one of healthy|overfit|lr_high|mask_bug|custom ="healthy" - which illustrated shape to draw; 'custom' draws `series``; `series: text (max 4000) ="" - custom only: JSON {"name": [values...], ...}, up to 4 series (e.g. {"train":[2.1,1.4,1.1],"val":[2.0,1.6,1.7]}); names ending in "acc"/"score"/"metric"/"reward" go on the right panel`; `show_answer: boolean =false - write the diagnosis of the preset under the plots (for the reveal after a question)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: fine-tuning, sft, training curves, overfitting, learning rate, loss mask, diagnosis
   - used in: `ft/b/b3_training_and_eval.ts`
@@ -393,7 +393,7 @@ export type Block =
   - params: `correlation: number in [-0.99, 0.99] =0.7 - correlation of x and y (the sample correlation is exactly this)`; `spread: number in [0.3, 2] =1 - standard deviation of x`; `aspect: number in [0.3, 3] =0.8 - standard deviation of y divided by that of x`; `n: integer in [10, 300] =80 - number of points`; `seed: integer in [1, 9999] =7 - random seed (same seed, same cloud)`
   - topics: statistics, covariance, correlation, variance, linear algebra, pca
   - used in: `eigen-pca/lesson.ts`
-- **`determinant_area`**: det A as area: the unit square becomes the parallelogram of A's columns with signed area det A; then ĵ turns onto î's line (det 0, plane squashed) and past it (det < 0, orientation flipped). Student drags î and ĵ.
+- **`determinant_area`** *(engine)*: det A as area: the unit square becomes the parallelogram of A's columns with signed area det A; then ĵ turns onto î's line (det 0, plane squashed) and past it (det < 0, orientation flipped). Student drags î and ĵ.
   - params: `A: 2x2 matrix in [-3, 3] =[[1.5,1],[0.5,2]] - the matrix, rows first [[a, b], [c, d]]; det = ad - bc. Use parallel columns for det 0 and swapped orientation for det < 0`; `show_collapse: boolean =true - after showing det A, turn ĵ onto î's line (det 0) and past it (det < 0), then back`
   - topics: linear algebra, determinant, area, orientation, linear transformations
   - used in: `eigen-pca/lesson.ts`
@@ -468,7 +468,7 @@ export type Block =
   - params: `brakes: one of 1|0.5 ="1" - largest deceleration in m/s²: '1' shows three PD tunings, '0.5' only the tuned one (it was tuned for 1)`; `show_mpc: boolean =false - also draw the docking MPC (horizon 20 steps for brakes 1, 40 for brakes 0.5)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, pid, pd controller, saturation, control
   - used in: `mpc/m1_lookahead.ts`
-- **`mpc_qp_plane`**: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: cost ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
+- **`mpc_qp_plane`** *(engine)*: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: the cost bowl and its ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line in its own colour, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
   - params: `story: one of full|setup ="full" - 'full': the narrated build (cost ellipses, the limits one family at a time, the smallest ellipse touching the polygon, then the state moves); 'setup': everything shown at once at (p0, v0), for a world`; `p0: number in [4, 9.9] =8 - initial position of the cart [m] (its front bumper; the wall is at 10 m, the flag at 9.5 m)`; `v0: number in [0, 2] =0 - initial speed [m/s] (the limit is 2)`; `clip: boolean =true - show the clipped no-limits plan (□) and its cost ellipse, for comparison with the best plan`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, quadratic program, constraints, active set, kkt, feasible set, level sets, control
   - used in: `mpc/m4_constraints.ts`
@@ -480,7 +480,7 @@ export type Block =
   - params: `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, receding horizon, feedback, open loop, disturbance
   - used in: `mpc/m1_lookahead.ts`
-- **`mpc_shift_tail`**: The shift argument for recursive feasibility in the phase plane (p, v): a terminal-set plan x_0..x_N ending in X_f; one step later the candidate x_1..x_N plus one braking step from x_N, which stays in X_f because X_f is invariant under braking. Toy-cart simulation, static figure.
+- **`mpc_shift_tail`** *(engine)*: The shift argument for recursive feasibility in the phase plane (p, v): a terminal-set plan x_0..x_N ending in X_f; one step later the candidate x_1..x_N plus one braking step from x_N, which stays in X_f because X_f is invariant under braking. Toy-cart simulation, static figure.
   - params: `N: integer in [3, 12] =8 - horizon of the terminal-set MPC whose plan is shown`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, terminal set, recursive feasibility, invariant set, control
   - used in: `mpc/m6_feasibility.ts`

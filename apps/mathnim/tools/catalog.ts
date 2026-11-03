@@ -142,7 +142,7 @@ out.push(block ? `\`\`\`ts\n${block.getText().slice(0, 2400)}\n\`\`\`` : '_(see 
 h('## Visuals');
 const vs = list_visuals().sort((a, b) => pack_of(a.name).localeCompare(pack_of(b.name)) || a.name.localeCompare(b.name));
 out.push(
-  `${vs.length} parametric visuals (\`packages/visuals\`): each is a scene with checked parameters, used by lessons (scene steps, worlds, \`visual\` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (\`import('@mathnim/visuals/mpc')\`, \`.../ft/<part>\`, \`.../econ\` and \`.../it\` for demo courses through their entries' \`packs\`); the core pack (geometry, linear algebra) loads with the app. New visuals: \`packages/visuals/README.md\`; check them with \`npm run check -w @mathnim/visuals -- --only <names>\` and look at the contact sheets.`,
+  `${vs.length} parametric visuals (\`packages/visuals\`): each is a scene with checked parameters, used by lessons (scene steps, worlds, \`visual\` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (\`import('@mathnim/visuals/mpc')\`, \`.../ft/<part>\`, \`.../econ\` and \`.../it\` for demo courses through their entries' \`packs\`); the core pack (geometry, linear algebra) loads with the app. New visuals: \`packages/visuals/README.md\`; visuals marked *(engine)* are figures made with \`@mathnim/engine\` (\`define_figure\`; new visuals start there: \`packages/engine/README.md\`); check them with \`npm run check -w @mathnim/visuals -- --only <names>\` and look at the contact sheets.`,
 );
 let pack = '';
 for (const v of vs) {
@@ -152,7 +152,7 @@ for (const v of vs) {
     h(`### ${p}`);
   }
   const uses = used_in(new RegExp(`['"\`]${v.name}['"\`]`));
-  out.push(`- **\`${v.name}\`**: ${one_line(v.summary)}`);
+  out.push(`- **\`${v.name}\`**${v.engine ? ' *(engine)*' : ''}: ${one_line(v.summary)}`);
   const params = Object.entries(v.params);
   if (params.length) out.push(`  - params: ${params.map(([k, s]) => `\`${one_line(describe_param(k, s as any))}\``).join('; ')}`);
   if (v.topics.length) out.push(`  - topics: ${v.topics.join(', ')}`);

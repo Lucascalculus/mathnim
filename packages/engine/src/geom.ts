@@ -53,3 +53,14 @@ export function segment_hits_box(p: XY, q: XY, b: Box): boolean {
 }
 export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 export const clamp = (x: number, a: number, b: number): number => Math.max(a, Math.min(b, x));
+
+/** About n round tick values covering [lo, hi] (1, 2 or 5 times a power of ten apart). */
+export function nice_ticks(lo: number, hi: number, n = 5): number[] {
+  const span = hi - lo;
+  if (!(span > 0)) return [lo];
+  const raw = span / Math.max(1, n), p10 = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map((k) => k * p10).find((s) => s >= raw * 0.999) ?? 10 * p10;
+  const out: number[] = [];
+  for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + step * 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
+}

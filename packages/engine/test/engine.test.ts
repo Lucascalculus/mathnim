@@ -190,3 +190,12 @@ describe('player', () => {
     p.release();
   });
 });
+
+describe('nice ticks', () => {
+  it('chooses round steps', async () => {
+    const { nice_ticks } = await import('../src/index');
+    expect(nice_ticks(0, 12, 6)).toEqual([0, 2, 4, 6, 8, 10, 12]);
+    expect(nice_ticks(0, 35, 5)).toEqual([0, 10, 20, 30]);
+    expect(nice_ticks(-1, 1, 4)).toEqual([-1, -0.5, 0, 0.5, 1]);
+  });
+});

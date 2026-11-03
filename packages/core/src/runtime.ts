@@ -15,7 +15,7 @@ import {
   type SceneSpec, type Step, type TextStep, type Vars,
 } from './schema';
 import { WorldSession, type Finding, type Line, type SemanticEvent } from './world';
-import { make_player, make_ui, release_player, type Stage, type StagePlayer, type StageUI } from './stage';
+import { make_player, make_ui, release_player, sketch_figure, type Stage, type StagePlayer, type StageUI } from './stage';
 
 export type RuntimeEvent =
   | { type: 'step'; step: Step; index: number }
@@ -250,7 +250,9 @@ export class LessonRuntime {
     this.emit({ type: 'step', step, index: i });
     this.log.emit({ verb: 'viewed', lesson: this.lesson.id, step: step.id });
     this.vars = step.kind === 'checkpoint' && step.params ? { ...this.lesson_vars, ...step.params(this.rng) } : { ...this.lesson_vars };
-    const spec = 'scene' in step ? step.scene : undefined;
+    // (a sketch question with no scene of its own is drawn on its axes)
+    const q = step.kind === 'checkpoint' ? step.question : null;
+    const spec = 'scene' in step && step.scene ? step.scene : q?.type === 'sketch' ? () => sketch_figure(q.x_range, q.y_range, this.lang) : undefined;
     if (spec) {
       // let the page show the new step before building its scene (that blocks the page while it records)
       await painted();

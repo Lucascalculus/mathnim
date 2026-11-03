@@ -15,6 +15,7 @@ import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import type { Scene } from 'manim-web';
 import { is_engine_ui, is_figure_player, type StagePlayer } from '@mathnim/core';
+import { make_look, set_look } from '@mathnim/look';
 import {
   BEAT, BEAT_LEAD, VOICE_DELAY, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, scene_beats, tr, unbeat,
   type AxesLike, type CheckpointStep, type L10n, type Lang, type Lesson, type Recording, type Response, type RuntimeEvent, type TextStep, type Vars,
@@ -98,6 +99,9 @@ const CAPTION_SIZES = [14, 16, 19];
 const CAPTION_KEY = 'mathnim.caption_size';
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
+/** Does a step show a figure (its scene, or the axes a sketch question is drawn on)? */
+const stage_of = (s: { kind: string; scene?: unknown; question?: { type: string } }): boolean => !!s.scene || (s.kind === 'checkpoint' && s.question?.type === 'sketch');
+
 export class LessonView {
   runtime: LessonRuntime;
   lesson: Lesson;
@@ -139,6 +143,8 @@ export class LessonView {
     inject_styles();
     if (o.tex) set_tex_renderer(o.tex);
     this.o = o;
+    // engine figures draw with the look of the page's theme
+    set_look(make_look(o.dark ? 'dark' : 'light', { reduced_motion: typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches }));
     this.lesson = lesson;
     this.root = root;
     this.lang = o.lang ?? ui_lang();
@@ -621,7 +627,7 @@ export class LessonView {
         this.el.caption.classList.toggle('offstage', !this.scene_step && !this.game);
         this.app.classList.toggle('mn-textstep', text);
         // a step without a figure (text pages, a question or world with no scene) shows no empty stage or player bar
-        this.app.classList.toggle('mn-nostage', text || !(s as { scene?: unknown }).scene);
+        this.app.classList.toggle('mn-nostage', text || !stage_of(s));
         this.place_rail();
         this.reached = Math.max(this.reached, e.index);
         if (this.o.remember && !s.branch_only) {
@@ -638,7 +644,7 @@ export class LessonView {
           this.el.caption.textContent = '';
         }
         this.render_steps();
-        const hasFigure = !!(s as { scene?: unknown }).scene;
+        const hasFigure = stage_of(s);
         for (const k of ['play', 'seek', 'speed', 'export']) (this.el[k] as HTMLButtonElement).disabled = !hasFigure || (s.kind !== 'scene' && k !== 'export');
         if (s.kind === 'scene') {
           const cont = this.button(t('continue'), () => this.runtime.next(), true);
@@ -1320,6 +1326,13 @@ export class LessonView {
   }
   /** Pixel <-> data mapping through the scene camera and optional axes. */
   private mapping(axes?: (scene: any) => AxesLike): SketchMapping {
+    const fp = this.runtime.player;
+    if (fp && is_figure_player(fp)) {
+      // a figure: through its first plot (CSS px of the canvas → the figure's frame → data)
+      const fig = fp.scene, plot = fig.registry.all().find((t) => t.kind === 'plot') as unknown as { inv(p: [number, number]): [number, number]; P(p: readonly number[]): [number, number] };
+      const k = () => this.canvas.getBoundingClientRect().width / fig.frame.w;
+      return { to_data: (px, py) => plot.inv([px / k(), py / k()]), to_px: (x, y) => plot.P([x, y]).map((v) => v * k()) as [number, number] };
+    }
     const p = this.runtime.player! as ScenePlayer;
     const cam = p.scene.camera as any;
     const ax = axes ? axes(p.scene) : null;
