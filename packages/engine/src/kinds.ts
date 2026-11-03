@@ -116,6 +116,7 @@ export type Part = ({ tex: Val<string> } | { text: Val<Txt> } | { value: Val<num
  */
 export class Readout extends Thing implements Block {
   kind = 'readout';
+  override parts_of = (lang: Lang) => this.parts_at(lang);
   /** `role` may follow the state (a determinant's colour says whether it scales, collapses or flips). */
   constructor(public parts: Part[], public o: { id?: string; role?: Val<string>; says?: L10n; kind?: TextKind; style?: Style } = {}) {
     super({ id: o.id, role: typeof o.role === 'string' ? o.role : 'text', says: o.says, z: 5, style: o.style });
@@ -202,11 +203,28 @@ export class Readout extends Thing implements Block {
       x += ws[i] + sp;
     });
   }
+  private part_text(p: Part, lang: Lang): string {
+    if ('gap' in p) return '';
+    if ('tex' in p) return read(p.tex);
+    if ('text' in p) return txt(p.text, lang);
+    const v = read(p.value);
+    return Number.isFinite(v) ? v.toFixed(p.decimals ?? 2).replace('-', '−') : '—';
+  }
   override text(lang: Lang): string {
-    return this.parts.map((p) => ('gap' in p ? '' : 'tex' in p ? read(p.tex) : 'text' in p ? txt(p.text, lang) : String(read(p.value)))).join(' ');
+    return this.parts.map((p) => this.part_text(p, lang)).filter(Boolean).join(' ');
   }
   override text_px(): number {
     return this.px();
+  }
+  parts_at(lang: Lang): { text: string; tex?: boolean; box: Box }[] {
+    const ws = untracked(() => this.widths(lang)), sp = this.px() * 0.28, out: { text: string; tex?: boolean; box: Box }[] = [];
+    let x = this.box.x;
+    this.parts.forEach((p, i) => {
+      const s = untracked(() => this.part_text(p, lang));
+      if (s) out.push({ text: s, tex: 'tex' in p, box: { x, y: this.box.y, w: ws[i], h: this.box.h } });
+      x += ws[i] + sp;
+    });
+    return out;
   }
 }
 
@@ -215,6 +233,7 @@ export interface LegendEntry { role: string; text?: Txt; tex?: string; mark?: 'l
 /** A key to the marks of a plot: a swatch in each role's colour and material, and its name. */
 export class Legend extends Thing implements Block {
   kind = 'legend';
+  override parts_of = (lang: Lang) => this.parts_at(lang);
   private rows: { x: number; y: number; w: number; lines: string[] }[] = [];
   /** `stack`: one entry per line; `backing`: a paper card behind it (a legend inside a plot, over its lines). */
   constructor(public entries: LegendEntry[], public lo: { id?: string; stack?: boolean; style?: Style; gap?: number; line_h?: number; swatch?: number } = {}) {
@@ -342,7 +361,17 @@ export class Legend extends Thing implements Block {
     });
   }
   override text(lang: Lang): string {
-    return this.entries.map((e) => (e.text ? tr(e.text, lang) : '') + (e.tex ?? '')).join(' · ');
+    return this.entries.map((e) => [e.text ? tr(e.text, lang) : '', e.tex ?? ''].filter(Boolean).join(' ')).join(' · ');
+  }
+  /** Each shown entry's words, where they are drawn (after its swatch). */
+  parts_at(lang: Lang): { text: string; tex?: boolean; box: Box }[] {
+    const lh = this.lh(), sw = this.sw() + 6;
+    return this.entries.flatMap((e, i) => {
+      const r = this.rows[i], shown = e.show === undefined ? 1 : untracked(() => read(e.show!));
+      if (!r || shown <= 0.001) return [];
+      const s = [e.text ? tr(e.text, lang) : '', e.tex ?? ''].filter(Boolean).join(' ');
+      return s ? [{ text: s, tex: !!e.tex, box: { x: this.box.x + r.x + sw, y: this.box.y + r.y, w: Math.max(1, r.w - sw), h: lh * Math.max(1, r.lines.length) } }] : [];
+    });
   }
   override text_px(): number {
     return this.font().size;

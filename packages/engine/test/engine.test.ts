@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
 import {
-  Column, Field, Figure, FigurePlayer, Marker, Path, Plot, Row, TextBlock, act_now, beat, check_act, column, derive, load_tex, manifest_of, param, place, place_label, quadratic, read, reveal, row,
+  Column, Field, Figure, FigurePlayer, Marker, Path, Plot, Row, TextBlock, act_now, beat, check_act, column, tex_to_text, derive, load_tex, manifest_of, param, place, place_label, quadratic, read, reveal, row,
   set, settle_time, spring_step, t, track, untracked, wait, watch_writes, now_version,
 } from '../src/index';
 import { use_node_canvas, lint_figure, render_figure } from '../node';
@@ -256,5 +256,17 @@ describe('placement by hand', () => {
     expect(f.view_scale).toBeCloseTo(0.75, 6);
     expect(a.box.x).toBeCloseTo((-7 + 64 / 9) * (960 / (128 / 9)), 3);
     expect(b.box.y).toBeGreaterThan(a.box.y + 300);
+  });
+});
+
+describe('the DOM mirror reads TeX as words', () => {
+  it('turns subscripts, relations, units, colours, matrices and î ĵ into text', () => {
+    expect(tex_to_text('a_1 = -0.31')).toBe('a₁ = −0.31');
+    expect(tex_to_text('\\mathrm{m/s^2}')).toBe('m/s²');
+    expect(tex_to_text('p(2\\,\\mathrm{s}) \\le 10')).toBe('p(2 s) ≤ 10');
+    expect(tex_to_text('A = \\begin{bmatrix} \\color{#1F8A5B}1.5 & \\color{#E4572E}0.5 \\\\ \\color{#1F8A5B}0.5 & \\color{#E4572E}1.2 \\end{bmatrix}')).toBe('A = [1.5 0.5; 0.5 1.2]');
+    expect(tex_to_text('\\det A = \\color{#1F8A5B}a\\color{#E4572E}d - \\color{#E4572E}b\\color{#1F8A5B}c')).toBe('det A = ad − bc');
+    expect(tex_to_text('\\hat\\imath, \\hat{\\jmath}')).toBe('î, ĵ');
+    expect(tex_to_text('\\varnothing')).toBe('∅');
   });
 });

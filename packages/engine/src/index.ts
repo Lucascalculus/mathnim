@@ -15,3 +15,4 @@ export * from './gpu';
 export * from './figure';
 export * from './player';
 export * from './acts';
+export * from './mirror';

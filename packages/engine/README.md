@@ -89,6 +89,15 @@ lints every figure wide (960 × 540) and on a phone (360 wide) at the end of eve
 - `node apps/mathnim/tools/perf_steps.cjs <label> <base-url>`: open, frame, seek, idle and drag costs of steps in a browser.
 - In node: `packages/engine/node.ts` (`use_node_canvas`, `lint_figure`, `render_figure`, `node_player`).
 
+## Accessibility: the DOM mirror
+
+A figure's words are on a canvas; `mirror.ts` puts a layer of plain elements over it, built from the registry: one per
+thing that says something (a legend's entries and a readout's parts each on their own), where it is drawn and in
+reading order, with transparent text that can be selected; marks are named by their `says`; readouts are announced
+politely after the hand stops; each handle is a keyboard slider (`aria-valuetext` names its params by `says`). TeX is
+read as words (`tex_to_text`). The player makes it once the canvas is in a page (`mirror: false` for a canvas only
+recorded). `node apps/mathnim/tools/mirror_check.cjs` checks it in the page and saves the words drawn over the figure.
+
 ## How it runs
 
 `FigurePlayer` has `ScenePlayer`'s surface (the runtime and the view take either through `make_player` in
