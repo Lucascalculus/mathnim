@@ -149,8 +149,8 @@ export interface Motion {
   response: number;
   damping: number;
   reduced: 'instant' | 'fade';
-  /** 'spring' (default): the spring's step response; 'ease': slow in and slow out over the whole time (a long move or a drawing-on, so a narration's pacing holds). */
-  curve?: 'spring' | 'ease';
+  /** 'spring' (default): the spring's step response; 'ease': slow in and slow out over the whole time (a long move or a drawing-on, so a narration's pacing holds); 'linear': at one speed (manim's linear rate). */
+  curve?: 'spring' | 'ease' | 'linear';
 }
 export const MOTION: Record<string, Motion> = {
   reveal: { response: 0.55, damping: 1, reduced: 'fade' },
@@ -161,6 +161,10 @@ export const MOTION: Record<string, Motion> = {
   grow: { response: 1.4, damping: 1, reduced: 'instant', curve: 'ease' },
   /** A line or a grid drawing itself on. */
   draw: { response: 1.2, damping: 1, reduced: 'instant', curve: 'ease' },
+  /** At one speed, start to end (a clock, a sweep). */
+  linear: { response: 1, damping: 1, reduced: 'instant', curve: 'linear' },
+  /** Words written on. */
+  write: { response: 1.0, damping: 1, reduced: 'instant', curve: 'linear' },
 };
 
 /** Layout rules, applied by the engine per device. */

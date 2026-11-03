@@ -5,7 +5,7 @@ import { bounds_of, clamp, type Box, type XY } from './geom';
 import type { Block, LayoutEnv, Side, Size } from './layout';
 import { param, read, untracked, type Param, type Val } from './state';
 import { draw_tex, tex_size } from './tex';
-import { break_lines, font_css, font_of, parse_marks, tr, text_width, type L10n, type Lang, type Line, type Span, type TextKind } from './text';
+import { break_lines, font_css, font_of, parse_marks, tr, text_width, type L10n, type Lang, type TextLine, type Span, type TextKind } from './text';
 import { Thing, rgba, type DrawEnv, type Obstacle, type Style } from './thing';
 
 type Txt = string | L10n;
@@ -16,7 +16,7 @@ const txt = (v: Val<Txt>, lang: Lang): string => tr(read(v), lang);
 /** A block of text: a caption (wraps), a label, or a readout. `[墙](noun:wall)` and `**x**` colour words. */
 export class TextBlock extends Thing implements Block {
   kind = 'text';
-  lines: Line[] = [];
+  lines: TextLine[] = [];
   constructor(public content: Val<Txt>, public o: { id?: string; role?: string; kind?: TextKind; align?: 'left' | 'center' | 'right'; weight?: number; says?: L10n; z?: number; max_lines?: number; lang?: Lang; style?: Style } = {}) {
     super({ id: o.id, role: o.role ?? (o.kind === 'caption' ? 'text' : 'text'), says: o.says, z: o.z ?? 5, style: o.style });
   }
@@ -399,7 +399,7 @@ export interface PlotSpec {
   /** Prefer at most this height / width (a flat plot, e.g. a track). */
   max_aspect?: number;
   /** 'x': only the horizontal axis (a track, a number line); 'origin': both axes through (0, 0), no frame. */
-  axes?: 'xy' | 'x' | 'origin';
+  axes?: 'xy' | 'x' | 'origin' | 'none';
   /** Tick numbers (default true; a plane of vectors has none). */
   numbers?: boolean;
   /** The data aspect on a phone (a flatter pad saves height there). */
@@ -453,6 +453,7 @@ export class Plot extends Thing implements Block {
   /** Margins for tick numbers and axis labels. */
   private margins(): { l: number; r: number; t: number; b: number } {
     const px = this.nfont().size, lab = (this.spec.label_px ?? px) * 1.25;
+    if (this.spec.axes === 'none') return { l: 0, r: 0, t: 0, b: 0 };
     if (this.spec.numbers === false) return { l: 6, r: 6, t: this.spec.y_label ? lab + 6 : 6, b: 6 + (this.spec.x_label ? lab : 0) };
     const ywid = Math.max(0, ...(this.spec.y_numbers ?? this.spec.y_ticks ?? []).map((v) => this.num_w(v))) + 8;
     const unit = this.spec.x_unit ? tex_size(this.spec.x_unit, px).w : 0;
@@ -560,6 +561,11 @@ export class Plot extends Thing implements Block {
         g.lineTo(d.x + d.w, Math.round(this.Y(v)) + 0.5);
       }
       g.stroke();
+    }
+    if (this.spec.axes === 'none') {
+      // a stage: coordinates and nothing drawn
+      g.restore();
+      return;
     }
     if (this.spec.axes === 'origin') {
       // a plane of vectors: its two axes cross at the origin, and that is all
@@ -1006,7 +1012,12 @@ export class Handle extends Mark {
   kind = 'handle';
   /** 0 at rest, 1 under the pointer, 2 held (a param, so the renderer redraws it when it changes). */
   readonly state: Param<number>;
-  constructor(public px: Param<number>, public py: Param<number> | null, public o: { id?: string; says?: L10n; r?: number; on_end?: () => void; on_move?: () => void } = {}) {
+  /**
+   * `relative`: a drag moves the params by its distance (param units per px), not to where the pointer is (an orbit);
+   * `at`: where it is (CSS px) when that is not its params' point; `look: 'none'`: nothing drawn (an orbit over a 3D
+   * view; the thing it moves shows where it is).
+   */
+  constructor(public px: Param<number>, public py: Param<number> | null, public o: { id?: string; says?: L10n; r?: number; on_end?: () => void; on_move?: () => void; relative?: { kx: number; ky: number }; at?: () => XY; look?: 'glass' | 'none' } = {}) {
     super({ id: o.id ?? 'handle', role: 'glass', says: o.says, z: 8 });
     this.state = param(0, { name: this.id + '.state' });
   }
@@ -1027,9 +1038,22 @@ export class Handle extends Mark {
     return this.o.r ?? 13;
   }
   center(): XY {
+    if (this.o.at) return this.o.at();
     return this.plot.P([this.px.value, this.py ? this.py.value : this.plot.spec.y[0]]);
   }
+  /** A relative handle: move the params by a drag of (dx, dy) CSS px. */
+  drag_by(dx: number, dy: number): void {
+    const k = this.o.relative!;
+    this.px.set(this.px.peek() + dx * k.kx);
+    if (this.py) this.py.set(this.py.peek() + dy * k.ky);
+    this.o.on_move?.();
+  }
   draw(env: DrawEnv): void {
+    if (this.o.look === 'none') {
+      const [cx, cy] = this.center(), rr = this.r();
+      this.box = { x: cx - rr, y: cy - rr, w: 2 * rr, h: 2 * rr };
+      return;
+    }
     const [x, y] = this.center(), r = this.r() * (this.held ? 1.12 : this.hover ? 1.05 : 1), g = env.g;
     g.save();
     // soft shadow from the one high light, then a clear bead with a bright rim

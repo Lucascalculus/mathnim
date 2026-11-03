@@ -330,3 +330,89 @@ Chromium（软件 GPU）里打开同一节课的同一步。桌面 1440×900，�
 2. DOM 镜像（无障碍）和 `describe()` 接到导师的上下文里（导师已经能读到新图的描述）。
 3. 把实验室里的玻璃、液态代数做成内核的插件（`ENGINE.md` 第 8 节），在一张移植的图里用上。
 4. 基准测试：5 个任务，旧接口对新接口。
+
+---
+
+## 7. 第二轮（同日晚）：自由度、导师在图里动手、读屏镜像、移植 manim 的功能
+
+按 Lucas 的顺序做完的四件事，每件都提交、推送过。
+
+### 7.1 自由度（第五个标准）
+
+`ENGINE.md` 的标准加了第五条"自由度"：规则是默认值，不是笼子；manim 能画的，新图都要能画；每条规则都有覆盖办法，覆盖只报警告、不拦。
+内核加的覆盖（`packages/engine/README.md` 有一张覆盖表）：
+
+- 任何东西的 `style`：颜色（调色板名、角色、或任意 `#rrggbb`）、线宽、虚线、透明度、填充、字号、字重、字体、纸底；
+- 标签手放：`avoid: false`、`gap`、`offset`（可以是函数）、正放在锚点上；
+- 精确摆放：`place()`（默认 manim 的坐标系）、plot 的 `data_box`、`design_w`（桌面按一个宽度排版，整体缩放，像 manim 一样字和线一起缩）；
+- 坐标轴：哪些刻度有数字、末尾单位（"10 m"）、TeX 数字、网格位置、刻度样式、图例放进图内角落。
+
+M4 两步计划这张图按原场景的矩形、颜色、虚线、线宽、字号、时间线重做（`side_by_side.cjs` 新旧并排对照）。
+MPC 的名词颜色改回课程一直用的（速度金、墙珊瑚红）。
+
+### 7.2 导师在图里动手（端到端）
+
+导师能做学生能做的事，而且只能做这些：
+
+- `point`：在一个东西上打光；
+- `set`：移动学生的手能动的东西，像手一样缓动，按步长吸附；
+- `note`：在一个东西上写几个字；
+- `reset`：放回原样。
+
+链路：
+
+1. 提问时，图的清单（屏幕上的东西、能动的参数，用学生的语言命名）进入导师的提示词；学生还没答的题不给。
+2. 模型在回答后面写最多 3 行 `ACT:`。流式显示时这些行被藏起来，结束后按清单检查：未知的 id 不做，数值夹到范围内。
+3. 图自己再检查一遍才动。服务器只收下清单并截短，校验在浏览器里：只有图知道此刻的注册表。
+4. 回答下面列出导师做了什么，带"放回原样"；每个动作记进学习事件。
+
+验证：`tools/tutor_acts_e2e.cjs` 在真实页面里回放一段模型回复，中英文各 9/9 通过；单测 13 项。
+
+### 7.3 读屏用的 DOM 镜像
+
+画布上方一层普通元素，从注册表生成：
+
+- 每个说了什么的东西一个元素，放在它画的位置、按阅读顺序。图例的每一项、读数的每一段各自一个，记号用它的 `says` 命名。
+- 文字透明，但可以选中、复制；页面的"问这句"也能用。
+- 读数在手停下后礼貌地播报；每个把手是键盘可操作的滑块，值用学生的语言说出参数名。
+- TeX 读成文字（下标、≤、单位、矩阵按行，颜色略去）。
+
+验证：`tools/mirror_check.cjs` 在三张新图、两种语言上 48/48 通过。检查项：覆盖画布、阅读顺序、选中、键盘、播报、拖动不受影响。它还会存一张"文字叠在图上"的截图，用来看对齐。
+
+### 7.4 移植 manim-web 的功能（按使用次数排序）
+
+先审计了课、60 张未移植的图、导师录好的回答里用到的 manim-web 名字（64 个），然后按次数移植：
+
+| manim-web（用到次数） | 新内核 |
+|---|---|
+| VGroup 688、Scene 110 | 数组和排版块（row / column / place），`Figure` |
+| FadeIn 682、FadeOut 10 | `reveal` / `hide` |
+| ValueTracker 242、always_redraw 118 | `param` / 参数的函数（东西随参数自己重画） |
+| VMobject 188 | `Path`、`Polygon`、`Drawn` |
+| Create 143、Write 64 | `create()`（描边后填色）、`write()`（从左往右写出） |
+| Dot 73、MathTex 69、Text 15、DecimalNumber 32 | `Marker` / `Dots`、`TexMark`（TeX 或文字放在一个点上）、`Readout` |
+| Circle 48、Line 38、DashedLine 12、Rectangle 21、RoundedRectangle 10、Square 8 | `Circle`、`Line`（`style.dash`）、`Rect`（圆角） |
+| smooth 45、linear 44 | 意图 `ease` / `linear` |
+| RIGHT / LEFT / UP / DOWN、DEGREES | 排版规则、`place()`、`stage()`（manim 坐标的舞台） |
+| Indicate 32、Flash 8 | `indicate()`、`flash()` |
+| UpdateFromAlphaFunc 24 | `call(dur, u => …, params)`（跳转仍然精确） |
+| GrowArrow 22、GrowFromEdge 2 | `Arrow` 的 `upto`、`grow(from, …)` |
+| LaggedStart 18、Succession、AnimationGroup | `lagged`、`seq`、`together` |
+| Slider 17 | `slider(fig, param, …)`（手、键盘、导师、镜像都能用） |
+| Arrow 9、BraceBetweenPoints 8、Polygon 5、Arc 3、Sector 2、Ellipse 1、RightAngle 1 | `Arrow`、`Brace`、`Polygon`、`Arc`、`Sector`、`Ellipse`、`RightAngle`、`Angle` |
+| Transform 4、TransformMatchingTex 2 | `transform(a, b)`（形状滑成另一个形状）；文字只做淡入淡出 `crossfade` |
+| NumberLine 4、Axes 2 | `Plot`（`axes: 'x' / 'xy' / 'origin' / 'none'`） |
+| ImageMobject 2 | `ImageMark` |
+| ThreeDScene、Cone、Line3D、ThreeDVMobject（pca_3d） | `View3D`（manim 的相机角、由远到近）+ `orbit` 拖动转视角 |
+
+剩下的名字不是 manim 的功能：课自己的工具函数（切披萨的角度、`mul`、`add`），或 manim 的内部设置（字形 hinting、重采样、`config`）。
+
+全部有单测（内核 21 项，含一张画了所有新形状和动作的图，跳转前后逐值一致），lint 两种尺寸都干净。
+
+**还没做的**：
+
+- TeX 之间按部件匹配的变形：TransformMatchingTex 现在只是淡入淡出。
+- 3D 曲面和网格：没有课用到。
+- 用这些新功能实际移植剩下的 84 张图：功能齐了，图本身还没动。
+- 另外三张已移植的图还没有按 7.1 的方法逐项并排对照（Lucas 说先往下做）。
+- 引擎的新名字：给了候选，等 Lucas 选。

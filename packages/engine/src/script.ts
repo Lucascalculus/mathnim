@@ -21,7 +21,7 @@ export function settle_time(T: number, zeta: number): number {
   return last + T / 200;
 }
 const settle_cache = new Map<string, number>();
-function intent_of(name: string): { T: number; zeta: number; dur: number; reduced: 'instant' | 'fade'; curve: 'spring' | 'ease' } {
+function intent_of(name: string): { T: number; zeta: number; dur: number; reduced: 'instant' | 'fade'; curve: 'spring' | 'ease' | 'linear' } {
   const m = look().motion[name] ?? look().motion.reveal, key = `${m.response}|${m.damping}`;
   let dur = settle_cache.get(key);
   if (dur === undefined) settle_cache.set(key, (dur = settle_time(m.response, m.damping)));
@@ -40,7 +40,8 @@ export type Step =
   | { kind: 'wait'; s: number }
   | { kind: 'beat' }
   | { kind: 'together'; steps: Step[] }
-  | { kind: 'call'; f: (u: number) => void; dur: number };
+  | { kind: 'seq'; steps: Step[] }
+  | { kind: 'call'; f: (u: number) => void; dur: number; params?: Param<number>[] };
 
 /** Show things (opacity 0 → 1). */
 export const reveal = (...things: (Thing | { things(): Thing[] })[]): Step => ({ kind: 'reveal', things: flat(things), intent: 'reveal' });
@@ -51,9 +52,18 @@ export const wait = (s: number): Step => ({ kind: 'wait', s });
 /** The same step taking `dur` seconds (each part of a together(), too): its motion is stretched to fill the time. */
 export function over(dur: number, s: Step): Step {
   if (s.kind === 'together') return { ...s, steps: s.steps.map((x) => over(dur, x)) };
-  if (s.kind === 'reveal' || s.kind === 'hide' || s.kind === 'set') return { ...s, dur };
+  if (s.kind === 'reveal' || s.kind === 'hide' || s.kind === 'set' || s.kind === 'call') return { ...s, dur };
   return s;
 }
+/** Steps one after the other (inside a together(): a sequence that runs beside the others; manim's Succession). */
+export const seq = (...steps: Step[]): Step => ({ kind: 'seq', steps });
+/** Steps that start `lag` seconds apart and overlap (manim's LaggedStart). */
+export const lagged = (lag: number, ...steps: Step[]): Step => ({ kind: 'together', steps: steps.map((s, i) => (i ? seq(wait(lag * i), s) : s)) });
+/**
+ * A change computed from the step's progress u (0 → 1), as manim's UpdateFromAlphaFunc: f must depend on u only (a
+ * seek then gives the same picture), and name the params it sets, so a seek before it puts them back.
+ */
+export const call = (dur: number, f: (u: number) => void, params: Param<number>[] = []): Step => ({ kind: 'call', f, dur, params });
 /** A beat of the narration: the next section starts here (and may wait for the voice). */
 export const beat = (): Step => ({ kind: 'beat' });
 /** Steps that run at the same time. */
@@ -82,8 +92,9 @@ export class Timeline {
     const revealed = new Set<Thing>();
     const walk = (st: Step[]) => st.forEach(function w(s: Step): void {
       if (s.kind === 'set') touched.add(s.param);
+      if (s.kind === 'call') for (const p of s.params ?? []) touched.add(p);
       if (s.kind === 'reveal') for (const t of s.things) revealed.add(t);
-      if (s.kind === 'together') s.steps.forEach(w);
+      if (s.kind === 'together' || s.kind === 'seq') s.steps.forEach(w);
     });
     walk(steps);
     this.initial = [...touched].map((p) => ({ p, v: p.peek() }));
@@ -104,6 +115,11 @@ export class Timeline {
         return 0;
       }
       if (s.kind === 'together') return Math.max(0, ...s.steps.map((x) => plan(x, at)));
+      if (s.kind === 'seq') {
+        let t1 = at;
+        for (const x of s.steps) t1 += plan(x, t1);
+        return t1 - at;
+      }
       if (s.kind === 'call') {
         this.actions.push({ t0: at, dur: s.dur, apply: s.f });
         return s.dur;
@@ -114,7 +130,7 @@ export class Timeline {
       // a motion given its own time fills it: the spring is slowed or sped up to settle at the end (an 'ease'
       // intent runs slow-in slow-out over the whole time)
       const T = m.T * (dur / m.dur), end = Math.max(1e-6, spring_step(dur, T, m.zeta));
-      const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : m.curve === 'ease' ? ease_in_out(u) : spring_step(u * dur, T, m.zeta) / end);
+      const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : m.curve === 'linear' ? u : m.curve === 'ease' ? ease_in_out(u) : spring_step(u * dur, T, m.zeta) / end);
       if (s.kind === 'set') {
         const from = s.param.peek(), to = s.to, p = s.param;
         this.actions.push({ t0: at, dur, apply: (u) => p.set(from + (to - from) * ease(u), true) });

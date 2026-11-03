@@ -81,12 +81,12 @@ function tokens(spans: Span[], f: FontSpec): Token[] {
   return glued;
 }
 
-export interface Line { spans: { s: string; x: number; color?: string; weight?: number }[]; width: number }
+export interface TextLine { spans: { s: string; x: number; color?: string; weight?: number }[]; width: number }
 /** Break spans into lines no wider than max_w (a token wider than a line gets a line of its own). */
-export function break_lines(spans: Span[] | string, f: FontSpec, max_w = Infinity): Line[] {
+export function break_lines(spans: Span[] | string, f: FontSpec, max_w = Infinity): TextLine[] {
   const sp = typeof spans === 'string' ? [{ s: spans }] : spans;
-  const lines: Line[] = [];
-  let cur: Line = { spans: [], width: 0 };
+  const lines: TextLine[] = [];
+  let cur: TextLine = { spans: [], width: 0 };
   const push_line = () => {
     // a line never ends in a space
     while (cur.spans.length && /^\s+$/.test(cur.spans[cur.spans.length - 1].s)) {
