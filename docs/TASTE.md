@@ -133,7 +133,7 @@ separate submit). Ask before adding any step, confirmation or setting.
 
 Only "videos" (scene steps, and short world lines while the eyes are on the
 canvas) are narrated. Text pages and questions are read silently. Voices:
-edge-tts `en-US-AndrewMultilingualNeural` and `zh-CN-YunxiNeural`; never the
+edge-tts `en-US-AvaMultilingualNeural` and `zh-CN-YunxiNeural`; never the
 browser's own voice.
 
 ## 11. Weight and speed

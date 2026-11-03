@@ -163,7 +163,7 @@ browser's voice if the learner chose it in Settings.
 Providers, chosen by the environment:
 
 * **Azure AI Speech** (when `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` are
-  set): the official service, same voice (en-US-AndrewMultilingualNeural).
+  set): the official service, same voice (en-US-AvaMultilingualNeural).
   Word boundaries come from its websocket API; if that fails, the REST API
   gives the audio and word times are estimated (`timing: "estimated"`).
   The Azure path has unit tests but has not been run against a real key yet:

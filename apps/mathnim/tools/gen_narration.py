@@ -8,8 +8,9 @@ for every line that is not generated yet. The web app plays these with
 word-timed captions (packages/present/src/narrator.ts).
 
 The voice follows the line's language ("lang" from narration_texts): English
-is en-US-AndrewMultilingualNeural, Chinese zh-CN-YunxiNeural (chosen
-2026-10-10 after comparing samples in public/narration/samples/). Override
+is en-US-AvaMultilingualNeural (chosen 2026-11-03; lines recorded before are
+en-US-AndrewMultilingualNeural until --revoice), Chinese zh-CN-YunxiNeural
+(chosen 2026-10-10 after comparing samples in public/narration/samples/). Override
 with MATHNIM_VOICE_EN / MATHNIM_VOICE_ZH. --revoice regenerates lines whose
 recording was made with another voice than the one chosen now.
 """
@@ -17,7 +18,7 @@ import asyncio, json, os, re, sys
 from pathlib import Path
 
 VOICES = {
-    "en": os.environ.get("MATHNIM_VOICE_EN", "en-US-AndrewMultilingualNeural"),   # the voice of the first prototype
+    "en": os.environ.get("MATHNIM_VOICE_EN", "en-US-AvaMultilingualNeural"),   # chosen 2026-11-03; lines recorded before are Andrew
     "zh": os.environ.get("MATHNIM_VOICE_ZH", "zh-CN-YunxiNeural"),
 }
 VOICE = VOICES["en"]

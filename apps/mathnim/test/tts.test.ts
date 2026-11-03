@@ -15,7 +15,7 @@ describe('text and SSML', () => {
   });
   it('builds SSML like edge-tts', () => {
     expect(build_ssml('Hi &amp; bye')).toBe(
-      "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='en-US-AndrewMultilingualNeural'>" +
+      "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='en-US-AvaMultilingualNeural'>" +
         "<prosody pitch='+0Hz' rate='+0%' volume='+0%'>Hi &amp; bye</prosody></voice></speak>",
     );
   });
@@ -121,7 +121,7 @@ describe('provider choice', () => {
 
 describe('voices by language', () => {
   it('reads English with Andrew and Chinese with Yunxi, unless the environment names another voice', () => {
-    expect(voice_for('en')).toMatchObject({ voice: 'en-US-AndrewMultilingualNeural', lang: 'en-US' });
+    expect(voice_for('en')).toMatchObject({ voice: 'en-US-AvaMultilingualNeural', lang: 'en-US' });
     expect(voice_for('zh')).toMatchObject({ voice: 'zh-CN-YunxiNeural', lang: 'zh-CN' });
     expect(voice_for('zh', { MATHNIM_VOICE_ZH: 'zh-CN-XiaoxiaoNeural' }).voice).toBe('zh-CN-XiaoxiaoNeural');
     expect(voice_for('zh', { MATHNIM_VOICE_ZH: "x'><evil/>" }).voice).toBe('zh-CN-YunxiNeural');
@@ -141,7 +141,7 @@ describe('POST /api/tts', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('x-mathnim-cache')).toBe('miss');
     const r = await res.json();
-    expect(r).toMatchObject({ text: 'Hello.', voice: 'en-US-AndrewMultilingualNeural', provider: 'edge', words: [[0.1, 0.35, 'Hello']], duration: 0.6, audio_duration: 1, timing: 'measured' });
+    expect(r).toMatchObject({ text: 'Hello.', voice: 'en-US-AvaMultilingualNeural', provider: 'edge', words: [[0.1, 0.35, 'Hello']], duration: 0.6, audio_duration: 1, timing: 'measured' });
     expect(atob(r.audio).length).toBe(6000);
     expect(s.calls[0].headers.Origin).toMatch(/^chrome-extension:/);
     await (note as { after?: Promise<unknown> }).after;

@@ -4,7 +4,7 @@ import { spoken_lang, to_spoken } from '../../../../packages/core/src/narration'
 import type { Parsed } from '../http';
 
 /** The voices of the pre-generated narration (tools/gen_narration.py): English and Chinese. */
-export const VOICE = 'en-US-AndrewMultilingualNeural';
+export const VOICE = 'en-US-AvaMultilingualNeural';
 export const VOICE_ZH = 'zh-CN-YunxiNeural';
 export type SpokenLang = 'en' | 'zh';
 export const RATE = '+0%';
@@ -55,7 +55,7 @@ export interface VoiceEnv {
 }
 /** Neural voice names look like 'zh-CN-YunxiNeural'; anything else is ignored. */
 const voice_name = (s: string | undefined) => (s && /^[a-z]{2,3}-[A-Za-z]{2,4}(-[A-Za-z]+)?-[A-Za-z]+Neural$/.test(s.trim()) ? s.trim() : null);
-/** The voice for a line in `lang`: Andrew for English, Yunxi for Chinese, unless the environment names another. */
+/** The voice for a line in `lang`: Ava for English, Yunxi for Chinese, unless the environment names another. */
 export function voice_for(lang: SpokenLang, env: VoiceEnv = {}): Voice {
   const base = lang === 'zh' ? DEFAULT_VOICE_ZH : DEFAULT_VOICE;
   const name = voice_name(lang === 'zh' ? env.MATHNIM_VOICE_ZH : env.MATHNIM_VOICE_EN);

@@ -58,7 +58,7 @@ are compiled by whoever consumes them (Vite, Vitest, esbuild).
 5. `npm run doctor` must pass (no layout errors).
 6. `npm run narration` records every narration line that has no audio yet
    (`apps/mathnim/public/narration/<hash>.mp3|json`, voice
-   en-US-AndrewMultilingualNeural; Chinese lines zh-CN-YunxiNeural). Pad scenes to the length of their line
+   en-US-AvaMultilingualNeural; Chinese lines zh-CN-YunxiNeural). Pad scenes to the length of their line
    (see `hold()` in the pizza lesson) so the picture does not stop mid-sentence.
 
 See `docs/lessons/pizza-circle-area.md` for how a lesson is designed before it
@@ -159,7 +159,7 @@ languages; all older lessons) or `{ en, zh }`.
   recording are read live by `/api/tts` in the voice of their language
   (same voices; `MATHNIM_VOICE_EN` / `MATHNIM_VOICE_ZH`). Keys are computed from the text in each
   language, so both languages are recorded: `npm run narration` reads English lines with
-  en-US-AndrewMultilingualNeural and Chinese ones with zh-CN-YunxiNeural
+  en-US-AvaMultilingualNeural and Chinese ones with zh-CN-YunxiNeural
   (`MATHNIM_VOICE_EN` / `MATHNIM_VOICE_ZH` override; `--revoice` re-records
   lines made with another voice).
 * **Visual labels in Chinese**: `linear_map`, `symmetric_ellipse`,
