@@ -11,6 +11,7 @@ const A_IDS = ['algebra', 'zoom', 'pull', 'time', 'guess', 'certainty', 'morph',
 const SETS = {
   'a1': { label: { zh: '界面材质 · 第一版', en: 'Interface · first pass' }, ids: A_IDS, dir: 'a1' },
   'a2': { label: { zh: '界面材质 · 第二版', en: 'Interface · second pass' }, ids: A_IDS, dir: 'a2' },
+  'i2': { label: { zh: '界面材质 · 新二十种', en: 'Interface · twenty more' }, ids: ['stretch', 'why', 'focus', 'hint', 'lighttext', 'explode', 'brush', 'units', 'ripple', 'tangle', 'patina', 'spot', 'bins', 'ghost', 'seam', 'tutor', 'stars', 'lasso', 'reason', 'deck'], dir: 'i2' },
   'm': { label: { zh: '数学实体 · 十种', en: 'Mathematical objects · ten' }, ids: ['field', 'linmap', 'complex', 'surface', 'fourier', 'topology', 'swarm', 'newton', 'tesseract', 'chladni'], dir: 'm' },
   'd': { label: { zh: '二维 · 十种', en: '2D only · ten' }, ids: ['nib', 'fold', 'marble', 'engrave', 'rope', 'sand', 'halftone', 'shapemorph', 'guilloche', 'layers'], dir: 'd' },
   'b': { label: { zh: '全新十种', en: 'Ten new' }, ids: [], dir: 'b' },

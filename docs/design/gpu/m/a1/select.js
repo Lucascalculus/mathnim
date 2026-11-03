@@ -171,17 +171,18 @@ export function make({ stage, canvas, hud, lang }) {
   function cur(d) { return [[d.head.x.x, d.head.y.x, d.head.w.x, d.head.h.x], [d.tail.x.x, d.tail.y.x, d.tail.w.x, d.tail.h.x]]; }
   function area_at(d, sc, step = 1) {
     const [H, Tt] = cur(d); let n = 0;
-    const x0 = Math.min(H[0] - H[2], Tt[0] - Tt[2]) - 4, x1 = Math.max(H[0] + H[2], Tt[0] + Tt[2]) + 4, y0 = Math.min(H[1] - H[3], Tt[1] - Tt[3]) - 4, y1 = Math.max(H[1] + H[3], Tt[1] + Tt[3]) + 4;
+    const m = Math.max(1, sc) * 1.15, x0 = Math.min(H[0] - H[2] * m, Tt[0] - Tt[2] * m) - 6, x1 = Math.max(H[0] + H[2] * m, Tt[0] + Tt[2] * m) + 6, y0 = Math.min(H[1] - H[3] * m, Tt[1] - Tt[3] * m) - 6, y1 = Math.max(H[1] + H[3] * m, Tt[1] + Tt[3] * m) + 6;
     for (let y = y0; y < y1; y += step) for (let x = x0; x < x1; x += step) if (drop_cpu([x, y], H, Tt, sc) < 0) n++;
     return n * step * step;
   }
   function conserve(d) {
     const o = target(d), rest = d.rest || (d.rest = new Map()), key = o.w + 'x' + o.h;
-    if (!rest.has(key)) rest.set(key, 4 * o.w * o.h - (4 - Math.PI) * Math.min(o.w, o.h) ** 2);
+    // the resting area, measured exactly as the flight is measured (the drop at rest is two coincident boxes)
+    if (!rest.has(key)) { let n = 0; const B = [o.x, o.y, o.w, o.h]; for (let y = o.y - o.h - 4; y < o.y + o.h + 4; y += 1) for (let x = o.x - o.w - 4; x < o.x + o.w + 4; x += 1) if (drop_cpu([x, y], B, B, 1) < 0) n++; rest.set(key, n); }
     const A0 = rest.get(key), [H, Tt] = cur(d);
     if (Math.hypot(H[0] - Tt[0], H[1] - Tt[1]) < 0.3) { d.amt.snap(1); return; }
-    let lo = 0.3, hi = 1.05;
-    for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (area_at(d, m, 2) > A0) hi = m; else lo = m; }
+    let lo = 0.2, hi = 2.0;
+    for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2; if (area_at(d, m, 1) > A0) hi = m; else lo = m; }
     d.amt.snap((lo + hi) / 2);
   }
   function hit(x, y) {
@@ -206,7 +207,7 @@ export function make({ stage, canvas, hud, lang }) {
   // the ink's area, from its distance field on the CPU (same shape as the shader)
   function area(d) {
     const H = [d.head.x.x, d.head.y.x, d.head.w.x, d.head.h.x], Tt = [d.tail.x.x, d.tail.y.x, d.tail.w.x, d.tail.h.x];
-    let n = 0; const x0 = Math.min(H[0], Tt[0]) - 60, x1 = Math.max(H[0], Tt[0]) + 60, y0 = Math.min(H[1], Tt[1]) - 40, y1 = Math.max(H[1], Tt[1]) + 40;
+    let n = 0; const x0 = Math.min(H[0], Tt[0]) - 160, x1 = Math.max(H[0], Tt[0]) + 160, y0 = Math.min(H[1], Tt[1]) - 60, y1 = Math.max(H[1], Tt[1]) + 60;
     for (let y = y0; y < y1; y += 0.5) for (let x = x0; x < x1; x += 0.5) if (drop_cpu([x, y], H, Tt, d.amt.x) < 0) n++;
     if (!d.rest) d.rest = new Map();
     return n * 0.25;

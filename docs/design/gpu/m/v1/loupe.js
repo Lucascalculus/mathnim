@@ -149,7 +149,7 @@ export function make({ stage, canvas, hud, lang }) {
       const dark = (i) => row[i * 4] < 128;
       const centres = []; for (let i = 1; i < Wc; i++) if (dark(i) && !dark(i - 1)) { let j = i; while (j < Wc && dark(j)) j++; centres.push((i + j - 1) / 2); }
       const cxp = Wc / 2, lens_px = LENS.R / (2 * asp) * Wc;
-      const inner = centres.filter((c) => Math.abs(c - cxp) < lens_px * 0.25), outer = centres.filter((c) => Math.abs(c - cxp) > lens_px * 1.2);
+      const inner = centres.filter((c) => Math.abs(c - cxp) < lens_px * 0.25), outer = centres.filter((c) => c < cxp - lens_px * 1.6);   // plain paper, one side only (not across the lens)
       const spacing = (a) => (a[a.length - 1] - a[0]) / (a.length - 1);
       const m_meas = spacing(inner) / spacing(outer), m_calc = jacobian(0.08);
       L.x = saved[0]; L.y = saved[1]; L.z = saved[2]; draw();
