@@ -6097,6 +6097,16 @@
      "mgmt90141-expected-value",
      "mgmt90141-sample-info"
     ]
+   },
+   {
+    "title": {
+     "en": "How variable is it?",
+     "zh": "它有多不稳定？"
+    },
+    "lessons": [
+     "mgmt90141-random-variables",
+     "mgmt90141-normal"
+    ]
    }
   ],
   "lessons": [
@@ -7023,6 +7033,81 @@
        "name": {
         "en": "Bayes’ theorem, decision trees and the value of sample information",
         "zh": "贝叶斯定理、决策树和样本信息的价值"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-random-variables",
+    "title": {
+     "en": "The average of an uncertain number, and how spread out it is",
+     "zh": "一个不确定的数的平均值，以及它有多分散"
+    },
+    "summary": {
+     "en": "A random variable puts numbers on what might happen. Balance a distribution on its mean, see why the mean can be a value that never occurs, and then use the binomial for “how many of n succeed”.",
+     "zh": "随机变量给可能发生的事配上数字。让一个分布在它的均值上保持平衡，看看为什么均值可以是一个永远不会出现的值，再用二项分布回答“n 次里成功几次”。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "The average of an uncertain number, and how spread out it is",
+      "zh": "一个不确定的数的平均值，以及它有多分散"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.random-variables",
+       "name": {
+        "en": "Random variables, expected value, variance and the binomial",
+        "zh": "随机变量、期望、方差与二项分布"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-normal",
+    "title": {
+     "en": "How likely is “between these two”?",
+     "zh": "“落在这两个值之间”的可能性有多大？"
+    },
+    "summary": {
+     "en": "The normal curve answers almost every “how likely” question about a measurement. Slide the edges, see the area, and read the same number off the table of the paper: forwards for a probability, backwards for a cut-off.",
+     "zh": "正态曲线几乎能回答所有关于测量值的“有多大可能”的问题。移动两条边，看面积，再从试卷上的那张表里读出同样的数：正着读得概率，倒着读得分界值。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "How likely is “between these two”?",
+      "zh": "“落在这两个值之间”的可能性有多大？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.normal",
+       "name": {
+        "en": "The normal distribution and the z table",
+        "zh": "正态分布与 z 表"
        }
       }
      ]

@@ -1,0 +1,126 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+ .handle{cursor:ew-resize}
+ .steps{margin-top:10px;font-size:14px;line-height:1.7}
+ .steps .l{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+ .steps .k{font:600 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);width:68px;flex:none}
+ .steps b{font-variant-numeric:tabular-nums}
+ .steps .ans{font-size:20px;font-weight:700;color:var(--blue)}
+ .inp{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:13px}
+ .inp input{width:96px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;font:14px var(--mono)}
+ .tw{margin-top:10px;max-height:236px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+ table{border-collapse:collapse;width:100%;font:12.5px var(--mono);text-align:center}
+ th{position:sticky;top:0;background:var(--panel);color:var(--muted);padding:5px 2px;border-bottom:1px solid var(--border)}
+ td{padding:4px 2px;border-bottom:1px solid var(--faint)}
+ td.rl{font-weight:600;background:var(--panel);color:var(--muted);position:sticky;left:0}
+ td.hit{background:#fdf1e4;outline:2px solid var(--orange);outline-offset:-2px;font-weight:700}
+ td.hit2{background:#e3ebff;outline:2px solid var(--blue);outline-offset:-2px;font-weight:700}
+ tr.sep td{border-top:2px solid var(--border)}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+</style></head>
+<body>
+<div class="modes" id="modes"></div>
+<div class="stage"><svg id="svg" viewBox="0 0 640 230" role="img"></svg></div>
+<div class="inp" id="inp"></div>
+<div class="steps" id="steps"></div>
+<div class="tw"><table id="tbl"></table></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var mu = P.mu, sd = P.sd, money = P.unit || '', modes = P.modes || ['left', 'between', 'right', 'find'];
+  var mode = P.mode || modes[0], a = P.a != null ? P.a : mu - sd, b = P.b != null ? P.b : mu + sd, tail = 'left', target = P.p != null ? P.p : 0.1, from = P.from != null ? P.from : mu - sd;
+  var W = 640, H = 230, L = 16, R = 16, T = 14, B = 36, svg = document.getElementById('svg');
+  var lo = mu - 3.6 * sd, hi = mu + 3.6 * sd;
+  var X = function (x) { return L + (x - lo) / (hi - lo) * (W - L - R); }, V = function (px) { return lo + (px - L) / (W - L - R) * (hi - lo); };
+  var pdf = function (z) { return Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI); }, Y = function (z) { return H - B - z / 0.42 * (H - T - B); };
+  function erf(x) { var s = 0, term = x, n = 0; while (Math.abs(term) > 1e-16 && n < 120) { s += term / (2 * n + 1); n++; term = -term * x * x / n; } return 2 / Math.sqrt(Math.PI) * s; }
+  var Phi = function (z) { return 0.5 * (1 + erf(z / Math.SQRT2)); };
+  var tab = function (z) { return Math.round((Phi(Math.round(z * 100) / 100) + 1e-12) * 1e4) / 1e4; };       // what the paper's table prints
+  var zr = function (x) { return Math.round((x - mu) / sd * 100) / 100; };
+  var mb = document.getElementById('modes');
+  var NAMES = { left: tx('P(X < x)', 'P(X < x)'), between: tx('between a and b', 'a 与 b 之间'), right: tx('P(X > x)', 'P(X > x)'), find: tx('Find x from an area', '由面积求 x') };
+  modes.forEach(function (m) { var bt = h('button', 'ghost', NAMES[m], mb); bt.dataset.m = m; bt.onclick = function () { mode = m; draw(); }; });
+  var tbl = document.getElementById('tbl'), cells = {};
+  (function build() {
+    var s = '<tr><th>z</th>' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (c) { return '<th>.0' + c + '</th>'; }).join('') + '</tr>';
+    for (var r = -30; r <= 30; r++) {
+      if (r === 0) { /* "-0.0" row first then "0.0" */ }
+    }
+    var rows = []; for (var k = 30; k >= 0; k--) rows.push({ lab: '−' + (k / 10).toFixed(1), sign: -1, k: k }); for (k = 0; k <= 30; k++) rows.push({ lab: (k / 10).toFixed(1), sign: 1, k: k });
+    rows.forEach(function (row, ri) {
+      s += '<tr' + (ri === 31 ? ' class="sep"' : '') + '><td class="rl">' + row.lab + '</td>';
+      for (var c = 0; c <= 9; c++) { var z = row.sign * (row.k / 10 + c / 100); s += '<td data-r="' + (row.sign * row.k) + (row.sign < 0 ? 'n' : 'p') + '" data-c="' + c + '">' + (Math.abs(tab(z)) < 1 ? tab(z).toFixed(4).replace(/^0/, '').replace(/^-0/, '-') : '1.0000') + '</td>'; }
+      s += '</tr>';
+    });
+    tbl.innerHTML = s;
+  })();
+  function cell_of(z) { var zz = Math.round(z * 100) / 100, neg = zz < 0 || Object.is(zz, -0), m = Math.round(Math.abs(zz) * 100), k = Math.floor(m / 10), c = m % 10; if (k > 30) { k = 30; c = 9; } return tbl.querySelector('td[data-r="' + (neg ? -k : k) + (neg ? 'n' : 'p') + '"][data-c="' + c + '"]'); }
+  function mark(zs, cls) { zs.forEach(function (z, i) { var td = cell_of(z); if (td) td.classList.add(i === 0 ? cls[0] : cls[1]); }); }
+  function clear() { tbl.querySelectorAll('td.hit, td.hit2').forEach(function (td) { td.classList.remove('hit', 'hit2'); }); }
+  var drag = null;
+  function curve(x1, x2, fill) {
+    var pts = ['M' + X(x1) + ',' + Y(0)]; for (var i = 0; i <= 60; i++) { var x = x1 + (x2 - x1) * i / 60; pts.push('L' + X(x).toFixed(1) + ',' + Y(pdf((x - mu) / sd)).toFixed(1)); } pts.push('L' + X(x2) + ',' + Y(0) + ' Z');
+    el('path', { d: pts.join(' '), fill: fill, 'fill-opacity': .38 }, svg);
+  }
+  function draw() {
+    mb.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.m === mode); });
+    svg.innerHTML = ''; clear();
+    var step = sd >= 1000 ? 10000 : sd;
+    var line = []; for (var i = 0; i <= 120; i++) { var x = lo + (hi - lo) * i / 120; line.push((i ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(pdf((x - mu) / sd)).toFixed(1)); }
+    var A = a, Bv = b, area = 0, lines = [], zs = [];
+    var fz = function (x) { return fmt((x - mu) / sd, 2); };
+    var fx = function (x) { return money + fmt(x, 0); };
+    var out = '';
+    if (mode === 'left') { curve(lo, A, '#2f5bd3'); var z = zr(A); area = tab(z); zs = [z];
+      out = line_('x', fx(A)) + line_('z', '(' + fx(A) + ' − ' + fx(mu) + ') / ' + fx(sd) + ' = <b>' + fmt(z, 2) + '</b>') + line_(tx('Table', '查表'), tabtxt(z)) + line_(tx('Answer', '答案'), 'P(X &lt; ' + fx(A) + ') = <span class="ans">' + fmt(area, 4) + '</span>'); }
+    else if (mode === 'right') { curve(A, hi, '#2f5bd3'); var z2 = zr(A); area = 1 - tab(z2); zs = [z2];
+      out = line_('x', fx(A)) + line_('z', '(' + fx(A) + ' − ' + fx(mu) + ') / ' + fx(sd) + ' = <b>' + fmt(z2, 2) + '</b>') + line_(tx('Table', '查表'), tabtxt(z2) + tx(' — the table is the area to the **left**: take 1 minus it', ' —— 表给的是**左边**的面积：用 1 减去它').replace(/\*\*/g, '')) + line_(tx('Answer', '答案'), 'P(X &gt; ' + fx(A) + ') = 1 − ' + fmt(tab(z2), 4) + ' = <span class="ans">' + fmt(area, 4) + '</span>'); }
+    else if (mode === 'between') { var lo2 = Math.min(A, Bv), hi2 = Math.max(A, Bv); curve(lo2, hi2, '#2f5bd3'); var za = zr(lo2), zb = zr(hi2); area = tab(zb) - tab(za); zs = [zb, za];
+      out = line_('z', '<b>' + fmt(za, 2) + '</b> ' + tx('and', '和') + ' <b>' + fmt(zb, 2) + '</b>') + line_(tx('Table', '查表'), tabtxt(zb) + ' ; ' + tabtxt(za)) + line_(tx('Answer', '答案'), fx(lo2) + ' &lt; X &lt; ' + fx(hi2) + ': ' + fmt(tab(zb), 4) + ' − ' + fmt(tab(za), 4) + ' = <span class="ans">' + fmt(area, 4) + '</span>'); }
+    else {
+      var q = target, x2, zq;
+      if (tail === 'left') { zq = best(q); x2 = mu + zq * sd; curve(lo, x2, '#2f5bd3'); out = line_(tx('Table', '查表'), tx('the entry closest to ', '最接近 ') + fmt(q, 4) + ' → z = <b>' + fmt(zq, 2) + '</b>') + line_('x', fx(mu) + ' + (' + fmt(zq, 2) + ') × ' + fx(sd) + ' = <span class="ans">' + fx(x2) + '</span>'); zs = [zq]; }
+      else if (tail === 'right') { zq = best(1 - q); x2 = mu + zq * sd; curve(x2, hi, '#2f5bd3'); out = line_(tx('Table', '查表'), tx('area to the left is 1 − ', '左边的面积是 1 − ') + fmt(q, 4) + ' = ' + fmt(1 - q, 4) + ' → z = <b>' + fmt(zq, 2) + '</b>') + line_('x', fx(mu) + ' + (' + fmt(zq, 2) + ') × ' + fx(sd) + ' = <span class="ans">' + fx(x2) + '</span>'); zs = [zq]; }
+      else { var zf = zr(from), pl = tab(zf); zq = best(pl + q); x2 = mu + zq * sd; curve(from, x2, '#2f5bd3'); zs = [zq, zf];
+        out = line_(tx('Table', '查表'), 'P(X &lt; ' + fx(from) + ') = ' + fmt(pl, 4) + ' (z = ' + fmt(zf, 2) + ')') + line_(tx('Add', '相加'), fmt(pl, 4) + ' + ' + fmt(q, 4) + ' = ' + fmt(pl + q, 4) + ' → z = <b>' + fmt(zq, 2) + '</b>') + line_('d', fx(mu) + ' + (' + fmt(zq, 2) + ') × ' + fx(sd) + ' = <span class="ans">' + fx(x2) + '</span>'); }
+      el('line', { x1: X(x2), y1: Y(0), x2: X(x2), y2: Y(pdf(zq)), stroke: '#c2410c', 'stroke-width': 3 }, svg);
+      if (tail === 'between') el('line', { x1: X(from), y1: Y(0), x2: X(from), y2: Y(pdf((from - mu) / sd)), stroke: '#15171a', 'stroke-width': 2 }, svg);
+    }
+    el('path', { d: line.join(' '), fill: 'none', stroke: '#15171a', 'stroke-width': 2.4 }, svg);
+    el('line', { x1: L, y1: Y(0), x2: W - R, y2: Y(0), stroke: '#15171a', 'stroke-width': 1.5 }, svg);
+    for (var zt = -3; zt <= 3; zt++) { el('line', { x1: X(mu + zt * sd), y1: Y(0), x2: X(mu + zt * sd), y2: Y(0) + 5, stroke: '#15171a' }, svg); el('text', { x: X(mu + zt * sd), y: H - 8, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, svg, fx(mu + zt * sd)); }
+    el('line', { x1: X(mu), y1: Y(0), x2: X(mu), y2: Y(pdf(0)), stroke: '#9aa0a6', 'stroke-dasharray': '4 4' }, svg);
+    if (mode !== 'find') { handle('a', A); if (mode === 'between') handle('b', Bv); }
+    document.getElementById('steps').innerHTML = out; mark(zs, ['hit', 'hit2']);
+    var first = tbl.querySelector('td.hit'); if (first) { var tw = tbl.parentNode; tw.scrollTop = first.offsetTop - tw.clientHeight / 2; }
+    inputs(); K.report();
+  }
+  function line_(k, v) { return '<div class="l"><span class="k">' + k + '</span><span>' + v + '</span></div>'; }
+  function tabtxt(z) { var m = Math.abs(Math.round(z * 100)), r = (z < 0 ? '−' : '') + Math.floor(m / 10) / 10, c = m % 10; return tx('row ', '行 ') + '<b>' + (z < 0 ? '−' : '') + (Math.floor(m / 10) / 10).toFixed(1) + '</b>' + tx(', column ', '，列 ') + '<b>.0' + c + '</b> → <b>' + fmt(tab(z), 4) + '</b>'; }
+  function best(p) { var bz = 0, bd = 9; for (var k = -300; k <= 300; k++) { var d = Math.abs(tab(k / 100) - p); if (d < bd - 1e-12) { bd = d; bz = k / 100; } } return bz; }
+  function handle(which, x) {
+    var c = el('circle', { cx: X(x), cy: Y(0), r: 10, fill: '#fff', stroke: '#c2410c', 'stroke-width': 3, class: 'handle', tabindex: 0, role: 'slider', 'aria-valuenow': x }, svg);
+    el('line', { x1: X(x), y1: Y(0), x2: X(x), y2: Y(pdf((x - mu) / sd)), stroke: '#c2410c', 'stroke-width': 2.4, 'pointer-events': 'none' }, svg);
+    c.addEventListener('pointerdown', function (e) { drag = which; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+    c.addEventListener('keydown', function (e) { var d = e.key === 'ArrowRight' ? sd / 20 : e.key === 'ArrowLeft' ? -sd / 20 : 0; if (d) { e.preventDefault(); if (which === 'a') a += d; else b += d; draw(); var n = svg.querySelectorAll('.handle'); n[which === 'a' ? 0 : 1].focus(); } });
+  }
+  function inputs() {
+    var box = document.getElementById('inp'); if (box.dataset.mode === mode + tail) return; box.dataset.mode = mode + tail; box.innerHTML = '';
+    if (mode !== 'find') return;
+    var sel = h('select', '', '', box); [['left', tx('left of x', 'x 左边')], ['right', tx('right of x', 'x 右边')], ['between', tx('between a given value and x', '一个给定值与 x 之间')]].forEach(function (o) { var op = h('option', '', o[1], sel); op.value = o[0]; }); sel.value = tail;
+    sel.style.cssText = 'padding:5px 8px;border:1px solid var(--border);border-radius:8px;font:13px var(--sans)';
+    sel.onchange = function () { tail = sel.value; draw(); };
+    h('span', '', tx('area', '面积'), box); var inp = h('input', '', null, box); inp.type = 'number'; inp.step = '0.0001'; inp.value = target; inp.oninput = function () { var v = +inp.value; if (v > 0 && v < 1) { target = v; var keep = document.getElementById('inp').dataset.mode; draw(); document.getElementById('inp').dataset.mode = keep; } };
+    if (tail === 'between') { h('span', '', tx('given value', '给定值'), box); var fi = h('input', '', null, box); fi.type = 'number'; fi.value = from; fi.oninput = function () { from = +fi.value; var keep = document.getElementById('inp').dataset.mode; draw(); document.getElementById('inp').dataset.mode = keep; }; }
+  }
+  svg.addEventListener('pointermove', function (e) { if (!drag) return; var q = K.pt(svg, e), x = Math.min(hi, Math.max(lo, V(q.x))); if (drag === 'a') a = x; else b = x; draw(); });
+  svg.addEventListener('pointerup', function () { drag = null; }); svg.addEventListener('pointercancel', function () { drag = null; });
+  draw(); K.ready();
+})();
+</script>
+</body></html>
