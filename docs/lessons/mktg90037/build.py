@@ -55,7 +55,7 @@ def build():
     units = [u for u in units if u['lessons']]
     course = {
         'id': CID,
-        'title': T('MKTG90037 Managing for Value Creation, for the exam', 'MKTG90037 价值创造管理，为考试而讲'),
+        'title': T('MKTG90037 Managing for Value Creation, for the exam', 'MKTG90037 价值创造管理，备考精讲'),
         'summary': T('Twenty lessons that teach each framework by touching it, then make you write the exam’s Explain, Apply and Recommend answers on Lipton, Who Gives a Crap, Hilton and Coles, marked against the rubric.',
                      '二十节课：先动手摆弄每个框架，再按考试的“解释、应用、建议”三段，用 Lipton、Who Gives a Crap、Hilton、Coles 写答案，并按评分标准批改。'),
         'audience': T('Postgraduates sitting the MKTG90037 exam, closed book, four 600 to 750 word answers, who may not have attended every lecture.',
