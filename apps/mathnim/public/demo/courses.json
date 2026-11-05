@@ -6004,8 +6004,8 @@
    "decks": 9,
    "exams": 0,
    "note": {
-    "en": "Written by an AI (Claude) from the subject guide, nine lecture decks and the exam briefing; the decks are the coverage floor, not the order; brand facts are sourced in docs/lessons/mktg90037/brands.md · not edited by a person",
-    "zh": "由 AI（Claude）根据课程指南、九份课件和考试说明编写；课件只是内容的下限，不决定顺序；品牌事实的出处见 docs/lessons/mktg90037/brands.md · 未经人工修改"
+    "en": "Written by an AI (Claude) from the subject guide, nine lecture decks and the exam briefing; the decks are the coverage floor, not the order; brand facts come from the companies’ own reports and pages, and the lessons say where a fact could not be checked · not edited by a person",
+    "zh": "由 AI（Claude）根据课程指南、九份课件和考试说明编写；课件只是内容的下限，不决定顺序；品牌事实来自公司自己的报告和网页，核实不了的地方课里会说明 · 未经人工修改"
    }
   },
   "units": [

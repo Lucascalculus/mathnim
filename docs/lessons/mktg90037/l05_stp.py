@@ -19,12 +19,12 @@ def L05(CID):
     zones = [dict(id='tl', label=T('Higher price, less special', '价格较高、不特别')), dict(id='tr', label=T('Higher price, more special', '价格较高、更特别')),
              dict(id='bl', label=T('Lower price, less special', '价格较低、不特别')), dict(id='br', label=T('Lower price, more special', '价格较低、更特别'))]
     chips = [
-        dict(id='m1', label=T('Who Gives a Crap toilet paper (a reading)', 'Who Gives a Crap 卷纸（解读）'), zone='tr', why=T('Priced at or above budget brands, and it stands out through its giving and its paper-wrapped, bulk, direct delivery.', '定价不低于平价品牌，靠捐赠和纸包装、批量直送而突出。')),
-        dict(id='m2', label=T('A supermarket own-brand toilet roll (a reading)', '超市自有品牌卷纸（解读）'), zone='bl', why=T('Built to be the low-price default.', '以低价默认选项为目标。')),
-        dict(id='m3', label=T('A premium quilted national brand (a reading)', '高端压花全国品牌（解读）'), zone='tl', why=T('Pays more for softness but is not different in what it stands for.', '为柔软度付更多钱，但在“代表什么”上并不特别。')),
-        dict(id='m4', label=T('A small shop’s loose-leaf specialty tea (a reading)', '小店里的散装特色茶（解读）'), zone='tr', why=T('High price and distinctive.', '高价且独特。')),
-        dict(id='m5', label=T('Lipton tea bags as an everyday supermarket tea (a reading, nothing verified for Australia)', 'Lipton 茶包，作为超市日常茶饮（解读，澳大利亚情况未核实）'), zone='bl', why=T('A mass-market everyday tea: cheap and familiar rather than special. This is a reading from what any shopper sees.', '大众日常茶：便宜、熟悉而不特别。这是从任何购物者都看得到的东西得出的解读。')),
-        dict(id='m6', label=T('A cheap tea bag in a plain pack (a reading)', '素包装的廉价茶包（解读）'), zone='bl', why=T('Low price and nothing special.', '低价且不特别。')),
+        dict(id='m1', label=T('Who Gives a Crap toilet paper', 'Who Gives a Crap 卷纸'), zone='tr', why=T('Priced at or above budget brands, and it stands out through its giving and its paper-wrapped, bulk, direct delivery.', '定价不低于平价品牌，靠捐赠和纸包装、批量直送而突出。')),
+        dict(id='m2', label=T('A supermarket own-brand toilet roll', '超市自有品牌卷纸'), zone='bl', why=T('Built to be the low-price default.', '以低价默认选项为目标。')),
+        dict(id='m3', label=T('A premium quilted national brand', '高端压花全国品牌'), zone='tl', why=T('Pays more for softness but is not different in what it stands for.', '为柔软度付更多钱，但在“代表什么”上并不特别。')),
+        dict(id='m4', label=T('A small shop’s loose-leaf specialty tea', '小店里的散装特色茶'), zone='tr', why=T('High price and distinctive.', '高价且独特。')),
+        dict(id='m5', label=T('Lipton tea bags as an everyday supermarket tea', 'Lipton 茶包，作为超市日常茶饮'), zone='bl', why=T('A mass-market everyday tea: cheap and familiar rather than special. This is a reading from what any shopper sees.', '大众日常茶：便宜、熟悉而不特别。这是从任何购物者都看得到的东西得出的解读。')),
+        dict(id='m6', label=T('A cheap tea bag in a plain pack', '素包装的廉价茶包'), zone='bl', why=T('Low price and nothing special.', '低价且不特别。')),
     ]
     return dict(
         id=f'{CID}-stp',

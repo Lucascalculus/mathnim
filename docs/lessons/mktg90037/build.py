@@ -64,8 +64,8 @@ def build():
                      T('Apply it to a named company with cause and effect, using facts you can recall without notes', '落到具体公司上，讲清因果，用的是不看资料也记得住的事实'),
                      T('Recommend exactly two things that follow from your analysis, and join ideas across weeks', '给出恰好两条从分析里推出来的建议，并把不同周的内容连起来')],
         'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'packs': [],
-        'origin': {'decks': 9, 'exams': 0, 'note': T('Written by an AI (Claude) from the subject guide, nine lecture decks and the exam briefing; the decks are the coverage floor, not the order; brand facts are sourced in docs/lessons/mktg90037/brands.md · not edited by a person',
-                                                    '由 AI（Claude）根据课程指南、九份课件和考试说明编写；课件只是内容的下限，不决定顺序；品牌事实的出处见 docs/lessons/mktg90037/brands.md · 未经人工修改')},
+        'origin': {'decks': 9, 'exams': 0, 'note': T('Written by an AI (Claude) from the subject guide, nine lecture decks and the exam briefing; the decks are the coverage floor, not the order; brand facts come from the companies’ own reports and pages, and the lessons say where a fact could not be checked · not edited by a person',
+                                                    '由 AI（Claude）根据课程指南、九份课件和考试说明编写；课件只是内容的下限，不决定顺序；品牌事实来自公司自己的报告和网页，核实不了的地方课里会说明 · 未经人工修改')},
         'units': [{'title': t, 'lessons': l['lessons']} for t, l in zip([u[0] for u in UNITS if any(s in ids for s in u[1])], units)],
         'lessons': entries, 'demo': True,
     }
