@@ -1,0 +1,83 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .q{border:1px solid var(--border);border-radius:12px;padding:9px 12px;background:var(--panel);margin-bottom:10px;font-size:14px}
+ .q .n{font:600 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+ .q .ok{color:var(--green);font-weight:600}
+ .wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+ table{border-collapse:collapse;font:12.5px var(--mono);width:100%;min-width:430px}
+ th{font:600 10px var(--mono);letter-spacing:.03em;text-transform:uppercase;color:var(--muted);background:var(--panel);padding:5px 6px;text-align:right;border-bottom:1px solid var(--border)}
+ th:first-child,td:first-child{text-align:left}
+ td{padding:2px 3px;text-align:right;border-bottom:1px solid var(--faint)}
+ td:first-child{padding:4px 8px;font-family:var(--sans);font-size:12.5px}
+ tr.sec td{background:var(--panel);font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:5px 8px}
+ td button{border:1px solid transparent;border-radius:6px;background:none;font:inherit;padding:4px 5px;color:var(--fg);cursor:pointer;font-variant-numeric:tabular-nums}
+ td button:hover{border-color:var(--border);background:#fff}
+ td button.ok{background:#e8f4ef;border-color:#9fd3c5}td button.no{background:#fdf6f4;border-color:var(--bad)}td button.sel{border-color:var(--blue);background:#f1f5ff}
+ .say{margin-top:10px;font-size:14px;min-height:42px}.say b{color:var(--blue)}
+</style></head>
+<body>
+<div class="q" id="q"></div>
+<div class="wrap"><table id="tbl"></table></div>
+<div class="say" id="say"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var O = P.out, V = P.vars.map(t), tasks = P.tasks || [], cur = 0, done = 0;
+  var D = {
+    multR: [tx('Multiple R', 'Multiple R'), tx('the correlation between the actual y and the model’s predictions; the square root of R²', '真实的 y 和模型预测值之间的相关系数；R² 的平方根')],
+    r2: ['R Square', tx('the share of the variation in y that the model explains: SSR / SST', 'y 的变化里被模型解释的份额：SSR / SST')],
+    adjr2: ['Adjusted R Square', tx('R² corrected for the number of variables: it can fall when a useless variable is added', '按变量个数修正过的 R²：加入一个没用的变量时它可能下降')],
+    se: [tx('Standard Error', '标准误差'), tx('the typical size of a prediction error, in the units of y', '预测误差的典型大小，单位和 y 相同')],
+    n: [tx('Observations', '观测值个数'), tx('the number of rows of data', '数据的行数')],
+    df: ['df', tx('degrees of freedom: regression = number of variables; residual = n − p − 1; total = n − 1', '自由度：回归 = 变量个数；残差 = n − p − 1；总计 = n − 1')],
+    ss_reg: ['SSR', tx('sum of squares due to regression: the variation the model explains', '回归平方和：模型解释的变化')],
+    ss_res: ['SSE', tx('sum of squares of the residuals (error): the variation left unexplained', '残差（误差）平方和：没被解释的变化')],
+    ss_tot: ['SST', tx('total sum of squares = SSR + SSE', '总平方和 = SSR + SSE')],
+    ms: ['MS', tx('mean square = SS / df', '均方 = SS / df')],
+    F: ['F', tx('MSR / MSE: the test statistic for “is the model any use at all?”', 'MSR / MSE：检验“这个模型到底有没有用”的统计量')],
+    sigF: ['Significance F', tx('the p-value of the F test: below 0.05, at least one variable really helps predict y', 'F 检验的 p 值：小于 0.05，说明至少有一个变量确实有助于预测 y')],
+    b: [tx('Coefficient', '系数'), tx('the change in y for one more unit of this variable, **others held fixed** (the intercept is y when every variable is 0)', '这个变量多一个单位时 y 的变化，**其他变量保持不变**（截距是所有变量都为 0 时的 y）')],
+    cse: [tx('Standard Error', '标准误差'), tx('how much this coefficient would wobble from sample to sample', '这个系数在不同样本之间会摆动多少')],
+    t: ['t Stat', tx('coefficient / its standard error: how many standard errors from 0', '系数 / 它的标准误差：离 0 有几个标准误差')],
+    p: ['P-value', tx('below 0.05, this variable is significant: its coefficient is not just noise', '小于 0.05，这个变量显著：它的系数不是噪声')],
+    lo: [tx('Lower 95%', '95% 下限'), tx('the 95% confidence interval for the coefficient; if it contains 0 the variable is not significant', '系数的 95% 置信区间；包含 0 则该变量不显著')],
+    hi: [tx('Upper 95%', '95% 上限'), tx('the 95% confidence interval for the coefficient; if it contains 0 the variable is not significant', '系数的 95% 置信区间；包含 0 则该变量不显著')]
+  };
+  var b = function (key, v) { return '<td><button type="button" data-k="' + key + '">' + v + '</button></td>'; };
+  function build() {
+    var s = '<tr class="sec"><td colspan="7">' + tx('Regression Statistics', '回归统计') + '</td></tr>';
+    [['multR', 'Multiple R', O.multR], ['r2', 'R Square', O.r2], ['adjr2', 'Adjusted R Square', O.adjr2], ['se', tx('Standard Error', '标准误差'), O.se], ['n', tx('Observations', '观测值'), O.n]].forEach(function (r) { s += '<tr><td>' + r[1] + '</td>' + b(r[0], fmt(r[2], 6)) + '</tr>'; });
+    s += '<tr class="sec"><td colspan="7">ANOVA</td></tr><tr><th></th><th>df</th><th>SS</th><th>MS</th><th>F</th><th>Significance F</th></tr>';
+    s += '<tr><td>' + tx('Regression', '回归') + '</td>' + b('df', O.df[0]) + b('ss_reg', fmt(O.ss[0], 2)) + b('ms', fmt(O.ms[0], 2)) + b('F', fmt(O.F, 4)) + b('sigF', O.sigF.toExponential(5).replace('e-', 'E-')) + '</tr>';
+    s += '<tr><td>' + tx('Residual', '残差') + '</td>' + b('df', O.df[1]) + b('ss_res', fmt(O.ss[1], 2)) + b('ms', fmt(O.ms[1], 2)) + '</tr>';
+    s += '<tr><td>' + tx('Total', '总计') + '</td>' + b('df', O.df[2]) + b('ss_tot', fmt(O.ss[2], 2)) + '</tr>';
+    s += '<tr class="sec"><td colspan="7">' + tx('Coefficients', '系数') + '</td></tr><tr><th></th><th>' + tx('Coeff.', '系数') + '</th><th>' + tx('Std Error', '标准误差') + '</th><th>t Stat</th><th>P-value</th><th>Lower 95%</th><th>Upper 95%</th></tr>';
+    O.coef.forEach(function (c, i) { s += '<tr><td>' + (i === 0 ? 'Intercept' : V[i - 1]) + '</td>' + b('b:' + i, fmt(c.b, 6)) + b('cse:' + i, fmt(c.se, 6)) + b('t:' + i, fmt(c.t, 4)) + b('p:' + i, fmt(c.p, 6)) + b('lo:' + i, fmt(c.lo, 5)) + b('hi:' + i, fmt(c.hi, 5)) + '</tr>'; });
+    document.getElementById('tbl').innerHTML = s;
+    document.querySelectorAll('td button').forEach(function (bt) { bt.onclick = function () { click(bt); }; });
+  }
+  function kind(k) { return k.split(':')[0]; }
+  function label(k) { var i = k.indexOf(':'); return D[kind(k)][0] + (i > 0 ? (+k.slice(i + 1) === 0 ? ' · Intercept' : ' · ' + V[+k.slice(i + 1) - 1]) : ''); }
+  function say(k) { var d = D[kind(k)]; return '<b>' + label(k) + '</b>: ' + d[1].replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); }
+  function show_q() {
+    var q = document.getElementById('q');
+    if (!tasks.length) { q.style.display = 'none'; return; }
+    q.innerHTML = cur < tasks.length ? '<span class="n">' + (cur + 1) + ' / ' + tasks.length + '</span><div>' + t(tasks[cur].q) + '</div>' : '<span class="ok">' + tx('Every question answered from the table.', '每个问题都从表里找到了答案。') + '</span>';
+    K.report();
+  }
+  function click(bt) {
+    var k = bt.dataset.k, say_ = document.getElementById('say');
+    document.querySelectorAll('td button.sel').forEach(function (x) { x.classList.remove('sel'); });
+    if (!tasks.length || cur >= tasks.length) { bt.classList.add('sel'); say_.innerHTML = say(k); K.report(); return; }
+    var T = tasks[cur], okc = (T.cells || [T.cell]).indexOf(k) >= 0;
+    if (okc) { bt.classList.remove('no'); bt.classList.add('ok'); say_.innerHTML = say(k) + (T.explain ? '<br>' + t(T.explain) : ''); cur++; setTimeout(show_q, 0); }
+    else { bt.classList.add('no'); setTimeout(function () { bt.classList.remove('no'); }, 900); say_.innerHTML = tx('Not this one. ', '不是这个。') + say(k); }
+    K.report();
+  }
+  build(); show_q(); K.ready();
+})();
+</script>
+</body></html>

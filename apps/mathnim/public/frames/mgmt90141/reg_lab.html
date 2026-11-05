@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+ .handle{cursor:ns-resize}
+ .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-top:10px}
+ .nums>div{border:1px solid var(--border);border-radius:10px;padding:6px 10px;background:var(--panel)}
+ .nums .k{font:600 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+ .nums .v{font:600 18px var(--sans);font-variant-numeric:tabular-nums}
+ .nums .hot{border-color:var(--blue);background:#f1f5ff}.nums .good{border-color:#bfe0d6;background:#f3faf7}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+</style></head>
+<body>
+<div class="tools" id="tools"></div>
+<div class="stage"><svg id="svg" viewBox="0 0 640 380" role="img"></svg></div>
+<div class="nums" id="nums"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var pts = P.pts, n = pts.length, W = 640, H = 380, L = 58, R = 18, T = 16, B = 44, svg = document.getElementById('svg');
+  var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+  var sx = xs.reduce(function (a, b) { return a + b; }, 0) / n, sy = ys.reduce(function (a, b) { return a + b; }, 0) / n;
+  var sxy = 0, sxx = 0, sst = 0; pts.forEach(function (p) { sxy += (p[0] - sx) * (p[1] - sy); sxx += (p[0] - sx) * (p[0] - sx); sst += (p[1] - sy) * (p[1] - sy); });
+  var B1 = sxy / sxx, B0 = sy - B1 * sx;
+  var xmin = P.xmin != null ? P.xmin : Math.min.apply(null, xs) - (Math.max.apply(null, xs) - Math.min.apply(null, xs)) * .12, xmax = P.xmax != null ? P.xmax : Math.max.apply(null, xs) + (Math.max.apply(null, xs) - Math.min.apply(null, xs)) * .12;
+  var ymin = P.ymin != null ? P.ymin : Math.min.apply(null, ys) - (Math.max.apply(null, ys) - Math.min.apply(null, ys)) * .15, ymax = P.ymax != null ? P.ymax : Math.max.apply(null, ys) + (Math.max.apply(null, ys) - Math.min.apply(null, ys)) * .15;
+  var X = function (v) { return L + (v - xmin) / (xmax - xmin) * (W - L - R); }, Y = function (v) { return H - B - (v - ymin) / (ymax - ymin) * (H - T - B); };
+  var dpx = function (v) { return Math.abs(Y(0) - Y(v)); };
+  var yl = P.start ? P.start[0] : sy + (ymax - ymin) * .22, yr = P.start ? P.start[1] : sy - (ymax - ymin) * .22;   // the line is held by its two ends
+  var show = 'sq', revealed = false, drag = null;
+  var tools = document.getElementById('tools');
+  [['res', tx('Errors', '误差')], ['sq', tx('Squared errors', '误差的平方')], ['mean', tx('Squares around the mean', '围绕均值的平方')]].forEach(function (m) {
+    var b = h('button', 'ghost', m[1], tools); b.dataset.m = m[0]; b.onclick = function () { show = m[0]; draw(); };
+  });
+  var bb = h('button', 'verb', tx('Best line', '最佳直线'), tools); bb.onclick = function () { anim(B0 + B1 * xmin, B0 + B1 * xmax); revealed = true; };
+  var bf = h('button', 'ghost', tx('Flat at the mean', '水平的均值线'), tools); bf.onclick = function () { yl = yr = sy; draw(); };
+  function anim(tl, tr) {
+    var l0 = yl, r0 = yr, t0 = performance.now(), red = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function step(now) { var u = red ? 1 : Math.min(1, (now - t0) / 700), e = u * u * (3 - 2 * u); yl = l0 + (tl - l0) * e; yr = r0 + (tr - r0) * e; draw(); if (u < 1) requestAnimationFrame(step); })(t0);
+  }
+  function line() { var b1 = (yr - yl) / (xmax - xmin), b0 = yl - b1 * xmin; return { b0: b0, b1: b1 }; }
+  function draw() {
+    tools.querySelectorAll('[data-m]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === show); });
+    svg.innerHTML = '';
+    var ln = line(), f = function (x) { return ln.b0 + ln.b1 * x; };
+    var gx = Math.pow(10, Math.floor(Math.log((xmax - xmin) / 5) / Math.LN10)), gy = Math.pow(10, Math.floor(Math.log((ymax - ymin) / 5) / Math.LN10));
+    if ((xmax - xmin) / gx > 8) gx *= 2; if ((ymax - ymin) / gy > 8) gy *= 2; if ((xmax - xmin) / gx < 4) gx /= 2; if ((ymax - ymin) / gy < 4) gy /= 2;
+    for (var v = Math.ceil(xmin / gx) * gx; v <= xmax; v += gx) { el('line', { x1: X(v), y1: Y(ymin), x2: X(v), y2: Y(ymax), stroke: '#eef0f2' }, svg); el('text', { x: X(v), y: H - B + 17, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0)); }
+    for (v = Math.ceil(ymin / gy) * gy; v <= ymax; v += gy) { el('line', { x1: X(xmin), y1: Y(v), x2: X(xmax), y2: Y(v), stroke: '#eef0f2' }, svg); el('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0)); }
+    el('line', { x1: X(xmin), y1: Y(ymin), x2: X(xmax), y2: Y(ymin), stroke: '#15171a', 'stroke-width': 1.5 }, svg); el('line', { x1: X(xmin), y1: Y(ymin), x2: X(xmin), y2: Y(ymax), stroke: '#15171a', 'stroke-width': 1.5 }, svg);
+    if (P.xlabel) el('text', { x: W - R, y: H - 8, 'text-anchor': 'end', 'font-size': 13, 'font-weight': 600, fill: '#15171a' }, svg, t(P.xlabel));
+    if (P.ylabel) el('text', { x: L - 40, y: T + 2, 'font-size': 13, 'font-weight': 600, fill: '#15171a' }, svg, t(P.ylabel));
+    var sse = 0;
+    pts.forEach(function (p) {
+      var yh = f(p[0]), e = p[1] - yh; sse += e * e;
+      var base = show === 'mean' ? sy : yh, r = p[1] - base, side = dpx(r);
+      if (show === 'sq' || show === 'mean') el('rect', { x: X(p[0]), y: Math.min(Y(base), Y(p[1])), width: side, height: side, fill: show === 'mean' ? '#7c3aed' : '#c2410c', 'fill-opacity': .16, stroke: show === 'mean' ? '#7c3aed' : '#c2410c', 'stroke-opacity': .5 }, svg);
+      el('line', { x1: X(p[0]), y1: Y(base), x2: X(p[0]), y2: Y(p[1]), stroke: show === 'mean' ? '#7c3aed' : '#c2410c', 'stroke-width': 1.6 }, svg);
+    });
+    if (show === 'mean') el('line', { x1: X(xmin), y1: Y(sy), x2: X(xmax), y2: Y(sy), stroke: '#7c3aed', 'stroke-width': 1.4, 'stroke-dasharray': '6 5' }, svg);
+    el('line', { x1: X(xmin), y1: Y(f(xmin)), x2: X(xmax), y2: Y(f(xmax)), stroke: '#2f5bd3', 'stroke-width': 3, 'stroke-linecap': 'round' }, svg);
+    pts.forEach(function (p) { el('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5, fill: '#15171a', stroke: '#fff', 'stroke-width': 1.6 }, svg); });
+    [['l', xmin, yl], ['r', xmax, yr]].forEach(function (hnd) {
+      var c = el('circle', { cx: X(hnd[1]), cy: Y(hnd[2]), r: 10, fill: '#fff', stroke: '#2f5bd3', 'stroke-width': 3, class: 'handle', tabindex: 0, role: 'slider', 'aria-valuenow': hnd[2], 'aria-label': tx('End of the line: drag up or down', '直线的一端：上下拖动') }, svg);
+      c.addEventListener('pointerdown', function (e) { drag = hnd[0]; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+      c.addEventListener('keydown', function (e) { var d = e.key === 'ArrowUp' ? (ymax - ymin) / 100 : e.key === 'ArrowDown' ? -(ymax - ymin) / 100 : 0; if (d) { e.preventDefault(); if (hnd[0] === 'l') yl += d; else yr += d; draw(); } });
+    });
+    var ssr = sst - sse, r2 = ssr / sst, sseBest = sst * (1 - (sxy * sxy) / (sxx * sst));
+    var c = function (k, v, cls) { return '<div class="' + (cls || '') + '"><span class="k">' + k + '</span><div class="v">' + v + '</div></div>'; };
+    var u = P.unit || '';
+    document.getElementById('nums').innerHTML = c(tx('Slope b₁', '斜率 b₁'), fmt(ln.b1, 4), 'hot') + c(tx('Intercept b₀', '截距 b₀'), fmt(ln.b0, 2), 'hot') + c('SSE', fmt(sse, 1), 'hot') + c('SST', fmt(sst, 1)) + c('SSR = SST − SSE', fmt(ssr, 1)) + c('r²', fmt(r2, 4), Math.abs(sse - sseBest) < sseBest * 1e-4 + 1e-6 ? 'good' : 'hot') + (revealed ? c(tx('Least SSE possible', '可能的最小 SSE'), fmt(sseBest, 1), 'good') : '');
+    K.report();
+  }
+  svg.addEventListener('pointermove', function (e) { if (!drag) return; var q = K.pt(svg, e), v = ymin + (H - B - q.y) / (H - T - B) * (ymax - ymin); if (drag === 'l') yl = v; else yr = v; draw(); });
+  svg.addEventListener('pointerup', function () { drag = null; }); svg.addEventListener('pointercancel', function () { drag = null; });
+  draw(); K.ready();
+})();
+</script>
+</body></html>

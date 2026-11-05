@@ -32,6 +32,7 @@
 <script>
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var fmt0 = fmt; fmt = function (v, d) { return d === 4 ? (Math.round(v * 1e4) / 1e4).toFixed(4) : fmt0(v, d); };
   var mu = P.mu, sd = P.sd, money = P.unit || '', modes = P.modes || ['left', 'between', 'right', 'find'];
   var mode = P.mode || modes[0], a = P.a != null ? P.a : mu - sd, b = P.b != null ? P.b : mu + sd, tail = 'left', target = P.p != null ? P.p : 0.1, from = P.from != null ? P.from : mu - sd;
   var W = 640, H = 230, L = 16, R = 16, T = 14, B = 36, svg = document.getElementById('svg');

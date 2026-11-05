@@ -6107,6 +6107,15 @@
      "mgmt90141-random-variables",
      "mgmt90141-normal"
     ]
+   },
+   {
+    "title": {
+     "en": "What does the data say?",
+     "zh": "数据说明了什么？"
+    },
+    "lessons": [
+     "mgmt90141-regression"
+    ]
    }
   ],
   "lessons": [
@@ -7108,6 +7117,44 @@
        "name": {
         "en": "The normal distribution and the z table",
         "zh": "正态分布与 z 表"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-regression",
+    "title": {
+     "en": "How to draw the best line, and how good it is",
+     "zh": "怎样画出最佳直线，以及它有多好"
+    },
+    "summary": {
+     "en": "Drag a line through a cloud of points and watch the squared errors. The best line is the one with the smallest total, r² says how much better it is than a flat line at the mean, and the exam’s kangaroo question puts the whole method on one page.",
+     "zh": "在一团点里拖一条直线，看误差的平方。最佳直线是总和最小的那条，r² 说明它比水平的均值线好多少，而考试里的袋鼠题把整套方法放在一页纸上。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "How to draw the best line, and how good it is",
+      "zh": "怎样画出最佳直线，以及它有多好"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.regression",
+       "name": {
+        "en": "Simple linear regression by least squares",
+        "zh": "一元线性回归（最小二乘）"
        }
       }
      ]
