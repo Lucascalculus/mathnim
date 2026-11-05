@@ -2,7 +2,7 @@
 
 A demo course in the studio format (lesson JSON in `apps/mathnim/public/demo/mgmt90141/`, entry in
 `apps/mathnim/public/demo/courses.json`), written in Python with `docs/lessons/lesson_kit.py`; the figures are
-instruments (`docs/lessons/NEXT-LEARNING.md`, read it first). Status: **planned 2026-11-06, nothing built yet.**
+instruments (`docs/lessons/NEXT-LEARNING.md`, read it first). Status: **all 17 lessons built 2026-11-06 (see CHECKPOINT.md); not deployed.**
 
 Sources (`~/Downloads/90141/`): twelve weekly decks (Week 1-10, 12, and the "additional constraints" deck for
 week 4), the subject guide, the 2025 Semester 2 exam paper, the lecturer's revision deck with worked answers
