@@ -6054,6 +6054,18 @@
      "mktg90037-co-creation",
      "mktg90037-make-or-buy"
     ]
+   },
+   {
+    "title": {
+     "en": "Measuring and capturing it",
+     "zh": "衡量并拿到价值"
+    },
+    "lessons": [
+     "mktg90037-firm-value",
+     "mktg90037-marketing-metrics",
+     "mktg90037-pricing-cost",
+     "mktg90037-pricing-value"
+    ]
    }
   ],
   "lessons": [
@@ -6570,6 +6582,154 @@
        "name": {
         "en": "Explaining and applying transaction cost theory to make-or-buy decisions",
         "zh": "解释并应用交易成本理论做自制或外购决策"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-firm-value",
+    "title": {
+     "en": "How do I know the value was created?",
+     "zh": "怎么知道价值真的创造出来了？"
+    },
+    "summary": {
+     "en": "Why a profitable firm can still destroy value (EVA), why one number is not enough (Balanced Scorecard), and what a price war shows, with Coles.",
+     "zh": "为什么盈利的企业仍可能毁灭价值（EVA）、为什么一个数字不够（平衡计分卡）、价格战说明什么，案例是 Coles。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "How do I know the value was created?",
+      "zh": "怎么知道价值真的创造出来了？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.firm-value",
+       "name": {
+        "en": "Explaining and applying EVA and the Balanced Scorecard",
+        "zh": "解释并应用 EVA 和平衡计分卡"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-marketing-metrics",
+    "title": {
+     "en": "What do I measure about marketing, and what goes wrong?",
+     "zh": "我该衡量营销的什么？会出什么错？"
+    },
+    "summary": {
+     "en": "Why marketing needs metrics, the funnel, return on marketing investment, three equities, and how a metric can quietly replace a strategy, with Who Gives a Crap and Coles.",
+     "zh": "为什么营销需要指标、漏斗、营销投资回报、三种资产，以及指标怎样悄悄取代战略，案例是 Who Gives a Crap 和 Coles。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "What do I measure about marketing, and what goes wrong?",
+      "zh": "我该衡量营销的什么？会出什么错？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.metrics",
+       "name": {
+        "en": "Explaining and applying marketing metrics, ROMI and surrogation",
+        "zh": "解释并应用营销指标、ROMI 和替代偏差"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-pricing-cost",
+    "title": {
+     "en": "Why is price the lever firms use worst?",
+     "zh": "为什么价格是企业用得最差的杠杆？"
+    },
+    "summary": {
+     "en": "How much a price change moves profit and demand, what the six pricing myths get wrong, and how cost-based pricing, scale and learning set the floor, with Coles.",
+     "zh": "价格变动对利润和需求的影响有多大、六个定价迷思错在哪里，以及成本导向定价、规模和学习怎样设定底线，案例是 Coles。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Why is price the lever firms use worst?",
+      "zh": "为什么价格是企业用得最差的杠杆？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.pricing-cost",
+       "name": {
+        "en": "Explaining and applying cost-based pricing and elasticity",
+        "zh": "解释并应用成本导向定价和弹性"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-pricing-value",
+    "title": {
+     "en": "How do I charge for what it is worth?",
+     "zh": "怎样按价值收费？"
+    },
+    "summary": {
+     "en": "Value-based pricing, conjoint trade-offs, personalised pricing and when it works, price psychology and ethics, with Hilton Honors.",
+     "zh": "价值导向定价、联合分析的取舍、个性化定价及其适用条件、价格心理与伦理，案例是 Hilton Honors。"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "How do I charge for what it is worth?",
+      "zh": "怎样按价值收费？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.pricing-value",
+       "name": {
+        "en": "Explaining and applying value-based pricing and pricing psychology",
+        "zh": "解释并应用价值导向定价和价格心理"
        }
       }
      ]
