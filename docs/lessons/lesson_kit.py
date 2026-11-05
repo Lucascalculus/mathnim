@@ -31,6 +31,21 @@ def visual(name, caption=None, explore=True, **params):
     return b
 
 
+def frame(src, alt, caption=None, height=None, **params):
+    """A self-contained instrument (an HTML page under apps/mathnim/public/frames/) in a sandboxed frame; for what needs typing, tables or drag and drop."""
+    b = {'type': 'frame', 'src': src, 'alt': alt}
+    if params: b['params'] = params
+    if height: b['height'] = height
+    if caption: b['caption'] = caption
+    return b
+
+
+def code(lang, source, caption=None):
+    b = {'type': 'code', 'lang': lang, 'code': source}
+    if caption: b['caption'] = caption
+    return b
+
+
 def quiz(prompt, options, explain):
     """A small question inside a page: options are (label, True) for the right one or (label, why it is wrong)."""
     opts = []
