@@ -1,0 +1,184 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .rep{margin-top:10px;overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+ table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:0}
+ th{font:600 9.5px var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px 4px;background:var(--panel);border-bottom:1px solid var(--border);vertical-align:bottom;line-height:1.25}
+ th:first-child,td:first-child{text-align:left}
+ td{padding:4px 6px;text-align:right;border-bottom:1px solid var(--faint)}
+ td.name{padding-left:8px;line-height:1.25}
+ tr.sec td{background:var(--panel);font:600 11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:5px 10px}
+ td button{border:1px solid transparent;border-radius:7px;background:none;padding:3px 3px;font:inherit;font-variant-numeric:tabular-nums;color:var(--fg);min-width:0}
+ td button:hover{border-color:var(--border);background:#fff}
+ td button[aria-pressed=true]{border-color:var(--blue);background:#f1f5ff;color:var(--blue);font-weight:600}
+ .ctl{margin-top:10px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel)}
+ .ctl .what{font-size:13px;color:var(--muted)}
+ .ctl .what b{color:var(--fg)}
+ input[type=range]{width:100%;margin:8px 0 2px;accent-color:var(--blue)}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}.pill.mid{background:#fdf1e4;color:var(--orange)}
+ .scale{position:relative;height:16px;margin-top:-2px}
+ .scale i{position:absolute;top:0;height:6px;border-radius:3px;background:#cfe8df}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+</style></head>
+<body>
+<div class="stage" id="stage"><svg id="svg" viewBox="0 0 640 380" role="img"></svg></div>
+<div class="rep"><table id="rep"></table></div>
+<div class="ctl" id="ctl"></div>
+<script src="../kit/lp.js"></script><script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var money = P.money || '', sense = P.sense || 'max', nv = P.obj.length;
+  var base = { sense: sense, c: P.obj.slice(), rows: P.rows.map(function (r) { return { a: r.a.slice(), op: r.op || '<=', b: r.b, label: t(r.label) }; }) };
+  var names = (P.vars || P.obj.map(function (_, i) { return 'x' + (i + 1); }));
+  var sol0 = LP.solve(base), sens = LP.sensitivity(base, sol0);
+  var sel = P.select ? { kind: P.select[0], i: P.select[1] } : null, val = null;
+  var plane = nv === 2 && P.plane !== false;
+  var W = 640, H = 380, L = 56, R = 16, T = 26, B = 42, view = P.view || [100, 100], xmax = view[0], ymax = view[1];
+  var X = function (x) { return L + x / xmax * (W - L - R); }, Y = function (y) { return H - B - y / ymax * (H - T - B); };
+  var svg = document.getElementById('svg');
+  if (!plane) document.getElementById('stage').style.display = 'none';
+  var INF = 1e29;
+  function ex(v) { return v >= INF ? '1E+30' : fmt(v, 4); }
+  function model_with() {
+    var m = { sense: sense, c: base.c.slice(), rows: base.rows.map(function (r) { return { a: r.a, op: r.op, b: r.b, label: r.label }; }) };
+    if (sel && val != null) { if (sel.kind === 'var') m.c[sel.i] = val; else m.rows[sel.i].b = val; }
+    return m;
+  }
+  // ---- report table (Excel's sensitivity report, of the problem as given)
+  var rep = document.getElementById('rep');
+  function build_table() {
+    var s = '<tr class="sec"><td colspan="7">' + tx('Variable cells', '可变单元格') + '</td></tr><tr><th>' + tx('Name', '名称') + '</th><th>' + tx('Final value', '终值') + '</th><th>' + tx('Reduced cost', '递减成本') + '</th><th>' + tx('Objective coeff.', '目标系数') + '</th><th>' + tx('Allowable increase', '允许的增量') + '</th><th>' + tx('Allowable decrease', '允许的减量') + '</th></tr>';
+    var cells = [];
+    sens.vars.forEach(function (v, j) {
+      s += '<tr><td class="name">' + names[j] + (P.var_names ? ' ' + t(P.var_names[j]) : '') + '</td><td class="num">' + fmt(v.value, 4) + '</td>' + btn('var', j, fmt(v.reduced, 4)) + '<td class="num">' + fmt(v.cost, 4) + '</td>' + btn('var', j, ex(v.inc)) + btn('var', j, ex(v.dec)) + '</tr>';
+    });
+    s += '<tr class="sec"><td colspan="7">' + tx('Constraints', '约束') + '</td></tr><tr><th>' + tx('Name', '名称') + '</th><th>' + tx('Final value', '终值') + '</th><th>' + tx('Shadow price', '影子价格') + '</th><th>' + tx('Constraint R.H. side', '约束右端') + '</th><th>' + tx('Allowable increase', '允许的增量') + '</th><th>' + tx('Allowable decrease', '允许的减量') + '</th></tr>';
+    sens.rows.forEach(function (r, k) {
+      s += '<tr><td class="name">' + base.rows[k].label + '</td><td class="num">' + fmt(r.lhs, 4) + '</td>' + btn('row', k, fmt(r.shadow, 4)) + '<td class="num">' + fmt(r.rhs, 4) + '</td>' + btn('row', k, ex(r.inc)) + btn('row', k, ex(r.dec)) + '</tr>';
+    });
+    rep.innerHTML = s;
+    rep.querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () { sel = { kind: b.dataset.k, i: +b.dataset.i }; val = null; build_table(); init_ctl(); draw(); };
+    });
+  }
+  function btn(kind, i, text) { return '<td><button type="button" data-k="' + kind + '" data-i="' + i + '" aria-pressed="' + (sel && sel.kind === kind && sel.i === i) + '">' + text + '</button></td>'; }
+
+  // ---- the plane
+  function clip(poly, a1, a2, b) {
+    var out = [];
+    for (var i = 0; i < poly.length; i++) {
+      var p = poly[i], q = poly[(i + 1) % poly.length], fp = a1 * p[0] + a2 * p[1] - b, fq = a1 * q[0] + a2 * q[1] - b;
+      if (fp <= 1e-9) out.push(p);
+      if ((fp < -1e-9 && fq > 1e-9) || (fp > 1e-9 && fq < -1e-9)) { var s = fp / (fp - fq); out.push([p[0] + s * (q[0] - p[0]), p[1] + s * (q[1] - p[1])]); }
+    }
+    return out;
+  }
+  function seg_of(a, b) {
+    var pts = [];
+    function add(x, y) { if (x >= -1e-9 && x <= xmax + 1e-9 && y >= -1e-9 && y <= ymax + 1e-9) pts.push([x, y]); }
+    if (Math.abs(a[1]) > 1e-12) { add(0, b / a[1]); add(xmax, (b - a[0] * xmax) / a[1]); }
+    if (Math.abs(a[0]) > 1e-12) { add(b / a[0], 0); add((b - a[1] * ymax) / a[0], ymax); }
+    pts.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+    return pts.length >= 2 ? [pts[0], pts[pts.length - 1]] : null;
+  }
+  var taken;
+  function label_at(seg, txt, bold) {
+    var wd = txt.length * 7 + 6, cands = [.92, .08, .78, .22, .64, .36, .5];
+    for (var i = 0; i < cands.length; i++) {
+      var f = cands[i], px = seg[0][0] + (seg[1][0] - seg[0][0]) * f, py = seg[0][1] + (seg[1][1] - seg[0][1]) * f;
+      var left = px < xmax * .55, lx = X(px) + (left ? 8 : -8), ly = Y(py) - 7; if (py > ymax * .9) ly = Y(py) + 16;
+      var rc = [left ? lx : lx - wd, ly - 12, wd, 16];
+      if (taken.some(function (q) { return rc[0] < q[0] + q[2] && rc[0] + rc[2] > q[0] && rc[1] < q[1] + q[3] && rc[1] + rc[3] > q[1]; })) continue;
+      if (rc[0] < L - 2 || rc[0] + rc[2] > W - 2 || rc[1] < T - 2 || rc[1] + rc[3] > H - B + 2) continue;
+      taken.push(rc);
+      el('text', { x: lx, y: ly, 'text-anchor': left ? 'start' : 'end', 'font-size': 12.5, fill: bold ? '#c2410c' : '#15171a', 'font-weight': bold ? 700 : 400, class: 'halo' }, svg, txt);
+      return;
+    }
+  }
+  function draw_plane(m, ghost) {
+    svg.innerHTML = ''; taken = [[W - R - 110, H - B - 2, 110, 16]];
+    function step(max) { return max <= 60 ? 10 : max <= 150 ? 20 : max <= 400 ? 50 : max <= 1000 ? 100 : 200; }
+    for (var v = 0; v <= xmax; v += step(xmax)) { el('line', { x1: X(v), y1: Y(0), x2: X(v), y2: Y(ymax), stroke: '#eef0f2' }, svg); el('text', { x: X(v), y: H - B + 17, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0)); }
+    for (v = 0; v <= ymax; v += step(ymax)) { el('line', { x1: X(0), y1: Y(v), x2: X(xmax), y2: Y(v), stroke: '#eef0f2' }, svg); el('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0)); }
+    el('line', { x1: X(0), y1: Y(0), x2: X(xmax), y2: Y(0), stroke: '#15171a', 'stroke-width': 1.6 }, svg);
+    el('line', { x1: X(0), y1: Y(0), x2: X(0), y2: Y(ymax), stroke: '#15171a', 'stroke-width': 1.6 }, svg);
+    if (P.axes) {
+      el('text', { x: W - R, y: H - 8, 'text-anchor': 'end', 'font-size': 13, 'font-weight': 600, fill: '#15171a' }, svg, t(P.axes[0]));
+      el('text', { x: L - 40, y: T - 10, 'font-size': 13, 'font-weight': 600, fill: '#15171a' }, svg, t(P.axes[1]));
+    }
+    var poly = [[0, 0], [xmax, 0], [xmax, ymax], [0, ymax]];
+    m.rows.forEach(function (r) { if (r.op !== '=') { var q = r.op === '>=' ? [-r.a[0], -r.a[1], -r.b] : [r.a[0], r.a[1], r.b]; poly = clip(poly, q[0], q[1], q[2]); } });
+    if (poly.length >= 3) el('polygon', { points: poly.map(function (p) { return X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: '#2f5bd3', 'fill-opacity': .10 }, svg);
+    m.rows.forEach(function (r, k) {
+      var sg = seg_of(r.a, r.b); if (!sg) return;
+      var on = sel && sel.kind === 'row' && sel.i === k;
+      el('line', { x1: X(sg[0][0]), y1: Y(sg[0][1]), x2: X(sg[1][0]), y2: Y(sg[1][1]), stroke: on ? '#c2410c' : '#15171a', 'stroke-width': on ? 3.4 : 2, 'stroke-linecap': 'round' }, svg);
+      label_at(sg, r.label, on);
+    });
+    var s = LP.solve(m);
+    if (s.status === 'optimal') {
+      var c = m.c, z = s.obj, d = Math.hypot(c[0], c[1]), p0 = [z * c[0] / (d * d), z * c[1] / (d * d)];
+      var ln = seg_of(c, z);
+      if (ln) el('line', { x1: X(ln[0][0]), y1: Y(ln[0][1]), x2: X(ln[1][0]), y2: Y(ln[1][1]), stroke: sel && sel.kind === 'var' ? '#c2410c' : '#c2410c', 'stroke-width': sel && sel.kind === 'var' ? 2.6 : 1.4, 'stroke-dasharray': '6 5', opacity: .8 }, svg);
+      if (ghost && ghost.status === 'optimal' && (Math.abs(ghost.x[0] - s.x[0]) > 1e-6 || Math.abs(ghost.x[1] - s.x[1]) > 1e-6)) el('circle', { cx: X(ghost.x[0]), cy: Y(ghost.x[1]), r: 7, fill: 'none', stroke: '#9aa0a6', 'stroke-width': 2, 'stroke-dasharray': '3 3' }, svg);
+      el('circle', { cx: X(s.x[0]), cy: Y(s.x[1]), r: 10, fill: 'none', stroke: '#0f766e', 'stroke-width': 3 }, svg);
+      el('text', { x: X(s.x[0]) + 14, y: Y(s.x[1]) - 11, 'font-size': 12.5, 'font-weight': 600, fill: '#0f766e', class: 'halo' }, svg, '(' + fmt(s.x[0], 1) + ', ' + fmt(s.x[1], 1) + ')  ' + money + fmt(s.obj, 1));
+    }
+  }
+
+  // ---- the control under the table: one slider on the touched number, and what the report promises
+  var ctl = document.getElementById('ctl'), slider = null, out = null, lo, hi, step_;
+  function init_ctl() {
+    out = null; slider = null;
+    ctl.innerHTML = '';
+    if (!sel) { ctl.innerHTML = '<div class="what">' + tx('Touch a number in the report.', '点一下报告里的数。') + '</div>'; return; }
+    var isvar = sel.kind === 'var', cur = isvar ? base.c[sel.i] : base.rows[sel.i].b, e = isvar ? sens.vars[sel.i] : sens.rows[sel.i];
+    var inc = e.inc >= INF ? null : e.inc, dec = e.dec >= INF ? null : e.dec, span = (inc || 0) + (dec || 0) || Math.abs(cur) * .6 + 1;
+    lo = cur - (dec != null ? dec : span * .5) - span * .45; hi = cur + (inc != null ? inc : span * .5) + span * .45;
+    if (!isvar) lo = Math.max(0, lo);
+    var raw = (hi - lo) / 160; step_ = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)); if (raw / step_ > 5) step_ *= 5; else if (raw / step_ > 2) step_ *= 2;
+    lo = Math.floor(lo / step_) * step_; hi = Math.ceil(hi / step_) * step_;
+    val = cur;
+    var head = isvar ? tx('Objective coefficient of ', '目标系数：') + '<b>' + names[sel.i] + '</b>' : tx('Right-hand side of ', '右端：') + '<b>' + base.rows[sel.i].label + '</b>';
+    var promise = isvar
+      ? tx('The best plan stays the same while this stays between ', '只要它在 ') + '<b>' + fmt(cur - (dec == null ? -Infinity : dec), 4) + '</b>' + tx(' and ', ' 和 ') + '<b>' + fmt(cur + (inc == null ? Infinity : inc), 4) + '</b>' + tx('.', ' 之间，最优计划就不变。')
+      : (e.shadow === 0 ? tx('This limit has room to spare: moving it changes nothing, until it is cut to ', '这条限制有富余：移动它什么都不变，直到被压到 ') + '<b>' + fmt(cur - (dec == null ? 0 : dec), 4) + '</b>.'
+         : tx('Each extra unit changes the best value by ', '每多一个单位，最优值变化 ') + '<b>' + fmt(e.shadow, 4) + '</b>' + tx(', as long as this stays between ', '，只要它在 ') + '<b>' + fmt(cur - (dec == null ? Infinity : dec), 4) + '</b>' + tx(' and ', ' 和 ') + '<b>' + fmt(cur + (inc == null ? Infinity : inc), 4) + '</b>' + tx('.', ' 之间。'));
+    h('div', 'what', head + '<br>' + promise, ctl);
+    slider = h('input', '', null, ctl); slider.type = 'range'; slider.min = lo; slider.max = hi; slider.step = step_; slider.value = cur;
+    slider.setAttribute('aria-label', tx('Move the number', '拖动这个数'));
+    var sc = h('div', 'scale', '', ctl);
+    var a = Math.max(lo, cur - (dec == null ? Infinity : dec)), b = Math.min(hi, cur + (inc == null ? Infinity : inc));
+    var bar = h('i', '', '', sc); bar.style.left = ((a - lo) / (hi - lo) * 100) + '%'; bar.style.width = ((b - a) / (hi - lo) * 100) + '%';
+    out = h('div', '', '', ctl); out.style.marginTop = '6px';
+    slider.oninput = function () { val = +slider.value; draw(); };
+  }
+  function draw() {
+    var m = model_with(), s = LP.solve(m);
+    if (plane) draw_plane(m, sol0);
+    if (!out) return;
+    var isvar = sel.kind === 'var', cur = isvar ? base.c[sel.i] : base.rows[sel.i].b, e = isvar ? sens.vars[sel.i] : sens.rows[sel.i];
+    var inside = val >= cur - (e.dec >= INF ? Infinity : e.dec) - 1e-9 && val <= cur + (e.inc >= INF ? Infinity : e.inc) + 1e-9;
+    var html = '<div><span class="kicker">' + (isvar ? tx('Objective coefficient', '目标系数') : tx('Right-hand side', '右端')) + '</span> <b class="num" style="font-size:18px">' + fmt(val, 4) + '</b> <span class="pill ' + (inside ? 'ok' : 'mid') + '">' + (inside ? tx('inside the stretch', '在允许范围内') : tx('past the stretch', '超出允许范围')) + '</span></div>';
+    if (s.status !== 'optimal') html += '<div class="what">' + (s.status === 'infeasible' ? tx('No plan keeps every limit.', '没有任何计划能守住所有限制。') : tx('No best value.', '没有最优值。')) + '</div>';
+    else {
+      var dz = s.obj - sol0.obj;
+      html += '<div class="what" style="margin-top:4px">' + tx('Best value ', '最优值 ') + '<b class="num">' + money + fmt(s.obj, 3) + '</b> · ' + tx('was ', '原来 ') + '<span class="num">' + money + fmt(sol0.obj, 3) + '</span>';
+      if (Math.abs(dz) > 1e-9) html += ' · ' + (dz > 0 ? '+' : '−') + '<b class="num">' + money + fmt(Math.abs(dz), 3) + '</b>';
+      if (!isvar && Math.abs(val - cur) > 1e-9) html += ' · ' + tx('per unit moved ', '每动一个单位 ') + '<b class="num">' + fmt(dz / (val - cur), 4) + '</b>';
+      html += '<br>' + tx('Best plan ', '最优计划 ') + '<span class="num">(' + s.x.map(function (v, i) { return names[i] + ' = ' + fmt(v, 2); }).join(', ') + ')</span>';
+      var same = s.x.every(function (v, i) { return Math.abs(v - sol0.x[i]) < 1e-6; });
+      if (isvar) html += ' <span class="pill ' + (same ? 'ok' : 'mid') + '">' + (same ? tx('same plan', '同一个计划') : tx('a different plan', '换了计划')) + '</span>';
+      html += '</div>';
+    }
+    out.innerHTML = html; K.report();
+  }
+  build_table(); init_ctl(); draw();
+  K.ready();
+})();
+</script>
+</body></html>

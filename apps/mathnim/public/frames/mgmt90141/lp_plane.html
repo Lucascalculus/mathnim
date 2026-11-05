@@ -23,7 +23,7 @@
 <script>
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
-  var W = 640, H = 400, L = 58, R = 18, T = 14, B = 46;
+  var W = 640, H = 400, L = 58, R = 18, T = 28, B = 46;
   var view = P.view || [120, 120], xmax = view[0], ymax = view[1];
   var rows = (P.rows || []).map(function (r) { return { a: r.a.slice(), op: r.op || '<=', b: r.b, b0: r.b, label: r.label }; });
   var c = P.obj || [1, 1], sense = P.sense || 'max', money = P.money || '';
@@ -34,7 +34,7 @@
   var ix = function (px) { return (px - L) / (W - L - R) * xmax; }, iy = function (py) { return (H - B - py) / (H - T - B) * ymax; };
   var svg = document.getElementById('svg');
   svg.setAttribute('aria-label', t(P.alt) || tx('Linear program in two variables', '两个变量的线性规划'));
-  var state = { p: (P.start || [xmax * .12, ymax * .12]).slice(), swept: !!P.corners, anim: null };
+  var state = { p: (P.start || [Math.round(xmax * .12 / snap) * snap, Math.round(ymax * .12 / snap) * snap]).slice(), swept: !!P.corners, anim: null };
 
   // ---- geometry
   function half(r) { return r.op === '>=' ? [-r.a[0], -r.a[1], -r.b] : [r.a[0], r.a[1], r.b]; }
@@ -109,7 +109,7 @@
   el('line', { x1: X(0), y1: Y(0), x2: X(0), y2: Y(ymax), stroke: '#15171a', 'stroke-width': 1.6 }, g_grid);
   if (P.axes) {
     el('text', { x: W - R, y: H - 8, 'text-anchor': 'end', 'font-size': 13, fill: '#15171a', 'font-weight': 600 }, g_grid, t(P.axes[0]));
-    el('text', { x: L + 6, y: T + 10, 'text-anchor': 'start', 'font-size': 13, fill: '#15171a', 'font-weight': 600 }, g_grid, t(P.axes[1]));
+    el('text', { x: L - 40, y: T - 12, 'text-anchor': 'start', 'font-size': 13, fill: '#15171a', 'font-weight': 600 }, g_grid, t(P.axes[1]));
   }
 
   // ---- drawing
@@ -120,17 +120,26 @@
   function draw() {
     g_region.innerHTML = ''; g_walls.innerHTML = ''; g_dyn.innerHTML = '';
     var poly = region();
+    var taken = P.axes ? [[W - R - 110, H - B - 2, 110, 16]] : [];
     if (poly.length >= 3) el('polygon', { points: pts_str(poly), fill: '#2f5bd3', 'fill-opacity': .10, stroke: 'none' }, g_region);
     rows.forEach(function (r) {
       var seg = wall_view(r);
       if (!seg) return;
       el('line', { x1: X(seg[0][0]), y1: Y(seg[0][1]), x2: X(seg[1][0]), y2: Y(seg[1][1]), stroke: '#15171a', 'stroke-width': 2, 'stroke-linecap': 'round' }, g_walls);
-      // the label sits at the higher end of the wall, inside the plot, on the side with room
-      var e = seg[0][1] > seg[1][1] ? seg[0] : seg[1];
-      var onTop = e[1] >= ymax - 1e-6, left = e[0] < xmax * .5;
-      var lx = X(e[0]) + (left ? 8 : -8), ly = onTop ? Y(e[1]) + 16 : Y(e[1]) - 7;
-      var anchor = left ? 'start' : 'end';
-      el('text', { x: lx, y: ly, 'text-anchor': anchor, 'font-size': 12.5, fill: '#15171a', class: 'halo' }, g_walls, t(r.label));
+      // the label goes where it collides with nothing: tried along the wall, ends first, then the middle
+      var txt = t(r.label), wd = txt.length * 7 + 6, ok_pos = null, cands = [.94, .06, .8, .2, .68, .32, .56, .44];
+      for (var ci = 0; ci < cands.length && !ok_pos; ci++) {
+        var f = cands[ci], px = seg[0][0] + (seg[1][0] - seg[0][0]) * f, py = seg[0][1] + (seg[1][1] - seg[0][1]) * f;
+        var left = px < xmax * .55, lx = X(px) + (left ? 8 : -8), ly = Y(py) - 7;
+        if (py > ymax * .9) ly = Y(py) + 16;
+        var rect = [left ? lx : lx - wd, ly - 12, wd, 16];
+        var clash = taken.some(function (q) { return rect[0] < q[0] + q[2] && rect[0] + rect[2] > q[0] && rect[1] < q[1] + q[3] && rect[1] + rect[3] > q[1]; });
+        var inside = rect[0] >= L - 2 && rect[0] + rect[2] <= W - 2 && rect[1] >= T - 2 && rect[1] + rect[3] <= H - B + 2;
+        if (!clash && inside) ok_pos = { x: lx, y: ly, anchor: left ? 'start' : 'end', rect: rect };
+      }
+      if (!ok_pos) ok_pos = { x: X(seg[1][0]) - 8, y: Y(seg[1][1]) - 7, anchor: 'end', rect: [0, 0, 0, 0] };
+      taken.push(ok_pos.rect);
+      el('text', { x: ok_pos.x, y: ok_pos.y, 'text-anchor': ok_pos.anchor, 'font-size': 12.5, fill: '#15171a', class: 'halo' }, g_walls, txt);
     });
     var best = optimum();
     var showBest = state.swept || tools.indexOf('walls') >= 0;

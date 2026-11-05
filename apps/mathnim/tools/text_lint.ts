@@ -92,7 +92,8 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
     for (const l of ['en', 'zh'] as const) {
       const text = tr(v, l);
       if (((text.replace(/`[^`]*`/g, '').replace(/\\\$/g, '').match(/\$/g)?.length ?? 0) % 2)) err(x.where, `${l}: an unclosed $ (inline TeX is $...$)`);
-      for (const m of text.replace(/`[^`]*`/g, '').matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)) check_tex(`${x.where} (${l})`, m[1] ?? m[2], !!m[1]);
+      // (an escaped dollar sign, \$480, is money, not the start of TeX)
+      for (const m of text.replace(/`[^`]*`/g, '').replace(/\\\$/g, '').matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)) check_tex(`${x.where} (${l})`, m[1] ?? m[2], !!m[1]);
       if (!is_bilingual(v)) break;
     }
   }

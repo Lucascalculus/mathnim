@@ -1,0 +1,151 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .vars{display:grid;gap:2px;font-size:13px;color:var(--muted);margin-bottom:10px}
+ .vars code{font:600 13px var(--mono);color:var(--fg)}
+ .sec{margin-top:12px}
+ .field{display:flex;gap:8px;align-items:center;margin-top:6px}
+ .field .tag{font:600 11px var(--mono);color:var(--muted);width:22px;text-align:right;flex:none}
+ input.ln{flex:1;min-width:0;font:15px var(--mono);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--fg)}
+ input.ln:focus{outline:2px solid #cdd9fb;border-color:var(--blue)}
+ input.ln.bad{border-color:var(--bad)}
+ .mark{flex:none;width:20px;text-align:center;font-weight:700}
+ .mark.ok{color:var(--green)}.mark.no{color:var(--bad)}
+ .keys{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+ .keys button{border:1px solid var(--border);background:#fff;border-radius:8px;padding:3px 11px;font:600 14px var(--mono)}
+ .msg{font-size:13px;color:var(--bad);margin:2px 0 0 30px}
+ .res{margin-top:12px;display:grid;gap:8px}
+ .card{border:1px solid var(--border);border-radius:12px;padding:9px 12px;background:var(--panel);font-size:14px}
+ .card.ok{border-color:#bfe0d6;background:#f3faf7}.card.no{border-color:#efc9c1;background:#fdf6f4}
+ .card .h{display:flex;gap:8px;align-items:baseline;font-weight:600}
+ .card .why{color:var(--muted);font-size:13px;margin-top:3px}
+ .plan{font:13px var(--mono);color:var(--fg)}
+ .total{font-weight:600;font-size:14px;margin-top:4px}
+ .sol{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+</style></head>
+<body>
+<div class="vars" id="vars"></div>
+<div class="row" id="sense"></div>
+<div class="sec"><div class="kicker" id="k_obj"></div><div class="field"><span class="tag">z =</span><input class="ln" id="obj" autocapitalize="off" autocomplete="off" spellcheck="false" inputmode="text"></div></div>
+<div class="sec"><div class="kicker" id="k_rows"></div><div id="lines"></div>
+ <div class="keys" id="keys"></div></div>
+<div class="row" style="margin-top:12px"><button class="verb" id="go"></button><button class="ghost" id="add"></button></div>
+<div class="res" id="res"></div>
+<script src="../kit/lp.js"></script><script src="../kit/lpcheck.js"></script><script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var vars = P.vars || ['x1', 'x2'];
+  var ref = { sense: P.sense || 'max', c: P.c, rows: P.rows.map(function (r) { return { a: r.a, op: r.op, b: r.b, label: t(r.label) }; }) };
+  var money = P.money || '';
+  var state = { sense: null, last: null };
+  var vbox = document.getElementById('vars');
+  (P.names || []).forEach(function (nm) { h('div', '', t(nm), vbox); });
+  vbox.innerHTML = (P.names || []).map(function (nm) { var s = t(nm), i = s.indexOf('='); return i > 0 ? '<div><code>' + s.slice(0, i).trim() + '</code> = ' + s.slice(i + 1).trim() + '</div>' : '<div>' + s + '</div>'; }).join('');
+  document.getElementById('k_obj').textContent = tx('Goal', '目标');
+  document.getElementById('k_rows').textContent = tx('Limits, one per line', '限制，每行一条');
+
+  var sense_el = document.getElementById('sense'), bmax = h('button', 'ghost', tx('Maximise', '最大化'), sense_el), bmin = h('button', 'ghost', tx('Minimise', '最小化'), sense_el);
+  bmax.setAttribute('aria-pressed', 'false'); bmin.setAttribute('aria-pressed', 'false');
+  function set_sense(s) { state.sense = s; bmax.setAttribute('aria-pressed', s === 'max'); bmin.setAttribute('aria-pressed', s === 'min'); }
+  bmax.onclick = function () { set_sense('max'); }; bmin.onclick = function () { set_sense('min'); };
+
+  var obj = document.getElementById('obj'), lines_el = document.getElementById('lines'), focus_el = obj;
+  var inputs = [];
+  function add_line() {
+    var f = h('div', 'field', '', lines_el), tag = h('span', 'tag', String(inputs.length + 1), f);
+    var inp = h('input', 'ln', null, f); inp.setAttribute('autocapitalize', 'off'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('spellcheck', 'false');
+    var mk = h('span', 'mark', '', f), msg = h('div', 'msg', '', lines_el); msg.style.display = 'none';
+    inp.onfocus = function () { focus_el = inp; };
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    inputs.push({ inp: inp, mark: mk, msg: msg, wrap: f });
+    K.report();
+  }
+  obj.onfocus = function () { focus_el = obj; };
+  obj.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+  for (var i = 0; i < (P.lines || ref.rows.length + 1); i++) add_line();
+  document.getElementById('add').textContent = tx('+ line', '+ 一行');
+  document.getElementById('add').onclick = add_line;
+  document.getElementById('go').textContent = tx('Check', '检查');
+  document.getElementById('go').onclick = go;
+  var keys = document.getElementById('keys');
+  ['≤', '≥', '=', '(', ')', '+', '−'].forEach(function (k) {
+    var b = h('button', '', k, keys); b.type = 'button';
+    b.onmousedown = function (e) { e.preventDefault(); };
+    b.onclick = function () {
+      var el = focus_el, s = el.selectionStart == null ? el.value.length : el.selectionStart, e2 = el.selectionEnd == null ? s : el.selectionEnd;
+      el.value = el.value.slice(0, s) + (k === '−' ? '-' : k) + el.value.slice(e2); el.focus(); el.setSelectionRange(s + 1, s + 1);
+    };
+  });
+
+  function plan_text(x) { return '(' + x.map(function (v, i) { return vars[i] + ' = ' + fmt(v, 1); }).join(', ') + ')'; }
+  function card(cls, head, why, parent) {
+    var c = h('div', 'card ' + cls, '<div class="h">' + head + '</div>' + (why ? '<div class="why">' + why + '</div>' : ''), parent);
+    return c;
+  }
+  var SIGN = { '<=': '≤', '>=': '≥', '=': '=' };
+  function go() {
+    var res = document.getElementById('res'); res.innerHTML = '';
+    if (!state.sense) { card('no', tx('Choose maximise or minimise first.', '先选最大化还是最小化。'), '', res); K.report(); return; }
+    var learner = { sense: state.sense, c: null, rows: [] }, errors = 0, any = false;
+    try { learner.c = LPCheck.parse_objective(obj.value, vars); obj.classList.remove('bad'); }
+    catch (e) { obj.classList.add('bad'); card('no', tx('The goal: ', '目标：') + e.message, '', res); errors++; }
+    inputs.forEach(function (r) {
+      r.mark.textContent = ''; r.mark.className = 'mark'; r.inp.classList.remove('bad'); r.msg.style.display = 'none';
+      if (!r.inp.value.trim()) return;
+      any = true;
+      try { var row = LPCheck.parse_row(r.inp.value, vars); learner.rows.push(row); r.row = row; }
+      catch (e) { r.inp.classList.add('bad'); r.msg.textContent = e.message; r.msg.style.display = 'block'; errors++; r.row = null; }
+    });
+    if (errors) { K.report(); return; }
+    if (!any) { card('no', tx('Write at least one limit.', '至少写一条限制。'), '', res); K.report(); return; }
+    var feas = LP.solve(learner);
+    if (feas.status === 'infeasible') {
+      card('no', tx('Your limits contradict each other: no plan keeps all of them.', '你的限制互相矛盾：没有任何计划能同时守住它们。'), tx('Look for a limit written the wrong way round (≤ for a minimum, or ≥ for a capacity).', '找找有没有写反的限制（把下限写成 ≤，或把容量写成 ≥）。'), res);
+      K.report(); return;
+    }
+    var cmp = LPCheck.compare(ref, learner);
+    // goal
+    var og = [];
+    if (!cmp.sense_ok) og.push(tx('You chose ' + (state.sense === 'max' ? 'maximise' : 'minimise') + ', but the problem asks you to ' + (ref.sense === 'max' ? 'maximise.' : 'minimise.'), '你选的是' + (state.sense === 'max' ? '最大化' : '最小化') + '，而题目要求' + (ref.sense === 'max' ? '最大化。' : '最小化。')));
+    if (!cmp.objective_ok) og.push(tx('The cost of ' + cmp.objective_diff.map(function (d) { return vars[d.index]; }).join(', ') + ' is not what the problem gives.', cmp.objective_diff.map(function (d) { return vars[d.index]; }).join('、') + ' 的系数和题目不符。'));
+    if (og.length) card('no', tx('Goal', '目标') + ': ' + og.join(' '), '', res); else card('ok', '✓ ' + tx('Goal is right', '目标正确'), '', res);
+    // the problem's limits
+    var got = 0;
+    var box1 = h('div', '', '<div class="kicker">' + tx('The problem’s limits', '题目的限制') + '</div>', res); box1.style.display = 'grid'; box1.style.gap = '6px';
+    cmp.enforced.forEach(function (e) {
+      if (e.ok) { got++; card('ok', '✓ ' + e.label, tx('your model enforces it', '你的模型守住了这一条'), box1); }
+      else {
+        var side = e.side === '>=' ? tx('above', '超出') : tx('below', '低于');
+        card('no', '✗ ' + e.label, tx('Your model allows this plan, which breaks it: ', '你的模型允许这个计划，但它违反了这一条：') + '<span class="plan">' + plan_text(e.plan) + '</span>', box1);
+      }
+    });
+    // the learner's lines
+    var box2 = h('div', '', '<div class="kicker">' + tx('Your lines', '你写的每一行') + '</div>', res); box2.style.display = 'grid'; box2.style.gap = '6px';
+    var lines_ok = 0, k = 0;
+    inputs.forEach(function (r) {
+      if (!r.row) return;
+      var v = cmp.valid[k++];
+      if (v.ok) { lines_ok++; r.mark.textContent = '✓'; r.mark.className = 'mark ok'; }
+      else {
+        r.mark.textContent = '✗'; r.mark.className = 'mark no';
+        card('no', '✗ ' + (r.inp.value.trim()), tx('This rules out a plan the problem allows: ', '这一行排除了一个题目允许的计划：') + '<span class="plan">' + plan_text(v.plan) + '</span>', box2);
+      }
+    });
+    if (lines_ok === k) card('ok', '✓ ' + tx('Every line you wrote is a real limit', '你写的每一行都是真实的限制'), '', box2);
+    // verdict
+    var sol = cmp.learner_solution, tot = h('div', 'total', '', res);
+    if (cmp.same_model) {
+      tot.innerHTML = '<span class="pill ok">' + tx('Your model means the same as the problem’s', '你的模型和题目的模型意思相同') + '</span>';
+      if (sol.status === 'optimal') h('div', 'sol', '<span class="kicker">' + (P.goal ? t(P.goal) : 'z') + '</span><span class="big num">' + money + fmt(sol.obj, 2) + '</span><span class="plan">' + plan_text(sol.x) + '</span>', res);
+    } else {
+      tot.innerHTML = tx(got + ' of ' + ref.rows.length + ' limits enforced · ' + lines_ok + ' of ' + k + ' lines are real limits', '守住了 ' + got + ' / ' + ref.rows.length + ' 条题目的限制 · 你写的 ' + k + ' 行里 ' + lines_ok + ' 行是真实的限制');
+      if (sol.status === 'unbounded') h('div', 'card no', tx('With your limits the goal has no best value: something is missing.', '按你的限制，目标没有最优值：缺了某条限制。'), res);
+    }
+    K.report();
+  }
+  K.ready();
+})();
+</script>
+</body></html>
