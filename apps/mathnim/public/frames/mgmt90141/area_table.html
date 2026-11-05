@@ -1,0 +1,78 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .pick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+ .pick .lab{font:600 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+ .pick button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
+ .pick button.a[aria-pressed=true]{border-color:var(--blue);background:#e3ebff;color:var(--blue)}
+ .pick button.b[aria-pressed=true]{border-color:var(--orange);background:#fdf1e4;color:var(--orange)}
+ .pr{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 12px;margin-top:10px}
+ .pr>div{border:1px solid var(--border);border-radius:10px;padding:6px 10px;background:var(--panel);font-size:13px}
+ .pr .k{font:600 10.5px var(--mono);letter-spacing:.04em;color:var(--muted)}
+ .pr .v{font:600 18px var(--sans);font-variant-numeric:tabular-nums}.pr .f{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+ .pr .cond{border-color:#bfe0d6;background:#f3faf7}
+ .verdict{margin-top:10px;font-size:14px}
+ .verdict b{color:var(--blue)}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+</style></head>
+<body>
+<div class="pick" id="pa"></div><div class="pick" id="pb"></div>
+<div class="row" style="margin-bottom:8px"><button class="ghost" id="given" type="button"></button></div>
+<div class="stage"><svg id="svg" viewBox="0 0 640 330" role="img"></svg></div>
+<div class="pr" id="pr"></div><div class="verdict" id="vd"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var RN = P.rows.map(t), CN = P.cols.map(t), C = P.counts, N = 0, rt = [], ct = [];
+  C.forEach(function (r, i) { rt[i] = r.reduce(function (a, b) { return a + b; }, 0); N += rt[i]; r.forEach(function (v, j) { ct[j] = (ct[j] || 0) + v; }); });
+  var A = {}, B = {}, given = false;
+  var pa = document.getElementById('pa'), pb = document.getElementById('pb');
+  h('span', 'lab', tx('A is', 'A 是'), pa); h('span', 'lab', tx('B is', 'B 是'), pb);
+  RN.forEach(function (r, i) { var b = h('button', 'a', r, pa); b.onclick = function () { A[i] = !A[i]; draw(); }; b.dataset.i = i; });
+  CN.forEach(function (c, j) { var b = h('button', 'b', c, pb); b.onclick = function () { B[j] = !B[j]; draw(); }; b.dataset.j = j; });
+  var gb = document.getElementById('given'); gb.textContent = tx('Given B: keep only B', '已知 B：只留下 B'); gb.onclick = function () { given = !given; draw(); };
+  var svg = document.getElementById('svg'), W = 640, H = 330, L = 16, T = 28, Bm = 12, bw = 608, bh = H - T - Bm;
+  function draw() {
+    pa.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', !!A[b.dataset.i]); });
+    pb.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', !!B[b.dataset.j]); });
+    gb.setAttribute('aria-pressed', given);
+    svg.innerHTML = '';
+    var anyB = CN.some(function (_, j) { return B[j]; }), anyA = RN.some(function (_, i) { return A[i]; });
+    var cols = CN.map(function (_, j) { return j; }).filter(function (j) { return !given || !anyB || B[j]; });
+    var tot = cols.reduce(function (a, j) { return a + ct[j]; }, 0), x = L;
+    cols.forEach(function (j) {
+      var w = ct[j] / tot * bw, y = T;
+      el('text', { x: x + w / 2, y: T - 8, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 600, fill: B[j] ? '#c2410c' : '#15171a' }, svg, CN[j] + ' · ' + C.reduce(function (a, r) { return a + r[j]; }, 0));
+      RN.forEach(function (_, i) {
+        var hh = C[i][j] / ct[j] * bh, inA = !!A[i], inB = !!B[j];
+        var fill = inA && inB ? '#7c3aed' : inA ? '#2f5bd3' : inB ? '#c2410c' : '#cfd3d8', op = inA && inB ? .85 : (inA || inB) ? .55 : .35;
+        if (!anyA && !anyB) { fill = i % 2 ? '#a9bdf0' : '#cfd3d8'; op = .8; }
+        el('rect', { x: x + 1, y: y + 1, width: Math.max(0, w - 2), height: Math.max(0, hh - 2), fill: fill, 'fill-opacity': op, rx: 4 }, svg);
+        if (hh > 20 && w > 40) el('text', { x: x + w / 2, y: y + hh / 2 + 4, 'text-anchor': 'middle', 'font-size': 13, fill: '#15171a', class: 'halo' }, svg, RN[i] + ': ' + C[i][j]);
+        y += hh;
+      });
+      x += w;
+    });
+    var nA = 0, nB = 0, nAB = 0;
+    C.forEach(function (r, i) { r.forEach(function (v, j) { if (A[i]) nA += v; if (B[j]) nB += v; if (A[i] && B[j]) nAB += v; }); });
+    var p = function (n, d) { return d ? n / d : 0; }, f = function (a, b) { return a + ' / ' + b; };
+    var nU = nA + nB - nAB, cell = function (k, v, fr, cls) { return '<div class="' + (cls || '') + '"><span class="k">' + k + '</span><div class="v">' + v + '</div><span class="f">' + fr + '</span></div>'; };
+    var out = '';
+    if (anyA) out += cell('P(A)', fmt(p(nA, N), 4), f(nA, N));
+    if (anyB) out += cell('P(B)', fmt(p(nB, N), 4), f(nB, N));
+    if (anyA && anyB) out += cell('P(A ∩ B)', fmt(p(nAB, N), 4), f(nAB, N)) + cell('P(A ∪ B)', fmt(p(nU, N), 4), f(nU, N)) + cell('P(A | B)', fmt(p(nAB, nB), 4), f(nAB, nB), 'cond') + cell('P(B | A)', fmt(p(nAB, nA), 4), f(nAB, nA), 'cond');
+    document.getElementById('pr').innerHTML = out;
+    var vd = '';
+    if (anyA && anyB && nA && nB) {
+      var ind = Math.abs(p(nAB, nB) - p(nA, N)) < 1e-9;
+      vd = tx('P(A | B) is ', 'P(A | B) 是 ') + '<b>' + fmt(p(nAB, nB), 4) + '</b>' + tx(' against P(A) ', '，而 P(A) 是 ') + '<b>' + fmt(p(nA, N), 4) + '</b>: ' + (ind ? tx('equal: A and B are independent', '相等：A 和 B 独立') : tx('different: knowing B changes A, so A and B are dependent', '不相等：知道 B 会改变 A，所以 A 和 B 不独立'));
+    }
+    document.getElementById('vd').innerHTML = vd; K.report();
+  }
+  draw(); K.ready();
+})();
+</script>
+</body></html>

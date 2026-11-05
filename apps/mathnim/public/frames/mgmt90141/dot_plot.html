@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px;margin-bottom:8px}
+ .name{font:600 12px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:2px 6px}
+ .dot{cursor:ew-resize}
+ .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:6px;margin:6px 4px 4px}
+ .stats>div{border:1px solid var(--border);border-radius:9px;padding:4px 8px;background:var(--panel)}
+ .stats .k{font:600 10px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+ .stats .v{font:600 16px var(--sans);font-variant-numeric:tabular-nums}
+ .stats>.hot{border-color:var(--blue);background:#f1f5ff}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+</style></head>
+<body>
+<div id="root"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var lo = P.lo, hi = P.hi, snap = P.snap || 1, unit = P.unit || '', W = 640, H = P.height || 118, L = 22, R = 22;
+  var X = function (v) { return L + (v - lo) / (hi - lo) * (W - L - R); }, V = function (px) { return lo + (px - L) / (W - L - R) * (hi - lo); };
+  var show = P.show || ['mean', 'median', 'quartiles'];
+  var sets = P.sets.map(function (s) { return { name: t(s.name), data: s.data.slice(), svg: null, stats: null }; });
+  function pctl(sorted, p) {   // the course's rule: index i = p/100 n; round up, or average positions i and i+1 when i is whole
+    var n = sorted.length, i = p / 100 * n;
+    return Number.isInteger(i) ? (sorted[i - 1] + sorted[i]) / 2 : sorted[Math.ceil(i) - 1];
+  }
+  function stats(d) {
+    var s = d.slice().sort(function (a, b) { return a - b; }), n = s.length, mean = s.reduce(function (a, b) { return a + b; }, 0) / n;
+    var ss = s.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0);
+    var counts = {}, mode = null, mc = 0; s.forEach(function (v) { counts[v] = (counts[v] || 0) + 1; if (counts[v] > mc) { mc = counts[v]; mode = v; } });
+    return { n: n, mean: mean, median: pctl(s, 50), q1: pctl(s, 25), q3: pctl(s, 75), min: s[0], max: s[n - 1], sd: Math.sqrt(ss / (n - 1)), mode: mc > 1 ? mode : null, sorted: s };
+  }
+  var root = document.getElementById('root');
+  sets.forEach(function (S) {
+    h('div', 'name', S.name, root);
+    var box = h('div', 'stage', '', root); S.svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' }, box);
+    S.stats = h('div', 'stats', '', root);
+  });
+  var drag = null;
+  function draw(S, si) {
+    var svg = S.svg; svg.innerHTML = ''; var st = stats(S.data), base = H - 30;
+    var step = (hi - lo) <= 12 ? 1 : (hi - lo) <= 30 ? 2 : (hi - lo) <= 60 ? 5 : (hi - lo) <= 200 ? 10 : (hi - lo) <= 600 ? 50 : 500;
+    el('line', { x1: L, y1: base, x2: W - R, y2: base, stroke: '#15171a', 'stroke-width': 1.6 }, svg);
+    for (var v = Math.ceil(lo / step) * step; v <= hi; v += step) { el('line', { x1: X(v), y1: base, x2: X(v), y2: base + 5, stroke: '#15171a' }, svg); el('text', { x: X(v), y: base + 20, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0)); }
+    if (show.indexOf('quartiles') >= 0) {
+      el('rect', { x: X(st.q1), y: base - 66, width: Math.max(2, X(st.q3) - X(st.q1)), height: 24, fill: '#2f5bd3', 'fill-opacity': .12, stroke: '#2f5bd3', 'stroke-width': 1.5, rx: 3 }, svg);
+      el('line', { x1: X(st.min), y1: base - 54, x2: X(st.q1), y2: base - 54, stroke: '#2f5bd3', 'stroke-width': 1.5 }, svg); el('line', { x1: X(st.q3), y1: base - 54, x2: X(st.max), y2: base - 54, stroke: '#2f5bd3', 'stroke-width': 1.5 }, svg);
+    }
+    if (show.indexOf('sd') >= 0) el('rect', { x: X(st.mean - st.sd), y: base - 100, width: X(st.mean + st.sd) - X(st.mean - st.sd), height: 6, fill: '#c2410c', 'fill-opacity': .35, rx: 3 }, svg);
+    // dots stacked
+    var stack = {}, ys = [];
+    S.data.forEach(function (v, i) { var k = Math.round(v / snap); stack[k] = (stack[k] || 0) + 1; ys[i] = stack[k]; });
+    S.data.forEach(function (v, i) {
+      var c = el('circle', { cx: X(v), cy: base - 10 - (ys[i] - 1) * 14, r: 6, fill: '#2f5bd3', stroke: '#fff', 'stroke-width': 2, class: 'dot', tabindex: 0, role: 'slider', 'aria-valuenow': v, 'aria-valuemin': lo, 'aria-valuemax': hi }, svg);
+      c.addEventListener('pointerdown', function (e) { drag = { si: si, i: i }; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+      c.addEventListener('keydown', function (e) { var d = e.key === 'ArrowRight' ? snap : e.key === 'ArrowLeft' ? -snap : 0; if (d) { e.preventDefault(); S.data[i] = Math.min(hi, Math.max(lo, v + d)); render(); var n = svg.querySelectorAll('.dot')[i]; n && n.focus(); } });
+    });
+    if (show.indexOf('median') >= 0) { el('line', { x1: X(st.median), y1: base - 72, x2: X(st.median), y2: base - 36, stroke: '#0f766e', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, svg); }
+    if (show.indexOf('mean') >= 0) { el('path', { d: 'M' + X(st.mean) + ',' + (base + 1) + ' l-8,14 h16 z', fill: '#c2410c' }, svg); el('line', { x1: X(st.mean), y1: base, x2: X(st.mean), y2: base - 92, stroke: '#c2410c', 'stroke-width': 1.4, 'stroke-dasharray': '4 4' }, svg); }
+    svg.onpointermove = function (e) {
+      if (!drag || drag.si !== si) return;
+      var q = K.pt(svg, e), v = Math.round(V(q.x) / snap) * snap; S.data[drag.i] = Math.min(hi, Math.max(lo, v)); render();
+    };
+    svg.onpointerup = svg.onpointercancel = function () { drag = null; };
+    var cell = function (k, v, hot) { return '<div' + (hot ? ' class="hot"' : '') + '><span class="k">' + k + '</span><div class="v">' + v + '</div></div>'; };
+    var u = unit;
+    S.stats.innerHTML = cell(tx('Mean', '平均数'), u + fmt(st.mean, 2), show.indexOf('mean') >= 0) + cell(tx('Median', '中位数'), u + fmt(st.median, 2), show.indexOf('median') >= 0) + (st.mode != null ? cell(tx('Mode', '众数'), u + fmt(st.mode, 2)) : '') +
+      (show.indexOf('quartiles') >= 0 ? cell('Q1', u + fmt(st.q1, 2), true) + cell('Q3', u + fmt(st.q3, 2), true) + cell('IQR', u + fmt(st.q3 - st.q1, 2), true) : '') + cell(tx('Range', '极差'), u + fmt(st.max - st.min, 2)) + (show.indexOf('sd') >= 0 ? cell(tx('Std dev s', '标准差 s'), u + fmt(st.sd, 2), true) : '');
+  }
+  function render() { sets.forEach(draw); K.report(); }
+  render(); K.ready();
+})();
+</script>
+</body></html>

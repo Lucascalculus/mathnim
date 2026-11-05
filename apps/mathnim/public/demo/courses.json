@@ -6079,6 +6079,16 @@
    },
    {
     "title": {
+     "en": "What are the chances?",
+     "zh": "可能性有多大？"
+    },
+    "lessons": [
+     "mgmt90141-describe-data",
+     "mgmt90141-chances"
+    ]
+   },
+   {
+    "title": {
      "en": "What do we do when we do not know?",
      "zh": "不确定时该怎么办？"
     },
@@ -6825,6 +6835,81 @@
        "name": {
         "en": "Writing a complete exam answer in the time allowed",
         "zh": "在规定时间里写出完整的考试答案"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-describe-data",
+    "title": {
+     "en": "How to say what a pile of numbers looks like",
+     "zh": "怎样说清一堆数字长什么样"
+    },
+    "summary": {
+     "en": "Two numbers for the middle, two for the spread: the ones that survive an outlier and the ones that do not. Drag dots to see which number moves, then compute them the way the exam expects, with a calculator and the sample formula.",
+     "zh": "描述中间的两个数、描述离散程度的两个数：哪些经得起极端值、哪些经不起。拖动圆点，看哪个数在动；然后按考试的要求，用计算器和样本公式算出来。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How to say what a pile of numbers looks like",
+      "zh": "怎样说清一堆数字长什么样"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.describe",
+       "name": {
+        "en": "Describing data: location and spread",
+        "zh": "描述数据：位置与离散程度"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-chances",
+    "title": {
+     "en": "How to count and combine chances",
+     "zh": "怎样数清并组合可能性"
+    },
+    "summary": {
+     "en": "A probability is a share of an area. Slide over a table of counts to see “and”, “or”, “not” and “given” as pieces of one picture, and the one test for whether two things are independent.",
+     "zh": "概率就是一块面积所占的比例。在一张计数表上操作，把“并且”“或者”“不是”“已知”看成同一幅图的几块，以及判断两件事是否独立的那个唯一的检验。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How to count and combine chances",
+      "zh": "怎样数清并组合可能性"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.chances",
+       "name": {
+        "en": "Probability: events, conditional probability, independence",
+        "zh": "概率：事件、条件概率、独立性"
        }
       }
      ]
