@@ -27,3 +27,5 @@ button{font:inherit;color:inherit;cursor:pointer}
 .big{font:600 28px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .sub{font-size:12px;color:var(--muted)}
 .readout{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-top:8px}
+/* on a phone the drawing is scaled down to about 0.6: its text is set larger so it stays readable */
+@media (max-width:560px){svg text{font-size:15px!important}}

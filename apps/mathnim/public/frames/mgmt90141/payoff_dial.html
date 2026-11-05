@@ -1,0 +1,97 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ table{border-collapse:collapse;width:100%;font-size:14px}
+ th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--faint)}
+ th{font:600 11px var(--mono);color:var(--muted);background:var(--panel);text-transform:uppercase;letter-spacing:.03em}
+ th:first-child,td:first-child{text-align:left}
+ td.best{background:#e8f4ef;font-weight:600}td.worst{background:#fdf1e4}
+ td.pick,th.pick{background:#e3ebff;font-weight:700}
+ td.reg.max{background:#fbeae7;font-weight:600}
+ .wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+ .modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+ .bars{margin-top:12px;display:grid;gap:8px}
+ .bar{display:grid;grid-template-columns:110px 1fr 70px;gap:8px;align-items:center;font-size:13px}
+ .bar .t{height:18px;border-radius:6px;background:var(--faint);position:relative;overflow:hidden}
+ .bar .t i{position:absolute;left:0;top:0;bottom:0;background:#a9bdf0;border-radius:6px;transition:width .12s}
+ .bar.win .t i{background:var(--blue)}
+ .bar .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+ input[type=range]{width:100%;accent-color:var(--blue)}
+ .row2{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+ .verdict{margin-top:10px;font-size:14px}
+ .verdict b{color:var(--blue)}
+</style></head>
+<body>
+<div class="modes" id="modes"></div>
+<div class="wrap"><table id="tbl"></table></div>
+<div id="dial" style="margin-top:12px"></div>
+<div class="verdict" id="verdict"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var alts = P.alts.map(t), states = P.states.map(t), V = P.V, sense = P.sense || 'max', unit = P.unit || '';
+  var better = function (a, b) { return sense === 'max' ? a > b : a < b; };
+  var best_of = function (arr) { return arr.reduce(function (x, y) { return better(y, x) ? y : x; }); };
+  var worst_of = function (arr) { return arr.reduce(function (x, y) { return better(y, x) ? x : y; }); };
+  var mode = P.mode || 'dial', alpha = P.alpha != null ? P.alpha : 0.5;
+  var regret = V.map(function (r) { return r.map(function () { return 0; }); });
+  states.forEach(function (_, j) { var col = V.map(function (r) { return r[j]; }), b = best_of(col); V.forEach(function (r, i) { regret[i][j] = Math.abs(b - r[j]); }); });
+  var modes = [['opt', tx('Best case', '最好情形')], ['con', tx('Worst case', '最坏情形')], ['reg', tx('Regret', '后悔')], ['dial', tx('Dial', '拨盘')]];
+  var mbox = document.getElementById('modes');
+  modes.forEach(function (m) { var b = h('button', 'ghost', m[1], mbox); b.dataset.m = m[0]; b.onclick = function () { mode = m[0]; draw(); }; });
+  function score(i) {
+    var row = V[i];
+    if (mode === 'opt') return best_of(row);
+    if (mode === 'con') return worst_of(row);
+    if (mode === 'reg') return Math.max.apply(null, regret[i]);
+    return alpha * best_of(row) + (1 - alpha) * worst_of(row);
+  }
+  function winner() {
+    var vals = alts.map(function (_, i) { return score(i); }), w = 0;
+    vals.forEach(function (v, i) { if (mode === 'reg' ? v < vals[w] : better(v, vals[w])) w = i; });
+    return w;
+  }
+  function draw() {
+    mbox.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === mode); });
+    var w = winner(), shown = mode === 'reg' ? regret : V;
+    var s = '<tr><th></th>' + states.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '<th>' + (mode === 'opt' ? tx('Best', '最好') : mode === 'con' ? tx('Worst', '最坏') : mode === 'reg' ? tx('Largest regret', '最大后悔') : tx('Score', '得分')) + '</th></tr>';
+    alts.forEach(function (a, i) {
+      s += '<tr><td' + (i === w ? ' class="pick"' : '') + '>' + a + '</td>';
+      V[i].forEach(function (v, j) {
+        var cls = '';
+        if (mode === 'opt') cls = v === best_of(V[i]) ? 'best' : '';
+        else if (mode === 'con') cls = v === worst_of(V[i]) ? 'worst' : '';
+        else if (mode === 'reg') cls = 'reg' + (regret[i][j] === Math.max.apply(null, regret[i]) ? ' max' : '');
+        s += '<td class="' + cls + '">' + fmt(shown[i][j], 2) + '</td>';
+      });
+      s += '<td class="' + (i === w ? 'pick' : '') + '">' + fmt(score(i), 2) + '</td></tr>';
+    });
+    document.getElementById('tbl').innerHTML = s;
+    var d = document.getElementById('dial');
+    if (!d.dataset.built) {
+      d.dataset.built = 1;
+      var sl = h('input', '', null, d); sl.type = 'range'; sl.min = 0; sl.max = 1; sl.step = 0.01; sl.value = alpha; sl.setAttribute('aria-label', tx('Optimism', '乐观程度'));
+      h('div', 'row2', '<span>' + tx('worst case only', '只看最坏') + '</span><b id="al" style="color:var(--fg)"></b><span>' + tx('best case only', '只看最好') + '</span>', d);
+      h('div', 'bars', '', d).id = 'bars';
+      sl.oninput = function () { alpha = +sl.value; draw(); };
+    }
+    d.style.display = mode === 'dial' ? '' : 'none';
+    if (mode === 'dial') {
+      document.getElementById('al').textContent = tx('optimism ', '乐观度 ') + fmt(alpha, 2);
+      var vals = alts.map(function (_, i) { return score(i); }), lo = Math.min.apply(null, vals.concat([0])), hi = Math.max.apply(null, vals.concat([0])), span = Math.max(1e-9, hi - lo);
+      var bars = document.getElementById('bars'); bars.innerHTML = '';
+      alts.forEach(function (a, i) {
+        var pos = (vals[i] - lo) / span;
+        h('div', 'bar' + (i === w ? ' win' : ''), '<span>' + a + '</span><span class="t"><i style="width:' + Math.max(2, pos * 100).toFixed(1) + '%"></i></span><span class="v">' + unit + fmt(vals[i], 2) + '</span>', bars);
+      });
+    }
+    var rule = mode === 'opt' ? tx('the largest of the bests', '各个最好情形里最大的') : mode === 'con' ? tx('the best of the worsts', '各个最坏情形里最好的') : mode === 'reg' ? tx('the smallest of the largest regrets', '各个最大后悔里最小的') : tx('the highest score', '得分最高的');
+    document.getElementById('verdict').innerHTML = tx('Choose ', '选 ') + '<b>' + alts[w] + '</b> · ' + rule;
+    K.report();
+  }
+  draw(); K.ready();
+})();
+</script>
+</body></html>

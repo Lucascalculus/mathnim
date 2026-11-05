@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .ctl{margin-top:10px}
+ input[type=range]{width:100%;accent-color:var(--blue)}
+ .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 14px;margin-top:10px}
+ .nums div{border:1px solid var(--border);border-radius:10px;padding:7px 10px;background:var(--panel)}
+ .nums .k{font:600 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+ .nums .v{font:600 20px var(--sans);font-variant-numeric:tabular-nums}
+ .nums .gap{border-color:#bfe0d6;background:#f3faf7}.nums .gap .v{color:var(--green)}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+ .tg{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+</style></head>
+<body>
+<div class="stage"><svg id="svg" viewBox="0 0 640 330" role="img"></svg></div>
+<div class="ctl"><input type="range" id="p" min="0" max="1" step="0.01"><div class="row" style="justify-content:space-between;font-size:12px;color:var(--muted)"><span id="l0"></span><b id="pv" style="color:var(--fg)"></b><span id="l1"></span></div></div>
+<div class="nums" id="nums"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, fmt = K.fmt;
+  var alts = P.alts.map(t), V = P.V, sense = P.sense || 'max', unit = P.unit || '', s1 = t(P.states[0]), s2 = t(P.states[1]);
+  var pick = function (a) { return sense === 'max' ? Math.max.apply(null, a) : Math.min.apply(null, a); };
+  var W = 640, H = 330, L = 52, R = 24, T = 18, B = 40;
+  var all = V.reduce(function (a, r) { return a.concat(r); }, []);
+  var y0 = Math.min.apply(null, all), y1 = Math.max.apply(null, all), pad = (y1 - y0) * .12; y0 -= pad; y1 += pad;
+  var X = function (p) { return L + p * (W - L - R); }, Y = function (v) { return H - B - (v - y0) / (y1 - y0) * (H - T - B); };
+  var COL = ['#2f5bd3', '#0f766e', '#7c3aed', '#b7791f', '#c2410c'];
+  var p = P.p != null ? P.p : 0.5, svg = document.getElementById('svg'), sl = document.getElementById('p');
+  sl.value = p;
+  document.getElementById('l0').textContent = tx('certain: ', '必然：') + s2; document.getElementById('l1').textContent = tx('certain: ', '必然：') + s1;
+  function ev(i, q) { return q * V[i][0] + (1 - q) * V[i][1]; }
+  function draw() {
+    svg.innerHTML = '';
+    var ticks = 5, step = Math.pow(10, Math.floor(Math.log((y1 - y0) / ticks) / Math.LN10)); if ((y1 - y0) / step > 8) step *= 2;
+    for (var v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+      el('line', { x1: L, y1: Y(v), x2: W - R, y2: Y(v), stroke: v === 0 ? '#15171a' : '#eef0f2', 'stroke-width': v === 0 ? 1.4 : 1 }, svg);
+      el('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#6b7077' }, svg, fmt(v, 0));
+    }
+    [0, .25, .5, .75, 1].forEach(function (q) { el('text', { x: X(q), y: H - B + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, svg, fmt(q, 2)); });
+    el('text', { x: W - R, y: H - 6, 'text-anchor': 'end', 'font-size': 12.5, 'font-weight': 600, fill: '#15171a' }, svg, tx('probability of ', '概率：') + s1);
+    // each alternative is a line
+    alts.forEach(function (a, i) {
+      el('line', { x1: X(0), y1: Y(V[i][1]), x2: X(1), y2: Y(V[i][0]), stroke: COL[i % 5], 'stroke-width': 2, opacity: .55 }, svg);
+      el('text', { x: X(1) - 4, y: Y(V[i][0]) + (V[i][0] === pick(V.map(function (r) { return r[0]; })) ? 15 : -6), 'text-anchor': 'end', 'font-size': 12, fill: COL[i % 5], 'font-weight': 600, class: 'halo' }, svg, a);
+    });
+    // the best alternative at each probability (no crystal ball): the upper (or lower) envelope
+    var pts = []; for (var k = 0; k <= 100; k++) { var q = k / 100; pts.push(X(q).toFixed(1) + ',' + Y(pick(alts.map(function (_, i) { return ev(i, q); }))).toFixed(1)); }
+    el('polyline', { points: pts.join(' '), fill: 'none', stroke: '#15171a', 'stroke-width': 3.2, 'stroke-linejoin': 'round' }, svg);
+    // with a crystal ball: the straight line between the best payoff of each state
+    var b0 = pick(V.map(function (r) { return r[1]; })), b1 = pick(V.map(function (r) { return r[0]; }));
+    el('line', { x1: X(0), y1: Y(b0), x2: X(1), y2: Y(b1), stroke: '#c2410c', 'stroke-width': 3, 'stroke-dasharray': '7 5' }, svg);
+    var ewo = pick(alts.map(function (_, i) { return ev(i, p); })), ewp = p * b1 + (1 - p) * b0;
+    el('rect', { x: X(p) - 5, y: Math.min(Y(ewo), Y(ewp)), width: 10, height: Math.abs(Y(ewo) - Y(ewp)), fill: '#0f766e', 'fill-opacity': .85, rx: 3 }, svg);
+    el('line', { x1: X(p), y1: Y(y0), x2: X(p), y2: Y(Math.max(ewo, ewp)), stroke: '#15171a', 'stroke-width': 1, 'stroke-dasharray': '3 4' }, svg);
+    el('circle', { cx: X(p), cy: Y(ewo), r: 6, fill: '#15171a' }, svg); el('circle', { cx: X(p), cy: Y(ewp), r: 6, fill: '#c2410c' }, svg);
+    var best = 0; alts.forEach(function (_, i) { if (sense === 'max' ? ev(i, p) > ev(best, p) : ev(i, p) < ev(best, p)) best = i; });
+    var nums = document.getElementById('nums');
+    nums.innerHTML = '<div><span class="k">' + tx('Without the ball', '没有水晶球') + '</span><div class="v">' + unit + fmt(ewo, 2) + '</div><span class="sub">' + alts[best] + '</span></div>' +
+      '<div><span class="k">' + tx('With the ball', '有水晶球') + '</span><div class="v">' + unit + fmt(ewp, 2) + '</div><span class="sub">' + tx('best in each state', '每个状态选最好的') + '</span></div>' +
+      '<div class="gap"><span class="k">' + tx('Worth of the ball', '水晶球的价值') + '</span><div class="v">' + unit + fmt(Math.abs(ewp - ewo), 2) + '</div><span class="sub">EVPI</span></div>';
+    document.getElementById('pv').textContent = tx('probability of ', '概率：') + s1 + ' = ' + fmt(p, 2);
+    K.report();
+  }
+  sl.oninput = function () { p = +sl.value; draw(); };
+  draw(); K.ready();
+})();
+</script>
+</body></html>

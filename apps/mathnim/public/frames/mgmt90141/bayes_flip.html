@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:8px 8px 4px}
+ .sl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-top:10px;font-size:13px;align-items:center}
+ .sl label{color:var(--muted)}.sl b{font-variant-numeric:tabular-nums}
+ .sl input{grid-column:1/3;width:100%;accent-color:var(--blue)}
+ table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}
+ th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--faint)}
+ th{font:600 10.5px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.03em;background:var(--panel)}
+ th:first-child,td:first-child{text-align:left}
+ tr.tot td{font-weight:600;border-bottom:0}
+ td.post{font-weight:700;color:var(--blue)}
+ .say{margin-top:10px;font-size:14px}.say b{color:var(--blue)}
+ .leg{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:6px 2px 0;flex-wrap:wrap;align-items:center}
+ .leg i{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+</style></head>
+<body>
+<div class="row" id="which" style="margin-bottom:8px"></div>
+<div class="stage"><svg id="svg" viewBox="0 0 640 400" role="img"></svg><div class="leg" id="leg"></div></div>
+<div class="sl" id="sl"></div>
+<table id="tbl"></table>
+<div class="say" id="say"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var SN = P.states.map(t), RN = P.reports.map(t), K_ = RN.length, N = 1000;
+  var prior = P.prior.slice(), lik = P.lik.map(function (r) { return r.slice(); }), rep = 0;
+  var COL = ['#2f5bd3', '#c2410c', '#0f766e', '#7c3aed'];
+  var svg = document.getElementById('svg'), wh = document.getElementById('which');
+  RN.forEach(function (r, i) { var bt = h('button', 'ghost', r, wh); bt.dataset.r = i; bt.onclick = function () { rep = i; draw(); }; });
+  if (P.sliders && SN.length === 2 && K_ === 2) {
+    var box = document.getElementById('sl');
+    function slider(label, val, set) {
+      h('label', '', label, box); var v = h('b', '', fmt(val, 2), box), inp = h('input', '', null, box); inp.type = 'range'; inp.min = 0.01; inp.max = 0.99; inp.step = 0.01; inp.value = val;
+      inp.oninput = function () { set(+inp.value); v.textContent = fmt(+inp.value, 2); draw(); };
+    }
+    slider(tx('Before the report: P(', '报告之前：P(') + SN[0] + ')', prior[0], function (x) { prior = [x, 1 - x]; });
+    slider('P(' + RN[0] + ' | ' + SN[0] + ')', lik[0][0], function (x) { lik[0] = [x, 1 - x]; });
+    slider('P(' + RN[0] + ' | ' + SN[1] + ')', lik[1][0], function (x) { lik[1] = [x, 1 - x]; });
+  }
+  function draw() {
+    wh.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', +x.dataset.r === rep); });
+    svg.innerHTML = '';
+    var dots = [], counts = [];
+    SN.forEach(function (_, s) {
+      var n = s === SN.length - 1 ? N - dots.filter(Boolean).length : Math.round(prior[s] * N), left = n, c = [];
+      for (var r = 0; r < K_; r++) { var m = r === K_ - 1 ? left : Math.min(left, Math.round(n * lik[s][r])); c.push(m); left -= m; for (var i = 0; i < m; i++) dots.push({ s: s, r: r }); }
+      counts.push(c); while (dots.length % 25) dots.push(null);
+    });
+    var dx = Math.min(15.5, 610 / Math.ceil(dots.length / 25)), dy = 14.5, ox = 14, oy = 28, x0 = 0;
+    dots.forEach(function (d, k) {
+      if (!d) return;
+      el('circle', { cx: ox + Math.floor(k / 25) * dx, cy: oy + (k % 25) * dy, r: 4.6, fill: COL[d.s], opacity: d.r === rep ? 1 : .15 }, svg);
+    });
+    var col = 0;
+    SN.forEach(function (name, s) {
+      var tot = counts[s].reduce(function (x, y) { return x + y; }, 0);
+      el('text', { x: ox + col * dx, y: 14, 'font-size': 12.5, 'font-weight': 600, fill: COL[s] }, svg, name + ' · ' + tot);
+      col += Math.ceil(tot / 25);
+    });
+    document.getElementById('leg').innerHTML = '<span>' + tx('1000 cases; the report you chose is dark', '1000 个样本；选中的那种报告是深色') + '</span>';
+    var Lk = SN.map(function (_, s) { return lik[s][rep]; }), J = SN.map(function (_, s) { return prior[s] * Lk[s]; }), pr = J.reduce(function (x, y) { return x + y; }, 0);
+    var tb = '<tr><th>' + tx('State', '状态') + '</th><th>' + tx('Prior', '先验') + '</th><th>P(' + RN[rep] + ' | ·)</th><th>' + tx('Joint', '联合') + '</th><th>' + tx('Posterior', '后验') + '</th></tr>';
+    SN.forEach(function (name, s) { tb += '<tr><td>' + name + '</td><td>' + fmt(prior[s], 3) + '</td><td>' + fmt(Lk[s], 3) + '</td><td>' + fmt(J[s], 4) + '</td><td class="post">' + fmt(J[s] / pr, 3) + '</td></tr>'; });
+    tb += '<tr class="tot"><td>' + tx('Total', '合计') + '</td><td>1</td><td></td><td>P(' + RN[rep] + ') = ' + fmt(pr, 4) + '</td><td>1</td></tr>';
+    document.getElementById('tbl').innerHTML = tb;
+    var tot = counts.reduce(function (x, c) { return x + c[rep]; }, 0);
+    document.getElementById('say').innerHTML = tx('Of ', '在 ') + '<b>' + tot + '</b>' + tx(' cases with report ' + RN[rep] + ': ', ' 个报告为 ' + RN[rep] + ' 的样本里：') + SN.map(function (name, s) { return '<b>' + counts[s][rep] + '</b> ' + name + ' (' + fmt(100 * counts[s][rep] / Math.max(1, tot), 1) + '%)'; }).join(' · ');
+    K.report();
+  }
+  draw(); K.ready();
+})();
+</script>
+</body></html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .tr{margin:0;padding:0 0 0 14px;list-style:none;border-left:2px solid var(--border);margin-left:8px}
+ .root{margin-left:0;border-left:0;padding-left:0}
+ .nd{padding:4px 0 4px 8px;position:relative}
+ .nd::before{content:"";position:absolute;left:-14px;top:19px;width:14px;border-top:2px solid var(--border)}
+ .root>.nd::before{display:none}
+ .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:34px}
+ .edge{font:12px var(--mono);color:var(--muted)}
+ .sym{width:22px;height:22px;flex:none;border:2px solid var(--fg);display:inline-block;background:#fff}
+ .sym.ch{border-radius:50%}
+ .lab{font-size:14px}
+ .leaf .lab{font-weight:600;font-variant-numeric:tabular-nums}
+ input.v{width:92px;padding:5px 7px;border:1px solid var(--border);border-radius:8px;font:14px var(--mono);text-align:right}
+ input.v.ok{border-color:#9fd3c5;background:#f3faf7}input.v.no{border-color:var(--bad);background:#fdf6f4}
+ button.br{border:1px solid var(--border);background:#fff;border-radius:8px;padding:3px 9px;font-size:12px;color:var(--muted)}
+ button.br[aria-pressed=true]{border-color:var(--blue);background:#f1f5ff;color:var(--blue);font-weight:600}
+ button.br.ok{border-color:#9fd3c5;background:#e8f4ef;color:var(--green)}button.br.no{border-color:var(--bad);background:#fdf6f4;color:var(--bad)}
+ .bar{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}
+</style></head>
+<body>
+<div id="root"></div>
+<div class="bar"><button class="verb" id="chk" type="button"></button><span id="res"></span></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var sense = P.sense || 'max', unit = P.unit || '', tol = P.tol != null ? P.tol : 0.006;
+  var better = function (a, b) { return sense === 'max' ? a > b : a < b; };
+  var nodes = [];
+  function truth(n) {
+    if (n.k === 'leaf') return (n.v = n.value);
+    var vals = n.c.map(truth);
+    if (n.k === 'chance') n.v = n.c.reduce(function (s, c, i) { return s + c.p * vals[i]; }, 0);
+    else { var b = 0; vals.forEach(function (v, i) { if (better(v, vals[b])) b = i; }); n.best = b; n.v = vals[b]; }
+    return n.v;
+  }
+  truth(P.tree);
+  function build(n, parent, edge) {
+    var li = h('li', 'nd' + (n.k === 'leaf' ? ' leaf' : ''), '', parent), hd = h('div', 'head', '', li);
+    if (edge) h('span', 'edge', edge, hd);
+    var rec = { n: n, inp: null, brs: [], sel: null };
+    if (n.k === 'leaf') h('span', 'lab', unit + fmt(n.value, 2), hd);
+    else {
+      h('span', 'sym' + (n.k === 'chance' ? ' ch' : ''), '', hd); h('span', 'lab', t(n.l), hd);
+      rec.inp = h('input', 'v', null, hd); rec.inp.type = 'text'; rec.inp.setAttribute('inputmode', 'decimal'); rec.inp.placeholder = 'EV';
+      rec.inp.setAttribute('aria-label', 'EV ' + t(n.l));
+      nodes.push(rec);
+      var ul = h('ul', 'tr', '', li);
+      n.c.forEach(function (c, i) {
+        var e = (c.e ? t(c.e) : '') + (n.k === 'chance' && c.p != null ? ' (' + fmt(c.p, 3) + ')' : '');
+        var sub = build(c, ul, n.k === 'decision' ? '' : e);
+        if (n.k === 'decision') {
+          var bt = h('button', 'br', e || ('#' + (i + 1)), sub.head); bt.type = 'button'; sub.head.insertBefore(bt, sub.head.firstChild);
+          bt.onclick = function () { rec.sel = i; rec.brs.forEach(function (b2, j) { b2.setAttribute('aria-pressed', j === i); b2.classList.remove('ok', 'no'); }); };
+          rec.brs.push(bt);
+        }
+      });
+    }
+    return { head: hd, rec: rec };
+  }
+  var root = h('ul', 'tr root', '', document.getElementById('root'));
+  build(P.tree, root, '');
+  document.getElementById('chk').textContent = tx('Check', '检查');
+  document.getElementById('chk').onclick = function () {
+    var bad = 0, blank = 0, good = 0;
+    nodes.forEach(function (r) {
+      var raw = r.inp.value.trim().replace(/,/g, '').replace('−', '-'), v = parseFloat(raw);
+      r.inp.classList.remove('ok', 'no');
+      if (raw === '' || isNaN(v)) blank++;
+      else if (Math.abs(v - r.n.v) <= Math.max(tol, Math.abs(r.n.v) * 0.002)) { r.inp.classList.add('ok'); good++; } else { r.inp.classList.add('no'); bad++; }
+      if (r.n.k === 'decision') {
+        if (r.sel == null) blank++;
+        else r.brs.forEach(function (b, j) { b.classList.remove('ok', 'no'); if (j === r.sel) { var okb = j === r.n.best; b.classList.add(okb ? 'ok' : 'no'); if (okb) good++; else bad++; } });
+      }
+    });
+    document.getElementById('res').innerHTML = !bad && !blank ? '<span class="pill ok">' + tx('Every node is right', '每个节点都对') + '</span>' : '<span class="pill no">' + tx(good + ' right, ' + bad + ' wrong, ' + blank + ' to do', '对 ' + good + '，错 ' + bad + '，待填 ' + blank) + '</span>';
+    K.report();
+  };
+  K.ready();
+})();
+</script>
+</body></html>

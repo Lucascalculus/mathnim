@@ -6076,6 +6076,17 @@
      "mktg90037-combine",
      "mktg90037-exam"
     ]
+   },
+   {
+    "title": {
+     "en": "What do we do when we do not know?",
+     "zh": "不确定时该怎么办？"
+    },
+    "lessons": [
+     "mgmt90141-payoff",
+     "mgmt90141-expected-value",
+     "mgmt90141-sample-info"
+    ]
    }
   ],
   "lessons": [
@@ -6814,6 +6825,119 @@
        "name": {
         "en": "Writing a complete exam answer in the time allowed",
         "zh": "在规定时间里写出完整的考试答案"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-payoff",
+    "title": {
+     "en": "What to do when you cannot say how likely each future is",
+     "zh": "说不出每种未来有多大可能时怎么办"
+    },
+    "summary": {
+     "en": "A payoff table with no probabilities has three honest answers: the optimist’s, the pessimist’s and the one that minimises regret. Slide a dial from pessimist to optimist and watch the choice change, then do the same on two more tables.",
+     "zh": "没有概率的收益表有三个老实的答案：乐观者的、悲观者的、使后悔最小的。把拨盘从悲观拨向乐观，看选择怎么变，再在另外两张表上做一遍。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "What to do when you cannot say how likely each future is",
+      "zh": "说不出每种未来有多大可能时怎么办"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.payoff",
+       "name": {
+        "en": "Choosing without probabilities",
+        "zh": "没有概率时的选择"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-expected-value",
+    "title": {
+     "en": "What information is worth",
+     "zh": "信息值多少钱"
+    },
+    "summary": {
+     "en": "With probabilities, a payoff table gives an expected value per choice. Then ask the best question in decision analysis: what would a perfectly reliable crystal ball be worth? Move the probability and see it as a gap between two lines, then do the exam’s carpool question.",
+     "zh": "有了概率，收益表就给出每个选择的期望值。然后问决策分析里最好的问题：一个绝对可靠的水晶球值多少钱？移动概率，把它看成两条线之间的缝隙，再做考试里的拼车题。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "What information is worth",
+      "zh": "信息值多少钱"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.expected-value",
+       "name": {
+        "en": "Expected value and the value of perfect information",
+        "zh": "期望值与完全信息的价值"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-sample-info",
+    "title": {
+     "en": "How to change your mind when the test comes back",
+     "zh": "检测结果回来后，怎样改变看法"
+    },
+    "summary": {
+     "en": "A test result does not tell you the state; it moves the odds. Count 1000 cases to see why “90% reliable” does not mean “90% sure”, then do the exam’s weather question, draw its tree and roll it back to the best strategy.",
+     "zh": "检测结果不会告诉你状态，它只是移动了概率。数 1000 个样本，看清为什么“可靠率 90%”不等于“有 90% 把握”，再做考试里的天气题，画出它的树，倒推出最优策略。"
+    },
+    "minutes": 65,
+    "meta": {
+     "title": {
+      "en": "How to change your mind when the test comes back",
+      "zh": "检测结果回来后，怎样改变看法"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.sample-info",
+       "name": {
+        "en": "Bayes’ theorem, decision trees and the value of sample information",
+        "zh": "贝叶斯定理、决策树和样本信息的价值"
        }
       }
      ]
