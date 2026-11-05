@@ -258,6 +258,7 @@ export const CSS = `
 .mn-fig figcaption,.mn-vis figcaption{margin-top:8px}
 .mn-svg img{width:100%;max-width:720px;padding:12px;box-sizing:border-box}
 .mn-credit{font-style:italic;opacity:.9}
+.mn-frame iframe{display:block;width:100%;border:0;border-radius:12px;background:#fff;box-shadow:0 0 0 1px var(--mn-border)}
 .mn-fig-missing,.mn-vis-missing{padding:24px;border:1px dashed var(--mn-border);border-radius:10px;color:var(--mn-muted);font-size:14px;text-align:center}
 .mn-vis{margin:1.5em 0}
 .mn-vis-stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid var(--mn-border);background:linear-gradient(#fff,#f5f5f7)}

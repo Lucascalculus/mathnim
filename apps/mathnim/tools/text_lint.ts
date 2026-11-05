@@ -149,6 +149,11 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           if (!tr(b.alt, 'en').trim()) err(where, 'drawing without alt text');
           break;
         }
+        case 'frame': {
+          if (!/^\/?frames\/[\w./-]+\.html$/.test(b.src)) err(where, `frame src must be frames/<course>/<name>.html, got '${b.src}'`);
+          if (!tr(b.alt, 'en').trim()) err(where, 'instrument without alt text');
+          break;
+        }
         case 'visual': {
           const r = deps.check_visual?.(b.name, b.params);
           if (r === null) err(where, `no visual named '${b.name}' is registered`);

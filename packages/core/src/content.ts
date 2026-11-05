@@ -60,6 +60,12 @@ export type Block =
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
+  /**
+   * An interactive instrument: a self-contained HTML page from the app's public folder (`src`, e.g. 'frames/mgmt90141/lp_plane.html'),
+   * shown in a sandboxed frame that gets the learner's language (?lang=) and `params` (?p=, JSON) and reports its own height. `alt` says what it is
+   * for text-only readers. Unlike `visual` it is not a manim-web scene: it can be any small interaction (chips, fields, sliders, tables).
+   */
+  | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }

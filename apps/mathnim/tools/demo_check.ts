@@ -35,9 +35,9 @@ const project = (v: unknown, lang: 'en' | 'zh'): unknown =>
   is_bilingual(v as L10n) ? (v as Record<string, string>)[lang] : Array.isArray(v) ? v.map((x) => project(x, lang)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, project(x, lang)])) : v;
 
 /** The lesson without the blocks the generated-lesson format does not know (visual, quiz, paper), at any depth. */
-const EXTRAS = new Set(['visual', 'quiz', 'paper']);
+const EXTRAS = new Set(['visual', 'quiz', 'paper', 'frame']);
 const without_extras = (v: any): any =>
-  Array.isArray(v) ? v.filter((x) => !(x && EXTRAS.has(x.type) && 'type' in x && (x.name !== undefined || x.options !== undefined || x.paras !== undefined))).map(without_extras) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, without_extras(x)])) : v;
+  Array.isArray(v) ? v.filter((x) => !(x && EXTRAS.has(x.type) && 'type' in x && (x.name !== undefined || x.options !== undefined || x.paras !== undefined || x.src !== undefined))).map(without_extras) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, without_extras(x)])) : v;
 
 let errors = 0;
 const report = (where: string, list: string[], kind: 'error' | 'warning') => {

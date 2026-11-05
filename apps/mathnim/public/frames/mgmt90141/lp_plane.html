@@ -1,0 +1,265 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .stage{border:1px solid var(--border);border-radius:12px;background:#fff;padding:6px 6px 2px}
+ .tools{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ .tools .grow{flex:1}
+ .dot{cursor:grab}.dot:active{cursor:grabbing}
+ .handle{cursor:grab}.handle:active{cursor:grabbing}
+ .halo{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+ .verdict{font-size:13px;color:var(--muted)}
+ .verdict b{color:var(--fg)}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}
+</style></head>
+<body>
+<div class="stage"><svg id="svg" viewBox="0 0 640 400" role="img"></svg></div>
+<div class="tools" id="tools"></div>
+<div class="readout" id="readout"></div>
+<div class="gauges" id="gauges"></div>
+<script src="../kit/lp.js"></script>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
+  var W = 640, H = 400, L = 58, R = 18, T = 14, B = 46;
+  var view = P.view || [120, 120], xmax = view[0], ymax = view[1];
+  var rows = (P.rows || []).map(function (r) { return { a: r.a.slice(), op: r.op || '<=', b: r.b, b0: r.b, label: r.label }; });
+  var c = P.obj || [1, 1], sense = P.sense || 'max', money = P.money || '';
+  var tools = (P.tools || 'plan').split(',');
+  var snap = P.snap || 1;
+  var measure = P.measure ? t(P.measure) : tx('Profit', '利润');
+  var X = function (x) { return L + x / xmax * (W - L - R); }, Y = function (y) { return H - B - y / ymax * (H - T - B); };
+  var ix = function (px) { return (px - L) / (W - L - R) * xmax; }, iy = function (py) { return (H - B - py) / (H - T - B) * ymax; };
+  var svg = document.getElementById('svg');
+  svg.setAttribute('aria-label', t(P.alt) || tx('Linear program in two variables', '两个变量的线性规划'));
+  var state = { p: (P.start || [xmax * .12, ymax * .12]).slice(), swept: !!P.corners, anim: null };
+
+  // ---- geometry
+  function half(r) { return r.op === '>=' ? [-r.a[0], -r.a[1], -r.b] : [r.a[0], r.a[1], r.b]; }
+  function clip(poly, a1, a2, b) {
+    var out = [];
+    for (var i = 0; i < poly.length; i++) {
+      var p = poly[i], q = poly[(i + 1) % poly.length];
+      var fp = a1 * p[0] + a2 * p[1] - b, fq = a1 * q[0] + a2 * q[1] - b;
+      if (fp <= 1e-9) out.push(p);
+      if ((fp < -1e-9 && fq > 1e-9) || (fp > 1e-9 && fq < -1e-9)) { var s = fp / (fp - fq); out.push([p[0] + s * (q[0] - p[0]), p[1] + s * (q[1] - p[1])]); }
+    }
+    return out;
+  }
+  function region() {
+    var poly = [[0, 0], [xmax, 0], [xmax, ymax], [0, ymax]];
+    rows.forEach(function (r) { if (r.op !== '=') { var q = half(r); poly = clip(poly, q[0], q[1], q[2]); } });
+    return poly;
+  }
+  function feasible(p) {
+    if (p[0] < -1e-9 || p[1] < -1e-9) return false;
+    return rows.every(function (r) { var v = r.a[0] * p[0] + r.a[1] * p[1]; return r.op === '<=' ? v <= r.b + 1e-7 : r.op === '>=' ? v >= r.b - 1e-7 : Math.abs(v - r.b) < 1e-7; });
+  }
+  var zof = function (p) { return c[0] * p[0] + c[1] * p[1]; };
+  function optimum() {
+    var s = LP.solve({ sense: sense, c: c, rows: rows.map(function (r) { return { a: r.a, op: r.op, b: r.b }; }) });
+    return s.status === 'optimal' ? s : null;
+  }
+  /** The feasible part of the profit line c.x = z (the middle of it), or null. */
+  function line_segment(z) {
+    var n2 = c[0] * c[0] + c[1] * c[1], p0 = [z * c[0] / n2, z * c[1] / n2], d = [-c[1], c[0]];
+    var lo = -1e9, hi = 1e9;
+    var hs = rows.filter(function (r) { return r.op !== '='; }).map(half).concat([[-1, 0, 0], [0, -1, 0]]);
+    for (var i = 0; i < hs.length; i++) {
+      var g = hs[i][0] * d[0] + hs[i][1] * d[1], rhs = hs[i][2] - (hs[i][0] * p0[0] + hs[i][1] * p0[1]);
+      if (Math.abs(g) < 1e-12) { if (rhs < -1e-9) return null; continue; }
+      var s = rhs / g;
+      if (g > 0) hi = Math.min(hi, s); else lo = Math.max(lo, s);
+    }
+    if (lo > hi + 1e-9) return null;
+    return [[p0[0] + lo * d[0], p0[1] + lo * d[1]], [p0[0] + hi * d[0], p0[1] + hi * d[1]]];
+  }
+  /** The profit line across the whole view, as two points. */
+  function line_view(z) {
+    var pts = [];
+    function add(x, y) { if (x >= -1e-9 && x <= xmax + 1e-9 && y >= -1e-9 && y <= ymax + 1e-9) pts.push([x, y]); }
+    if (Math.abs(c[1]) > 1e-12) { add(0, z / c[1]); add(xmax, (z - c[0] * xmax) / c[1]); }
+    if (Math.abs(c[0]) > 1e-12) { add((z) / c[0], 0); add((z - c[1] * ymax) / c[0], ymax); }
+    pts.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    return pts.length >= 2 ? [pts[0], pts[pts.length - 1]] : null;
+  }
+  function wall_view(r) {
+    var pts = [], a = r.a, b = r.b;
+    function add(x, y) { if (x >= -1e-9 && x <= xmax + 1e-9 && y >= -1e-9 && y <= ymax + 1e-9) pts.push([x, y]); }
+    if (Math.abs(a[1]) > 1e-12) { add(0, b / a[1]); add(xmax, (b - a[0] * xmax) / a[1]); }
+    if (Math.abs(a[0]) > 1e-12) { add(b / a[0], 0); add((b - a[1] * ymax) / a[0], ymax); }
+    pts.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+    return pts.length >= 2 ? [pts[0], pts[pts.length - 1]] : null;
+  }
+
+  // ---- static layers
+  var g_grid = el('g', {}, svg), g_region = el('g', {}, svg), g_walls = el('g', {}, svg), g_dyn = el('g', {}, svg);
+  function ticks(max) { var step = max <= 60 ? 10 : max <= 150 ? 20 : max <= 400 ? 50 : max <= 1000 ? 100 : 200; var o = []; for (var v = 0; v <= max + 1e-9; v += step) o.push(v); return o; }
+  ticks(xmax).forEach(function (v) {
+    el('line', { x1: X(v), y1: Y(0), x2: X(v), y2: Y(ymax), stroke: '#eef0f2' }, g_grid);
+    el('text', { x: X(v), y: H - B + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, g_grid, fmt(v, 0));
+  });
+  ticks(ymax).forEach(function (v) {
+    el('line', { x1: X(0), y1: Y(v), x2: X(xmax), y2: Y(v), stroke: '#eef0f2' }, g_grid);
+    el('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#6b7077' }, g_grid, fmt(v, 0));
+  });
+  el('line', { x1: X(0), y1: Y(0), x2: X(xmax), y2: Y(0), stroke: '#15171a', 'stroke-width': 1.6 }, g_grid);
+  el('line', { x1: X(0), y1: Y(0), x2: X(0), y2: Y(ymax), stroke: '#15171a', 'stroke-width': 1.6 }, g_grid);
+  if (P.axes) {
+    el('text', { x: W - R, y: H - 8, 'text-anchor': 'end', 'font-size': 13, fill: '#15171a', 'font-weight': 600 }, g_grid, t(P.axes[0]));
+    el('text', { x: L + 6, y: T + 10, 'text-anchor': 'start', 'font-size': 13, fill: '#15171a', 'font-weight': 600 }, g_grid, t(P.axes[1]));
+  }
+
+  // ---- drawing
+  var tools_el = document.getElementById('tools'), readout = document.getElementById('readout'), gauges = document.getElementById('gauges');
+  var btn_sweep = null;
+  function pts_str(poly) { return poly.map(function (p) { return X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '); }
+
+  function draw() {
+    g_region.innerHTML = ''; g_walls.innerHTML = ''; g_dyn.innerHTML = '';
+    var poly = region();
+    if (poly.length >= 3) el('polygon', { points: pts_str(poly), fill: '#2f5bd3', 'fill-opacity': .10, stroke: 'none' }, g_region);
+    rows.forEach(function (r) {
+      var seg = wall_view(r);
+      if (!seg) return;
+      el('line', { x1: X(seg[0][0]), y1: Y(seg[0][1]), x2: X(seg[1][0]), y2: Y(seg[1][1]), stroke: '#15171a', 'stroke-width': 2, 'stroke-linecap': 'round' }, g_walls);
+      // the label sits at the higher end of the wall, inside the plot, on the side with room
+      var e = seg[0][1] > seg[1][1] ? seg[0] : seg[1];
+      var onTop = e[1] >= ymax - 1e-6, left = e[0] < xmax * .5;
+      var lx = X(e[0]) + (left ? 8 : -8), ly = onTop ? Y(e[1]) + 16 : Y(e[1]) - 7;
+      var anchor = left ? 'start' : 'end';
+      el('text', { x: lx, y: ly, 'text-anchor': anchor, 'font-size': 12.5, fill: '#15171a', class: 'halo' }, g_walls, t(r.label));
+    });
+    var best = optimum();
+    var showBest = state.swept || tools.indexOf('walls') >= 0;
+    // corner dots
+    if (P.corners || state.swept) {
+      poly.forEach(function (q) {
+        if (q[0] > xmax - 1e-6 || q[1] > ymax - 1e-6) return;
+        el('circle', { cx: X(q[0]), cy: Y(q[1]), r: 4, fill: '#fff', stroke: '#15171a', 'stroke-width': 1.5 }, g_dyn);
+        if (P.corner_values !== false) el('text', { x: X(q[0]) + (q[0] < 1e-6 ? 9 : 8), y: Y(q[1]) + (q[1] < 1e-6 ? -9 : 17), 'font-size': 12, fill: '#6b7077', class: 'halo' }, g_dyn, money + fmt(zof(q), 0));
+      });
+    }
+    // profit line through the current plan (plan mode), or at the optimum (walls mode)
+    var p = state.p, z = zof(p);
+    if (tools.indexOf('walls') >= 0 && best) { p = best.x; z = best.obj; }
+    var lv = line_view(z);
+    if (lv && (tools.indexOf('plan') >= 0 || tools.indexOf('walls') >= 0)) {
+      el('line', { x1: X(lv[0][0]), y1: Y(lv[0][1]), x2: X(lv[1][0]), y2: Y(lv[1][1]), stroke: '#c2410c', 'stroke-width': 1.4, 'stroke-dasharray': '6 5', 'stroke-linecap': 'round', opacity: .75 }, g_dyn);
+      var sg = line_segment(z);
+      if (sg) el('line', { x1: X(sg[0][0]), y1: Y(sg[0][1]), x2: X(sg[1][0]), y2: Y(sg[1][1]), stroke: '#c2410c', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, g_dyn);
+    }
+    // optimum: a ring (a thick edge when several corners tie)
+    if (best && showBest) {
+      var ties = poly.filter(function (q) { return Math.abs(zof(q) - best.obj) < 1e-6 && q[0] < xmax - 1e-6 && q[1] < ymax - 1e-6; });
+      if (ties.length >= 2) {
+        ties.sort(function (a, b) { return a[0] - b[0]; });
+        el('line', { x1: X(ties[0][0]), y1: Y(ties[0][1]), x2: X(ties[ties.length - 1][0]), y2: Y(ties[ties.length - 1][1]), stroke: '#0f766e', 'stroke-width': 7, 'stroke-linecap': 'round', opacity: .55 }, g_dyn);
+      }
+      el('circle', { cx: X(best.x[0]), cy: Y(best.x[1]), r: 11, fill: 'none', stroke: '#0f766e', 'stroke-width': 3 }, g_dyn);
+      el('text', { x: X(best.x[0]) + 15, y: Y(best.x[1]) - 12, 'font-size': 13, 'font-weight': 600, fill: '#0f766e', class: 'halo' }, g_dyn, '(' + fmt(best.x[0], 1) + ', ' + fmt(best.x[1], 1) + ')  ' + money + fmt(best.obj, 0));
+    }
+    // the plan
+    if (tools.indexOf('plan') >= 0) {
+      var ok = feasible(state.p);
+      var d = el('circle', { cx: X(state.p[0]), cy: Y(state.p[1]), r: 9, fill: ok ? '#2f5bd3' : '#c2412d', stroke: '#fff', 'stroke-width': 2.5, class: 'dot', 'data-h': 'plan', tabindex: 0, role: 'slider', 'aria-label': tx('A production plan: drag it', '一个生产方案：可以拖动'), 'aria-valuetext': '(' + fmt(state.p[0], 1) + ', ' + fmt(state.p[1], 1) + ')' }, g_dyn);
+      d.addEventListener('keydown', function (e) {
+        var s = e.shiftKey ? snap * 5 : snap, dx = e.key === 'ArrowRight' ? s : e.key === 'ArrowLeft' ? -s : 0, dy = e.key === 'ArrowUp' ? s : e.key === 'ArrowDown' ? -s : 0;
+        if (dx || dy) { e.preventDefault(); set_plan(state.p[0] + dx, state.p[1] + dy); d = null; draw(); var n = svg.querySelector('[data-h=plan]'); n && n.focus(); }
+      });
+    }
+    // wall handles
+    if (tools.indexOf('walls') >= 0) {
+      rows.forEach(function (r, i) {
+        var seg = wall_view(r); if (!seg) return;
+        var m = [(seg[0][0] + seg[1][0]) / 2, (seg[0][1] + seg[1][1]) / 2];
+        el('circle', { cx: X(m[0]), cy: Y(m[1]), r: 10, fill: '#fff', stroke: '#15171a', 'stroke-width': 2.5, class: 'handle', 'data-h': 'wall', 'data-i': i }, g_dyn);
+        el('circle', { cx: X(m[0]), cy: Y(m[1]), r: 3, fill: '#15171a', 'pointer-events': 'none' }, g_dyn);
+      });
+    }
+    // readout and gauges
+    var cur = tools.indexOf('walls') >= 0 && best ? best.x : state.p;
+    var okp = feasible(cur);
+    var zcur = zof(cur);
+    var html = '<div><div class="kicker">' + measure + '</div><div class="big num">' + money + fmt(zcur, 1) + '</div></div>';
+    if (tools.indexOf('plan') >= 0) html += '<div class="verdict">' + (okp ? '<span class="pill ok">' + tx('allowed', '可行') + '</span>' : '<span class="pill no">' + tx('not allowed', '不可行') + '</span>') + '</div>';
+    if (tools.indexOf('walls') >= 0 && best) {
+      var z0 = P.walls_z0 != null ? P.walls_z0 : null;
+      if (z0 === null) { var o0 = LP.solve({ sense: sense, c: c, rows: rows.map(function (r) { return { a: r.a, op: r.op, b: r.b0 }; }) }); z0 = o0.status === 'optimal' ? o0.obj : null; }
+      if (z0 !== null && Math.abs(best.obj - z0) > 1e-9) html += '<div class="verdict">' + tx('was', '原来') + ' <b class="num">' + money + fmt(z0, 1) + '</b> · ' + (best.obj > z0 ? '+' : '−') + '<b class="num">' + money + fmt(Math.abs(best.obj - z0), 2) + '</b></div>';
+    }
+    readout.innerHTML = html;
+    gauges.innerHTML = '';
+    rows.forEach(function (r) {
+      var used = r.a[0] * cur[0] + r.a[1] * cur[1], ratio = r.b > 0 ? used / r.b : 0;
+      var cls = Math.abs(used - r.b) < 1e-6 ? 'full' : (r.op === '<=' ? used > r.b + 1e-6 : used < r.b - 1e-6) ? 'over' : '';
+      var gg = h('div', 'gauge ' + cls, '<div class="top"><span>' + t(r.label) + '</span><span><b class="num">' + fmt(used, 1) + '</b> / <span class="num">' + fmt(r.b, 1) + '</span></span></div><div class="bar"><i style="width:' + Math.min(100, Math.max(0, ratio * 100)).toFixed(1) + '%"></i></div>', gauges);
+    });
+    if (P.gauges === false) gauges.style.display = 'none';
+    if (btn_sweep) btn_sweep.disabled = !!state.anim;
+    K.report();
+  }
+
+  // ---- interaction
+  function set_plan(x, y) {
+    var sx = Math.round(x / snap) * snap, sy = Math.round(y / snap) * snap;
+    state.p = [Math.min(xmax, Math.max(0, sx)), Math.min(ymax, Math.max(0, sy))];
+  }
+  var drag = null;
+  svg.addEventListener('pointerdown', function (e) {
+    var tg = e.target.getAttribute && e.target.getAttribute('data-h');
+    var q = K.pt(svg, e);
+    if (tg === 'wall') { drag = { kind: 'wall', i: +e.target.getAttribute('data-i') }; }
+    else if (tools.indexOf('plan') >= 0 && q.x >= L - 4 && q.x <= W - R + 4 && q.y >= T - 4 && q.y <= H - B + 4) {
+      state.anim = null; drag = { kind: 'plan' }; set_plan(ix(q.x), iy(q.y)); state.swept = state.swept && false || state.swept; draw();
+    }
+    if (drag) { svg.setPointerCapture(e.pointerId); e.preventDefault(); }
+  });
+  svg.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var q = K.pt(svg, e);
+    if (drag.kind === 'plan') set_plan(ix(q.x), iy(q.y));
+    else {
+      var r = rows[drag.i], pt = [ix(q.x), iy(q.y)];
+      var nb = Math.round((r.a[0] * pt[0] + r.a[1] * pt[1]) / (P.wall_snap || 1)) * (P.wall_snap || 1);
+      r.b = Math.min(r.b0 * 2, Math.max(r.b0 * .25, nb));
+    }
+    draw();
+  });
+  function up() { drag = null; }
+  svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+
+  function ease(u) { return u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; }
+  function sweep() {
+    var best = optimum(); if (!best) return;
+    var z0 = zof(state.p), z1 = best.obj, t0 = performance.now(), dur = 1500;
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    state.anim = true;
+    function step(now) {
+      if (!state.anim) return;
+      var u = reduce ? 1 : Math.min(1, (now - t0) / dur), z = z0 + (z1 - z0) * ease(u);
+      var sg = line_segment(z);
+      if (u < 1 && sg) state.p = [(sg[0][0] + sg[1][0]) / 2, (sg[0][1] + sg[1][1]) / 2];
+      else if (u < 1) state.p = [(line_view(z) || [[0, 0], [0, 0]]).reduce(function (a, q) { return a + q[0] / 2; }, 0), (line_view(z) || [[0, 0], [0, 0]]).reduce(function (a, q) { return a + q[1] / 2; }, 0)];
+      if (u >= 1) { state.p = best.x.slice(); state.anim = null; state.swept = true; }
+      draw();
+      if (u < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  if (tools.indexOf('sweep') >= 0) {
+    btn_sweep = h('button', 'verb', sense === 'min' ? tx('Find the cheapest', '找最省') : tx('Find the best', '找最优'), tools_el);
+    btn_sweep.onclick = sweep;
+  }
+  if (tools.indexOf('walls') >= 0 || tools.indexOf('plan') >= 0) {
+    var reset = h('button', 'ghost', tx('Reset', '复位'), tools_el);
+    reset.onclick = function () { state.anim = null; state.p = (P.start || [xmax * .12, ymax * .12]).slice(); state.swept = !!P.corners; rows.forEach(function (r) { r.b = r.b0; }); draw(); };
+  }
+  if (!tools_el.children.length) tools_el.style.display = 'none';
+  draw();
+  K.ready();
+})();
+</script>
+</body></html>

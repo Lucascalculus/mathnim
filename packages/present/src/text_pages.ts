@@ -145,6 +145,14 @@ export class BlockRenderer {
         const k = this.visuals.push(b) - 1;
         return `<figure class="mn-vis" data-vis="${k}"><div class="mn-vis-stage"><canvas width="1280" height="720" role="img" aria-label="${esc(tr(b.caption, this.lang) || b.name)}"></canvas></div><div class="mn-vis-bar"></div>${b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : ''}</figure>`;
       }
+      case 'frame': {
+        this.figures++;
+        // a sandboxed page of its own (scripts only, no storage, no network of the app); it tells us its height
+        const q = new URLSearchParams({ lang: this.lang });
+        if (b.params) q.set('p', JSON.stringify(b.params));
+        const src = `/${b.src.replace(/^\//, '')}?${q}`;
+        return `<figure class="mn-fig mn-frame"><iframe src="${esc(src)}" sandbox="allow-scripts" loading="lazy" scrolling="no" title="${esc(tr(b.alt, this.lang))}" style="height:${b.height ?? 420}px"></iframe>${b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : ''}</figure>`;
+      }
       case 'callout': {
         const title = b.title !== undefined ? this.prose(b.title) : esc(t(`callout_${b.kind}`, undefined, this.lang));
         return `<aside class="mn-callout mn-callout-${b.kind}" role="note"><div class="mn-callout-title"><span class="mn-callout-icon" aria-hidden="true">${CALLOUT_ICON[b.kind]}</span><span>${title}</span></div><div class="mn-callout-body">${this.prose(b.body)}</div></aside>`;
@@ -233,7 +241,7 @@ const saved_tab = (): string | null => {
 };
 
 /** Wire copy buttons, tabs and footnote links inside `root`; returns the visual slots to load. */
-function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): VisualSlot[] {
+function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): { dispose(): void }[] {
   // copy buttons copy the visible tab's raw code
   root.querySelectorAll<HTMLElement>('.mn-codeblock').forEach((fig) => {
     const tabs = r.codes[+fig.dataset.code!];
@@ -315,7 +323,21 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): VisualS
       img.replaceWith(note);
     };
   });
-  return [...root.querySelectorAll<HTMLElement>('.mn-vis')].map((fig) => new VisualSlot(fig, r.visuals[+fig.dataset.vis!], ctx));
+  const slots: { dispose(): void }[] = [...root.querySelectorAll<HTMLElement>('.mn-vis')].map((fig) => new VisualSlot(fig, r.visuals[+fig.dataset.vis!], ctx));
+  const frames = [...root.querySelectorAll<HTMLIFrameElement>('.mn-frame iframe')];
+  if (frames.length) slots.push(listen_frames(frames));
+  return slots;
+}
+
+/** Instruments report their height as { mn: 'height', value } (postMessage); the frame follows it. */
+function listen_frames(frames: HTMLIFrameElement[]): { dispose(): void } {
+  const on = (e: MessageEvent) => {
+    const f = frames.find((x) => x.contentWindow === e.source);
+    const d = e.data as { mn?: string; value?: number } | null;
+    if (f && d?.mn === 'height' && Number.isFinite(d.value)) f.style.height = `${Math.min(1400, Math.max(120, Math.ceil(d.value!)))}px`;
+  };
+  window.addEventListener('message', on);
+  return { dispose: () => window.removeEventListener('message', on) };
 }
 
 async function copy_text(code: string, pre: HTMLElement, btn: HTMLButtonElement, lang: Lang): Promise<void> {
