@@ -58,7 +58,7 @@
     });
     s += '<tr class="sec"><td colspan="7">' + tx('Constraints', '约束') + '</td></tr><tr><th>' + tx('Name', '名称') + '</th><th>' + tx('Final value', '终值') + '</th><th>' + tx('Shadow price', '影子价格') + '</th><th>' + tx('Constraint R.H. side', '约束右端') + '</th><th>' + tx('Allowable increase', '允许的增量') + '</th><th>' + tx('Allowable decrease', '允许的减量') + '</th></tr>';
     sens.rows.forEach(function (r, k) {
-      s += '<tr><td class="name">' + base.rows[k].label + '</td><td class="num">' + fmt(r.lhs, 4) + '</td>' + btn('row', k, fmt(r.shadow, 4)) + '<td class="num">' + fmt(r.rhs, 4) + '</td>' + btn('row', k, ex(r.inc)) + btn('row', k, ex(r.dec)) + '</tr>';
+      s += '<tr><td class="name">' + base.rows[k].label + '</td><td class="num">' + ((P.hide_final || []).indexOf(k) >= 0 ? '?' : fmt(r.lhs, 4)) + '</td>' + btn('row', k, fmt(r.shadow, 4)) + '<td class="num">' + fmt(r.rhs, 4) + '</td>' + btn('row', k, ex(r.inc)) + btn('row', k, ex(r.dec)) + '</tr>';
     });
     rep.innerHTML = s;
     rep.querySelectorAll('button').forEach(function (b) {
@@ -155,7 +155,11 @@
     var a = Math.max(lo, cur - (dec == null ? Infinity : dec)), b = Math.min(hi, cur + (inc == null ? Infinity : inc));
     var bar = h('i', '', '', sc); bar.style.left = ((a - lo) / (hi - lo) * 100) + '%'; bar.style.width = ((b - a) / (hi - lo) * 100) + '%';
     out = h('div', '', '', ctl); out.style.marginTop = '6px';
-    slider.oninput = function () { val = +slider.value; draw(); };
+    var typed = h('input', '', null, ctl); typed.type = 'number'; typed.step = 'any'; typed.value = cur; typed.style.cssText = 'width:110px;margin-top:6px;font:14px var(--mono);padding:5px 8px;border:1px solid var(--border);border-radius:8px';
+    ctl.insertBefore(typed, out);
+    typed.setAttribute('aria-label', tx('Type a value', '输入一个值'));
+    slider.oninput = function () { val = +slider.value; typed.value = val; draw(); };
+    typed.oninput = function () { if (typed.value === '' || isNaN(+typed.value)) return; val = +typed.value; slider.value = Math.min(hi, Math.max(lo, val)); draw(); };
   }
   function draw() {
     var m = model_with(), s = LP.solve(m);

@@ -85,6 +85,13 @@ def z_from_table(p):
     return best[1] / 100
 
 
+def ptxt(en, zh):
+    """A multi-line text of the paper as one T per line (money signs escaped); both languages must have the same lines."""
+    a, b = en.split('\n'), zh.split('\n')
+    assert len(a) == len(b), 'paper text: the two languages differ in line count'
+    return [T(x.replace('$', '\\$'), y.replace('$', '\\$')) for x, y in zip(a, b)]
+
+
 def code(lang, text, caption=None):
     b = {'type': 'code', 'lang': lang, 'code': text}
     if caption: b['caption'] = caption

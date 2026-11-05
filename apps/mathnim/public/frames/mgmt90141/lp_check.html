@@ -22,9 +22,13 @@
  .card .why{color:var(--muted);font-size:13px;margin-top:3px}
  .plan{font:13px var(--mono);color:var(--fg)}
  .total{font-weight:600;font-size:14px;margin-top:4px}
+ .story{font-size:14px;line-height:1.55;margin-bottom:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+ .story span.s{border-radius:4px;padding:0 1px;transition:background .2s}
+ .story span.s.ok{background:#dff1ea}.story span.s.no{background:#fbd9d2}
  .sol{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
 </style></head>
 <body>
+<div class="story" id="story" style="display:none"></div>
 <div class="vars" id="vars"></div>
 <div class="row" id="sense"></div>
 <div class="sec"><div class="kicker" id="k_obj"></div><div class="field"><span class="tag">z =</span><input class="ln" id="obj" autocapitalize="off" autocomplete="off" spellcheck="false" inputmode="text"></div></div>
@@ -43,6 +47,20 @@
   var vbox = document.getElementById('vars');
   (P.names || []).forEach(function (nm) { h('div', '', t(nm), vbox); });
   vbox.innerHTML = (P.names || []).map(function (nm) { var s = t(nm), i = s.indexOf('='); return i > 0 ? '<div><code>' + s.slice(0, i).trim() + '</code> = ' + s.slice(i + 1).trim() + '</div>' : '<div>' + s + '</div>'; }).join('');
+  var story = P.story || [];
+  if (story.length) {
+    var sbox = document.getElementById('story'); sbox.style.display = 'block';
+    sbox.innerHTML = story.map(function (s, i) { return '<span class="s" data-i="' + i + '">' + t(s.text) + '</span>'; }).join(' ');
+  }
+  function light(cmp) {
+    story.forEach(function (s, i) {
+      var node = document.querySelector('#story span[data-i="' + i + '"]'); if (!node) return;
+      node.className = 's';
+      if (!cmp || !s.rows || !s.rows.length) return;
+      var bad = s.rows.some(function (k) { return !cmp.enforced[k].ok; });
+      node.className = 's ' + (bad ? 'no' : 'ok');
+    });
+  }
   document.getElementById('k_obj').textContent = tx('Goal', '目标');
   document.getElementById('k_rows').textContent = tx('Limits, one per line', '限制，每行一条');
 
@@ -86,7 +104,7 @@
   }
   var SIGN = { '<=': '≤', '>=': '≥', '=': '=' };
   function go() {
-    var res = document.getElementById('res'); res.innerHTML = '';
+    var res = document.getElementById('res'); res.innerHTML = ''; light(null);
     if (!state.sense) { card('no', tx('Choose maximise or minimise first.', '先选最大化还是最小化。'), '', res); K.report(); return; }
     var learner = { sense: state.sense, c: null, rows: [] }, errors = 0, any = false;
     try { learner.c = LPCheck.parse_objective(obj.value, vars); obj.classList.remove('bad'); }
@@ -106,6 +124,7 @@
       K.report(); return;
     }
     var cmp = LPCheck.compare(ref, learner);
+    light(cmp);
     // goal
     var og = [];
     if (!cmp.sense_ok) og.push(tx('You chose ' + (state.sense === 'max' ? 'maximise' : 'minimise') + ', but the problem asks you to ' + (ref.sense === 'max' ? 'maximise.' : 'minimise.'), '你选的是' + (state.sense === 'max' ? '最大化' : '最小化') + '，而题目要求' + (ref.sense === 'max' ? '最大化。' : '最小化。')));
