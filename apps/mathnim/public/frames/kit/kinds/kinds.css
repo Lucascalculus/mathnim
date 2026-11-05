@@ -34,3 +34,4 @@ input[type=range]{width:100%;accent-color:var(--blue);height:28px}
 .brow i{display:block;height:10px;border-radius:99px;background:var(--blue)}
 .brow .t{background:var(--faint);border-radius:99px}
 @media(max-width:520px){.zones{grid-template-columns:1fr!important}}
+.chip[hidden]{display:none}

@@ -6066,6 +6066,16 @@
      "mktg90037-pricing-cost",
      "mktg90037-pricing-value"
     ]
+   },
+   {
+    "title": {
+     "en": "Putting it together",
+     "zh": "合起来写"
+    },
+    "lessons": [
+     "mktg90037-combine",
+     "mktg90037-exam"
+    ]
    }
   ],
   "lessons": [
@@ -6730,6 +6740,80 @@
        "name": {
         "en": "Explaining and applying value-based pricing and pricing psychology",
         "zh": "解释并应用价值导向定价和价格心理"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-combine",
+    "title": {
+     "en": "What connects the weeks?",
+     "zh": "各周之间怎样连起来？"
+    },
+    "summary": {
+     "en": "The exam joins topics from different weeks. Link ideas across weeks, recognise which weeks a question joins, and write the joining sentence.",
+     "zh": "考试会把不同周的内容合在一起。把各周的概念连起来，认出一道题合并了哪几周，再写出那句“连接的话”。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "What connects the weeks?",
+      "zh": "各周之间怎样连起来？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.combine",
+       "name": {
+        "en": "Linking concepts across weeks in one answer",
+        "zh": "在一份答案里把不同周的概念连起来"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-exam",
+    "title": {
+     "en": "Can you write four of them?",
+     "zh": "你能写出四篇吗？"
+    },
+    "summary": {
+     "en": "The lecturer’s sample question worked in full, a plan for two hours, the commonest mistakes, a card for each brand, and five full questions marked in three parts.",
+     "zh": "讲师样题的完整示范、两小时的计划、最常见的错误、每个品牌一张速记卡，以及五道分三部分批改的完整题目。"
+    },
+    "minutes": 120,
+    "meta": {
+     "title": {
+      "en": "Can you write four of them?",
+      "zh": "你能写出四篇吗？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.exam",
+       "name": {
+        "en": "Writing a complete exam answer in the time allowed",
+        "zh": "在规定时间里写出完整的考试答案"
        }
       }
      ]

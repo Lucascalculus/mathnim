@@ -35,6 +35,10 @@
     zel[z.id] = d;
   });
   var cel = {};
+  // the chips come in a fixed shuffled order (the author lists them zone by zone, which would give the answers away), and only a few
+  // wait in the tray at a time, so the zones stay within reach of the chip being placed
+  var seed = 11; chips = chips.map(function (c, i) { seed = (seed * 37 + 13) % 101; return { c: c, k: seed + i * 0.01 }; }).sort(function (a, b) { return a.k - b.k; }).map(function (o) { return o.c; });
+  var SHOW = P.show || 3;
   chips.forEach(function (c) {
     var e = h('button', 'chip', esc(t(c.label)), tray); e.type = 'button'; cel[c.id] = e;
     e.onclick = function (ev) {
@@ -44,7 +48,16 @@
     };
     e.addEventListener('pointerdown', function (ev) { start_drag(ev, c); });
   });
+  function queue() {
+    var shown = 0;
+    chips.forEach(function (c) {
+      var e = cel[c.id];
+      if (placed[c.id]) { e.hidden = false; return; }
+      e.hidden = shown >= SHOW; if (!e.hidden) shown++;
+    });
+  }
   function paint() {
+    queue();
     chips.forEach(function (c) { cel[c.id].classList.toggle('sel', sel === c.id); });
     for (var k in zel) zel[k].classList.toggle('target', !!sel);
   }
@@ -96,6 +109,6 @@
     for (var k in zel) { var r = zel[k].getBoundingClientRect(); if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return k; }
     return null;
   }
-  status(); K.ready();
+  paint(); status(); K.ready();
 })();
 </script></body></html>

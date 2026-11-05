@@ -33,7 +33,8 @@
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return parts.join('.').replace('-', '−');
   }
-  function report() { try { parent.postMessage({ mn: 'height', value: document.documentElement.scrollHeight }, '*'); } catch (e) {} }
+  // the body's own height, not the document's: scrollHeight never drops below the frame's current height, so a frame that had grown could not shrink
+  function report() { try { parent.postMessage({ mn: 'height', value: Math.ceil(document.body.getBoundingClientRect().height) + 2 }, '*'); } catch (e) {} }
   function ready() {
     report();
     if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);

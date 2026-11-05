@@ -2,7 +2,7 @@
 
 A demo course in the studio format (lesson JSON in `apps/mathnim/public/demo/mktg90037/`, entry in
 `apps/mathnim/public/demo/courses.json`), written in Python with `docs/lessons/lesson_kit.py`; the figures are
-instruments (`docs/lessons/NEXT-LEARNING.md`, read it first). Status: **planned 2026-11-06, nothing built yet.**
+instruments (`docs/lessons/NEXT-LEARNING.md`, read it first). Status: **built 2026-11-06: all 20 lessons (0 to 19), checked with `demo_check`, the pages and the instruments at desktop and phone width. See `CHECKPOINT.md` for what was and was not checked, and the decisions taken.**
 
 Sources (`~/Downloads/MKTG90037/`): the subject guide (`MKTG90037 (2).pdf`) and the decks of weeks 1-4 and 6-11
 (there is no week 5 or 12 lecture). Week 11 is the lecturer's exam briefing: it says what the paper looks like,
