@@ -1,0 +1,203 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+ table{border-collapse:collapse;width:100%;font-size:13px}
+ th,td{padding:4px 5px;text-align:center;border-bottom:1px solid var(--faint)}
+ th{font:600 11px var(--mono);color:var(--muted);background:var(--panel);white-space:nowrap}
+ th.rl{text-align:left;padding-left:8px}
+ td.c{position:relative;min-width:54px}
+ td.c .k{position:absolute;top:1px;left:4px;font:10px var(--mono);color:var(--muted)}
+ td.c input{width:100%;min-width:44px;padding:14px 3px 3px;text-align:center;border:1px solid transparent;border-radius:6px;background:#fff;font:14px var(--mono);color:var(--fg)}
+ td.c input:focus{outline:2px solid #cdd9fb}
+ td.c.blocked{background:repeating-linear-gradient(45deg,#f4f4f2,#f4f4f2 4px,#fff 4px,#fff 8px)}
+ td.sel{background:#e3ebff}
+ td.pick{cursor:pointer;height:46px}
+ td.pick .k{position:static;display:block;font:13px var(--mono);color:var(--fg)}
+ td.pick .dot{display:block;margin:2px auto 0;width:14px;height:14px;border-radius:50%;border:2px solid var(--border)}
+ td.pick.on .dot{background:var(--blue);border-color:var(--blue)}
+ td.pick.best .dot{box-shadow:0 0 0 3px #bfe6dc}
+ td.ok{color:var(--green);font-weight:600}td.over{color:var(--bad);font-weight:600}td.short{color:var(--orange);font-weight:600}
+ .tot{font:600 13px var(--mono)}
+ body.build td.c input{padding:7px 1px;min-width:30px;font-size:13px}
+ body.build input.edge{width:44px;padding:5px 1px;font-size:12px}
+ body.build th{padding:4px 3px}
+ body.build table{table-layout:fixed}
+ body.build th.rl{width:38px}
+ body.build input.edge{width:100%}
+ body.build td.c{min-width:0;padding:3px 2px}
+ input.edge{width:64px;padding:4px;border:1px solid var(--border);border-radius:6px;text-align:center;font:13px var(--mono)}
+ input.edge.ok{border-color:#9fd3c5;background:#f3faf7}input.edge.no{border-color:var(--bad);background:#fdf6f4}
+ td.c input.ok{border-color:#9fd3c5;background:#f3faf7}td.c input.no{border-color:var(--bad);background:#fdf6f4}
+ .bar{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}
+ .msg{font-size:13px;color:var(--muted);margin-top:8px}
+</style></head>
+<body>
+<div id="top"></div>
+<div class="wrap"><table id="tbl"></table></div>
+<div class="bar" id="bar"></div>
+<div class="msg" id="msg"></div>
+<script src="../kit/lp.js"></script><script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var mode = P.mode || 'ship'; document.body.classList.add(mode); var _m = 0, money = P.money || '', sense = P.sense || 'min';
+  var rl = P.rows.map(t), cl = P.cols.map(t);
+  var cost = (P.cost || []).map(function (r) { return r.slice(); }), supply = (P.supply || []).slice(), demand = (P.demand || []).slice();
+  var tbl = document.getElementById('tbl'), bar = document.getElementById('bar'), msg = document.getElementById('msg');
+  var flow = rl.map(function () { return cl.map(function () { return 0; }); });
+  var opt = null, shown_opt = false;
+  var dummy = null; // balance mode: { kind, amount, typed }
+  var NR, NC;
+
+  function model(c, sup, dem, eq_sup) {
+    var idx = [], cs = [];
+    c.forEach(function (r, i) { r.forEach(function (v, j) { if (v != null) { idx.push([i, j]); cs.push(v); } }); });
+    var rows = [];
+    sup.forEach(function (s, i) { rows.push({ a: idx.map(function (p) { return p[0] === i ? 1 : 0; }), op: eq_sup ? '=' : '<=', b: s }); });
+    dem.forEach(function (d, j) { rows.push({ a: idx.map(function (p) { return p[1] === j ? 1 : 0; }), op: '=', b: d }); });
+    return { idx: idx, m: { sense: sense, c: cs, rows: rows } };
+  }
+  function solve(c, sup, dem, eq) {
+    var M = model(c, sup, dem, eq), s = LP.solve(M.m);
+    if (s.status !== 'optimal') return null;
+    var f = c.map(function (r) { return r.map(function () { return 0; }); });
+    M.idx.forEach(function (p, k) { f[p[0]][p[1]] = Math.round(s.x[k] * 1e6) / 1e6; });
+    return { f: f, obj: s.obj };
+  }
+  function total_cost(f, c) { var z = 0; f.forEach(function (r, i) { r.forEach(function (v, j) { if (c[i][j] != null) z += v * c[i][j]; }); }); return z; }
+  var sum = function (a) { return a.reduce(function (x, y) { return x + y; }, 0); };
+
+  // ---------------------------------------------------------------- ship / assign
+  function draw_grid() {
+    var c = cost, nr = c.length, nc = c[0].length, sup = supply, dem = demand;
+    var s = '<tr><th class="rl"></th>' + cl.concat(dummy && dummy.kind === 'col' && dummy.ok ? [tx('dummy', '虚拟')] : []).map(function (x) { return '<th>' + x + '</th>'; }).join('') + '<th>' + (mode === 'assign' ? '' : tx('Supply', '供应')) + '</th><th>' + tx('Used', '用掉') + '</th></tr>';
+    for (var i = 0; i < nr; i++) {
+      var used = sum(flow[i]);
+      s += '<tr><th class="rl">' + (rl[i] || tx('dummy', '虚拟')) + '</th>';
+      for (var j = 0; j < nc; j++) {
+        var v = c[i][j];
+        if (v == null) { s += '<td class="c blocked"></td>'; continue; }
+        if (mode === 'assign') s += '<td class="c pick' + (flow[i][j] ? ' on' : '') + (shown_opt && opt && opt.f[i][j] > 0.5 ? ' best' : '') + '" data-i="' + i + '" data-j="' + j + '"><span class="k">' + money + v + '</span><span class="dot"></span></td>';
+        else s += '<td class="c"><span class="k">' + money + v + '</span><input type="number" min="0" step="any" data-i="' + i + '" data-j="' + j + '" value="' + (flow[i][j] || '') + '" aria-label="' + (rl[i] || '') + ' → ' + (cl[j] || '') + '"></td>';
+      }
+      var sc = mode === 'assign' ? (used === 1 ? 'ok' : 'over') : (used > sup[i] + 1e-9 ? 'over' : used === sup[i] ? 'ok' : '');
+      s += '<td class="tot">' + fmt(sup[i], 2) + '</td><td class="tot ' + sc + '">' + fmt(used, 2) + '</td></tr>';
+    }
+    s += '<tr><th class="rl">' + tx('Demand', '需求') + '</th>' + dem.map(function (d) { return '<td class="tot">' + fmt(d, 2) + '</td>'; }).join('') + '<td></td><td></td></tr>';
+    s += '<tr><th class="rl">' + tx('Received', '收到') + '</th>' + dem.map(function (d, j) { var r = 0; flow.forEach(function (row) { r += row[j]; }); return '<td class="tot ' + (Math.abs(r - d) < 1e-9 ? 'ok' : r > d ? 'over' : 'short') + '">' + fmt(r, 2) + '</td>'; }).join('') + '<td></td><td></td></tr>';
+    tbl.innerHTML = s;
+    tbl.querySelectorAll('input[data-i]').forEach(function (inp) {
+      inp.oninput = function () { flow[+inp.dataset.i][+inp.dataset.j] = Math.max(0, +inp.value || 0); update(false); };
+    });
+    tbl.querySelectorAll('td.pick').forEach(function (td) {
+      td.onclick = function () { var i = +td.dataset.i, j = +td.dataset.j; flow[i][j] = flow[i][j] ? 0 : 1; draw_grid(); update(true); };
+    });
+  }
+  function feasible() {
+    var ok = true;
+    flow.forEach(function (r, i) { var u = sum(r); if (mode === 'assign' ? u !== 1 : u > supply[i] + 1e-9) ok = false; });
+    demand.forEach(function (d, j) { var r = 0; flow.forEach(function (row) { r += row[j]; }); if (Math.abs(r - d) > 1e-9) ok = false; });
+    return ok;
+  }
+  function update(redraw) {
+    var z = total_cost(flow, cost), ok = feasible();
+    var html = '<span class="kicker">' + (sense === 'max' ? tx('Revenue', '收入') : tx('Cost', '成本')) + '</span> <span class="big num">' + money + fmt(z, 2) + '</span> <span class="pill ' + (ok ? 'ok' : 'no') + '">' + (ok ? tx('every supply and demand kept', '供需都守住了') : tx('supply or demand broken', '供应或需求没守住')) + '</span>';
+    if (shown_opt && opt) html += ' <span class="sub">' + tx('best possible ', '最优 ') + '<b class="num">' + money + fmt(opt.obj, 2) + '</b>' + (ok ? ' · ' + (Math.abs(z - opt.obj) < 1e-6 ? tx('you are at the best', '你已经是最优') : tx('gap ', '差 ') + money + fmt(Math.abs(z - opt.obj), 2)) : '') + '</span>';
+    document.getElementById('bar').firstChild && (bar.firstChild.innerHTML = html);
+    if (redraw) draw_grid();
+  }
+  function ship_ui() {
+    bar.innerHTML = ''; var line = h('div', '', '', bar); line.style.flex = '1';
+    var sv = h('button', 'verb', tx('Solve', '求最优'), bar), cl2 = h('button', 'ghost', tx('Clear', '清空'), bar);
+    sv.onclick = function () {
+      opt = solve(cost, supply, demand, mode === 'assign');
+      shown_opt = true; if (opt && mode !== 'assign') flow = opt.f.map(function (r) { return r.slice(); }); if (opt && mode === 'assign') flow = opt.f.map(function (r) { return r.map(function (v) { return v > .5 ? 1 : 0; }); });
+      draw_grid(); update(false);
+    };
+    cl2.onclick = function () { flow = flow.map(function (r) { return r.map(function () { return 0; }); }); shown_opt = false; draw_grid(); update(false); };
+    draw_grid(); update(false);
+  }
+
+  // ---------------------------------------------------------------- balance: dummy origin or destination
+  function balance_ui() {
+    var S = sum(P.supply), D = sum(P.demand);
+    var top = document.getElementById('top');
+    top.innerHTML = '<div class="row" style="margin-bottom:8px"><span class="kicker">' + tx('Supply', '总供应') + '</span><b class="num">' + fmt(S, 0) + '</b><span class="kicker">' + tx('Demand', '总需求') + '</span><b class="num">' + fmt(D, 0) + '</b></div><div class="row" id="dbtn"></div>';
+    var db = document.getElementById('dbtn');
+    var bo = h('button', 'ghost', tx('Add a dummy origin', '加一个虚拟供应地'), db), bd = h('button', 'ghost', tx('Add a dummy destination', '加一个虚拟需求地'), db);
+    var need = S > D ? 'destination' : 'origin', diff = Math.abs(S - D), done = false;
+    function choose(kind) {
+      if (done) return;
+      if (kind !== need) { msg.textContent = kind === 'origin' ? tx('Supply is already at least the demand: nothing is missing on the supply side.', '供应已经不少于需求：供应一侧并不缺东西。') : tx('Demand is already at least the supply: no one is left with goods.', '需求已经不少于供应：没有谁手里还剩货。'); return; }
+      var wrap = h('span', '', '', db);
+      wrap.innerHTML = tx('its amount: ', '它的数量：') + '<input class="edge" type="number" id="amt"> <button class="verb" id="okamt" type="button">' + tx('Set', '确定') + '</button>';
+      wrap.querySelector('#okamt').onclick = function () {
+        var a = +wrap.querySelector('#amt').value;
+        if (Math.abs(a - diff) > 1e-9) { msg.textContent = tx('Not yet: the dummy takes up exactly the difference between total supply and total demand.', '还不对：虚拟项正好吸收总供应和总需求的差额。'); return; }
+        done = true; wrap.remove(); msg.textContent = tx('Balanced. Its costs are 0: nothing is really shipped.', '平衡了。它的运费是 0：什么也没有真的运出去。');
+        if (kind === 'destination') { cost = cost.map(function (r) { return r.concat([0]); }); demand = demand.concat([diff]); cl.push(tx('dummy', '虚拟')); }
+        else { cost = [cost[0].map(function () { return 0; })].concat(cost); supply = [diff].concat(supply); rl.unshift(tx('dummy', '虚拟')); flow = [cl.map(function () { return 0; })].concat(flow); }
+        flow = rl.map(function () { return cl.map(function () { return 0; }); });
+        tbl.parentNode.style.display = ''; bar.style.display = ''; ship_ui(); K.report();
+      };
+      K.report();
+    }
+    bo.onclick = function () { choose('origin'); }; bd.onclick = function () { choose('destination'); };
+    tbl.parentNode.style.display = 'none'; bar.style.display = 'none';
+    // before balancing, show the plain table
+    var plain = h('div', 'wrap', '', top.parentNode); plain.style.marginTop = '8px';
+    var s = '<table><tr><th class="rl"></th>' + cl.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '<th>' + tx('Supply', '供应') + '</th></tr>';
+    cost.forEach(function (r, i) { s += '<tr><th class="rl">' + rl[i] + '</th>' + r.map(function (v) { return '<td>' + money + v + '</td>'; }).join('') + '<td class="tot">' + fmt(supply[i], 0) + '</td></tr>'; });
+    s += '<tr><th class="rl">' + tx('Demand', '需求') + '</th>' + demand.map(function (d) { return '<td class="tot">' + fmt(d, 0) + '</td>'; }).join('') + '<td></td></tr></table>';
+    plain.innerHTML = s; top.parentNode.insertBefore(plain, tbl.parentNode);
+    var obs = new MutationObserver(function () { if (done) plain.style.display = 'none'; K.report(); }); obs.observe(db, { childList: true });
+  }
+
+  // ---------------------------------------------------------------- build: construct the table of a transshipment problem
+  function build_ui() {
+    var R = P.ref, ni = R.cost.length, nj = R.cost[0].length, ent = [], inp = [];
+    var s = '<tr><th class="rl"></th>' + cl.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '<th>' + tx('Supply', '供应') + '</th></tr>';
+    for (var i = 0; i < ni; i++) {
+      s += '<tr><th class="rl">' + rl[i] + '</th>';
+      for (var j = 0; j < nj; j++) s += '<td class="c"><input type="text" class="cell" data-i="' + i + '" data-j="' + j + '" autocomplete="off" autocapitalize="off" aria-label="' + rl[i] + ' → ' + cl[j] + '"></td>';
+      s += '<td><input class="edge" type="text" data-s="' + i + '"></td></tr>';
+    }
+    s += '<tr><th class="rl">' + tx('Demand', '需求') + '</th>' + cl.map(function (_, j) { return '<td><input class="edge" type="text" data-d="' + j + '"></td>'; }).join('') + '<td></td></tr>';
+    tbl.innerHTML = s;
+    bar.innerHTML = '<button class="verb" id="chk" type="button">' + tx('Check', '检查') + '</button><button class="ghost" id="slv" type="button" disabled>' + tx('Solve', '求最优') + '</button><span id="res"></span>';
+    var BLOCK = /^(m|big|inf|infinity|x|∞|-|—|n\/a|无穷|无|不可)$/i;
+    function read_cell(v) { v = String(v).trim(); if (v === '') return undefined; if (BLOCK.test(v)) return null; var n = parseFloat(v); return isNaN(n) ? undefined : n; }
+    document.getElementById('chk').onclick = function () {
+      var wrong = 0, blank = 0, right = 0;
+      tbl.querySelectorAll('input').forEach(function (e) {
+        var exp, got = read_cell(e.value);
+        if (e.dataset.i !== undefined) exp = R.cost[+e.dataset.i][+e.dataset.j]; else if (e.dataset.s !== undefined) exp = R.supply[+e.dataset.s]; else exp = R.demand[+e.dataset.d];
+        e.classList.remove('ok', 'no');
+        if (got === undefined) { blank++; return; }
+        if (got === exp || (got !== null && exp !== null && Math.abs(got - exp) < 1e-9)) { e.classList.add('ok'); right++; } else { e.classList.add('no'); wrong++; }
+      });
+      var res = document.getElementById('res');
+      if (!wrong && !blank) { res.innerHTML = ' <span class="pill ok">' + tx('The table is right', '表是对的') + '</span>'; document.getElementById('slv').disabled = false; }
+      else res.innerHTML = ' <span class="pill no">' + tx(right + ' right, ' + wrong + ' wrong, ' + blank + ' empty', '对 ' + right + '，错 ' + wrong + '，空 ' + blank) + '</span>';
+      K.report();
+    };
+    document.getElementById('slv').onclick = function () {
+      var sol = solve(R.cost, R.supply, R.demand, false);
+      if (!sol) return;
+      document.getElementById('res').innerHTML += ' <span class="sub">' + tx('cheapest shipping plan: ', '最省的运输方案：') + '<b class="num">' + money + fmt(sol.obj, 0) + '</b></span>';
+      K.report();
+    };
+    msg.textContent = tx('M = no route (a cost so big it is never chosen)', 'M = 不通（大到永远不会被选的成本）');
+  }
+
+  if (mode === 'build') build_ui();
+  else if (mode === 'balance') balance_ui();
+  else ship_ui();
+  K.ready();
+})();
+</script>
+</body></html>

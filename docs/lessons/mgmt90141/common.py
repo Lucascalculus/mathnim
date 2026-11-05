@@ -53,6 +53,8 @@ def lp_solve(sense, c, rows):
             rows2 = [list(x) for x in rows]
             rows2[k][2] += step
             ref2, _ = _scipy(sense, c, rows2)
+            if ref2.status != 0:
+                continue   # moving this right-hand side makes the model infeasible (the engine's range is then one-sided): nothing to compare
             d = (sg * ref2.fun - r['obj']) / step
             assert abs(d - row['shadow']) < 1e-6, f'shadow price of row {k}: engine {row["shadow"]} vs re-solve {d}'
     return r
