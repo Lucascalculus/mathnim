@@ -6041,6 +6041,19 @@
      "mktg90037-business-model",
      "mktg90037-vpc"
     ]
+   },
+   {
+    "title": {
+     "en": "Creating it with others",
+     "zh": "和别人一起创造"
+    },
+    "lessons": [
+     "mktg90037-employees",
+     "mktg90037-salesforce",
+     "mktg90037-community",
+     "mktg90037-co-creation",
+     "mktg90037-make-or-buy"
+    ]
    }
   ],
   "lessons": [
@@ -6372,6 +6385,191 @@
        "name": {
         "en": "Explaining and applying the Value Proposition Canvas",
         "zh": "解释并应用价值主张画布"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-employees",
+    "title": {
+     "en": "How do the people inside create value?",
+     "zh": "企业内部的人怎样创造价值？"
+    },
+    "summary": {
+     "en": "Employees as value creators: the Strategic Alignment Model, three kinds of value, engagement versus satisfaction versus commitment, with Hilton and Coles.",
+     "zh": "员工是价值创造者：战略对齐模型、三类价值、敬业度与满意度与承诺的区别，案例是 Hilton 和 Coles。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "How do the people inside create value?",
+      "zh": "企业内部的人怎样创造价值？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.employees",
+       "name": {
+        "en": "Explaining and applying employees’ role in value creation",
+        "zh": "解释并应用员工在价值创造中的作用"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-salesforce",
+    "title": {
+     "en": "How do I make people who sell for several brands sell mine?",
+     "zh": "怎样让同时卖好几个品牌的人，多卖我的？"
+    },
+    "summary": {
+     "en": "Why an independent seller’s motivation is a product of three numbers, when to build or rent a sales force, and how to control and bind it.",
+     "zh": "为什么独立销售方的动力是三个数的乘积、何时自建或外购销售队伍，以及怎样控制和绑定它。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "How do I make people who sell for several brands sell mine?",
+      "zh": "怎样让同时卖好几个品牌的人，多卖我的？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.salesforce",
+       "name": {
+        "en": "Explaining and applying independent sales force management",
+        "zh": "解释并应用独立销售队伍管理"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-community",
+    "title": {
+     "en": "What does a firm owe the community, and when does it pay?",
+     "zh": "企业对社区负有什么责任，什么时候划算？"
+    },
+    "summary": {
+     "en": "From donation to responsibility to shared value, three ways to create it, why shoppers say yes and buy no, and B Corps, with Who Gives a Crap, Coles and Hilton.",
+     "zh": "从捐赠到责任再到共享价值，创造共享价值的三条路，为什么购物者嘴上说好、手上不买，以及 B Corp，案例是 Who Gives a Crap、Coles 和 Hilton。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "What does a firm owe the community, and when does it pay?",
+      "zh": "企业对社区负有什么责任，什么时候划算？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.community",
+       "name": {
+        "en": "Explaining and applying CSR and creating shared value",
+        "zh": "解释并应用 CSR 和共享价值创造"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-co-creation",
+    "title": {
+     "en": "How do customers and partners create value with us?",
+     "zh": "顾客和伙伴怎样和我们一起创造价值？"
+    },
+    "summary": {
+     "en": "Why firms stopped doing everything alone, co-design versus co-production, the DART building blocks, vertical and horizontal partnerships, open innovation and lead users, with Coles and Who Gives a Crap.",
+     "zh": "为什么企业不再事事自己做、共同设计与共同生产、DART 构件、纵向与横向合作、开放式创新与先锋用户，案例是 Coles 和 Who Gives a Crap。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How do customers and partners create value with us?",
+      "zh": "顾客和伙伴怎样和我们一起创造价值？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.co-creation",
+       "name": {
+        "en": "Explaining and applying value co-creation",
+        "zh": "解释并应用价值共创"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-make-or-buy",
+    "title": {
+     "en": "What do I do myself and what do I buy?",
+     "zh": "什么自己做，什么买？"
+    },
+    "summary": {
+     "en": "Transaction cost theory: the three transaction costs, the cross-over where buying stops paying, and the customer interface, with Coles.",
+     "zh": "交易成本理论：三类交易成本、外购不再划算的交叉点，以及客户界面，案例是 Coles。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "What do I do myself and what do I buy?",
+      "zh": "什么自己做，什么买？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.make-or-buy",
+       "name": {
+        "en": "Explaining and applying transaction cost theory to make-or-buy decisions",
+        "zh": "解释并应用交易成本理论做自制或外购决策"
        }
       }
      ]

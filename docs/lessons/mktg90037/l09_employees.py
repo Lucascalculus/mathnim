@@ -1,0 +1,98 @@
+# Lesson 9 of MKTG90037: employees as stakeholders (Week 6, first half). Brands: Hilton (10-K: workplace ranking, franchised staff
+# are not Hilton's) and Coles (FY26: engagement survey). Instruments: alignment chain (Connect), engagement, satisfaction or
+# commitment (Tag).
+from mk import *  # noqa: F403
+
+
+def L09(CID):
+    SK = 'mk.employees'
+    left = [dict(id='n1', label=T('Need: a warm manner with strangers', '需要：对陌生人态度亲切')), dict(id='n2', label=T('Need: deep product knowledge', '需要：深入的产品知识')),
+            dict(id='n3', label=T('Need: willingness to go the extra mile', '需要：愿意多做一点')), dict(id='n4', label=T('Need: the same standard on every shift', '需要：每个班次都是同一标准'))]
+    right = [dict(id='h1', label=T('Acquisition: hire for attitude, teach the skills', '招聘：看重态度，技能可教')), dict(id='h2', label=T('Development: training and learning on the job', '培养：培训与在岗学习')),
+             dict(id='h3', label=T('Motivation: recognition and fair rewards', '激励：认可与公平的回报')), dict(id='h4', label=T('Performance management: clear goals and feedback', '绩效管理：清晰的目标与反馈'))]
+    pairs = [['n1', 'h1', T('Attitude is hard to train, so select for it.', '态度很难培训，所以要在招聘时筛选。')], ['n2', 'h2', T('Knowledge is learned, so build it.', '知识靠学，所以要培养。')],
+             ['n3', 'h3', T('Extra effort is given, not ordered: recognition and reward draw it out.', '额外的努力是给出来的，不是命令出来的：认可和回报才能引出它。')], ['n4', 'h4', T('Consistency needs a standard everyone knows and feedback against it.', '一致性需要人人知道的标准，以及对照标准的反馈。')]]
+    cats = [dict(id='sat', label=T('Satisfaction', '满意度')), dict(id='com', label=T('Commitment', '承诺')), dict(id='eng', label=T('Engagement', '敬业度'))]
+    items = [
+        dict(text=T('“I am happy with my pay and conditions here.”', '“我对这里的薪酬和条件感到满意。”'), cat='sat', why=T('Satisfaction: how satisfied am I with the company as a place to work?', '满意度：我对这家公司作为工作地点有多满意？')),
+        dict(text=T('“I intend to stay with this company for years; it is part of who I am.”', '“我打算在这家公司待很多年；它是我身份的一部分。”'), cat='com', why=T('Commitment: a stable attachment, measured by retention.', '承诺：稳定的依附，用留任率衡量。')),
+        dict(text=T('“When I am with guests the shift flies by; I put more in than I need to.”', '“和客人在一起时，一个班很快就过去了；我投入得比需要的更多。”'), cat='eng', why=T('Engagement: positive, involved, more temporary and volatile than commitment.', '敬业度：积极、投入，比承诺更短暂、更易波动。')),
+        dict(text=T('The company reports a 12-month retention rate.', '公司报告 12 个月的留任率。'), cat='com', why=T('Retention is the usual measure of commitment.', '留任率是衡量承诺的常用指标。')),
+        dict(text=T('A survey asks: “How satisfied are you with the company as a place to work?”', '一份问卷问：“你对公司作为工作地点有多满意？”'), cat='sat', why=T('The classic satisfaction question.', '经典的满意度问题。')),
+        dict(text=T('A survey asks whether “the mission or purpose of my company makes me feel my job is important”.', '一份问卷问“公司的使命或宗旨是否让我觉得自己的工作很重要”。'), cat='eng', why=T('One of the Gallup Q12 engagement questions.', 'Gallup Q12 敬业度问题之一。')),
+    ]
+    return dict(
+        id=f'{CID}-employees',
+        title=T('How do the people inside create value?', '企业内部的人怎样创造价值？'),
+        description=T('Employees as value creators: the Strategic Alignment Model, three kinds of value, engagement versus satisfaction versus commitment, with Hilton and Coles.', '员工是价值创造者：战略对齐模型、三类价值、敬业度与满意度与承诺的区别，案例是 Hilton 和 Coles。'),
+        minutes=40,
+        skills=[{'id': SK, 'name': T('Explaining and applying employees’ role in value creation', '解释并应用员工在价值创造中的作用')}],
+        misconceptions=[
+            {'id': 'engagement-is-satisfaction', 'description': T('engagement just means employees are satisfied', '敬业度就是员工满意')},
+            {'id': 'employees-do-tasks', 'description': T('employees create value only by doing their tasks', '员工只是靠完成任务来创造价值')},
+        ],
+        steps=[
+            read('puzzle', T('The hotel you stay in is not Hilton’s employer', '你住的酒店，雇主不是 Hilton'),
+                 p(T("Hilton was named the world’s best workplace in 2025, for the ninth year the top hospitality company on that list. Yet at the end of 2025 only a small share of its properties were ones it managed or owned; the franchised hotels are run by owners, and **Hilton does not employ their staff**. The person who greets a guest at a franchised hotel may never have met a Hilton manager.",
+                     "Hilton 在 2025 年被评为全球最佳雇主，连续第九年位居该榜酒店业第一。但 2025 年底，它管理或拥有的物业只占一小部分；特许酒店由业主经营，**Hilton 并不雇用那里的员工**。在特许酒店迎接客人的那位员工，可能从没见过 Hilton 的经理。")),
+                 p(T("If employees create the guest’s experience, how can a company manage them? That is the question of this lesson.", "如果员工创造了客人的体验，一家公司怎样管理他们？这就是这节课的问题。")), chapter=CH['puzzle']),
+            predict('guess', SK, T("Which answer best describes how employees create value?", "哪个回答最能说明员工怎样创造价值？"),
+                    [(T("They do the tasks, and also shape how value is created and for whom, for example through the service they give", "他们完成任务，也塑造价值怎样创造、为谁创造，比如通过他们提供的服务"), True),
+                     (T("They do the tasks that managers assign", "他们完成经理布置的任务"), T("That is the minimum. The service moment is shaped by choices employees make.", "那只是底线。服务的瞬间由员工的选择塑造。")),
+                     (T("They are a cost to be minimised", "他们是要压缩的成本"), T("That sees only the cost side; employees are also the way the proposition is delivered.", "这只看到成本一面；员工也是价值主张被交付的方式。")),
+                     (T("They matter only in service firms", "只有服务企业才看重员工"), T("In every business model they are key resources and activities.", "在每种商业模式里，他们都是核心资源和关键活动。"))],
+                    T("Employees are part of the business model and the value chain, so what matters is **fit**: whether the people, and the practices that shape them, deliver the promise made to customers. Line the chain up.", "员工是商业模式和价值链的一部分，所以关键是**契合**：人，以及塑造他们的做法，是否兑现了对顾客的承诺。把链条对齐。")),
+            read('touch', T('Line up the chain', '把链条对齐'),
+                 p(T("The Strategic Alignment Model runs from the promise to customers through the strategic driver to **the kind of people needed**, and then to the **HR practices** that will produce them. Four needs, four practices (made-up illustrations).", "战略对齐模型从对顾客的承诺出发，经过战略驱动，到**需要什么样的人**，再到能造就他们的**人力资源做法**。四种需要，四种做法（为说明而编）。")),
+                 connect(T('Four human capital needs to connect to the HR practice that supplies each.', '四种人力资本需要，连到各自对应的人力资源做法。'), left, right, pairs, no=T('That practice answers a different need.', '那项做法回应的是另一种需要。'),
+                         done=T("The four facets of an HR system: **acquisition, development, motivation, performance management**. A practice that does not supply a need the strategy requires is wasted; a need with no practice is a gap.", "人力资源系统的四个方面：**招聘、培养、激励、绩效管理**。不供给战略所需的做法是浪费；没有对应做法的需要就是缺口。"), height=640),
+                 chapter=CH['touch']),
+            read('touch2', T('Three words that get mixed up', '三个容易混的词'),
+                 p(T("Satisfaction, commitment and engagement sound alike and answer different questions.", "满意度、承诺和敬业度听起来很像，回答的却是不同的问题。")),
+                 tag(T('Six statements to tag as satisfaction, commitment or engagement.', '六条陈述，标为满意度、承诺或敬业度。'), cats, items,
+                     done=T("**Satisfaction**: are they satisfied? **Commitment**: will they stay? (retention) **Engagement**: are they involved? (positive, more temporary and volatile). Different questions, different measures: confusing them is the classic Explain error.", "**满意度**：他们满意吗？**承诺**：他们会留下吗？（留任率）**敬业度**：他们投入吗？（积极、更短暂、更易波动）。问题不同、衡量不同：混淆它们是“解释”里的经典错误。"), height=700)),
+            read('name', T('The framework, as the marker wants it', '阅卷人要的框架'),
+                 p(T("Employees create value not only by doing tasks but also by shaping **how value is created and for whom**: in the business model they are key resources and activities, and in Porter’s chain they carry every activity. The **Strategic Alignment Model** (Collis and Rukstad) runs: customer value proposition (why this customer should buy from us) → strategic driver (the internal activities that only we can align to deliver it) → **human capital needs** (what attributes, attitudes and behaviours we need, at individual, group and organisation level, role by role) → **HR system** (acquisition, development, motivation, performance management).",
+                     "员工创造价值不只是靠完成任务，还靠塑造**价值怎样创造、为谁创造**：在商业模式里，他们是核心资源和关键活动；在 Porter 的价值链里，每一项活动都由他们承担。**战略对齐模型**（Collis 和 Rukstad）的顺序是：顾客价值主张（这个顾客为什么该买我们的）→ 战略驱动（只有我们能对齐起来去交付它的内部活动）→ **人力资本需要**（我们需要的属性、态度和行为，分个人、群体、组织层面，逐个角色看）→ **人力资源系统**（招聘、培养、激励、绩效管理）。")),
+                 ul(T("**EPS values**: HR is judged on **economic** value (efficiency), **psychological** value (well-being, engagement, satisfaction, job security) and **social** value (cooperation, knowledge sharing, diversity).", "**EPS 价值**：人力资源要按**经济**价值（效率）、**心理**价值（幸福感、敬业度、满意度、工作安全）和**社会**价值（合作、知识共享、多元）来评判。"),
+                    T("**Autonomy** at work can create value (daily-diary evidence on autonomy, positive affect and change-oriented citizenship behaviour).", "工作中的**自主权**能创造价值（关于自主权、积极情绪和变革导向公民行为的日记研究证据）。"),
+                    T("**Deloitte’s model** of an irresistible organisation: meaningful work, hands-on management, a positive work environment, growth opportunity, trust in leadership.", "**Deloitte 的“难以抗拒的组织”模型**：有意义的工作、亲力亲为的管理、积极的工作环境、成长机会、对领导的信任。")),
+                 h(T('Engagement, and the criticism of it', '敬业度，以及对它的批评')),
+                 p(T("**Employee engagement** is the degree of positive or negative emotional attachment to job, colleagues and organisation. It drives willingness to learn and perform, and it is distinct from satisfaction and commitment. Antecedents (Saks) include job characteristics, perceived support, rewards and recognition and justice; consequences include satisfaction, commitment, citizenship behaviour and lower intention to quit. It is often measured by the Gallup Q12 (from “I know what is expected of me” at the base to “I have had opportunities to learn and grow” at the top). The critique: engagement measures **feelings, not friction**; measure friction, decision quality, managerial drag, cognitive load and system design. Netflix’s culture of **freedom and responsibility** is the contrast case.",
+                     "**员工敬业度**是对工作、同事和组织的积极或消极的情感依附程度。它决定学习和表现的意愿，不同于满意度和承诺。前因（Saks）包括工作特征、感知到的支持、回报与认可、公平；结果包括满意度、承诺、公民行为和更低的离职意向。常用 Gallup Q12 衡量（从底层的“我知道对我的期望”到顶层的“我有机会学习和成长”）。批评：敬业度衡量的是**感受，不是摩擦**；应该衡量摩擦、决策质量、管理拖累、认知负荷和系统设计。Netflix 的**自由与责任**文化是对照案例。")),
+                 chapter=CH['name']),
+            apply_q('apply', SK, T("Use Hilton. Franchised hotels’ staff are not Hilton’s employees. In four sentences, say **which part of the alignment chain Hilton controls** and **which it does not**, and name one practice it could use to close the gap. True facts only (franchised, managed, owned counts; named a top workplace in 2025).", "用 Hilton 来做。特许酒店的员工不是 Hilton 的雇员。用四句话说明：对齐链里 **Hilton 控制哪一段**、**不控制哪一段**，并提出一项可以缩小差距的做法。只用真实事实（特许/管理/自有数量；2025 年被评为顶级雇主）。"),
+                    [T("Says Hilton sets the customer promise and strategic driver (brand and standards), and employs staff only in managed and owned hotels", "说明 Hilton 确定顾客承诺和战略驱动（品牌与标准），只在受托管理和自有酒店里雇人"),
+                     T("Says that in franchised hotels owners hire, develop and reward staff, so the HR system is theirs", "说明在特许酒店里，由业主招聘、培养和奖励员工，所以人力资源系统是他们的"),
+                     T("Uses a true fact (8,239 franchised against 873 managed and 46 owned; top workplace 2025)", "用一条真实事实"), T("Proposes a practice that influences without employing (standards, training, audit, recognition)", "提出不通过雇用也能产生影响的做法（标准、培训、审核、认可）")],
+                    T("Hilton sets the customer promise and the strategic driver through its brand and standards, but at the end of 2025 about 8,239 properties were franchised against 873 managed and 46 owned. In franchised hotels the owners acquire, develop, motivate and manage staff, so the HR system, the last link in the chain, is not Hilton’s. Its top workplace ranking in 2025 shows what it can do where it is the employer, but not what a franchised guest meets. To close the gap Hilton can offer shared training and recognition programmes to franchisee staff, which supplies the human capital need without employing them.",
+                      "Hilton 通过品牌和标准确定顾客承诺和战略驱动，但 2025 年底约 8,239 家物业是特许经营，873 家受托管理，46 家自有。在特许酒店里，由业主招聘、培养、激励和管理员工，所以人力资源系统这最后一环不是 Hilton 的。它 2025 年的顶级雇主排名说明了它在自己做雇主的地方能做到什么，但不代表特许酒店的客人会遇到什么。为缩小差距，Hilton 可以给加盟商的员工提供共享的培训和认可计划，这样不雇用他们也能满足人力资本需要。"),
+                    T("Say who controls which link, then the lever.", "先说谁控制哪一环，再说杠杆。")),
+            choice('neighbour', T('The look-alike', '长得像的那个'), SK,
+                   T("A company reports a 90% staff retention rate and concludes its employees are highly engaged. What is the error?", "一家公司报告员工留任率 90%，据此认为员工高度敬业。错在哪？"),
+                   [(T("Retention measures commitment; engagement is a different, more volatile state and needs its own measure", "留任率衡量的是承诺；敬业度是另一种更易波动的状态，需要单独衡量"), True),
+                    (T("None: retention proves engagement", "没错：留任率证明敬业"), T("People can stay for years and be disengaged.", "人可以待很多年而不敬业。")),
+                    (T("It should have measured profit", "应该衡量利润"), T("Profit is a firm outcome, not a measure of engagement.", "利润是企业结果，不是敬业度的衡量。"))],
+                   T("Three different questions, three different measures.", "三个不同的问题，三种不同的衡量。"), purpose='check', chapter=CH['neighbour']),
+            recall('r1', SK, T("From lesson 7: which two blocks of the canvas do employees mainly fill?", "来自第 7 课：员工主要填画布的哪两个模块？"),
+                   [(T("Key resources and key activities", "核心资源和关键活动"), True), (T("Revenue streams and channels", "收入来源和渠道"), T("Those are money and reach.", "那些是钱和触达。"))], T("People are what you have and what you do.", "人是你拥有的，也是你做的事。"), first=True),
+            recall('r2', SK, T("From lesson 4: Porter’s value chain puts human resource management in…", "来自第 4 课：Porter 价值链把人力资源管理放在……"),
+                   [(T("support activities, behind every primary activity", "支持活动，支撑每一项主要活动"), True), (T("operations only", "只在运营里"), T("It supports all of them.", "它支撑所有活动。"))], T("Support, not one box.", "是支持，不是某一格。")),
+        ] + exam_three('exam', SK,
+                       T("Question. (a) Explain the role of employees in value creation and how engagement differs from satisfaction and commitment. (b) Apply the Strategic Alignment Model to Coles in Australia. (c) Make two recommendations.", "题目。(a) 解释员工在价值创造中的作用，以及敬业度与满意度、承诺有何不同。(b) 把战略对齐模型应用到澳大利亚的 Coles。(c) 给出两条建议。"),
+                       (T("Write the **Explain** part.", "写**解释**部分。"),
+                        [T("Employees shape how value is created and for whom, beyond doing tasks", "员工塑造价值怎样创造、为谁创造，不只是做任务"), T("Engagement: emotional attachment, positive and more volatile", "敬业度：情感依附，积极且更易波动"),
+                         T("Satisfaction (how satisfied) and commitment (will they stay, measured by retention)", "满意度（多满意）和承诺（是否留下，用留任率衡量）"), T("Alignment: proposition, driver, human capital needs, HR system", "对齐：主张、驱动、人力资本需要、人力资源系统")],
+                        T("Employees create value not only by doing tasks but by shaping how value is created and for whom, so their attributes, attitudes and behaviours must fit the customer promise. Engagement is the degree of positive emotional attachment to job, colleagues and organisation, and is more temporary and volatile than commitment, which is a stable attachment measured by retention. Satisfaction is how satisfied people are with the company as a place to work. The Strategic Alignment Model checks the fit from customer value proposition to strategic driver to human capital needs to the HR system of acquisition, development, motivation and performance management.",
+                          "员工创造价值不只是靠做任务，还靠塑造价值怎样创造、为谁创造，所以他们的属性、态度和行为必须契合对顾客的承诺。敬业度是对工作、同事和组织的积极情感依附程度，比承诺更短暂、更易波动；承诺是稳定的依附，用留任率衡量。满意度是人们对公司作为工作地点的满意程度。战略对齐模型检查从顾客价值主张到战略驱动，再到人力资本需要，再到由招聘、培养、激励和绩效管理构成的人力资源系统的契合。")),
+                       (T("Write the **Apply** part.", "写**应用**部分。"),
+                        [T("Walks Coles through the alignment chain from proposition to HR system", "沿对齐链为 Coles 走一遍，从主张到人力资源系统"), T("Uses true Coles facts (more than 115,000 team members; highest ever engagement score in the mysay survey in May 2026; 42.4% of leadership roles held by women; Platinum in the Australian Workplace Equality Index)", "用真实的 Coles 事实"),
+                         T("Explains cause and effect, e.g. why a service and delivery promise needs these people and practices", "解释因果，如为何服务与配送承诺需要这些人和做法"), T("Notes a limit: engagement measures feelings not friction", "指出局限：敬业度衡量感受而非摩擦")],
+                        T("Coles’ proposition combines low-cost everyday value with convenience such as same-day delivery. That needs more than 115,000 team members who can work quickly, accurately and consistently across stores and fulfilment centres, and teams that can serve a wide range of shoppers. Its HR system shows in the results: the mysay survey in May 2026 gave the highest ever engagement score, with 67% participation and top-quartile results against Australian benchmarks, and women held 42.4% of leadership roles. These support motivation and a diverse human capital base that mirrors its shoppers. The limit is that engagement is a feeling: it says people are positive, not whether their work is free of friction such as slow systems, which is what delivery speed depends on.",
+                          "Coles 的主张把低成本日常价值与当日送达等便利结合起来。这需要 11.5 万多名员工在各门店和履约中心快速、准确、稳定地工作，也需要能服务各类购物者的团队。它的人力资源系统体现在结果上：2026 年 5 月的 mysay 调查给出历史最高的敬业度得分，参与率 67%，相对澳大利亚基准处于前四分之一，女性占领导岗位的 42.4%。这些支持了激励，也让人力资本更多元、更贴近购物者。局限在于敬业度是一种感受：它说明人们态度积极，却不说明工作是否没有摩擦，如系统缓慢，而配送速度恰恰取决于这些。")),
+                       (T("Write the **Recommend** part: exactly two.", "写**建议**部分：恰好两条。"),
+                        [T("Exactly two from the analysis (measure friction as well as engagement; link development to the delivery capability)", "恰好两条，从分析里推出（除敬业度外也衡量摩擦；让培养与配送能力挂钩）"), T("Each actionable", "每条可执行"), T("A risk named", "点出风险")],
+                        T("First, add friction measures to the engagement survey, such as time lost to system problems in fulfilment centres, because the analysis showed engagement alone cannot show what slows delivery. The risk is survey fatigue, so replace questions instead of adding many. Second, build a development path for fulfilment team members into store and digital roles, because motivation and retention depend on growth opportunity and the online business is growing. The risk is cost of training, so start with the busiest centres.",
+                          "第一，在敬业度调查里加入摩擦指标，如履约中心里因系统问题损失的时间，因为分析表明单靠敬业度看不出是什么拖慢了配送。风险是问卷疲劳，所以要替换而不是增加很多问题。第二，为履约团队员工搭一条通往门店和数字化岗位的成长路径，因为激励和留任取决于成长机会，而线上业务在增长。风险是培训成本，所以先从最忙的中心开始。")),
+                       ),
+    )

@@ -1,0 +1,108 @@
+# Lesson 11 of MKTG90037: community stakeholders (Week 7). Brands: Who Gives a Crap, Coles (FY26), Hilton (Travel with Purpose);
+# TOMS and Nespresso are the lecture's cases. Instruments: from donation to shared value (Place), three ways to create shared
+# value (Place), say versus pay (Choose).
+from mk import *  # noqa: F403
+
+
+def L11(CID):
+    SK = 'mk.community'
+    st_zones = [dict(id='phi', label=T('Philanthropy: give to a cause', '慈善：向某个事业捐赠')), dict(id='csr', label=T('CSR: behave responsibly, beyond the law', 'CSR：负责任地行事，超出法律要求')), dict(id='csv', label=T('CSV: societal need is part of the business', 'CSV：社会需求是业务的一部分'))]
+    st_chips = [
+        dict(id='s1', label=T('Coles’ food donations to SecondBite and Foodbank (the equivalent of 40.9 million meals in FY26)', 'Coles 向 SecondBite 和 Foodbank 捐赠的食品（2026 财年相当于 4,090 万餐）'), zone='phi', why=T('A donation to a good cause, outside the core business.', '对一项善举的捐赠，在核心业务之外。')),
+        dict(id='s2', label=T('Hilton team members’ volunteer hours (over 1.8 million in 2025, worldwide)', 'Hilton 员工的志愿服务时长（2025 年全球 180 万小时以上）'), zone='phi', why=T('Volunteering is the other half of philanthropy.', '志愿服务是慈善的另一半。')),
+        dict(id='s3', label=T('Coles reports that all own-brand fresh beef, chicken, lamb, pork, milk and eggs are Australian-grown', 'Coles 报告自有品牌的鲜牛肉、鸡肉、羊肉、猪肉、牛奶和鸡蛋全部为澳大利亚产'), zone='csr', why=T('A standard of responsible sourcing, reported to build trust.', '负责任采购的标准，报告出来以建立信任。')),
+        dict(id='s4', label=T('Hilton publishes its community results each year (Travel with Purpose)', 'Hilton 每年公布社区成果（Travel with Purpose）'), zone='csr', why=T('Good corporate citizenship and reputation, a programme around the business.', '良好的企业公民与声誉，是围绕业务的一个项目。')),
+        dict(id='s5', label=T('Who Gives a Crap gives 50% of its profits to water and sanitation, and that giving is why buyers choose it', 'Who Gives a Crap 把 50% 利润捐给供水和卫生，而这项捐赠正是买家选它的原因'), zone='csv', why=T('The societal need sits inside the business model and the proposition.', '社会需求就在商业模式和价值主张之内。')),
+        dict(id='s6', label=T('Coles’ Nurture Fund grants to small Australian businesses (over 43 million dollars to 127 businesses since 2015): a reading, since it also builds a supplier base', 'Coles Nurture Fund 向澳大利亚小企业提供的资助（2015 年来向 127 家企业提供超过 4,300 万澳元）：这是解读，因为它同时在培育供应商基础'), zone='csv', why=T('If it strengthens suppliers Coles depends on, it is shared value: the course’s reading.', '如果它加强了 Coles 所依赖的供应商，那就是共享价值：本课程的解读。')),
+    ]
+    th_zones = [dict(id='need', label=T('New needs and new markets', '新需求与新市场')), dict(id='chain', label=T('A different value chain', '重构价值链')), dict(id='cluster', label=T('A stronger local cluster', '壮大本地产业集群'))]
+    th_chips = [
+        dict(id='t1', label=T('A toilet paper whose purchase funds toilets', '买一卷就资助厕所的卷纸'), zone='need', why=T('A product designed around a societal need.', '围绕社会需求设计的产品。')),
+        dict(id='t2', label=T('A shoe company that gives a pair for each pair sold (TOMS)', '每卖一双就捐一双的鞋企（TOMS）'), zone='need', why=T('A new market in an under-served community, with a giving model.', '在服务不足的社区里开辟新市场，带着捐赠模式。')),
+        dict(id='t3', label=T('Shipping made carbon neutral through verified offsets', '通过经核实的抵消让配送碳中和'), zone='chain', why=T('A change in logistics inside the value chain.', '价值链内部物流的改变。')),
+        dict(id='t4', label=T('Improving energy and water efficiency across operations', '提升运营各环节的能源与水效率'), zone='chain', why=T('Resource use, a link in the chain, becomes more efficient.', '资源使用这一环变得更高效。')),
+        dict(id='t5', label=T('A coffee maker training farmers and funding clean water so the beans improve (Nespresso)', '咖啡品牌培训农户、资助清洁水，让咖啡豆变好（Nespresso）'), zone='cluster', why=T('Supplier capability and local institutions are the cluster.', '供应商能力和本地机构就是集群。')),
+        dict(id='t6', label=T('A supermarket funds small suppliers’ growth so there is more good local stock', '超市资助小供应商成长，让本地有更多好货源'), zone='cluster', why=T('A stronger cluster of local suppliers: a reading of the Nurture Fund.', '壮大本地供应商集群：对 Nurture Fund 的解读。')),
+    ]
+    rounds = [
+        dict(prompt=T('Which sentence is truer of you?', '哪句话更像你？'),
+             options=[dict(id='green', label=T('I prefer the more ethical product, even if it costs a little more', '我更愿意选更有伦理的产品，哪怕贵一点')), dict(id='cheap', label=T('Price decides for me', '价格对我起决定作用'))]),
+        dict(prompt=T('At the shelf. Same size pack. Which do you put in your basket?', '在货架前。同样大小的包装，你把哪个放进购物篮？'),
+             options=[dict(id='green', label=T('The ethical brand, 20% more expensive', '更有伦理的品牌，贵 20%'), detail=T('Certified, gives to a cause', '经过认证，向公益捐赠')),
+                      dict(id='cheap', label=T('The cheaper pack', '更便宜的那包'), detail=T('Nothing special on the label', '标签上没什么特别'))]),
+    ]
+    return dict(
+        id=f'{CID}-community',
+        title=T('What does a firm owe the community, and when does it pay?', '企业对社区负有什么责任，什么时候划算？'),
+        description=T('From donation to responsibility to shared value, three ways to create it, why shoppers say yes and buy no, and B Corps, with Who Gives a Crap, Coles and Hilton.', '从捐赠到责任再到共享价值，创造共享价值的三条路，为什么购物者嘴上说好、手上不买，以及 B Corp，案例是 Who Gives a Crap、Coles 和 Hilton。'),
+        minutes=45,
+        skills=[{'id': SK, 'name': T('Explaining and applying CSR and creating shared value', '解释并应用 CSR 和共享价值创造')}],
+        misconceptions=[
+            {'id': 'csr-is-csv', 'description': T('corporate social responsibility and creating shared value are the same thing', 'CSR 和创造共享价值是一回事')},
+            {'id': 'ethical-sells-itself', 'description': T('shoppers who say they prefer ethical products will pay for them', '说自己偏好道德产品的购物者就会为之付费')},
+        ],
+        steps=[
+            read('puzzle', T('Half the profit, and it is the reason they sell', '一半利润，却正是它能卖出去的原因'),
+                 p(T("Who Gives a Crap says it donates 50% of its profits to water and sanitation projects, and its own page shows AUD 20,887,792 raised to date (the page gives no date). Most companies treat giving as a cost on the side. Here the giving is **the product’s reason to exist**.",
+                     "Who Gives a Crap 说它把 50% 的利润捐给供水和卫生项目，它自己的页面显示至今已筹集 20,887,792 澳元（页面没有注明日期）。大多数公司把捐赠当作旁边的一笔成本。这里的捐赠是**产品存在的理由**。")),
+                 p(T("Is that charity, responsibility, or something else? The three have different names, and the exam wants you to keep them apart.", "这是慈善、责任，还是别的什么？三者名称不同，考试要你把它们分开。")), chapter=CH['puzzle']),
+            predict('guess', SK, T("What is the difference between corporate social responsibility (CSR) and creating shared value (CSV)?", "企业社会责任（CSR）与创造共享价值（CSV）有什么区别？"),
+                    [(T("CSR is something firms do around the business, over and above the law; CSV makes the societal need part of how the business earns", "CSR 是企业在业务之外、超出法律要求去做的事；CSV 把社会需求变成业务赚钱方式的一部分"), True),
+                     (T("They are the same; CSV is a newer name", "是一回事，CSV 只是新名字"), T("Porter and Kramer’s point is that CSV is a different logic: it earns economic value by creating societal value.", "Porter 和 Kramer 的观点是 CSV 是另一套逻辑：通过创造社会价值来获得经济价值。")),
+                     (T("CSV means giving more money", "CSV 就是多捐钱"), T("Money given is philanthropy; CSV changes the business model.", "捐出去的钱是慈善；CSV 改变的是商业模式。")),
+                     (T("CSR is for small firms, CSV for big ones", "CSR 适用于小企业，CSV 适用于大企业"), T("Size is not the distinction.", "区别不在规模。"))],
+                    T("CSR, a defined set of voluntary actions beyond compliance, is often separate, reactive and PR-driven; CSV puts the societal need into the business. Sort real examples onto the staircase.", "CSR 是一组超出合规的自愿行动，常常与业务割裂、被动、靠公关驱动；CSV 则把社会需求放进业务。把真实的例子分到这个阶梯上。")),
+            read('touch', T('The staircase', '这级阶梯'),
+                 p(T("Philanthropy, CSR and creating shared value are three steps in the evolution of business ethics. The examples are real facts from the companies’ own results and pages; where a placement is the course’s reading, it says so.", "慈善、CSR 和创造共享价值，是商业伦理演进的三个台阶。这些例子是公司自己业绩和页面里的真实事实；如果归类是本课程的解读，会注明。")),
+                 place(T('Six real examples of Coles, Hilton and Who Gives a Crap to place on philanthropy, CSR or CSV.', 'Coles、Hilton 和 Who Gives a Crap 的六个真实例子，放到慈善、CSR 或 CSV 下。'), st_zones, st_chips, cols=3,
+                       done=T("**Philanthropy**: donation and volunteering. **CSR**: compliance, good citizenship, reducing harm and risk, trust and reputation. **CSV**: addressing a societal need *with* the business model. The gap between CSR and CSV is why CSR is often seen as separate from the company, unfocused and reactive.", "**慈善**：捐赠和志愿服务。**CSR**：合规、良好公民、减少伤害和风险、信任与声誉。**CSV**：*用*商业模式去回应社会需求。CSR 与 CSV 的差别，正是 CSR 常被看作与公司割裂、缺乏聚焦、被动应对的原因。"), height=1100),
+                 chapter=CH['touch']),
+            read('touch2', T('Three ways to create shared value', '创造共享价值的三条路'),
+                 p(T("Shared value can be created in three different ways. Six examples, some from the lecture’s cases and some from the Australian brands.", "共享价值有三种不同的创造方式。六个例子，有的来自课程里的案例，有的来自澳大利亚品牌。")),
+                 place(T('Six examples to place under new needs, a different value chain, or a stronger cluster.', '六个例子，放到新需求、重构价值链或壮大集群下。'), th_zones, th_chips, cols=3,
+                       done=T("The three ways (Porter and Kramer): **open up new needs and markets**, **reconfigure the value chain** (energy, logistics, procurement, employee productivity), and **strengthen the local cluster** (suppliers, institutions, infrastructure). Pick the one the company actually does.", "三条路（Porter 和 Kramer）：**开辟新需求和新市场**，**重构价值链**（能源、物流、采购、员工生产率），**壮大本地集群**（供应商、机构、基础设施）。选公司真正在做的那一条。"), height=940)),
+            read('touch3', T('What people say, what they pay', '人们说的，和他们付的'),
+                 p(T("Surveys find that many consumers say they prefer green and ethical products, yet few follow through with their wallets (the **intention-action gap**). Make two choices and see whether yours match.", "调查发现很多消费者说自己偏好绿色和道德的产品，但很少有人用钱包兑现（**意图与行动的落差**）。做两次选择，看你的是否一致。")),
+                 choose(T('Two choices: a statement about yourself, then a purchase at a price.', '两次选择：先是关于你自己的说法，然后是有价格的购买。'), rounds, dict(type='switch', a=0, b=1, target='cheap',
+                        same=T('Your words and your basket agree.', '你说的和你买的一致。'), moved=T('Your words said ethical, your basket said cheaper.', '你说的是道德，你买的是更便宜的。'), other=T('Your basket was more generous than your words.', '你买的比你说的更慷慨。'),
+                        text=T("Many people’s two answers differ, and that is the **CSR paradox**: stated attitudes are high while purchases follow price. Insight from behavioural science can help close the gap; and it is a reason **shared value** beats a pure message: it builds the benefit into the product so buyers need not trade price against conscience.", "很多人的两次回答不一样，这就是 **CSR 悖论**：口头态度很高，购买却跟着价格走。行为科学的洞见有助于缩小落差；这也是**共享价值**胜过单纯宣传的原因：它把利益内置到产品里，买家不必在价格和良心之间二选一。")), height=420)),
+            read('name', T('The framework, as the marker wants it', '阅卷人要的框架'),
+                 p(T("**CSR** is the voluntary actions a business takes, over and above minimum legal requirements, to address both its own competitive interests and the interests of wider society. It adds value (to the company, consumers and the cause) but is often disconnected: businesses are increasingly seen as a major cause of social, economic and environmental problems, and CSR is seen as separate, unfocused, PR-driven, reactive and of limited impact.", "**CSR** 是企业在最低法律要求之上自愿采取的行动，既回应自身的竞争利益，也回应更广泛的社会利益。它给公司、消费者和事业带来价值，但常常与业务脱节：企业越来越被视为社会、经济和环境问题的主要原因，而 CSR 则被看作割裂、缺乏聚焦、靠公关驱动、被动、影响有限。")),
+                 p(T("**Creating shared value** (Porter and Kramer, 2011): creating economic value by creating societal value; what is good for the community is good for the business. It builds a social dimension into the value proposition, opens new needs, markets and value chain configurations, and can be a more sustainable advantage than conventional cost and quality. It is measured as the **sum of financial value** (revenue, productivity, long-term sustainability) **and societal value** (job security, employee health and skill, environmental performance, cluster vitality, local economic performance, human development). Examples: TOMS (one for one, B Corp), Who Gives a Crap (carbon-neutral shipping, offsets with a partner, a landlord persuaded to add solar panels, full-cycle product analysis), and Nespresso (stable supply, better quality and a stronger farming cluster).",
+                     "**创造共享价值**（Porter 和 Kramer，2011）：通过创造社会价值来创造经济价值；对社区好的就是对企业好的。它把社会维度放进价值主张，开辟新需求、新市场和新的价值链配置，可能比传统的成本和质量更可持续。衡量方式是**财务价值**（收入、生产率、长期可持续）**加上社会价值**（工作保障、员工健康与技能、环境表现、集群活力、本地经济表现、人类发展）**之和**。例子：TOMS（买一捐一，B Corp）、Who Gives a Crap（碳中和配送、与合作伙伴做抵消、说服房东装太阳能板、全周期产品分析）、Nespresso（稳定供应、更好品质、更强的种植集群）。")),
+                 callout('note', T('B Corporations', 'B Corp 认证企业'), T("A **B Corp** is certified by the non-profit B Lab on how well it creates value for stakeholders other than shareholders (employees, community, environment): a **double bottom line** of profit and social benefit. Firms seek it because of leaders’ drive, to stand out from bigger players, to attract investment, and because sector peers do. There are over 6,000 in more than 80 countries, usually small to medium; Who Gives a Crap is certified.", "**B Corp** 由非营利组织 B Lab 认证，看企业为股东以外的利益相关者（员工、社区、环境）创造价值的程度：利润与社会效益的**双重底线**。企业追求它，是因为领导者的推动、想在大企业中脱颖而出、吸引投资，以及同行都在做。全球有 6,000 多家，遍布 80 多个国家，多为中小企业；Who Gives a Crap 已获认证。")),
+                 chapter=CH['name']),
+            apply_q('apply', SK, T("Take **Coles’ Nurture Fund** (over 43 million dollars of support to 127 businesses since 2015, including more than 3.5 million dollars to eight in FY26). Write four sentences: is it philanthropy, CSR or CSV, which of the **three ways** it fits, why (say it is your reading), and what would have to be true for it to be shared value rather than charity.", "以 **Coles 的 Nurture Fund** 为例（2015 年来向 127 家企业提供了超过 4,300 万澳元支持，其中 2026 财年向 8 家提供了 350 多万澳元）。写四句话：它是慈善、CSR 还是 CSV，属于**三条路**中的哪一条，为什么（说明这是你的解读），以及要成为共享价值而不是慈善，什么条件必须成立。"),
+                    [T("Uses the true Nurture Fund facts", "用真实的 Nurture Fund 事实"), T("Classifies it with a reason (cluster support if it strengthens suppliers Coles depends on)", "给出分类和理由（如果强化 Coles 依赖的供应商，则是集群支持）"),
+                     T("Says this is a reading of the company’s purpose, not stated by Coles", "说明这是对公司目的的解读，不是 Coles 所说"), T("States the condition: the grants must improve Coles’ own range, supply or economics, not only the recipients’", "说明条件：资助必须改善 Coles 自己的品类、供应或经济，不只是受助者的")],
+                    T("In my reading the Nurture Fund is CSV through cluster support, not philanthropy. Coles has put over 43 million dollars into 127 Australian businesses since 2015, including more than 3.5 million to eight in FY26, and a strong base of small suppliers is something Coles’ own ranges depend on. It would be shared value only if the grants improve what Coles sells or how reliably it is supplied, as well as the recipients’ growth, which I cannot show from the results alone; if the benefit goes only to the recipients it is philanthropy. This classification is my reading, not Coles’ statement.",
+                      "在我的解读里，Nurture Fund 是通过集群支持实现的 CSV，而不是慈善。2015 年来 Coles 向 127 家澳大利亚企业投入了超过 4,300 万澳元，其中 2026 财年向 8 家投入 350 多万澳元，而一个强大的小供应商群体是 Coles 自有品类所依赖的。只有当资助既促进受助者成长、也改善 Coles 卖什么或供应有多可靠时，它才是共享价值，这一点我无法仅凭业绩数据证明；如果好处只归受助者，那就是慈善。这个分类是我的解读，不是 Coles 的说法。"),
+                    T("Classify, reason, flag your reading, state the condition.", "分类、说理、标明是解读、说出条件。")),
+            choice('neighbour', T('The look-alike', '长得像的那个'), SK,
+                   T("A firm gives 1% of profit to charity each year and publishes a glossy report. Which step is that?", "一家企业每年把利润的 1% 捐给慈善，并发布一份精美的报告。这是哪一级？"),
+                   [(T("Philanthropy, with CSR-style reporting: not shared value, because the societal need is outside the business model", "慈善，加 CSR 式的报告：不是共享价值，因为社会需求在商业模式之外"), True),
+                    (T("Creating shared value", "创造共享价值"), T("Nothing in the business model changes; it is a gift.", "商业模式没有任何改变；这只是捐赠。")),
+                    (T("A B Corporation", "B Corp"), T("B Corp is a certification on how the firm treats stakeholders overall.", "B Corp 是对企业整体如何对待利益相关者的认证。"))],
+                   T("Look for whether the need is inside the business model.", "看社会需求是否在商业模式之内。"), purpose='check', chapter=CH['neighbour']),
+            recall('r1', SK, T("From lesson 6: a value proposition built on giving needs to be…", "来自第 6 课：建立在捐赠上的价值主张需要……"),
+                   [(T("honest and deliverable, because buyers must be able to believe it", "诚实、可交付，因为买家必须相信它"), True), (T("a slogan about caring", "一句关于爱心的口号"), T("A slogan is not a promise.", "口号不是承诺。"))], T("The critique questions apply.", "检验问题适用。"), first=True),
+            recall('r2', SK, T("From lesson 1: giving to a cause mostly adds which type of customer value?", "来自第 1 课：向公益捐赠主要增加哪类顾客价值？"),
+                   [(T("Symbolic value (and sometimes experiential)", "象征价值（有时是体验价值）"), True), (T("Cost value", "成本价值"), T("It usually adds to what the buyer gives up.", "它通常增加买家的付出。"))], T("Symbolic.", "象征价值。")),
+        ] + exam_three('exam', SK,
+                       T("Question. (a) Explain the difference between CSR and creating shared value. (b) Apply the ideas to Who Gives a Crap in Australia. (c) Make two recommendations.", "题目。(a) 解释 CSR 与创造共享价值的区别。(b) 把这些概念应用到澳大利亚的 Who Gives a Crap。(c) 给出两条建议。"),
+                       (T("Write the **Explain** part.", "写**解释**部分。"),
+                        [T("CSR: voluntary actions beyond legal minimums, often separate, reactive, PR-driven", "CSR：超出法律最低要求的自愿行动，常常割裂、被动、靠公关"), T("CSV: creating economic value by creating societal value, built into strategy and business model", "CSV：通过创造社会价值创造经济价值，内置于战略和商业模式"),
+                         T("Three ways: new needs and markets, value chain, cluster", "三条路：新需求与新市场、价值链、集群"), T("Financial plus societal value", "财务价值加社会价值")],
+                        T("Corporate social responsibility is the voluntary action a business takes, over and above legal minimums, to serve both its competitive interests and wider society. It is often separate from the core business, reactive and PR-driven. Creating shared value (Porter and Kramer) is different: it earns economic value by creating societal value, so the societal need is built into strategy and the business model. It works in three ways: new needs and markets, reconfiguring the value chain, and strengthening the local cluster. Its value is the sum of financial and societal value.",
+                          "企业社会责任是企业在法律最低要求之上自愿采取的行动，既服务自身竞争利益，也服务更广泛的社会。它常与核心业务分离、被动、靠公关驱动。创造共享价值（Porter 和 Kramer）不同：它通过创造社会价值来获得经济价值，所以社会需求被内置到战略和商业模式里。它有三种方式：新需求与新市场、重构价值链、壮大本地集群。它的价值是财务价值与社会价值之和。")),
+                       (T("Write the **Apply** part.", "写**应用**部分。"),
+                        [T("Classifies Who Gives a Crap’s giving as CSV and explains why", "把 Who Gives a Crap 的捐赠归为 CSV 并说明原因"), T("Uses true facts: 50% of profits, AUD 20,887,792 raised to date (undated), B Corp, carbon-neutral shipping via verified offsets, recycled or bamboo paper", "用真实事实：50% 利润、至今筹集 20,887,792 澳元（无日期）、B Corp、经核实抵消的碳中和配送、再生纸或竹子"),
+                         T("Maps to the three ways with cause and effect", "与三条路对应并讲清因果"), T("Names a limit, such as trust or the intention-action gap", "指出局限，如信任或意图与行动的落差")],
+                        T("Who Gives a Crap is a clear case of CSV because the societal need is inside the business model and proposition: it gives 50% of its profits to water and sanitation and its own page shows AUD 20,887,792 raised to date, undated. This is new needs and markets, since the product is a toilet paper designed around a sanitation need, and the giving is why buyers choose it, so it earns economic value by creating societal value. It also works on the value chain: shipping is carbon neutral through verified offsets, and the paper is recycled or bamboo. Certification as a B Corp supports trust. The limit is the intention-action gap: shoppers who say they care may still buy the cheaper pack, so the company depends on the segment that follows through.",
+                          "Who Gives a Crap 是 CSV 的典型案例，因为社会需求就在商业模式和价值主张之内：它把 50% 利润捐给供水和卫生，自己页面显示至今筹集了 20,887,792 澳元，无日期。这是新需求与新市场，因为产品是围绕卫生需求设计的卷纸，捐赠正是买家选它的原因，所以它通过创造社会价值获得经济价值。它也作用于价值链：配送通过经核实的抵消实现碳中和，纸是再生纸或竹子。B Corp 认证支持信任。局限是意图与行动的落差：说自己在乎的购物者仍可能买更便宜的，所以公司要依靠真正付诸行动的那个细分。")),
+                       (T("Write the **Recommend** part: exactly two.", "写**建议**部分：恰好两条。"),
+                        [T("Exactly two from the analysis (make impact verifiable; reduce the price barrier)", "恰好两条，从分析里推出（让影响可验证；降低价格门槛）"), T("Each actionable", "每条可执行"), T("A risk named", "点出风险")],
+                        T("First, publish dated, audited impact figures next to the running tally, because the website total has no date and the model depends on trust. The risk is exposing slow years, so explain the context with the numbers. Second, test an entry pack priced closer to supermarket brands, because the intention-action gap means price blocks some sympathetic shoppers. The risk is diluting the premium position and the profit that funds the giving, so limit the offer to first orders.",
+                          "第一，在不断更新的累计数字旁边公布有日期、经审计的影响数据，因为网站总数没有日期，而这个模式依赖信任。风险是暴露增长慢的年份，所以要连同背景解释这些数字。第二，测试价格更接近超市品牌的入门装，因为意图与行动的落差意味着价格挡住了一部分认同它的购物者。风险是稀释高端定位和资助捐赠的利润，所以只限首单。")),
+                       ),
+    )
