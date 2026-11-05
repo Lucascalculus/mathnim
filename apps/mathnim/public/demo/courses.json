@@ -6028,6 +6028,19 @@
      "mktg90037-market-orientation",
      "mktg90037-service-logic"
     ]
+   },
+   {
+    "title": {
+     "en": "How a firm creates it",
+     "zh": "企业怎样创造价值"
+    },
+    "lessons": [
+     "mktg90037-advantage",
+     "mktg90037-stp",
+     "mktg90037-value-proposition",
+     "mktg90037-business-model",
+     "mktg90037-vpc"
+    ]
    }
   ],
   "lessons": [
@@ -6174,6 +6187,191 @@
        "name": {
         "en": "Explaining and applying service-dominant logic",
         "zh": "解释并应用服务主导逻辑"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-advantage",
+    "title": {
+     "en": "Why can this firm do what others cannot, and for how long?",
+     "zh": "为什么这家企业能做到别人做不到的，能维持多久？"
+    },
+    "summary": {
+     "en": "Core competence and the four tests, the value chain, and the three frameworks that are easy to mix up (Porter, Ansoff, value disciplines), with Hilton and Coles.",
+     "zh": "核心能力与四项检验、价值链，以及三个容易混的框架（Porter、Ansoff、价值准则），案例是 Hilton 和 Coles。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Why can this firm do what others cannot, and for how long?",
+      "zh": "为什么这家企业能做到别人做不到的，能维持多久？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.advantage",
+       "name": {
+        "en": "Explaining and applying competitive advantage frameworks",
+        "zh": "解释并应用竞争优势框架"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-stp",
+    "title": {
+     "en": "Who do we serve, and how do they see us?",
+     "zh": "我们服务谁，他们怎么看我们？"
+    },
+    "summary": {
+     "en": "Segmentation with five tests, targeting, and positioning on a map in the customer’s mind, with Who Gives a Crap and Lipton.",
+     "zh": "用五项检验做细分、选目标，并在顾客心智的地图上做定位，案例是 Who Gives a Crap 和 Lipton。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Who do we serve, and how do they see us?",
+      "zh": "我们服务谁，他们怎么看我们？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.stp",
+       "name": {
+        "en": "Explaining and applying segmentation, targeting and positioning",
+        "zh": "解释并应用细分、目标市场与定位"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-value-proposition",
+    "title": {
+     "en": "Can you say what you promise in one sentence?",
+     "zh": "你能用一句话说出你的承诺吗？"
+    },
+    "summary": {
+     "en": "Build a value proposition sentence for Who Gives a Crap, then critique propositions that fail, and keep it apart from a slogan.",
+     "zh": "为 Who Gives a Crap 搭一句价值主张，再批评那些不合格的主张，并把它和口号区分开。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Can you say what you promise in one sentence?",
+      "zh": "你能用一句话说出你的承诺吗？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.proposition",
+       "name": {
+        "en": "Explaining, writing and critiquing a value proposition",
+        "zh": "解释、撰写并批评价值主张"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-business-model",
+    "title": {
+     "en": "How does the whole business make a promise and a profit?",
+     "zh": "整个业务怎样既兑现承诺，又赚到钱？"
+    },
+    "summary": {
+     "en": "Put Hilton on the nine blocks of the Business Model Canvas, and keep a business model apart from a strategy and a revenue model.",
+     "zh": "把 Hilton 放到商业模式画布的九个模块上，并把商业模式和战略、收入模式区分开。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How does the whole business make a promise and a profit?",
+      "zh": "整个业务怎样既兑现承诺，又赚到钱？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.business-model",
+       "name": {
+        "en": "Explaining and applying the business model canvas",
+        "zh": "解释并应用商业模式画布"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-vpc",
+    "title": {
+     "en": "Is what we offer what the customer actually needs?",
+     "zh": "我们提供的，是顾客真正需要的吗？"
+    },
+    "summary": {
+     "en": "Match a shopper’s jobs, pains and gains to what Coles offers on the Value Proposition Canvas, and learn the four kinds of gain.",
+     "zh": "在价值主张画布上，把购物者的任务、痛点和收益与 Coles 的产品对上，并认识四种收益。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Is what we offer what the customer actually needs?",
+      "zh": "我们提供的，是顾客真正需要的吗？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.vpc",
+       "name": {
+        "en": "Explaining and applying the Value Proposition Canvas",
+        "zh": "解释并应用价值主张画布"
        }
       }
      ]
