@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .chips{display:flex;gap:6px;flex-wrap:wrap}
+ .chips button{border:1px solid var(--border);background:#fff;border-radius:12px;padding:7px 11px;font-size:13px;text-align:left;line-height:1.3}
+ .chips button[aria-pressed=true]{border-color:var(--blue);background:#f1f5ff;color:var(--blue)}
+ .chips button.done::after{content:" ✓";color:var(--green);font-weight:700}
+ .field{display:flex;gap:8px;margin-top:10px;align-items:center}
+ input.ln{flex:1;min-width:0;font:15px var(--mono);padding:8px 10px;border:1px solid var(--border);border-radius:10px}
+ input.ln:focus{outline:2px solid #cdd9fb;border-color:var(--blue)}
+ .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;margin-top:12px}
+ .cell{border:1.5px solid var(--border);border-radius:10px;padding:6px 4px;text-align:center;font:13px var(--mono);background:#fff}
+ .cell small{display:block;font:11px var(--sans);color:var(--muted);margin-top:2px}
+ .cell.keep{background:#e8f4ef;border-color:#9fd3c5}
+ .cell.drop{background:#f4f4f2;color:#9aa0a6;text-decoration:line-through}
+ .cell.want{box-shadow:0 0 0 2px #2f5bd3 inset}
+ .cell.badkeep{border-color:var(--orange);background:#fdf1e4}
+ .cell.baddrop{border-color:var(--bad);background:#fdf6f4;text-decoration:none;color:var(--bad)}
+ .msg{margin-top:10px;font-size:13px;color:var(--muted)}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}
+</style></head>
+<body>
+<div class="chips" id="chips"></div>
+<div class="field"><input class="ln" id="ln" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="verb" id="go" type="button"></button></div>
+<div class="grid" id="grid"></div>
+<div class="msg" id="msg"></div>
+<script src="../kit/lp.js"></script><script src="../kit/lpcheck.js"></script><script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h;
+  var vars = P.vars, n = vars.length, S = P.statements, cur = 0, done = {};
+  var combos = []; for (var m = 0; m < (1 << n); m++) { combos.push(vars.map(function (_, i) { return (m >> (n - 1 - i)) & 1; })); }
+  var chips = document.getElementById('chips'), grid = document.getElementById('grid'), msg = document.getElementById('msg'), ln = document.getElementById('ln');
+  document.getElementById('go').textContent = tx('Check', '检查');
+  function key(c) { return c.join(''); }
+  function chip_row() {
+    chips.innerHTML = '';
+    S.forEach(function (s, i) {
+      var b = h('button', done[i] ? 'done' : '', t(s.label), chips); b.type = 'button'; b.setAttribute('aria-pressed', i === cur);
+      b.onclick = function () { cur = i; ln.value = ''; msg.innerHTML = ''; chip_row(); draw(null); };
+    });
+  }
+  function want_set() { var w = {}; S[cur].allowed.forEach(function (c) { w[key(c)] = 1; }); return w; }
+  function draw(kept) {
+    var w = want_set();
+    grid.innerHTML = '';
+    combos.forEach(function (c) {
+      var k = key(c), cls = 'cell';
+      if (kept) {
+        var kp = !!kept[k], wn = !!w[k];
+        cls += kp ? ' keep' : ' drop'; if (kp && !wn) cls += ' badkeep'; if (!kp && wn) cls += ' baddrop';
+      }
+      var lab = vars.map(function (v, i) { return v + '=' + c[i]; }).join(' ');
+      var d = h('div', cls, c.join(' ') + (kept ? '' : ''), grid);
+      d.title = lab; d.setAttribute('aria-label', lab);
+      if (kept && ((kept[k] && !w[k]) || (!kept[k] && w[k]))) h('small', '', kept[k] ? tx('should be out', '该排除') : tx('should stay', '该保留'), d);
+    });
+    K.report();
+  }
+  function check() {
+    var row;
+    try { row = LPCheck.parse_row(ln.value, vars); } catch (e) { msg.innerHTML = '<span class="pill no">' + e.message + '</span>'; return; }
+    var kept = {};
+    combos.forEach(function (c) {
+      var v = 0; for (var i = 0; i < n; i++) v += row.a[i] * c[i];
+      var ok = row.op === '<=' ? v <= row.b + 1e-9 : row.op === '>=' ? v >= row.b - 1e-9 : Math.abs(v - row.b) < 1e-9;
+      if (ok) kept[key(c)] = 1;
+    });
+    draw(kept);
+    var w = want_set(), same = combos.every(function (c) { return !!kept[key(c)] === !!w[key(c)]; });
+    if (same) { done[cur] = 1; chip_row(); msg.innerHTML = '<span class="pill ok">' + tx('Exactly the right combinations stay', '留下的正好是该留的组合') + '</span>'; }
+    else msg.innerHTML = '<span class="pill no">' + tx('Not yet', '还不对') + '</span> ' + tx('Green: your line keeps it. Grey: your line removes it. Orange: kept but should be out. Red: removed but should stay.', '绿：你的这行保留它。灰：被你的这行排除。橙：保留了但该排除。红：排除了但该保留。');
+    K.report();
+  }
+  document.getElementById('go').onclick = check;
+  ln.addEventListener('keydown', function (e) { if (e.key === 'Enter') check(); });
+  chip_row(); draw(null); K.ready();
+})();
+</script>
+</body></html>

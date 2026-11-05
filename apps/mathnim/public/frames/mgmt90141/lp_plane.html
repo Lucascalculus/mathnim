@@ -96,7 +96,7 @@
 
   // ---- static layers
   var g_grid = el('g', {}, svg), g_region = el('g', {}, svg), g_walls = el('g', {}, svg), g_dyn = el('g', {}, svg);
-  function ticks(max) { var step = max <= 60 ? 10 : max <= 150 ? 20 : max <= 400 ? 50 : max <= 1000 ? 100 : 200; var o = []; for (var v = 0; v <= max + 1e-9; v += step) o.push(v); return o; }
+  function ticks(max) { var step = max <= 12 ? 1 : max <= 30 ? 5 : max <= 60 ? 10 : max <= 150 ? 20 : max <= 400 ? 50 : max <= 1000 ? 100 : 200; var o = []; for (var v = 0; v <= max + 1e-9; v += step) o.push(v); return o; }
   ticks(xmax).forEach(function (v) {
     el('line', { x1: X(v), y1: Y(0), x2: X(v), y2: Y(ymax), stroke: '#eef0f2' }, g_grid);
     el('text', { x: X(v), y: H - B + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#6b7077' }, g_grid, fmt(v, 0));
@@ -143,6 +143,20 @@
     });
     var best = optimum();
     var showBest = state.swept || tools.indexOf('walls') >= 0;
+    // whole-number plans (integer programming): every allowed lattice point, and the best of them
+    var ibest = null;
+    if (P.lattice) {
+      for (var ix = 0; ix <= xmax; ix++) for (var iy = 0; iy <= ymax; iy++) {
+        if (!feasible([ix, iy])) continue;
+        el('circle', { cx: X(ix), cy: Y(iy), r: 3.4, fill: '#2f5bd3', 'fill-opacity': .55 }, g_dyn);
+        var zz = zof([ix, iy]);
+        if (!ibest || (sense === 'max' ? zz > ibest.z + 1e-9 : zz < ibest.z - 1e-9)) ibest = { p: [ix, iy], z: zz };
+      }
+      if (ibest && (state.swept || P.show_int)) {
+        el('circle', { cx: X(ibest.p[0]), cy: Y(ibest.p[1]), r: 11, fill: 'none', stroke: '#b7791f', 'stroke-width': 3 }, g_dyn);
+        el('text', { x: X(ibest.p[0]) + 15, y: Y(ibest.p[1]) + 20, 'font-size': 13, 'font-weight': 600, fill: '#b7791f', class: 'halo' }, g_dyn, tx('whole numbers: ', '整数：') + '(' + ibest.p[0] + ', ' + ibest.p[1] + ')  ' + money + fmt(ibest.z, 0));
+      }
+    }
     // corner dots
     if (P.corners || state.swept) {
       poly.forEach(function (q) {
