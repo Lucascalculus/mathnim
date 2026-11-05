@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tag</title>
+<link rel="stylesheet" href="../kit.css"><link rel="stylesheet" href="kinds.css">
+<style>
+.it{padding:10px 0;border-bottom:1px solid var(--faint)}
+.it .tx{font-size:14.5px;margin-bottom:8px}
+.it .bt{display:flex;flex-wrap:wrap;gap:6px}
+.it .bt button{font-size:13px;padding:5px 11px}
+.it .bt button.right{border-color:var(--green);color:var(--green);background:#f1faf5}
+.it .bt button.wrong{border-color:var(--bad);color:var(--bad);background:#fff4f0}
+.it .fb{font-size:13px;margin-top:6px;color:var(--muted)}
+.it .fb.ok{color:var(--green)}.it .fb.no{color:var(--bad)}
+.it.locked .bt button:not(.right){opacity:.4}
+</style></head><body><div id="app"></div>
+<script src="../kit.js"></script><script src="md.js"></script>
+<script>
+// TAG: read each line and say what it is. Params: cats[{id,label}], items[{text,cat,why,no}], prompt, done.
+// A miss can be tried again; a right tag locks the line and says why.
+(function () {
+  'use strict';
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
+  var cats = P.cats || [], items = P.items || [], got = 0, wrong = 0;
+  function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
+  if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
+  var list = h('div', '', null, app);
+  var cnt = h('div', 'sub', '', app); cnt.style.marginTop = '8px';
+  var done = h('div', 'done', null, app); done.style.display = 'none';
+  items.forEach(function (it) {
+    var row = h('div', 'it', null, list);
+    h('div', 'tx', esc(t(it.text)), row);
+    var bt = h('div', 'bt', null, row), fb = h('div', 'fb', '', row);
+    cats.forEach(function (c) {
+      var b = h('button', 'ghost', esc(t(c.label)), bt); b.type = 'button';
+      b.onclick = function () {
+        if (row.classList.contains('locked')) return;
+        var right = Array.isArray(it.cat) ? it.cat.indexOf(c.id) >= 0 : it.cat === c.id;
+        if (right) { b.classList.add('right'); row.classList.add('locked'); got++; fb.className = 'fb ok'; fb.innerHTML = '✓ ' + md(t(it.why || '')); }
+        else { wrong++; b.classList.add('wrong'); fb.className = 'fb no'; fb.innerHTML = md(t(it.no || tx('Not this one. Read the line again.', '不是这个，再读一遍这一行。'))); }
+        cnt.textContent = got + ' / ' + items.length + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
+        if (got === items.length && P.done) { done.style.display = ''; done.innerHTML = md(t(P.done)); }
+        K.report();
+      };
+    });
+  });
+  cnt.textContent = '0 / ' + items.length;
+  K.ready();
+})();
+</script></body></html>

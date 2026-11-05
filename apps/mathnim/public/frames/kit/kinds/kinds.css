@@ -1,0 +1,36 @@
+/* Shared by the generic instrument kinds (place, dial, connect, tag, choose): chips, zones, notes. Loaded after ../kit.css. */
+.kn-prompt{font-size:14px;color:var(--muted);margin:2px 0 8px}
+.chip{display:inline-block;max-width:100%;padding:7px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:14px;line-height:1.3;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 1px 1px rgba(0,0,0,.04);text-align:left}
+.chip.sel{border-color:var(--blue);background:#f1f5ff;box-shadow:0 0 0 2px #c9d8ff}
+.chip.ok{cursor:default;border-color:#bfe3d2;background:#f1faf5;touch-action:auto}
+.chip.shake{animation:shake .3s;border-color:var(--bad)}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.chip.ghost-drag{position:fixed;z-index:9;pointer-events:none;opacity:.9;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.tray{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px dashed var(--border);border-radius:14px;background:var(--panel);min-height:48px}
+.tray:empty:after{content:'✓';color:var(--green);font-weight:700;padding:2px 6px}
+.zones{display:grid;gap:8px;margin-top:10px}
+.zone{border:1.5px solid var(--border);border-radius:14px;padding:8px 10px 10px;background:#fff;min-height:84px;transition:border-color .12s,background .12s}
+.zone.target{border-color:var(--blue);background:#f8faff}
+.zone h4{margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.01em}
+.zone .hint{font-size:12px;color:var(--muted);margin:-3px 0 6px}
+.zone .in{display:flex;flex-wrap:wrap;gap:6px}
+.msg{margin-top:10px;font-size:14px;min-height:20px;color:var(--fg)}
+.msg.no{color:var(--bad)}
+.msg b{font-weight:600}
+.log{margin:8px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.log li{margin:3px 0}.log li b{color:var(--fg)}.log .m{color:var(--green);font-weight:700;margin-right:5px}
+.done{margin-top:12px;padding:10px 12px;border-radius:12px;background:#f1faf5;border:1px solid #bfe3d2;font-size:14px}
+.done b{color:var(--green)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
+.foot .sub{flex:1}
+.lab{font-size:13px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--blue);height:28px}
+.note{margin-top:8px;padding:8px 12px;border-left:3px solid var(--blue);background:#f8faff;border-radius:0 10px 10px 0;font-size:14px}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--border);border-radius:14px;background:#fff;padding:10px 12px;margin-bottom:8px}
+.opt:hover{border-color:#b7c7f5}.opt.pick{border-color:var(--blue);background:#f1f5ff}
+.opt .d{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.bars{display:grid;gap:6px;margin-top:8px}
+.brow{display:grid;grid-template-columns:minmax(80px,32%) 1fr 44px;gap:8px;align-items:center;font-size:13px}
+.brow i{display:block;height:10px;border-radius:99px;background:var(--blue)}
+.brow .t{background:var(--faint);border-radius:99px}
+@media(max-width:520px){.zones{grid-template-columns:1fr!important}}

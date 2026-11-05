@@ -5,7 +5,8 @@
   var qs = new URLSearchParams(location.search);
   var lang = qs.get('lang') === 'zh' ? 'zh' : 'en';
   var P = {};
-  try { P = JSON.parse(qs.get('p') || '{}'); } catch (e) { P = {}; }
+  // the lesson page passes the parameters in the hash (a long bilingual text does not fit in a URL a server accepts); ?p= still works
+  try { P = JSON.parse(qs.get('p') || new URLSearchParams(location.hash.slice(1)).get('p') || '{}'); } catch (e) { P = {}; }
   function t(x) { return x && typeof x === 'object' && !Array.isArray(x) && ('en' in x || 'zh' in x) ? (x[lang] || x.en || '') : x == null ? '' : String(x); }
   function tx(en, zh) { return lang === 'zh' ? zh : en; }
   var NS = 'http://www.w3.org/2000/svg';

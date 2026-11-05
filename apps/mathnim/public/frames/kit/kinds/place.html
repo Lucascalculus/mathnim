@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Place</title>
+<link rel="stylesheet" href="../kit.css"><link rel="stylesheet" href="kinds.css">
+</head><body><div id="app"></div>
+<script src="../kit.js"></script><script src="md.js"></script>
+<script>
+// PLACE: drag (or tap, then tap a zone) each chip into the zone it belongs to. A wrong zone sends the chip back and says why
+// not; a right one keeps it and says why. Params: zones[{id,label,hint}], cols, chips[{id,label,zone (id or [ids]),why,no}],
+// prompt, done, counted (false hides the count). Strict: nothing is ticked on its own.
+(function () {
+  'use strict';
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h;
+  var app = document.getElementById('app');
+  var zones = P.zones || [], chips = P.chips || [];
+  var placed = {}, wrong = 0, sel = null;
+  function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
+  if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
+  var tray = h('div', 'tray', null, app);
+  var zbox = h('div', 'zones', null, app);
+  zbox.style.gridTemplateColumns = 'repeat(' + (P.cols || Math.min(zones.length, 3)) + ',minmax(0,1fr))';
+  var msg = h('div', 'msg', '', app);
+  var log = h('ul', 'log', null, app);
+  var doneBox = h('div', 'done', null, app); doneBox.style.display = 'none';
+  var foot = h('div', 'foot', null, app);
+  var cnt = h('span', 'sub', '', foot);
+  var reset = h('button', 'ghost', tx('Start again', '重来'), foot);
+  var zel = {};
+  zones.forEach(function (z) {
+    var d = h('div', 'zone', null, zbox); d.dataset.z = z.id;
+    h('h4', '', esc(t(z.label)), d);
+    if (z.hint) h('div', 'hint', esc(t(z.hint)), d);
+    h('div', 'in', null, d);
+    d.onclick = function () { if (sel) drop(sel, z.id); };
+    zel[z.id] = d;
+  });
+  var cel = {};
+  chips.forEach(function (c) {
+    var e = h('button', 'chip', esc(t(c.label)), tray); e.type = 'button'; cel[c.id] = e;
+    e.onclick = function (ev) {
+      if (placed[c.id] || e.dataset.dragged) return;
+      ev.stopPropagation();
+      sel = sel === c.id ? null : c.id; paint();
+    };
+    e.addEventListener('pointerdown', function (ev) { start_drag(ev, c); });
+  });
+  function paint() {
+    chips.forEach(function (c) { cel[c.id].classList.toggle('sel', sel === c.id); });
+    for (var k in zel) zel[k].classList.toggle('target', !!sel);
+  }
+  function ok_zone(c, z) { return Array.isArray(c.zone) ? c.zone.indexOf(z) >= 0 : c.zone === z; }
+  function drop(id, z) {
+    var c = chips.filter(function (x) { return x.id === id; })[0]; if (!c || placed[id]) return;
+    var e = cel[id];
+    if (ok_zone(c, z)) {
+      placed[id] = z; zel[z].querySelector('.in').appendChild(e); e.classList.add('ok'); e.classList.remove('sel', 'shake');
+      sel = null; msg.className = 'msg'; msg.textContent = '';
+      var zl = zones.filter(function (q) { return q.id === z; })[0];
+      if (c.why) h('li', '', '<span class="m">✓</span><b>' + esc(t(c.label)) + '</b> → ' + esc(t(zl.label)) + ': ' + md(t(c.why)), log);
+    } else {
+      wrong++; e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake'); sel = null;
+      msg.className = 'msg no';
+      msg.innerHTML = c.no ? esc(t(c.no)) : tx('Not there.', '不在这里。');
+    }
+    paint(); status();
+  }
+  function status() {
+    var n = Object.keys(placed).length;
+    cnt.textContent = P.counted === false ? '' : n + ' / ' + chips.length + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
+    if (n === chips.length && P.done) { doneBox.style.display = ''; doneBox.innerHTML = md(t(P.done)); msg.textContent = ''; }
+    K.report();
+  }
+  reset.onclick = function () {
+    placed = {}; wrong = 0; sel = null; log.innerHTML = ''; msg.textContent = ''; doneBox.style.display = 'none';
+    chips.forEach(function (c) { cel[c.id].classList.remove('ok', 'shake'); tray.appendChild(cel[c.id]); });
+    paint(); status();
+  };
+  // pointer drag with a ghost; a press without movement stays a tap (handled by click)
+  function start_drag(ev, c) {
+    if (placed[c.id]) return;
+    var e = cel[c.id], x0 = ev.clientX, y0 = ev.clientY, g = null;
+    function mv(m) {
+      if (!g && Math.abs(m.clientX - x0) + Math.abs(m.clientY - y0) < 6) return;
+      if (!g) { g = e.cloneNode(true); g.className = 'chip ghost-drag'; g.style.width = e.offsetWidth + 'px'; document.body.appendChild(g); e.style.opacity = .35; }
+      g.style.left = (m.clientX - 20) + 'px'; g.style.top = (m.clientY - 16) + 'px';
+      var z = zone_at(m.clientX, m.clientY);
+      for (var k in zel) zel[k].classList.toggle('target', k === z);
+    }
+    function up(m) {
+      document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      if (g) { var z = zone_at(m.clientX, m.clientY); g.remove(); e.style.opacity = ''; e.dataset.dragged = 1; setTimeout(function () { delete e.dataset.dragged; }, 80); if (z) drop(c.id, z); paint(); }
+    }
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+  }
+  function zone_at(x, y) {
+    for (var k in zel) { var r = zel[k].getBoundingClientRect(); if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return k; }
+    return null;
+  }
+  status(); K.ready();
+})();
+</script></body></html>

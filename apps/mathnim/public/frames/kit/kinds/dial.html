@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dial</title>
+<link rel="stylesheet" href="../kit.css"><link rel="stylesheet" href="kinds.css">
+<style>
+.sl{margin:6px 0 2px}.sl .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}.sl .top b{font-variant-numeric:tabular-nums}
+.outs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px 14px;margin:10px 0 2px}
+.out .l{font-size:12px;color:var(--muted)}.out .v{font:600 22px/1.15 var(--sans);font-variant-numeric:tabular-nums}
+.out.neg .v{color:var(--bad)}
+.plot{margin-top:8px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+</style></head><body><div id="app"></div>
+<script src="../kit.js"></script><script src="md.js"></script>
+<script>
+// DIAL: move the sliders; the numbers (and a curve) answer at once. Params:
+//  sliders[{id,label,min,max,step,value,unit,dec}], consts{name:number}, outs[{id,label,expr,dec,unit,bar}] (expr is JS over
+//  slider ids, consts and earlier outs), plot{x (slider id), ys[{out,label,color}], steps, xlabel, ylabel, ymin, ymax},
+//  notes[{when (expr),text}] (every note whose condition holds is shown), presets[{label,set{id:value}}], prompt.
+// bar: {max} draws that output as a bar instead of a number.
+(function () {
+  'use strict';
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt, app = document.getElementById('app');
+  var S = P.sliders || [], O = P.outs || [], C = P.consts || {}, val = {};
+  S.forEach(function (s) { val[s.id] = s.value; });
+  var sn = S.map(function (s) { return s.id; }), cn = Object.keys(C), on = O.map(function (o) { return o.id; });
+  var fns = {};
+  function compile(expr) { var a = sn.concat(cn, on); try { return Function.apply(null, a.concat(['return (' + expr + ');'])); } catch (e) { return function () { return NaN; }; } }
+  O.forEach(function (o) { fns[o.id] = compile(o.expr); });
+  var N = (P.notes || []).map(function (n) { return { f: compile(n.when), text: n.text }; });
+  function run(v) {
+    var r = {}; S.forEach(function (s) { r[s.id] = v[s.id]; });
+    O.forEach(function (o) {
+      var args = sn.map(function (k) { return r[k]; }).concat(cn.map(function (k) { return C[k]; }), on.map(function (k) { return r[k]; }));
+      r[o.id] = fns[o.id].apply(null, args);
+    });
+    return r;
+  }
+  function args_of(r) { return sn.map(function (k) { return r[k]; }).concat(cn.map(function (k) { return C[k]; }), on.map(function (k) { return r[k]; })); }
+  if (P.prompt) h('div', 'kn-prompt', t(P.prompt), app);
+  if (P.presets) { var pr = h('div', 'presets', null, app); P.presets.forEach(function (p) { var b = h('button', 'ghost', t(p.label), pr); b.onclick = function () { for (var k in p.set) val[k] = p.set[k]; S.forEach(function (s) { s.el.value = val[s.id]; }); draw(); }; }); }
+  var sbox = h('div', '', null, app), tops = {};
+  S.forEach(function (s) {
+    var d = h('div', 'sl', null, sbox), top = h('div', 'top', null, d);
+    h('span', '', t(s.label), top); tops[s.id] = h('b', '', '', top);
+    var r = h('input', '', null, d); r.type = 'range'; r.min = s.min; r.max = s.max; r.step = s.step || 1; r.value = s.value; s.el = r;
+    r.setAttribute('aria-label', t(s.label));
+    r.oninput = function () { val[s.id] = +r.value; draw(); };
+  });
+  var obox = h('div', 'outs', null, app), oel = {};
+  O.forEach(function (o) {
+    if (o.hide) return;
+    var d = h('div', 'out', null, obox); h('div', 'l', t(o.label), d);
+    var v = h('div', 'v', '', d);
+    var bar = null;
+    if (o.bar) { var t0 = h('div', 'bar', '<i></i>', d); t0.style.cssText = 'height:10px;border-radius:99px;background:var(--faint);overflow:hidden;margin-top:4px'; bar = t0.firstChild; bar.style.cssText = 'display:block;height:100%;border-radius:99px;background:var(--blue);transition:width .1s'; }
+    oel[o.id] = { d: d, v: v, bar: bar };
+  });
+  var plot = null;
+  if (P.plot) plot = h('div', 'plot', null, app);
+  var nbox = h('div', '', null, app);
+  function f(v, dec, unit) { return (unit === '$' ? '$' : '') + fmt(v, dec == null ? 1 : dec) + (unit && unit !== '$' ? ' ' + unit : ''); }
+  function draw() {
+    var r = run(val);
+    S.forEach(function (s) { tops[s.id].textContent = (s.unit === '$' ? '$' : '') + fmt(val[s.id], s.dec == null ? 0 : s.dec) + (s.unit && s.unit !== '$' ? ' ' + s.unit : ''); });
+    O.forEach(function (o) {
+      var e = oel[o.id], v = r[o.id];
+      if (!e) return;
+      e.v.textContent = f(v, o.dec, o.unit); e.d.classList.toggle('neg', v < 0);
+      if (e.bar) e.bar.style.width = Math.max(0, Math.min(100, v / o.bar.max * 100)) + '%';
+    });
+    nbox.innerHTML = '';
+    N.forEach(function (n) { var ok = false; try { ok = !!n.f.apply(null, args_of(r)); } catch (e) {} if (ok) h('div', 'note', md(t(n.text)), nbox); });
+    if (plot) draw_plot(r);
+    K.report();
+  }
+  function draw_plot(r0) {
+    var pl = P.plot, W = 560, H = 230, L = 46, R = 12, T = 14, B = 34, xs = S.filter(function (s) { return s.id === pl.x; })[0];
+    var n = pl.steps || 60, pts = [];
+    var ys = pl.ys.map(function () { return []; });
+    var lo = pl.ymin, hi = pl.ymax, auto_lo = Infinity, auto_hi = -Infinity;
+    for (var i = 0; i <= n; i++) {
+      var x = xs.min + (xs.max - xs.min) * i / n, v = {}; for (var k in val) v[k] = val[k]; v[pl.x] = x;
+      var rr = run(v);
+      pl.ys.forEach(function (y, j) { ys[j].push([x, rr[y.out]]); if (isFinite(rr[y.out])) { auto_lo = Math.min(auto_lo, rr[y.out]); auto_hi = Math.max(auto_hi, rr[y.out]); } });
+    }
+    if (lo == null) lo = Math.min(0, auto_lo); if (hi == null) hi = auto_hi * 1.08; if (hi === lo) hi = lo + 1;
+    function X(x) { return L + (x - xs.min) / (xs.max - xs.min) * (W - L - R); }
+    function Y(y) { return H - B - (y - lo) / (hi - lo) * (H - T - B); }
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto">';
+    s += '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#1f2328" stroke-width="1.5"/><line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#1f2328" stroke-width="1.5"/>';
+    if (lo < 0 && hi > 0) s += '<line x1="' + L + '" y1="' + Y(0) + '" x2="' + (W - R) + '" y2="' + Y(0) + '" stroke="#9aa0a6" stroke-dasharray="4 4"/>';
+    s += '<text x="' + (W - R) + '" y="' + (H - 8) + '" font-size="13" fill="#6b7077" text-anchor="end">' + esc(t(pl.xlabel || xs.label)) + '</text>';
+    s += '<text x="' + (L + 6) + '" y="' + (T + 8) + '" font-size="13" fill="#6b7077">' + esc(t(pl.ylabel || '')) + '</text>';
+    s += '<text x="' + L + '" y="' + (H - B + 16) + '" font-size="12" fill="#6b7077" text-anchor="middle">' + fmt(xs.min, 0) + '</text><text x="' + (W - R) + '" y="' + (H - B + 16) + '" font-size="12" fill="#6b7077" text-anchor="end">' + fmt(xs.max, 0) + '</text>';
+    pl.ys.forEach(function (y, j) {
+      var col = y.color || ['#2563EB', '#E4572E', '#1F8A5B'][j % 3];
+      s += '<polyline fill="none" stroke="' + col + '" stroke-width="2.6" stroke-linejoin="round" points="' + ys[j].filter(function (p) { return isFinite(p[1]); }).map(function (p) { return X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' ') + '"/>';
+      var cv = r0[y.out]; if (isFinite(cv)) s += '<circle cx="' + X(val[pl.x]) + '" cy="' + Y(Math.max(lo, Math.min(hi, cv))) + '" r="5.5" fill="' + col + '" stroke="#fff" stroke-width="2"/>';
+      if (y.label) s += '<text x="' + (W - R - 4) + '" y="' + (Y(ys[j][n][1]) - 6) + '" font-size="13" fill="' + col + '" text-anchor="end" font-weight="600">' + esc(t(y.label)) + '</text>';
+    });
+    s += '<line x1="' + X(val[pl.x]) + '" y1="' + T + '" x2="' + X(val[pl.x]) + '" y2="' + (H - B) + '" stroke="#9aa0a6" stroke-dasharray="3 4"/>';
+    plot.innerHTML = s + '</svg>';
+  }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
+  draw(); K.ready();
+})();
+</script></body></html>

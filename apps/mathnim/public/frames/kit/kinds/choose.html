@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Choose</title>
+<link rel="stylesheet" href="../kit.css"><link rel="stylesheet" href="kinds.css">
+</head><body><div id="app"></div>
+<script src="../kit.js"></script><script src="md.js"></script>
+<script>
+// CHOOSE: a small experiment on the learner. Several rounds, each a choice among options; afterwards the instrument shows what
+// the choices say. Params:
+//  rounds[{prompt, options[{id,label,detail,attrs{attr:level}}]}]
+//  reveal {type:'tally', attrs[{id,label,levels[{id,label}]}], text}  -> how often each level was in the chosen option
+//                                                                          against how often it was offered, and which
+//                                                                          attribute swung the choices most
+//  reveal {type:'switch', a, b (round indexes), target (option id), same, moved, other (texts), text}
+(function () {
+  'use strict';
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
+  var rounds = P.rounds || [], picks = [], i = 0;
+  function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
+  var head = h('div', 'kn-prompt', '', app), box = h('div', '', null, app), out = h('div', '', null, app);
+  function show() {
+    out.innerHTML = '';
+    if (i >= rounds.length) return reveal();
+    var r = rounds[i];
+    head.innerHTML = '<b>' + (i + 1) + ' / ' + rounds.length + '</b> · ' + esc(t(r.prompt));
+    box.innerHTML = '';
+    r.options.forEach(function (o) {
+      var b = h('button', 'opt', esc(t(o.label)) + (o.detail ? '<span class="d">' + esc(t(o.detail)) + '</span>' : ''), box); b.type = 'button';
+      b.onclick = function () { picks.push(o.id); b.classList.add('pick'); setTimeout(function () { i++; show(); }, 220); };
+    });
+    K.report();
+  }
+  function reveal() {
+    head.innerHTML = ''; box.innerHTML = '';
+    var R = P.reveal || {}, s = '';
+    if (R.type === 'tally') {
+      var rows = [], swing = [];
+      R.attrs.forEach(function (a) {
+        var lo = 2, hi = -1;
+        var inner = a.levels.map(function (lv) {
+          var off = 0, ch = 0;
+          rounds.forEach(function (r, k) { r.options.forEach(function (o) { if (o.attrs && o.attrs[a.id] === lv.id) { off++; if (picks[k] === o.id) ch++; } }); });
+          var rate = off ? ch / off : 0; lo = Math.min(lo, rate); hi = Math.max(hi, rate);
+          return '<div class="brow"><span>' + esc(t(lv.label)) + '</span><span class="t"><i style="width:' + Math.round(rate * 100) + '%"></i></span><span>' + ch + '/' + off + '</span></div>';
+        }).join('');
+        swing.push({ a: a, d: hi - lo });
+        rows.push('<div style="margin-top:10px"><b>' + esc(t(a.label)) + '</b><div class="bars">' + inner + '</div></div>');
+      });
+      swing.sort(function (x, y) { return y.d - x.d; });
+      s = '<div class="kn-prompt">' + tx('How often each level was in the option you chose, out of how often it was offered:', '每个水平出现在你所选方案里的次数，对比它出现过的次数：') + '</div>' + rows.join('') +
+        '<div class="done"><b>' + tx('Your choices swung most on: ', '你的选择受它影响最大：') + esc(t(swing[0].a.label)) + '</b>' + (R.text ? '<br>' + md(t(R.text)) : '') + '</div>';
+    } else if (R.type === 'switch') {
+      var ra = rounds[R.a], rb = rounds[R.b], pa = picks[R.a], pb = picks[R.b];
+      function nm(r, id) { return t(r.options.filter(function (o) { return o.id === id; })[0].label); }
+      var tgt = R.target, k = pb === tgt && pa !== tgt ? 'moved' : pa === pb ? 'same' : 'other';
+      s = '<div class="kn-prompt">' + tx('Round ' + (R.a + 1) + ': ', '第 ' + (R.a + 1) + ' 轮：') + '<b>' + esc(nm(ra, pa)) + '</b><br>' + tx('Round ' + (R.b + 1) + ': ', '第 ' + (R.b + 1) + ' 轮：') + '<b>' + esc(nm(rb, pb)) + '</b></div>' +
+        '<div class="done"><b>' + md(t(R[k])) + '</b>' + (R.text ? '<br>' + md(t(R.text)) : '') + '</div>';
+    }
+    out.innerHTML = s + '<div class="foot"><span></span><button class="ghost" id="again">' + tx('Try again', '再来一次') + '</button></div>';
+    document.getElementById('again').onclick = function () { picks = []; i = 0; show(); };
+    K.report();
+  }
+  show(); K.ready();
+})();
+</script></body></html>

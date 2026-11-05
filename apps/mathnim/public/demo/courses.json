@@ -5966,5 +5966,220 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "mktg90037",
+  "title": {
+   "en": "MKTG90037 Managing for Value Creation, for the exam",
+   "zh": "MKTG90037 价值创造管理，为考试而讲"
+  },
+  "summary": {
+   "en": "Twenty lessons that teach each framework by touching it, then make you write the exam’s Explain, Apply and Recommend answers on Lipton, Who Gives a Crap, Hilton and Coles, marked against the rubric.",
+   "zh": "二十节课：先动手摆弄每个框架，再按考试的“解释、应用、建议”三段，用 Lipton、Who Gives a Crap、Hilton、Coles 写答案，并按评分标准批改。"
+  },
+  "audience": {
+   "en": "Postgraduates sitting the MKTG90037 exam, closed book, four 600 to 750 word answers, who may not have attended every lecture.",
+   "zh": "要参加 MKTG90037 考试的研究生：闭卷，四篇 600 到 750 词的长答案，课也不一定每节都听过。"
+  },
+  "outcomes": [
+   {
+    "en": "Explain each framework precisely enough to earn the five Explain marks, in your own words",
+    "zh": "把每个框架解释得足够精确，拿下五分的“解释”"
+   },
+   {
+    "en": "Apply it to a named company with cause and effect, using facts you can recall without notes",
+    "zh": "落到具体公司上，讲清因果，用的是不看资料也记得住的事实"
+   },
+   {
+    "en": "Recommend exactly two things that follow from your analysis, and join ideas across weeks",
+    "zh": "给出恰好两条从分析里推出来的建议，并把不同周的内容连起来"
+   }
+  ],
+  "lang": "en",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "packs": [],
+  "origin": {
+   "decks": 9,
+   "exams": 0,
+   "note": {
+    "en": "Written by an AI (Claude) from the subject guide, nine lecture decks and the exam briefing; the decks are the coverage floor, not the order; brand facts are sourced in docs/lessons/mktg90037/brands.md · not edited by a person",
+    "zh": "由 AI（Claude）根据课程指南、九份课件和考试说明编写；课件只是内容的下限，不决定顺序；品牌事实的出处见 docs/lessons/mktg90037/brands.md · 未经人工修改"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "The paper",
+     "zh": "先看考卷"
+    },
+    "lessons": [
+     "mktg90037-start"
+    ]
+   },
+   {
+    "title": {
+     "en": "What value is, and who decides",
+     "zh": "价值是什么，谁说了算"
+    },
+    "lessons": [
+     "mktg90037-value",
+     "mktg90037-market-orientation",
+     "mktg90037-service-logic"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "mktg90037-start",
+    "title": {
+     "en": "What an answer that scores is made of",
+     "zh": "拿分的答案是由什么组成的"
+    },
+    "summary": {
+     "en": "Take a model answer apart sentence by sentence, then learn the four exam brands by sorting facts onto them.",
+     "zh": "把一篇范文一句一句拆开，再把事实分给四个考试品牌，认识它们。"
+    },
+    "minutes": 30,
+    "meta": {
+     "title": {
+      "en": "What an answer that scores is made of",
+      "zh": "拿分的答案是由什么组成的"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.paper",
+       "name": {
+        "en": "Writing an Explain, Apply, Recommend answer",
+        "zh": "写“解释、应用、建议”答案"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-value",
+    "title": {
+     "en": "Why the same product is worth different amounts to different people",
+     "zh": "同一个产品，为什么对不同的人价值不同"
+    },
+    "summary": {
+     "en": "Start from one purchase two people make for opposite reasons, then learn what value is, the four types, and where firms create them, using Who Gives a Crap and Coles.",
+     "zh": "从两个人为相反的理由做出的同一次购买出发，弄清价值是什么、有哪四种、企业从哪里创造它，案例是 Who Gives a Crap 和 Coles。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Why the same product is worth different amounts to different people",
+      "zh": "同一个产品，为什么对不同的人价值不同"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.value",
+       "name": {
+        "en": "Explaining and applying customer value",
+        "zh": "解释并应用顾客价值"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-market-orientation",
+    "title": {
+     "en": "Do you do what customers say, or what they will want?",
+     "zh": "做顾客说的，还是做顾客将来要的？"
+    },
+    "summary": {
+     "en": "From a failed glue that became the Post-it to the difference between customer-led and market-oriented firms, and how a firm can shape its market, with Coles.",
+     "zh": "从一种失败的胶水变成便利贴说起，讲清“顾客牵着走”和“市场导向”的区别，以及企业怎样塑造市场，案例是 Coles。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Do you do what customers say, or what they will want?",
+      "zh": "做顾客说的，还是做顾客将来要的？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.orientation",
+       "name": {
+        "en": "Explaining and applying market orientation",
+        "zh": "解释并应用市场导向"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mktg90037-service-logic",
+    "title": {
+     "en": "Who creates the value: the factory or the customer?",
+     "zh": "谁创造价值：工厂，还是顾客？"
+    },
+    "summary": {
+     "en": "Where value is created, in the hotel or in the guest’s stay, and the service-dominant logic that follows, with Hilton.",
+     "zh": "价值是在酒店里创造的，还是在客人的住宿体验里创造的？由此引出服务主导逻辑，案例是 Hilton。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "Who creates the value: the factory or the customer?",
+      "zh": "谁创造价值：工厂，还是顾客？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mk.service-logic",
+       "name": {
+        "en": "Explaining and applying service-dominant logic",
+        "zh": "解释并应用服务主导逻辑"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
  }
 ]

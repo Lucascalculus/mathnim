@@ -148,9 +148,9 @@ export class BlockRenderer {
       case 'frame': {
         this.figures++;
         // a sandboxed page of its own (scripts only, no storage, no network of the app); it tells us its height
+        // the parameters ride in the hash: a bilingual instrument's text can be longer than a server accepts in a URL, and the hash is never sent
         const q = new URLSearchParams({ lang: this.lang });
-        if (b.params) q.set('p', JSON.stringify(b.params));
-        const src = `/${b.src.replace(/^\//, '')}?${q}`;
+        const src = `/${b.src.replace(/^\//, '')}?${q}${b.params ? `#p=${encodeURIComponent(JSON.stringify(b.params))}` : ''}`;
         return `<figure class="mn-fig mn-frame"><iframe src="${esc(src)}" sandbox="allow-scripts" loading="lazy" scrolling="no" title="${esc(tr(b.alt, this.lang))}" style="height:${b.height ?? 420}px"></iframe>${b.caption ? `<figcaption>${this.prose(b.caption)}</figcaption>` : ''}</figure>`;
       }
       case 'callout': {

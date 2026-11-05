@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connect</title>
+<link rel="stylesheet" href="../kit.css"><link rel="stylesheet" href="kinds.css">
+<style>
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;position:relative}
+.col{display:grid;gap:8px;align-content:start}
+.card{border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:8px 10px;font-size:14px;text-align:left;line-height:1.3}
+.card.sel{border-color:var(--blue);background:#f1f5ff;box-shadow:0 0 0 2px #c9d8ff}
+.card.shake{animation:shake .3s;border-color:var(--bad)}
+.card.m0{border-color:#2563EB;background:#eff4ff}.card.m1{border-color:#E4572E;background:#fff1ec}.card.m2{border-color:#1F8A5B;background:#eefaf4}
+.card.m3{border-color:#7C3AED;background:#f4efff}.card.m4{border-color:#B8860B;background:#fdf6e3}.card.m5{border-color:#0D9488;background:#e9faf8}
+.card.m6{border-color:#6b7077;background:#f2f3f4}.card.m7{border-color:#c2410c;background:#fff3e8}
+.card.locked{cursor:default}
+</style></head><body><div id="app"></div>
+<script src="../kit.js"></script><script src="md.js"></script>
+<script>
+// CONNECT: tap one thing on the left, then the thing on the right it goes with. A right pair takes a colour and says why;
+// a wrong one says it is not a pair. Params: left[{id,label}], right[{id,label}], pairs[[leftId,rightId,why]], prompt,
+// done, reuse (a right card may take several partners), no (text shown for a wrong pair), no_by_left{leftId:text}.
+(function () {
+  'use strict';
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
+  var L = P.left || [], R = P.right || [], pairs = P.pairs || [], got = {}, wrong = 0, sel = null, n_done = 0;
+  function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
+  if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
+  var cols = h('div', 'cols', null, app), lc = h('div', 'col', null, cols), rc = h('div', 'col', null, cols);
+  var le = {}, re = {};
+  L.forEach(function (x) { var b = h('button', 'card', esc(t(x.label)), lc); b.type = 'button'; le[x.id] = b; b.onclick = function () { if (got[x.id]) return; sel = sel === x.id ? null : x.id; paint(); }; });
+  // the right column is shuffled (a fixed shuffle, so a reload shows the same page): position must not give the pairs away
+  var seed = 7, order = R.map(function (x, i) { seed = (seed * 31 + 17) % 97; return { x: x, k: seed + i * 0.01 }; }).sort(function (a, b) { return a.k - b.k; }).map(function (o) { return o.x; });
+  if (order.length > 1 && order.every(function (x, i) { return x === R[i]; })) order.reverse();
+  order.forEach(function (x) { var b = h('button', 'card', esc(t(x.label)), rc); b.type = 'button'; re[x.id] = b; b.onclick = function () { choose(x.id); }; });
+  var msg = h('div', 'msg', '', app), log = h('ul', 'log', null, app);
+  var done = h('div', 'done', null, app); done.style.display = 'none';
+  var foot = h('div', 'foot', null, app), cnt = h('span', 'sub', '', foot);
+  function paint() { L.forEach(function (x) { le[x.id].classList.toggle('sel', sel === x.id); }); }
+  function choose(r) {
+    if (!sel) { msg.className = 'msg'; msg.textContent = ''; return; }
+    var pr = pairs.filter(function (p) { return p[0] === sel && p[1] === r; })[0], l = sel;
+    if (pr) {
+      var k = n_done % 8; got[l] = r; n_done++;
+      le[l].classList.add('m' + k, 'locked'); if (!re[r].dataset.k) re[r].dataset.k = k;
+      re[r].classList.add('m' + re[r].dataset.k);
+      if (!P.reuse) re[r].disabled = true;
+      sel = null; msg.className = 'msg'; msg.textContent = '';
+      if (pr[2]) h('li', '', '<span class="m">✓</span><b>' + esc(t(L.filter(function (x) { return x.id === l; })[0].label)) + '</b> ↔ ' + esc(t(R.filter(function (x) { return x.id === r; })[0].label)) + ': ' + md(t(pr[2])), log);
+    } else {
+      wrong++; var e = le[sel]; e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake');
+      msg.className = 'msg no'; msg.innerHTML = esc(t((P.no_by_left && P.no_by_left[sel]) || P.no || tx('These two do not go together.', '这两个不是一对。')));
+      sel = null;
+    }
+    paint(); status();
+  }
+  function status() {
+    var need = L.length;
+    cnt.textContent = Object.keys(got).length + ' / ' + need + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
+    if (Object.keys(got).length === need && P.done) { done.style.display = ''; done.innerHTML = md(t(P.done)); msg.textContent = ''; }
+    K.report();
+  }
+  status(); K.ready();
+})();
+</script></body></html>
