@@ -86,7 +86,7 @@ def L_regression():
                    outro=T(r"**Answer:** $\hat y = 41.571 + 0.2977x$ (width and length in mm).", r"**答案：** $\hat y = 41.571 + 0.2977x$（宽度和长度单位都是毫米）。"),
                    blank=(2, '0.2977', T(r"$18909 / 63511$, four decimals.", r"$18909 / 63511$，四位小数。")), skill=SK),
             derive('q5vi', T('(vi) to (viii): interpret, predict, fit', '(vi) 到 (viii)：解释、预测、拟合'),
-                   [(r"b_1 = 0.2977\ \text{mm per mm}", T(r"(vi) Say it in words, with units: each extra millimetre of nasal length goes with 0.2977 mm more nasal width.", r"(vi) 用文字加单位说出来：鼻子长度每多 1 毫米，鼻子宽度大约多 0.2977 毫米。")),
+                   [(r"b_1 = 0.2977", T(r"(vi) Say it in words, with units: each extra millimetre of nasal length goes with 0.2977 mm more nasal width.", r"(vi) 用文字加单位说出来：鼻子长度每多 1 毫米，鼻子宽度大约多 0.2977 毫米。")),
                     (r"75\ \text{cm} = 750\ \text{mm}", T(r"(vii) The trap: the equation is in mm, so convert first.", r"(vii) 陷阱：方程用的是毫米，所以先换算。")),
                     (r"\hat y = 41.571 + 0.2977(750) = 264.9", T(r"The predicted nasal width: about 265 mm. (750 mm is inside the data’s range 606 to 820: a safe prediction.)", r"预测的鼻子宽度：约 265 毫米。（750 毫米在数据范围 606 到 820 之内：预测是可靠的。）")),
                     (r"SST = SSR + SSE = 5629.74 + 1492.26 = 7122", T(r"(viii) The total sum of squares.", r"(viii) 总平方和。")),

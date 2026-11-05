@@ -6114,7 +6114,8 @@
      "zh": "数据说明了什么？"
     },
     "lessons": [
-     "mgmt90141-regression"
+     "mgmt90141-regression",
+     "mgmt90141-multiple-regression"
     ]
    }
   ],
@@ -7155,6 +7156,44 @@
        "name": {
         "en": "Simple linear regression by least squares",
         "zh": "一元线性回归（最小二乘）"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-multiple-regression",
+    "title": {
+     "en": "What changes with several predictors, and how to read the output",
+     "zh": "预测变量变多以后有什么变化，以及怎么读输出"
+    },
+    "summary": {
+     "en": "Touch every cell of a real regression output and learn what question each answers. Then see why R² can only go up and adjusted R² can fall, and read the Subaru past paper’s output the way the examiner wants: significance, size and fit.",
+     "zh": "点一遍真实回归输出里的每个格子，弄清每个格子回答什么问题。再看为什么 R² 只会上升而调整后的 R² 会下降，并按阅卷人的要求读 Subaru 往年真题的输出：显著性、大小和拟合。"
+    },
+    "minutes": 60,
+    "meta": {
+     "title": {
+      "en": "What changes with several predictors, and how to read the output",
+      "zh": "预测变量变多以后有什么变化，以及怎么读输出"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.multiple-regression",
+       "name": {
+        "en": "Multiple regression: reading the output",
+        "zh": "多元回归：读输出"
        }
       }
      ]
