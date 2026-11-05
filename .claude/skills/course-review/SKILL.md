@@ -1,6 +1,6 @@
 ---
 name: course-review
-description: Review a Mathnim lesson or course the way Lucas would (讲明白, taste, interaction bar, the real page on desktop and phone) and list what to fix by severity. Use after writing or changing lessons, before a preview, or when Lucas asks to check / 过一遍 / 测试 a course. Pass a lesson id (e.g. mpc-m4-constraints) or a course slug (e.g. mpc).
+description: Review a Mathnim lesson or course the way Lucas would (讲明白, taste, interaction bar, the real page on desktop) and list what to fix by severity. Use after writing or changing lessons, before a preview, or when Lucas asks to check / 过一遍 / 测试 a course. Pass a lesson id (e.g. mpc-m4-constraints) or a course slug (e.g. mpc).
 ---
 
 # Course review
@@ -25,8 +25,9 @@ review again).
 - The real thing: run `npm run dev` and walk the lesson with
   `node apps/mathnim/tools/page_shots.mjs` (see its header): open each kind of
   step, answer a question wrong and then right, use a world, ask the margin
-  tutor one question, reach the end of the lesson; at 1440 wide and at 390
-  (phone). Look at the screenshots yourself.
+  tutor one question, reach the end of the lesson; at 1440 wide. Look at the
+  screenshots yourself. Don't check phone width: Lucas doesn't want it checked
+  (2026-11-06), and don't list it under what you did not check.
 
 ## 2. Judge
 
@@ -47,8 +48,8 @@ For each page and step, ask:
   simulations labelled.
 - **Narration**: only scene steps (and short world lines) are narrated; text
   pages and questions are not.
-- **The page**: one main button at a time; nothing cut off or overlapping at
-  phone width; Chinese labels on canvases fit; motion purposeful and skipped
+- **The page**: one main button at a time; nothing cut off or overlapping;
+  Chinese labels on canvases fit; motion purposeful and skipped
   for reduced motion; the margin tutor answers (or says it could not).
 - **Across a course**: does each lesson build on the last (notation, the
   running example, "M2 讲过…")? Does the map read well? Is the first lesson
