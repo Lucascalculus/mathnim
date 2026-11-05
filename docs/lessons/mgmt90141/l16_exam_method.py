@@ -1,0 +1,85 @@
+# Lesson 16 (exam-method): how to spend two hours and a hundred marks. Sources: the subject guide, the 2026 cover sheet and the 2025 paper
+# (its structure, marks per part and formula sheet). Instrument: exam_clock. The marks per part are the paper's own; the minutes are computed.
+from common import *
+
+SK = 'mg.exam-method'
+
+Q = [
+    dict(label=T('Q1 (compulsory): the LP and its report', '第 1 题（必答）：LP 和它的报告'), marks=25, required=True, start=30, parts=[(T('(i) model', '(i) 模型'), 7), ('(ii)', 3), ('(iii)', 3), ('(iv)', 4), ('(v)', 4), ('(vi)', 4)]),
+    dict(label=T('Q2: two formulations', '第 2 题：两个建模'), marks=25, start=30, parts=[(T('(i) overtime', '(i) 加班'), 10), (T('(ii) blending', '(ii) 配比'), 15)]),
+    dict(label=T('Q3: scheduling and transshipment', '第 3 题：排班和转运'), marks=25, start=30, parts=[(T('(i) schedule', '(i) 排班'), 10), (T('(ii) transshipment', '(ii) 转运'), 15)]),
+    dict(label=T('Q4: payoff table, Bayes, tree', '第 4 题：收益表、贝叶斯、决策树'), marks=25, start=30, parts=[('(i)', 2), ('(ii)', 2), ('(iii)', 6), ('(iv)', 5), ('(v)', 10)]),
+    dict(label=T('Q5: normal and regression', '第 5 题：正态分布和回归'), marks=25, on=False, start=0, parts=[('(i)', 2), ('(ii)', 3), ('(iii)', 4), ('(iv)', 4), ('(v)', 6), ('(vi)', 2), ('(vii)', 2), ('(viii)', 2)]),
+]
+
+
+def L_exam_method():
+    assert sum(q['marks'] for q in Q[:4]) == 100 and sum(p[1] for p in Q[0]['parts']) == 25 and sum(p[1] for p in Q[3]['parts']) == 25 and sum(p[1] for p in Q[4]['parts']) == 25
+    assert 120 / 100 == 1.2 and 120 - 15 == 105
+    return dict(
+        id=f'{CID}-exam-method',
+        title=T('How to spend two hours and a hundred marks', '怎样花掉两小时和一百分'),
+        description=T('The exam is 100 marks in 120 minutes: 1.2 minutes a mark. Plan the minutes against the marks of a real paper, learn what each section rewards, what the formula sheet gives and does not give, and what to write when you are stuck.',
+                      '考试是 120 分钟 100 分：每分 1.2 分钟。拿一份真实试卷的分数来规划分钟数，弄清每一部分奖励什么、公式表给了什么没给什么，以及卡住时该写什么。'),
+        minutes=35,
+        skills=[{'id': SK, 'name': T('Exam technique for MGMT90141', 'MGMT90141 的考试技巧')}],
+        misconceptions=[{'id': 'all-four', 'description': T('Answering all four choice questions and expecting the best three to count', '四道选做题都答，以为会取最好的三道')},
+                        {'id': 'start-blank', 'description': T('Leaving a part blank because the whole answer is not clear', '因为整个答案不清楚，就把这一问空着')}],
+        steps=[
+            read('clock', T('A hundred marks, a hundred and twenty minutes', '一百分，一百二十分钟'),
+                 p(T(r"Reading time is 15 minutes (you may annotate the paper), then 2 hours of writing. Section 1 is one compulsory question worth 25 marks; Section 2 has four questions of 25 marks each, of which you answer **three**: 100 marks in all. If you answer all four, **only the first three are marked**, so a half-finished fourth answer written *before* the third wastes the time and the marks. The mock paper’s parts are below with their marks.", r"阅读时间 15 分钟（可以在试卷上做标注），然后是 2 小时写作。第一部分是一道必答题，25 分；第二部分有四道题，每道 25 分，要答其中**三**道：一共 100 分。如果四道都答，**只批前三道**，所以在第三道之前写了一个写了一半的第四道，就既浪费时间又浪费分数。下面是模拟卷各小问的分数。")),
+                 frame('exam_clock.html', T('The 2025 paper’s questions with their marks and a clock: choose three of the four choice questions and give each its minutes.', '2025 年试卷的各题和分数，带一个时钟：从四道选做题里选三道，给每道分配时间。'),
+                       caption=T(r"The strip at the top is the two hours. Each part’s minutes follow from the question’s minutes per mark.", r"顶部的长条是两个小时。每个小问的分钟数由所在题的每分分钟数得出。"),
+                       questions=Q, minutes=120, pick=3, of=4),
+                 chapter=T('Touch', '动手')),
+            choice('which', T('Which three?', '选哪三道？'), SK,
+                   T(r"You must drop one of Q2 to Q5. You find the formulation parts of Q2 hard, but you can do normal probabilities and regression reliably. A sensible choice:", r"你要在第 2 到第 5 题里舍弃一道。你觉得第 2 题的建模难，但正态概率和回归做得很稳。合理的选择是："),
+                   [(T(r"Drop Q2 and answer Q3, Q4, Q5: choose by the marks you can *surely* collect, after reading all four in the 15 minutes.", r"舍弃第 2 题，答第 3、4、5 题：读题时间里把四道都看一遍，按你*有把握*拿到的分数来选。"), True),
+                    (T(r"Answer Q2 first, since it comes first.", r"先答第 2 题，因为它排在前面。"), T(r"Order of the paper is not order of value. Do the surest marks first, and put the dropped question last (or not at all).", r"题目顺序不是价值顺序。先做最稳的分数，把舍弃的那道放到最后（或者干脆不写）。"), 'all-four'),
+                    (T(r"Answer all four and let the marker pick the best three.", r"四道都答，让阅卷人挑最好的三道。"), T(r"The marker takes the first three in the order written. The fourth is wasted time.", r"阅卷人按你写的顺序取前三道。第四道是白费的时间。"), 'all-four')],
+                   T(r"A 25-mark question that you can finish earns more than a half-done one you were drawn to.", r"一道你能做完的 25 分题，比一道你被吸引却只做一半的题挣的分多。")),
+            read('plan', T('The plan for the two hours', '两小时的计划'),
+                 table([T('When', '什么时候'), T('Do this', '做什么')],
+                       [T('Reading time (15 min)', '阅读时间（15 分钟）'), T('Read every question. Mark the parts you can do surely (a tick) and the ones that look hard (a ring). Choose your three. Highlight the numbers and the words “at least”, “at most”, “exactly”. Pencil the units next to each given number.', '把每道题都读一遍。标出有把握的小问（打勾）和看着难的（画圈）。选定你的三道。把数字和“至少”“至多”“正好”这些词标出来。在每个已知数字旁用铅笔写上单位。')],
+                       [T('First 30 minutes', '最初 30 分钟'), T('Q1, the compulsory question: 25 marks, and parts (ii) to (vi) are 18 marks read straight off a table. Do the model, then the five readings: each is two lines.', '第 1 题，必答：25 分，其中 (ii) 到 (vi) 的 18 分是直接从表里读出来的。先写模型，再做五个读数：每个两行。')],
+                       [T('Next, your surest question', '接着，你最有把握的一道'), T('Finish it fully before starting the next. Write the question number and part clearly: the marker follows labels.', '做完它再开始下一道。题号和小问号要写清楚：阅卷人是按标号找的。')],
+                       [T('Last 10 minutes', '最后 10 分钟'), T('Go back to blanks: write the variables, the objective, one line you are sure of. Check signs, units, “all variables ≥ 0”, the assumptions you stated.', '回去补空白：写变量、目标函数、一条你有把握的行。检查符号、单位、“所有变量 ≥ 0”、你写明的假设。')]),
+                 p(T(r"**When you are stuck, write what you know.** Marks are given per line: a formulation with the variables, objective and half the limits earns most of its marks; a tree with the right shape and probabilities but a wrong rollback earns the drawing marks; a $z$ with the wrong table value still earns the conversion mark. A blank earns nothing.", r"**卡住的时候，把你知道的写出来。** 分数是按行给的：一个有变量、目标函数和一半限制的建模，能拿到大部分分；一棵形状和概率都对、倒推却错了的树，能拿到画图的分；$z$ 换算对而查表错了，仍然能拿到换算的分。空白一分也没有。")),
+                 p(T(r"**The exam’s own instructions.** Solve the paper as it is and *state your assumptions*; *label* answers accurately and show all working; handwritten, blue or black ball-point pen (pencil for diagrams); a Casio fx-82 is the only calculator; phones fully off. Questions can be asked of the teaching team in the first 30 minutes.", r"**考试自己的要求。** 按试卷原样作答，并*写明你的假设*；答案要准确*标注*，写出所有过程；手写，蓝色或黑色圆珠笔（图可以用铅笔）；只能用 Casio fx-82 计算器；手机必须完全关机。头 30 分钟可以向教学团队提问。")),
+                 chapter=T('The plan', '计划')),
+            read('sheet', T('What the formula sheet gives, and what it does not', '公式表给了什么，没给什么'),
+                 table([T('On the sheet (Appendix 3)', '公式表上有（附录 3）'), T('Not on the sheet: you must know it', '公式表上没有：要自己会')],
+                       [T('expected value, EVwPI, EVwoPI, EVPI (written for maximisation: use min for costs)', '期望值、EVwPI、EVwoPI、EVPI（按最大化写的：成本问题用 min）'), T('how to write an LP: variables, objective, limits, the percentage move', '怎么写 LP：变量、目标函数、限制、百分比的移项')],
+                       [T('sample variance and standard deviation', '样本方差和标准差'), T('reading a sensitivity report: shadow price, ranges', '读灵敏度报告：影子价格、范围')],
+                       [T('$z = (x - \\mu)/\\sigma$', '$z = (x - \\mu)/\\sigma$'), T('the table’s use (it is in the paper), forwards and backwards', '表的用法（表在试卷里），正着和倒着')],
+                       [T('$\\hat y = b_0 + b_1 x$, $b_1$, $b_0$, SSE, SST, SSR, $r^2$, $r_{xy}$', '$\\hat y = b_0 + b_1 x$、$b_1$、$b_0$、SSE、SST、SSR、$r^2$、$r_{xy}$'), T('Bayes’ theorem, the tree and its rollback, the binomial formula, adjusted $R^2$, the multiple-regression output', '贝叶斯定理、决策树和倒推、二项公式、调整后的 $R^2$、多元回归输出')]),
+                 p(T(r"The z table (two pages, Appendices 1 and 2) is in the paper: cumulative probability to four places. You do not need to remember any entry; you need to read it fast, both ways (lesson 13).", r"z 表（两页，附录 1 和 2）就在试卷里：累积概率，四位小数。你不用记任何一项；你要能又快又准地读它，正着读和倒着读（第 13 课）。")),
+                 chapter=T('The sheet', '公式表')),
+            choice('sheet_q', T('Is it on the sheet?', '公式表上有吗？'), SK,
+                   T(r"Which of these will you have to write from memory in the exam?", r"下面哪一个在考试里要靠记忆写出来？"),
+                   [(T(r"Bayes’ theorem (joint, total, posterior).", r"贝叶斯定理（联合、总概率、后验）。"), True), (T(r"The sample variance.", r"样本方差。"), T(r"It is on the sheet.", r"公式表上有。"), None), (T(r"$b_1$ in simple regression.", r"一元回归的 $b_1$。"), T(r"It is on the sheet.", r"公式表上有。"), None)],
+                   T(r"LP, Bayes, the binomial and the multiple-regression ideas are not given.", r"LP、贝叶斯、二项分布和多元回归的想法都没有给。"), purpose='check'),
+            read('map', T('The whole paper, mapped to what you have learnt', '整张试卷，对应你学过的东西'),
+                 table([T('Question', '题'), T('Marks', '分'), T('Lesson to reread when you lose marks', '丢分时该重读的课')],
+                       ['Q1 (i)', '7', T('2: formulating a model', '第 2 课：写模型')], ['Q1 (ii)–(vi)', '18', T('3: reading a sensitivity report', '第 3 课：读灵敏度报告')],
+                       ['Q2 (i), (ii)', '25', T('4: overtime and blending (the six shapes)', '第 4 课：加班和配比（六种形状）')], ['Q3 (i)', '10', T('4: scheduling', '第 4 课：排班')], ['Q3 (ii)', '15', T('5: transshipment', '第 5 课：转运')],
+                       ['Q4 (i), (ii)', '4', T('10: expected value and EVPI', '第 10 课：期望值和 EVPI')], ['Q4 (iii)–(v)', '21', T('11: Bayes and the decision tree', '第 11 课：贝叶斯和决策树')],
+                       ['Q5 (i)–(iv)', '13', T('13: the normal distribution', '第 13 课：正态分布')], ['Q5 (v)–(viii)', '12', T('14: simple regression', '第 14 课：一元回归')], [T('Q5, other variant', '第 5 题，另一种变体'), '15', T('15: multiple regression', '第 15 课：多元回归')]),
+                 p(T(r"The two blocks that carry most marks are **the LP family** (Q1, Q2, Q3: 75 marks if you chose both of Q2 and Q3) and **decisions under uncertainty** (Q4). The statistics lessons (7, 8, 12) are what Q4 and Q5 stand on: you rarely see “describe this data” as a question of its own.", r"分数最多的两大块是 **LP 家族**（第 1、2、3 题：如果第 2、3 题都选，共 75 分）和**不确定下的决策**（第 4 题）。统计的几课（7、8、12）是第 4、5 题的地基：你很少会看到单独一道“描述这批数据”的题。")),
+                 chapter=T('The map', '地图')),
+            choice('stuck', T('Stuck on a part', '一问卡住了'), SK,
+                   T(r"With 25 minutes left you cannot see how to start the blending question (15 marks). What earns the most in the time?", r"还剩 25 分钟，你看不出怎么开始配比题（15 分）。怎么做在这段时间里挣的分最多？"),
+                   [(T(r"Define the six variables and write the objective with the profit per gallon, then the three supply limits, then whatever specifications you can.", r"定义六个变量，用每加仑利润写出目标函数，再写三条供应限制，再写你能写出的规格。"), True),
+                    (T(r"Leave it blank and recheck Q1.", r"空着它，去复查第 1 题。"), T(r"A blank earns nothing; a check of a finished question earns little.", r"空白什么也挣不到；复查已经做完的题挣得很少。"), 'start-blank'),
+                    (T(r"Write a long paragraph about blending.", r"写一大段关于配比的文字。"), T(r"Marks are for the model’s lines, not for prose.", r"分数是给模型的各行的，不是给文字的。"), 'start-blank')],
+                   T(r"Partial models earn partial marks: every line is worth something.", r"不完整的模型挣不完整的分：每一行都值点分。"), purpose='check'),
+            choice('recall_lp', T('Recall: assumptions', '回忆：假设'), SK,
+                   T(r"“State your assumptions.” In an LP, which is one the paper accepts?", r"“写明你的假设。”在 LP 里，下面哪个是试卷接受的假设？"),
+                   [(T(r"All variables are non-negative and can take fractional values (divisibility).", r"所有变量非负，并且可以取小数值（可分性）。"), True), (T(r"The optimum is always an integer.", r"最优解永远是整数。"), T(r"An LP solution need not be whole.", r"LP 的解不一定是整数。"), None), (T(r"Profit per unit falls as you make more.", r"做得越多，单位利润越低。"), T(r"LP assumes proportionality: the profit per unit is constant.", r"LP 假设成比例：单位利润是常数。"), None)],
+                   T(r"Deterministic, proportional, divisible, non-negative.", r"确定性、成比例、可分、非负。"), purpose='check'),
+            choice('recall_tree', T('Recall: tree direction', '回忆：树的方向'), SK,
+                   T(r"A decision tree is drawn and solved in which directions?", r"决策树是朝哪个方向画、朝哪个方向解的？"),
+                   [(T(r"Drawn left to right in time order; solved from the right (rollback).", r"按时间顺序从左往右画；从右往左解（倒推）。"), True), (T(r"Drawn and solved left to right.", r"从左往右画，也从左往右解。"), T(r"The left-hand choices depend on the values on the right.", r"左边的选择取决于右边的值。"), 'tree-forward'), (T(r"Drawn from the payoffs; solved from the root.", r"从收益开始画；从根开始解。"), T(r"Draw in time order from the root.", r"要按时间顺序从根开始画。"), None)],
+                   T(r"Time order to draw; backwards to solve.", r"按时间画；倒着解。"), purpose='check'),
+        ],
+    )

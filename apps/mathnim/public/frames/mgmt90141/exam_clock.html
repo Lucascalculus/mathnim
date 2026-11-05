@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+ .qs{display:grid;gap:8px}
+ .q{border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff}
+ .q.off{opacity:.55;background:var(--panel)}
+ .q .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+ .q .nm{font-weight:600;font-size:14px}.q .mk{font:12px var(--mono);color:var(--muted)}
+ .q input[type=range]{width:100%;accent-color:var(--blue);margin:6px 0 0}
+ .q .read{display:flex;gap:12px;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+ .q .read b{color:var(--fg);font-variant-numeric:tabular-nums}
+ .q.low .read .mm{color:var(--bad);font-weight:700}.q.ok .read .mm{color:var(--green);font-weight:700}
+ .parts{margin-top:6px;font-size:12.5px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap}
+ .parts span{border:1px solid var(--faint);border-radius:8px;padding:2px 7px;background:var(--panel)}
+ .parts b{color:var(--fg)}
+ .tog{border:1px solid var(--border);background:#fff;border-radius:999px;padding:3px 11px;font-size:12px}
+ .tog[aria-pressed=true]{border-color:var(--blue);background:#e3ebff;color:var(--blue)}
+ .sum{margin:10px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+ .pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+ .pill.ok{background:#e8f4ef;color:var(--green)}.pill.no{background:#fbeae7;color:var(--bad)}
+ .tl{height:20px;border-radius:7px;overflow:hidden;display:flex;background:var(--faint);margin-top:6px}
+ .tl i{display:block;height:100%;border-right:2px solid #fff}
+</style></head>
+<body>
+<div class="sum" id="sum"></div>
+<div class="qs" id="qs"></div>
+<script src="../kit/kit.js"></script>
+<script>
+(function () {
+  var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
+  var TOTAL = P.minutes || 120, QS = P.questions, on = QS.map(function (q) { return q.required || q.on !== false; }), mins = QS.map(function (q) { return q.start || 30; });
+  var COL = ['#2f5bd3', '#0f766e', '#7c3aed', '#b7791f', '#c2410c'];
+  var box = document.getElementById('qs'), sum = document.getElementById('sum'), els = [];
+  QS.forEach(function (q, i) {
+    var d = h('div', 'q', '', box), top = h('div', 'top', '', d);
+    h('span', 'nm', t(q.label), top); var right = h('span', '', '', top); h('span', 'mk', q.marks + ' ' + tx('marks', '分'), right);
+    if (!q.required) { var tg = h('button', 'tog', '', right); tg.type = 'button'; tg.style.marginLeft = '8px'; tg.onclick = function () { on[i] = !on[i]; draw(); }; els[i] = { tg: tg }; } else els[i] = {};
+    var sl = h('input', '', null, d); sl.type = 'range'; sl.min = 0; sl.max = 90; sl.step = 1; sl.value = mins[i]; sl.setAttribute('aria-label', t(q.label));
+    sl.oninput = function () { mins[i] = +sl.value; draw(); };
+    var rd = h('div', 'read', '', d), pt = h('div', 'parts', '', d);
+    Object.assign(els[i], { d: d, sl: sl, rd: rd, pt: pt });
+  });
+  function draw() {
+    var chosen = QS.filter(function (q, i) { return on[i]; }), nopt = QS.reduce(function (a, q, i) { return a + (!q.required && on[i] ? 1 : 0); }, 0);
+    var used = 0, marks = 0;
+    QS.forEach(function (q, i) { if (on[i]) { used += mins[i]; marks += q.marks; } });
+    QS.forEach(function (q, i) {
+      var e = els[i], act = on[i], mm = act && mins[i] ? mins[i] / q.marks : 0;
+      e.d.className = 'q' + (act ? (mm && mm < 0.9 ? ' low' : mm >= 1 ? ' ok' : '') : ' off');
+      if (e.tg) { e.tg.setAttribute('aria-pressed', act); e.tg.textContent = act ? tx('answer', '回答') : tx('skip', '不答'); }
+      e.sl.disabled = !act;
+      e.rd.innerHTML = '<span><b>' + fmt(mins[i], 0) + '</b> ' + tx('min', '分钟') + '</span><span class="mm">' + (act && mins[i] ? fmt(mm, 2) : '—') + ' ' + tx('min per mark', '分钟/分') + '</span>';
+      e.pt.innerHTML = act && mins[i] ? (q.parts || []).map(function (p) { return '<span>' + t(p[0]) + ' · ' + p[1] + ' ' + tx('marks', '分') + ' → <b>' + fmt(p[1] * mm, 1) + '</b> ' + tx('min', '分钟') + '</span>'; }).join('') : '';
+    });
+    var left = TOTAL - used, fair = marks ? TOTAL / marks : 0;
+    var okSel = nopt === (P.pick || 3), okTime = left >= 0, bal = QS.every(function (q, i) { return !on[i] || mins[i] / q.marks >= 0.9; });
+    var segs = QS.map(function (q, i) { return on[i] ? '<i style="width:' + (mins[i] / TOTAL * 100).toFixed(1) + '%;background:' + COL[i % 5] + '"></i>' : ''; }).join('');
+    sum.innerHTML = '<span class="pill ' + (okSel ? 'ok' : 'no') + '">' + tx(nopt + ' of the ' + (P.of || 4) + ' choice questions', '选做题答了 ' + nopt + ' / ' + (P.of || 4) + ' 道') + '</span><span class="pill ' + (okTime ? 'ok' : 'no') + '">' + (okTime ? fmt(left, 0) + ' ' + tx('min left', '分钟富余') : tx('over by ', '超时 ') + fmt(-left, 0) + ' ' + tx('min', '分钟')) + '</span><span class="pill ' + (bal ? 'ok' : 'no') + '">' + (bal ? tx('no question starved', '没有哪道题时间不够') : tx('a question has under 0.9 min per mark', '有题每分不到 0.9 分钟')) + '</span><span class="mk" style="font:12px var(--mono);color:var(--muted)">' + fmt(marks, 0) + ' ' + tx('marks answered · even pace', '分已答 · 平均速度') + ' ' + fmt(fair, 2) + ' ' + tx('min per mark', '分钟/分') + '</span><div class="tl" style="width:100%">' + segs + '</div>';
+    K.report();
+  }
+  draw(); K.ready();
+})();
+</script>
+</body></html>

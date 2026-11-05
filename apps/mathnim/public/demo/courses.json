@@ -6117,6 +6117,16 @@
      "mgmt90141-regression",
      "mgmt90141-multiple-regression"
     ]
+   },
+   {
+    "title": {
+     "en": "The paper itself",
+     "zh": "考试本身"
+    },
+    "lessons": [
+     "mgmt90141-exam-method",
+     "mgmt90141-drill"
+    ]
    }
   ],
   "lessons": [
@@ -7194,6 +7204,80 @@
        "name": {
         "en": "Multiple regression: reading the output",
         "zh": "多元回归：读输出"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-exam-method",
+    "title": {
+     "en": "How to spend two hours and a hundred marks",
+     "zh": "怎样花掉两小时和一百分"
+    },
+    "summary": {
+     "en": "The exam is 100 marks in 120 minutes: 1.2 minutes a mark. Plan the minutes against the marks of a real paper, learn what each section rewards, what the formula sheet gives and does not give, and what to write when you are stuck.",
+     "zh": "考试是 120 分钟 100 分：每分 1.2 分钟。拿一份真实试卷的分数来规划分钟数，弄清每一部分奖励什么、公式表给了什么没给什么，以及卡住时该写什么。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "How to spend two hours and a hundred marks",
+      "zh": "怎样花掉两小时和一百分"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.exam-method",
+       "name": {
+        "en": "Exam technique for MGMT90141",
+        "zh": "MGMT90141 的考试技巧"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-drill",
+    "title": {
+     "en": "Can you do it against the clock?",
+     "zh": "计时的话，你做得出来吗？"
+    },
+    "summary": {
+     "en": "Fifteen questions on new numbers, from every part of the subject, in mixed order on purpose. About 1.2 minutes a mark: give yourself 40 minutes for all of them, with the formula sheet and the table in mind and a Casio fx-82 in hand.",
+     "zh": "十五道换了数的题，来自这门课的每个部分，故意打乱顺序。大约每分 1.2 分钟：把全部做完给自己 40 分钟，想着公式表和那张表，手里拿一台 Casio fx-82。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Can you do it against the clock?",
+      "zh": "计时的话，你做得出来吗？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.drill",
+       "name": {
+        "en": "The whole exam, mixed",
+        "zh": "整张试卷，混合题"
        }
       }
      ]
