@@ -691,12 +691,15 @@ export abstract class Mark extends Thing {
 export class Path extends Mark {
   kind = 'path';
   private px: XY[][] = [];
-  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; style?: Style } = {}) {
+  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; heads?: Val<number[]>; style?: Style } = {}) {
     super(o);
     this.o = o;
   }
-  /** `upto`: the share of each polyline drawn (0..1; a script's set() draws it on). */
-  o: { closed?: boolean; width?: number; alpha?: number; upto?: Val<number> };
+  /**
+   * `upto`: the share of each polyline drawn (0..1; a script's set() draws it on). `heads`: arrowheads at these shares
+   * of each polyline's length, pointing along it (which way a field line or a flow runs).
+   */
+  o: { closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; heads?: Val<number[]> };
   draw(env: DrawEnv): void {
     const raw = read(this.pts);
     const polys = (raw.length && Array.isArray(raw[0]) && Array.isArray((raw[0] as XY[])[0]) ? raw : [raw]) as XY[][];
@@ -719,6 +722,23 @@ export class Path extends Mark {
       g.fill();
     }
     g.stroke();
+    if (this.o.heads) {
+      const shares = read(this.o.heads), hl = 4 + 2.2 * g.lineWidth;
+      g.setLineDash([]);
+      g.fillStyle = this.color;
+      g.beginPath();
+      for (const pl of this.px)
+        for (const u of shares) {
+          const at = point_along(pl, u);
+          if (!at) continue;
+          const [[x, y], [ux, uy]] = at;
+          g.moveTo(x + ux * hl * 0.5, y + uy * hl * 0.5);
+          g.lineTo(x - ux * hl * 0.5 - uy * hl * 0.42, y - uy * hl * 0.5 + ux * hl * 0.42);
+          g.lineTo(x - ux * hl * 0.5 + uy * hl * 0.42, y - uy * hl * 0.5 - ux * hl * 0.42);
+          g.closePath();
+        }
+      g.fill();
+    }
     g.restore();
     const all = this.px.flat();
     this.box = all.length ? bounds(all) : { x: 0, y: 0, w: 0, h: 0 };
@@ -1046,9 +1066,10 @@ export class Handle extends Mark {
   /**
    * `relative`: a drag moves the params by its distance (param units per px), not to where the pointer is (an orbit);
    * `at`: where it is (CSS px) when that is not its params' point; `look: 'none'`: nothing drawn (an orbit over a 3D
-   * view; the thing it moves shows where it is).
+   * view; the thing it moves shows where it is); `to`: the params a pointer at data point d means (a bob held to its
+   * circle: its angle), instead of the point itself.
    */
-  constructor(public px: Param<number>, public py: Param<number> | null, public o: { id?: string; says?: L10n; r?: number; on_end?: () => void; on_move?: () => void; relative?: { kx: number; ky: number }; at?: () => XY; look?: 'glass' | 'none' } = {}) {
+  constructor(public px: Param<number>, public py: Param<number> | null, public o: { id?: string; says?: L10n; r?: number; on_end?: () => void; on_move?: () => void; relative?: { kx: number; ky: number }; at?: () => XY; look?: 'glass' | 'none'; to?: (d: XY) => number[] } = {}) {
     super({ id: o.id ?? 'handle', role: 'glass', says: o.says, z: 8 });
     this.state = param(0, { name: this.id + '.state' });
   }
@@ -1120,6 +1141,14 @@ export class Handle extends Mark {
   }
   move_to(p: XY): void {
     const d = this.plot.inv(p);
+    // (`to`: the params the pointer at d means, for a handle held to a circle or a curve)
+    if (this.o.to) {
+      const v = this.o.to(d);
+      this.px.set(v[0]);
+      if (this.py && v[1] !== undefined) this.py.set(v[1]);
+      this.o.on_move?.();
+      return;
+    }
     this.px.set(clamp(d[0], this.plot.spec.x[0], this.plot.spec.x[1]));
     if (this.py) this.py.set(clamp(d[1], this.plot.spec.y[0], this.plot.spec.y[1]));
     this.o.on_move?.();
@@ -1161,6 +1190,22 @@ export class CanvasBlock extends Thing implements Block {
   }
 }
 
+/** The point a share u (0..1) of the way along a polyline (px) and the unit direction there; null if it has no length. */
+export function point_along(pl: XY[], u: number): [XY, XY] | null {
+  let total = 0;
+  for (let i = 1; i < pl.length; i++) total += Math.hypot(pl[i][0] - pl[i - 1][0], pl[i][1] - pl[i - 1][1]);
+  if (total < 1e-9) return null;
+  let left = Math.max(0, Math.min(1, u)) * total;
+  for (let i = 1; i < pl.length; i++) {
+    const L = Math.hypot(pl[i][0] - pl[i - 1][0], pl[i][1] - pl[i - 1][1]);
+    if (L > 1e-12 && (left <= L || i === pl.length - 1)) {
+      const k = Math.min(1, left / L), ux = (pl[i][0] - pl[i - 1][0]) / L, uy = (pl[i][1] - pl[i - 1][1]) / L;
+      return [[pl[i - 1][0] + k * (pl[i][0] - pl[i - 1][0]), pl[i - 1][1] + k * (pl[i][1] - pl[i - 1][1])], [ux, uy]];
+    }
+    left -= L;
+  }
+  return null;
+}
 /** The first share u (0..1) of a polyline, by length. */
 function cut_polyline(pl: XY[], u: number): XY[] {
   if (u >= 1 || pl.length < 2) return pl;

@@ -14,6 +14,7 @@ import { Column, place_at, place_label, type Block, type LayoutEnv } from './lay
 import { Hands } from './acts';
 import { Renderer, paint_background } from './render';
 import { Timeline, type Step } from './script';
+import { Sim, type SimSpec } from './sim';
 import { derive, now_version, param, read, untracked, type Derived, type Param, type ParamSpec, type Val } from './state';
 import { tr, type L10n, type Lang, type TextKind } from './text';
 import { Registry, contrast, type DrawEnv, type Obstacle, type Style, type Thing } from './thing';
@@ -45,6 +46,8 @@ export class Figure {
   root: Block = new Column([]);
   labels: Label[] = [];
   handles: Handle[] = [];
+  /** Simulations on the figure's clock (sim.ts): explore advances the running ones in real time. */
+  readonly sims: Sim<any>[] = [];
   /** Small print under the figure (the page shows it, not the canvas). */
   asides: string[] = [];
   /** (export_video mixes a scene's sounds; a figure has none) */
@@ -113,8 +116,20 @@ export class Figure {
     this.labels.push(l);
     return l;
   }
-  /** A glass handle moving params through a plot. */
-  handle(plot: Plot, px: Param<number>, py: Param<number> | null, o: { id?: string; says?: L10n; on_end?: () => void } = {}): Handle {
+  /**
+   * A simulation integrated with a fixed step from what its inputs read (sim.ts): its state is a pure function of the
+   * inputs and its clock, so the script runs it (`run(sim, s)`), seeks are exact, and explore advances it in real time.
+   */
+  sim<I>(spec: SimSpec<I>): Sim<I> {
+    const s = new Sim(spec);
+    this.sims.push(s);
+    return s;
+  }
+  /**
+   * A glass handle moving params through a plot. `to` maps the pointer (data coordinates) to the params (a handle on a
+   * circle or a curve: an angle from the point); `at` says where it is drawn when that is not its params' point.
+   */
+  handle(plot: Plot, px: Param<number>, py: Param<number> | null, o: { id?: string; says?: L10n; on_end?: () => void; at?: () => XY; to?: (d: XY) => number[]; r?: number; look?: 'glass' | 'none' } = {}): Handle {
     const h = new Handle(px, py, { ...o, on_end: () => o.on_end?.(), on_move: () => this.emit('dragged', this.report()) });
     h.opacity.set(0); // (shown only where the hand can move it: the player's explore mode)
     plot.add(h);

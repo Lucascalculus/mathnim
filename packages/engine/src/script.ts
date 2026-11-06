@@ -36,7 +36,7 @@ export function ease_in_out(u: number, k = 10): number {
 export type Step =
   | { kind: 'reveal'; things: Thing[]; intent: string; dur?: number }
   | { kind: 'hide'; things: Thing[]; intent: string; dur?: number }
-  | { kind: 'set'; param: Param<number>; to: number; intent: string; dur?: number }
+  | { kind: 'set'; param: Param<number>; to: number; intent: string; dur?: number; by?: number }
   | { kind: 'wait'; s: number }
   | { kind: 'beat' }
   | { kind: 'together'; steps: Step[] }
@@ -126,13 +126,14 @@ export class Timeline {
       }
       const m = intent_of(s.intent);
       const dur = reduced && m.reduced === 'instant' ? 0.001 : s.dur ?? m.dur;
-      this.log.push({ t0: at, dur, what: s.kind === 'set' ? `${s.intent} ${s.param.name || 'param'} → ${+s.to.toFixed(3)}` : `${s.kind}(${names(s.things)})` });
+      this.log.push({ t0: at, dur, what: s.kind === 'set' ? `${s.intent} ${s.param.name || 'param'} ${s.by !== undefined ? `+${+s.by.toFixed(3)}` : `→ ${+s.to.toFixed(3)}`}` : `${s.kind}(${names(s.things)})` });
       // a motion given its own time fills it: the spring is slowed or sped up to settle at the end (an 'ease'
       // intent runs slow-in slow-out over the whole time)
       const T = m.T * (dur / m.dur), end = Math.max(1e-6, spring_step(dur, T, m.zeta));
       const ease = (u: number) => (dur <= 0.001 || u >= 1 ? 1 : m.curve === 'linear' ? u : m.curve === 'ease' ? ease_in_out(u) : spring_step(u * dur, T, m.zeta) / end);
       if (s.kind === 'set') {
-        const from = s.param.peek(), to = s.to, p = s.param;
+        // (`by`: a move relative to where the param is at that point of the script, as a simulation's clock runs on)
+        const from = s.param.peek(), to = s.by !== undefined ? from + s.by : s.to, p = s.param;
         this.actions.push({ t0: at, dur, apply: (u) => p.set(from + (to - from) * ease(u), true) });
         p.set(to, true); // later steps start from here
       } else {
