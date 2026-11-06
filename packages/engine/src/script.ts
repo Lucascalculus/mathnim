@@ -3,7 +3,7 @@
 // it is both natural and a pure function of time: seeking to any moment gives exactly the state at that moment.
 // Beats (§ in the narration) split the script into sections that wait for the voice.
 import { look } from '@mathnim/look';
-import type { Param } from './state';
+import { batch_writes, type Param } from './state';
 import type { Thing } from './thing';
 
 /** Step response of a spring (response T s, damping ζ) at time t: 0 → 1. */
@@ -156,11 +156,14 @@ export class Timeline {
   }
   /** Put every param and opacity in its state at time t (a pure function of t). */
   at(t: number): void {
-    for (const { p, v } of this.initial) p.set(v, true);
-    for (const [th, v] of this.opacity0) th.opacity.set(v);
-    for (const a of this.actions) {
-      if (a.t0 > t) break;
-      a.apply(a.dur <= 0 ? 1 : Math.min(1, (t - a.t0) / a.dur));
-    }
+    // (one batch: what the seek leaves where it was does not count as changed, so it is not drawn again)
+    batch_writes(() => {
+      for (const { p, v } of this.initial) p.set(v, true);
+      for (const [th, v] of this.opacity0) th.opacity.set(v);
+      for (const a of this.actions) {
+        if (a.t0 > t) break;
+        a.apply(a.dur <= 0 ? 1 : Math.min(1, (t - a.t0) / a.dur));
+      }
+    });
   }
 }

@@ -5,6 +5,8 @@
 
 let tracking: Derived<unknown> | null = null;
 let clock = 1;   // a global version: every write increments it
+/** The params written inside batch_writes(), each with its value before the batch (null: not in a batch). */
+let batch: Map<Param<unknown>, unknown> | null = null;
 const writers = new Set<() => void>();
 /** Be told after any param changes (a player schedules one frame; nothing runs while nothing changes). */
 export function watch_writes(f: () => void): () => void {
@@ -42,12 +44,47 @@ export class Param<T> implements Readable<T> {
     if (typeof v === 'number' && this.spec.range) v = Math.min(this.spec.range[1], Math.max(this.spec.range[0], v)) as T;
     if (typeof v === 'number' && this.spec.step && !exact) v = (Math.round((v as number) / this.spec.step) * this.spec.step) as T;
     if (Object.is(v, this._v)) return;
+    // inside a batch the value moves and its listeners hear it in order (a sim's new run must come before the script
+    // moves its clock on); whether it changed - its version, what is derived from it - is decided when the batch ends
+    if (batch) {
+      if (!batch.has(this as Param<unknown>)) batch.set(this as Param<unknown>, this._v);
+      this._v = v;
+      for (const f of this.listeners) f(v);
+      return;
+    }
+    // (outside a batch, as always: a new version and what is derived from it stale first, so a listener reads it new)
     this._v = v;
     this.version = ++clock;
     for (const d of this.subs) d.stale();
     for (const f of this.listeners) f(v);
     for (const f of writers) f();
   }
+  /** (batch_writes) It ends the batch different from how it began: a new version, what is derived from it stale, the player told. */
+  commit(): void {
+    this.version = ++clock;
+    for (const d of this.subs) d.stale();
+    for (const f of writers) f();
+  }
+}
+
+/**
+ * Writes that count as one change: a seek puts every param the script touches back where it started and plays the
+ * script again up to the moment, so a param may move and come back within it. Only what ends the batch different from
+ * how it began gets a new version and tells its listeners; the rest stay as they were, and what reads only them is not
+ * drawn again (a frame in which nothing ends different is not drawn at all). Inside a batch, derived values are not
+ * recomputed (a script's motion must not read them: call()'s f depends on u only).
+ */
+export function batch_writes(f: () => void): void {
+  if (batch) return f();
+  batch = new Map();
+  let b: Map<Param<unknown>, unknown>;
+  try {
+    f();
+  } finally {
+    b = batch;
+    batch = null;
+  }
+  for (const [p, before] of b) if (!Object.is(p.peek(), before)) p.commit();
 }
 export interface ParamSpec {
   range?: [number, number];
