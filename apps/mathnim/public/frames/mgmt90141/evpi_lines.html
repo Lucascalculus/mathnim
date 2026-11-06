@@ -19,6 +19,8 @@
 <div class="nums" id="nums"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the probability set, the best choice without the crystal ball, the value
+// with it, and what the ball is worth (EVPI).
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, fmt = K.fmt;
   var alts = P.alts.map(t), V = P.V, sense = P.sense || 'max', unit = P.unit || '', s1 = t(P.states[0]), s2 = t(P.states[1]);
@@ -63,6 +65,8 @@
       '<div class="gap"><span class="k">' + tx('Worth of the ball', '水晶球的价值') + '</span><div class="v">' + unit + fmt(Math.abs(ewp - ewo), 2) + '</div><span class="sub">EVPI</span></div>';
     document.getElementById('pv').textContent = tx('probability of ', '概率：') + s1 + ' = ' + fmt(p, 2);
     K.report();
+    K.state(tx('Probability of ' + s1 + ' = ' + fmt(p, 2) + '. Without the ball: choose ' + alts[best] + ', expected ', s1 + '的概率 = ' + fmt(p, 2) + '。没有水晶球：选' + alts[best] + '，期望 ') + unit + fmt(ewo, 2) +
+      tx('; with the ball (best in each state): ', '；有水晶球（每个状态选最好的）：') + unit + fmt(ewp, 2) + tx('; worth of the ball (EVPI): ', '；水晶球的价值（EVPI）：') + unit + fmt(Math.abs(ewp - ewo), 2) + tx('.', '。'));
   }
   sl.oninput = function () { p = +sl.value; draw(); };
   draw(); K.ready();

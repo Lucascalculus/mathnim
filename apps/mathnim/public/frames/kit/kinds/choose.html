@@ -12,12 +12,16 @@
 //                                                                          against how often it was offered, and which
 //                                                                          attribute swung the choices most
 //  reveal {type:'switch', a, b (round indexes), target (option id), same, moved, other (texts), text}
+// Reports (kit.js): no answers (a choice here is neither right nor wrong); done (no score) when the last round is chosen; the
+// state says the round in hand and the choices made, then what the reveal says.
 (function () {
   'use strict';
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
   var rounds = P.rounds || [], picks = [], i = 0;
   function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
   var head = h('div', 'kn-prompt', '', app), box = h('div', '', null, app), out = h('div', '', null, app);
+  function picked(k) { var o = rounds[k].options.filter(function (x) { return x.id === picks[k]; })[0]; return '“' + K.clip(o ? o.label : picks[k], 44) + '”'; }
+  function chosen() { return picks.map(function (_, k) { return tx('round ' + (k + 1) + ' ', '第 ' + (k + 1) + ' 轮') + picked(k); }).join(tx(', ', '，')); }
   function show() {
     out.innerHTML = '';
     if (i >= rounds.length) return reveal();
@@ -29,10 +33,12 @@
       b.onclick = function () { picks.push(o.id); b.classList.add('pick'); setTimeout(function () { i++; show(); }, 220); };
     });
     K.report();
+    K.state(tx('Round ' + (i + 1) + ' of ' + rounds.length + ': “' + K.clip(r.prompt, 60) + '”', '第 ' + (i + 1) + ' / ' + rounds.length + ' 轮：“' + K.clip(r.prompt, 60) + '”') +
+      (picks.length ? tx(' Chosen so far: ', '已选：') + chosen() + tx('.', '。') : ''));
   }
   function reveal() {
     head.innerHTML = ''; box.innerHTML = '';
-    var R = P.reveal || {}, s = '';
+    var R = P.reveal || {}, s = '', said = '';
     if (R.type === 'tally') {
       var rows = [], swing = [];
       R.attrs.forEach(function (a) {
@@ -47,18 +53,22 @@
         rows.push('<div style="margin-top:10px"><b>' + esc(t(a.label)) + '</b><div class="bars">' + inner + '</div></div>');
       });
       swing.sort(function (x, y) { return y.d - x.d; });
+      said = tx('Your choices swung most on: ', '你的选择受它影响最大：') + K.clip(swing[0].a.label, 40) + tx('.', '。');
       s = '<div class="kn-prompt">' + tx('How often each level was in the option you chose, out of how often it was offered:', '每个水平出现在你所选方案里的次数，对比它出现过的次数：') + '</div>' + rows.join('') +
         '<div class="done"><b>' + tx('Your choices swung most on: ', '你的选择受它影响最大：') + esc(t(swing[0].a.label)) + '</b>' + (R.text ? '<br>' + md(t(R.text)) : '') + '</div>';
     } else if (R.type === 'switch') {
       var ra = rounds[R.a], rb = rounds[R.b], pa = picks[R.a], pb = picks[R.b];
       function nm(r, id) { return t(r.options.filter(function (o) { return o.id === id; })[0].label); }
       var tgt = R.target, k = pb === tgt && pa !== tgt ? 'moved' : pa === pb ? 'same' : 'other';
+      said = K.clip(R[k], 160);
       s = '<div class="kn-prompt">' + tx('Round ' + (R.a + 1) + ': ', '第 ' + (R.a + 1) + ' 轮：') + '<b>' + esc(nm(ra, pa)) + '</b><br>' + tx('Round ' + (R.b + 1) + ': ', '第 ' + (R.b + 1) + ' 轮：') + '<b>' + esc(nm(rb, pb)) + '</b></div>' +
         '<div class="done"><b>' + md(t(R[k])) + '</b>' + (R.text ? '<br>' + md(t(R.text)) : '') + '</div>';
     }
     out.innerHTML = s + '<div class="foot"><span></span><button class="ghost" id="again">' + tx('Try again', '再来一次') + '</button></div>';
     document.getElementById('again').onclick = function () { picks = []; i = 0; show(); };
     K.report();
+    K.done();
+    K.state(tx((rounds.length === 2 ? 'Both' : 'All ' + rounds.length) + ' rounds chosen: ', rounds.length + ' 轮都选完了：') + chosen() + tx('. ', '。') + said);
   }
   show(); K.ready();
 })();

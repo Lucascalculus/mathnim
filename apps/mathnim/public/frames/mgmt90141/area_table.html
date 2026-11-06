@@ -24,6 +24,7 @@
 <div class="pr" id="pr"></div><div class="verdict" id="vd"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): which rows are A, which columns are B, and the probabilities shown.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var RN = P.rows.map(t), CN = P.cols.map(t), C = P.counts, N = 0, rt = [], ct = [];
@@ -71,6 +72,17 @@
       vd = tx('P(A | B) is ', 'P(A | B) 是 ') + '<b>' + fmt(p(nAB, nB), 4) + '</b>' + tx(' against P(A) ', '，而 P(A) 是 ') + '<b>' + fmt(p(nA, N), 4) + '</b>: ' + (ind ? tx('equal: A and B are independent', '相等：A 和 B 独立') : tx('different: knowing B changes A, so A and B are dependent', '不相等：知道 B 会改变 A，所以 A 和 B 不独立'));
     }
     document.getElementById('vd').innerHTML = vd; K.report();
+    // the events chosen and the probabilities, for the tutor
+    var names = function (L, on) { return L.filter(function (_, i) { return on[i]; }).join(tx(' or ', '或')); };
+    var head = (anyA ? 'A = ' + names(RN, A) : tx('A not chosen', 'A 还没选')) + tx('; ', '；') + (anyB ? 'B = ' + names(CN, B) : tx('B not chosen', 'B 还没选')) + (given && anyB ? tx('; showing only B', '；只显示 B') : '');
+    var ps = [];
+    if (anyA) ps.push('P(A) = ' + fmt(p(nA, N), 4) + ' (' + f(nA, N) + ')');
+    if (anyB) ps.push('P(B) = ' + fmt(p(nB, N), 4) + ' (' + f(nB, N) + ')');
+    if (anyA && anyB) {
+      ps.push('P(A ∩ B) = ' + fmt(p(nAB, N), 4), 'P(A ∪ B) = ' + fmt(p(nU, N), 4), 'P(A | B) = ' + fmt(p(nAB, nB), 4), 'P(B | A) = ' + fmt(p(nAB, nA), 4));
+      if (nA && nB) ps.push(Math.abs(p(nAB, nB) - p(nA, N)) < 1e-9 ? tx('A and B independent', 'A 和 B 独立') : tx('A and B dependent', 'A 和 B 不独立'));
+    }
+    K.state(head + tx('. ', '。') + (ps.length ? ps.join(tx('; ', '；')) + tx('.', '。') : ''));
   }
   draw(); K.ready();
 })();

@@ -29,6 +29,8 @@
 <div class="verdict" id="verdict"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the rule in use (with the optimism on the dial), each alternative's
+// score under it, and the choice it makes.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var alts = P.alts.map(t), states = P.states.map(t), V = P.V, sense = P.sense || 'max', unit = P.unit || '';
@@ -90,6 +92,10 @@
     var rule = mode === 'opt' ? tx('the largest of the bests', '各个最好情形里最大的') : mode === 'con' ? tx('the best of the worsts', '各个最坏情形里最好的') : mode === 'reg' ? tx('the smallest of the largest regrets', '各个最大后悔里最小的') : tx('the highest score', '得分最高的');
     document.getElementById('verdict').innerHTML = tx('Choose ', '选 ') + '<b>' + alts[w] + '</b> · ' + rule;
     K.report();
+    var rname = modes.filter(function (m) { return m[0] === mode; })[0][1];
+    K.state(tx('Rule: ', '准则：') + rname + (mode === 'dial' ? tx(', optimism ', '，乐观度 ') + fmt(alpha, 2) : '') + tx(' (', '（') + rule + tx('). ', '）。') +
+      (mode === 'opt' ? tx('Best', '最好') : mode === 'con' ? tx('Worst', '最坏') : mode === 'reg' ? tx('Largest regret', '最大后悔') : tx('Score', '得分')) + tx(': ', '：') +
+      alts.map(function (a, i) { return a + ' ' + (mode === 'reg' ? '' : unit) + fmt(score(i), 2); }).join(tx(', ', '，')) + tx(' → choose ', ' → 选') + alts[w] + tx('.', '。'));
   }
   draw(); K.ready();
 })();

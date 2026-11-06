@@ -42,6 +42,11 @@
 <div class="msg" id="msg"></div>
 <script src="../kit/lp.js"></script><script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js). ship and assign judge nothing (the learner's plan is shown against supply and demand): a state of the plan,
+// its cost, what it breaks and the best cost once solved. balance: the dummy's side and its amount are answers (items 'dummy',
+// 'amount'), done when balanced (scored by the two first tries), then the plan's state. build: on Check, every cell typed anew
+// is an answer (items 'c<row>-<col>', 's<row>', 'd<col>'), done when the table is right (scored by the cells right at their
+// first check), and a state of the table.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var mode = P.mode || 'ship'; document.body.classList.add(mode); var _m = 0, money = P.money || '', sense = P.sense || 'min';
@@ -109,6 +114,26 @@
     if (shown_opt && opt) html += ' <span class="sub">' + tx('best possible ', '最优 ') + '<b class="num">' + money + fmt(opt.obj, 2) + '</b>' + (ok ? ' · ' + (Math.abs(z - opt.obj) < 1e-6 ? tx('you are at the best', '你已经是最优') : tx('gap ', '差 ') + money + fmt(Math.abs(z - opt.obj), 2)) : '') + '</span>';
     document.getElementById('bar').firstChild && (bar.firstChild.innerHTML = html);
     if (redraw) draw_grid();
+    tell_plan(z, ok);
+  }
+  // the plan in words, for the tutor: what goes where, its cost, the supplies and demands it breaks, the best cost once solved
+  function tell_plan(z, ok) {
+    var rn = function (i) { return rl[i] || tx('dummy', '虚拟'); }, cn = function (j) { return cl[j] || tx('dummy', '虚拟'); };
+    var moves = [], broken = [];
+    flow.forEach(function (r, i) { r.forEach(function (v, j) { if (v > 0) moves.push(rn(i) + ' → ' + cn(j) + (mode === 'assign' ? '' : ' ' + fmt(v, 2))); }); });
+    flow.forEach(function (r, i) {
+      var u = sum(r);
+      if (mode === 'assign' ? u !== 1 : u > supply[i] + 1e-9) broken.push(mode === 'assign' ? rn(i) + tx(' has ' + u + ' tasks', ' 有 ' + u + ' 个任务') : rn(i) + tx(' sends ' + fmt(u, 2) + ' of ' + fmt(supply[i], 2), ' 发出 ' + fmt(u, 2) + '（供应 ' + fmt(supply[i], 2) + '）'));
+    });
+    demand.forEach(function (d, j) {
+      var r = 0; flow.forEach(function (row) { r += row[j]; });
+      if (Math.abs(r - d) > 1e-9) broken.push(mode === 'assign' ? cn(j) + tx(' has ' + r + ' workers', ' 有 ' + r + ' 个人') : cn(j) + tx(' gets ' + fmt(r, 2) + ' of ' + fmt(d, 2), ' 收到 ' + fmt(r, 2) + '（需求 ' + fmt(d, 2) + '）'));
+    });
+    var s = (moves.length ? (mode === 'assign' ? tx('Assigned: ', '已分配：') : tx('Shipped: ', '运输：')) + moves.join(tx(', ', '，')) + tx('. ', '。') : tx('Nothing ' + (mode === 'assign' ? 'assigned' : 'shipped') + ' yet. ', mode === 'assign' ? '还没分配。' : '还没运输。')) +
+      (sense === 'max' ? tx('Revenue ', '收入 ') : tx('Cost ', '成本 ')) + money + fmt(z, 2) + tx('; ', '；') +
+      (ok ? tx('every supply and demand kept', '供需都守住了') : tx('broken: ', '没守住：') + broken.join(tx(', ', '、'))) + tx('.', '。');
+    if (shown_opt && opt) s += tx(' Best possible ', '最优 ') + money + fmt(opt.obj, 2) + (ok ? (Math.abs(z - opt.obj) < 1e-6 ? tx(', and this plan is at it.', '，这个方案已经是最优。') : tx(', gap ', '，差 ') + money + fmt(Math.abs(z - opt.obj), 2) + tx('.', '。')) : tx('.', '。'));
+    K.state(s);
   }
   function ship_ui() {
     bar.innerHTML = ''; var line = h('div', '', '', bar); line.style.flex = '1';
@@ -130,15 +155,24 @@
     var db = document.getElementById('dbtn');
     var bo = h('button', 'ghost', tx('Add a dummy origin', '加一个虚拟供应地'), db), bd = h('button', 'ghost', tx('Add a dummy destination', '加一个虚拟需求地'), db);
     var need = S > D ? 'destination' : 'origin', diff = Math.abs(S - D), done = false;
+    var first = {}, said = tx('no dummy added yet', '还没加虚拟项');
+    var kind_name = function (k) { return k === 'origin' ? tx('a dummy origin', '虚拟供应地') : tx('a dummy destination', '虚拟需求地'); };
+    function tell_bal() { K.state(tx('Total supply ' + fmt(S, 0) + ', total demand ' + fmt(D, 0) + '; ', '总供应 ' + fmt(S, 0) + '，总需求 ' + fmt(D, 0) + '；') + said + tx('.', '。')); }
+    function tried(item, right, response) { if (!(item in first)) first[item] = right; K.answer(item, right, response); }
     function choose(kind) {
       if (done) return;
+      tried('dummy', kind === need, kind_name(kind));
+      said = kind === need ? tx('adding ' + kind_name(kind) + ', its amount not set yet', '正在加' + kind_name(kind) + '，数量还没定') : tx('tried ' + kind_name(kind) + ', which is not the short side', '试了加' + kind_name(kind) + '，但缺的不是这一边');
+      tell_bal();
       if (kind !== need) { msg.textContent = kind === 'origin' ? tx('Supply is already at least the demand: nothing is missing on the supply side.', '供应已经不少于需求：供应一侧并不缺东西。') : tx('Demand is already at least the supply: no one is left with goods.', '需求已经不少于供应：没有谁手里还剩货。'); return; }
       var wrap = h('span', '', '', db);
       wrap.innerHTML = tx('its amount: ', '它的数量：') + '<input class="edge" type="number" id="amt"> <button class="verb" id="okamt" type="button">' + tx('Set', '确定') + '</button>';
       wrap.querySelector('#okamt').onclick = function () {
         var a = +wrap.querySelector('#amt').value;
-        if (Math.abs(a - diff) > 1e-9) { msg.textContent = tx('Not yet: the dummy takes up exactly the difference between total supply and total demand.', '还不对：虚拟项正好吸收总供应和总需求的差额。'); return; }
+        tried('amount', Math.abs(a - diff) <= 1e-9, wrap.querySelector('#amt').value);
+        if (Math.abs(a - diff) > 1e-9) { said = tx('adding ' + kind_name(kind) + '; amount ' + wrap.querySelector('#amt').value + ' is not the difference', '正在加' + kind_name(kind) + '；数量 ' + wrap.querySelector('#amt').value + ' 不是差额'); tell_bal(); msg.textContent = tx('Not yet: the dummy takes up exactly the difference between total supply and total demand.', '还不对：虚拟项正好吸收总供应和总需求的差额。'); return; }
         done = true; wrap.remove(); msg.textContent = tx('Balanced. Its costs are 0: nothing is really shipped.', '平衡了。它的运费是 0：什么也没有真的运出去。');
+        K.done(((first.dummy ? 1 : 0) + (first.amount ? 1 : 0)) / 2);
         if (kind === 'destination') { cost = cost.map(function (r) { return r.concat([0]); }); demand = demand.concat([diff]); cl.push(tx('dummy', '虚拟')); }
         else { cost = [cost[0].map(function () { return 0; })].concat(cost); supply = [diff].concat(supply); rl.unshift(tx('dummy', '虚拟')); flow = [cl.map(function () { return 0; })].concat(flow); }
         flow = rl.map(function () { return cl.map(function () { return 0; }); });
@@ -148,6 +182,7 @@
     }
     bo.onclick = function () { choose('origin'); }; bd.onclick = function () { choose('destination'); };
     tbl.parentNode.style.display = 'none'; bar.style.display = 'none';
+    tell_bal();
     // before balancing, show the plain table
     var plain = h('div', 'wrap', '', top.parentNode); plain.style.marginTop = '8px';
     var s = '<table><tr><th class="rl"></th>' + cl.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '<th>' + tx('Supply', '供应') + '</th></tr>';
@@ -170,6 +205,14 @@
     tbl.innerHTML = s;
     bar.innerHTML = '<button class="verb" id="chk" type="button">' + tx('Check', '检查') + '</button><button class="ghost" id="slv" type="button" disabled>' + tx('Solve', '求最优') + '</button><span id="res"></span>';
     var BLOCK = /^(m|big|inf|infinity|x|∞|-|—|n\/a|无穷|无|不可)$/i;
+    var first = {}, told = {}, finished = false, last = '';   // first[item]: right at its first check; told[item]: the value last reported
+    function item_of(e) { return e.dataset.i !== undefined ? 'c' + e.dataset.i + '-' + e.dataset.j : e.dataset.s !== undefined ? 's' + e.dataset.s : 'd' + e.dataset.d; }
+    function tell_build() {
+      var all = tbl.querySelectorAll('input'), filled = 0;
+      all.forEach(function (e) { if (e.value.trim()) filled++; });
+      K.state(tx('Building the table: ' + filled + ' of ' + all.length + ' cells filled.', '正在建表：已填 ' + filled + ' / ' + all.length + ' 格。') + (last ? tx(' Last check: ', '上次检查：') + last + tx('.', '。') : ''));
+    }
+    tbl.addEventListener('input', tell_build);
     function read_cell(v) { v = String(v).trim(); if (v === '') return undefined; if (BLOCK.test(v)) return null; var n = parseFloat(v); return isNaN(n) ? undefined : n; }
     document.getElementById('chk').onclick = function () {
       var wrong = 0, blank = 0, right = 0;
@@ -178,8 +221,16 @@
         if (e.dataset.i !== undefined) exp = R.cost[+e.dataset.i][+e.dataset.j]; else if (e.dataset.s !== undefined) exp = R.supply[+e.dataset.s]; else exp = R.demand[+e.dataset.d];
         e.classList.remove('ok', 'no');
         if (got === undefined) { blank++; return; }
-        if (got === exp || (got !== null && exp !== null && Math.abs(got - exp) < 1e-9)) { e.classList.add('ok'); right++; } else { e.classList.add('no'); wrong++; }
+        var ok = got === exp || (got !== null && exp !== null && Math.abs(got - exp) < 1e-9);
+        if (ok) { e.classList.add('ok'); right++; } else { e.classList.add('no'); wrong++; }
+        // one attempt at a cell: only a value that differs from the one last checked
+        var it = item_of(e), v = e.value.trim();
+        if (told[it] !== v) { told[it] = v; if (!(it in first)) first[it] = ok; K.answer(it, ok, v); }
       });
+      var cells = tbl.querySelectorAll('input');
+      last = !wrong && !blank ? tx('the table is right', '表是对的') : tx(right + ' right, ' + wrong + ' wrong, ' + blank + ' empty', '对 ' + right + '，错 ' + wrong + '，空 ' + blank);
+      if (!wrong && !blank && !finished) { finished = true; var n1 = 0; cells.forEach(function (e) { if (first[item_of(e)]) n1++; }); K.done(n1 / cells.length); }
+      tell_build();
       var res = document.getElementById('res');
       if (!wrong && !blank) { res.innerHTML = ' <span class="pill ok">' + tx('The table is right', '表是对的') + '</span>'; document.getElementById('slv').disabled = false; }
       else res.innerHTML = ' <span class="pill no">' + tx(right + ' right, ' + wrong + ' wrong, ' + blank + ' empty', '对 ' + right + '，错 ' + wrong + '，空 ' + blank) + '</span>';
@@ -190,8 +241,10 @@
       if (!sol) return;
       document.getElementById('res').innerHTML += ' <span class="sub">' + tx('cheapest shipping plan: ', '最省的运输方案：') + '<b class="num">' + money + fmt(sol.obj, 0) + '</b></span>';
       K.report();
+      last = tx('the table is right; the cheapest shipping plan costs ', '表是对的；最省的运输方案成本 ') + money + fmt(sol.obj, 0); tell_build();
     };
     msg.textContent = tx('M = no route (a cost so big it is never chosen)', 'M = 不通（大到永远不会被选的成本）');
+    tell_build();
   }
 
   if (mode === 'build') build_ui();

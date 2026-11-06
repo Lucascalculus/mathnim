@@ -38,12 +38,16 @@
 <div class="res" id="res"></div>
 <script src="../kit/lp.js"></script><script src="../kit/lpcheck.js"></script><script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): every check that reads as a model is an answer (item 'model', right when it means the same as the problem's;
+// a check stopped by a typo or a missing choice is not); done when the model is accepted, scored 1 if the first check was;
+// the state says the model written and what the last check found.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var vars = P.vars || ['x1', 'x2'];
   var ref = { sense: P.sense || 'max', c: P.c, rows: P.rows.map(function (r) { return { a: r.a, op: r.op, b: r.b, label: t(r.label) }; }) };
   var money = P.money || '';
   var state = { sense: null, last: null };
+  var checks = 0, accepted = false, verdict = '';   // models judged so far; the model has been accepted once; the last check in words
   var vbox = document.getElementById('vars');
   (P.names || []).forEach(function (nm) { h('div', '', t(nm), vbox); });
   vbox.innerHTML = (P.names || []).map(function (nm) { var s = t(nm), i = s.indexOf('='); return i > 0 ? '<div><code>' + s.slice(0, i).trim() + '</code> = ' + s.slice(i + 1).trim() + '</div>' : '<div>' + s + '</div>'; }).join('');
@@ -66,7 +70,7 @@
 
   var sense_el = document.getElementById('sense'), bmax = h('button', 'ghost', tx('Maximise', '最大化'), sense_el), bmin = h('button', 'ghost', tx('Minimise', '最小化'), sense_el);
   bmax.setAttribute('aria-pressed', 'false'); bmin.setAttribute('aria-pressed', 'false');
-  function set_sense(s) { state.sense = s; bmax.setAttribute('aria-pressed', s === 'max'); bmin.setAttribute('aria-pressed', s === 'min'); }
+  function set_sense(s) { state.sense = s; bmax.setAttribute('aria-pressed', s === 'max'); bmin.setAttribute('aria-pressed', s === 'min'); tell(); }
   bmax.onclick = function () { set_sense('max'); }; bmin.onclick = function () { set_sense('min'); };
 
   var obj = document.getElementById('obj'), lines_el = document.getElementById('lines'), focus_el = obj;
@@ -76,11 +80,13 @@
     var inp = h('input', 'ln', null, f); inp.setAttribute('autocapitalize', 'off'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('spellcheck', 'false');
     var mk = h('span', 'mark', '', f), msg = h('div', 'msg', '', lines_el); msg.style.display = 'none';
     inp.onfocus = function () { focus_el = inp; };
+    inp.addEventListener('input', tell);
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
     inputs.push({ inp: inp, mark: mk, msg: msg, wrap: f });
     K.report();
   }
   obj.onfocus = function () { focus_el = obj; };
+  obj.addEventListener('input', tell);
   obj.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
   for (var i = 0; i < (P.lines || ref.rows.length + 1); i++) add_line();
   document.getElementById('add').textContent = tx('+ line', '+ 一行');
@@ -93,7 +99,7 @@
     b.onmousedown = function (e) { e.preventDefault(); };
     b.onclick = function () {
       var el = focus_el, s = el.selectionStart == null ? el.value.length : el.selectionStart, e2 = el.selectionEnd == null ? s : el.selectionEnd;
-      el.value = el.value.slice(0, s) + (k === '−' ? '-' : k) + el.value.slice(e2); el.focus(); el.setSelectionRange(s + 1, s + 1);
+      el.value = el.value.slice(0, s) + (k === '−' ? '-' : k) + el.value.slice(e2); el.focus(); el.setSelectionRange(s + 1, s + 1); tell();
     };
   });
 
@@ -105,7 +111,7 @@
   var SIGN = { '<=': '≤', '>=': '≥', '=': '=' };
   function go() {
     var res = document.getElementById('res'); res.innerHTML = ''; light(null);
-    if (!state.sense) { card('no', tx('Choose maximise or minimise first.', '先选最大化还是最小化。'), '', res); K.report(); return; }
+    if (!state.sense) { card('no', tx('Choose maximise or minimise first.', '先选最大化还是最小化。'), '', res); K.report(); verdict = tx('the check asked to choose maximise or minimise first', '检查提示先选最大化还是最小化'); tell(); return; }
     var learner = { sense: state.sense, c: null, rows: [] }, errors = 0, any = false;
     try { learner.c = LPCheck.parse_objective(obj.value, vars); obj.classList.remove('bad'); }
     catch (e) { obj.classList.add('bad'); card('no', tx('The goal: ', '目标：') + e.message, '', res); errors++; }
@@ -116,12 +122,12 @@
       try { var row = LPCheck.parse_row(r.inp.value, vars); learner.rows.push(row); r.row = row; }
       catch (e) { r.inp.classList.add('bad'); r.msg.textContent = e.message; r.msg.style.display = 'block'; errors++; r.row = null; }
     });
-    if (errors) { K.report(); return; }
-    if (!any) { card('no', tx('Write at least one limit.', '至少写一条限制。'), '', res); K.report(); return; }
+    if (errors) { K.report(); verdict = tx('could not read ' + errors + (errors === 1 ? ' part' : ' parts') + ' of the model', '模型里有 ' + errors + ' 处读不懂'); tell(); return; }
+    if (!any) { card('no', tx('Write at least one limit.', '至少写一条限制。'), '', res); K.report(); verdict = tx('no limit written', '一条限制都没写'); tell(); return; }
     var feas = LP.solve(learner);
     if (feas.status === 'infeasible') {
       card('no', tx('Your limits contradict each other: no plan keeps all of them.', '你的限制互相矛盾：没有任何计划能同时守住它们。'), tx('Look for a limit written the wrong way round (≤ for a minimum, or ≥ for a capacity).', '找找有没有写反的限制（把下限写成 ≤，或把容量写成 ≥）。'), res);
-      K.report(); return;
+      K.report(); judged(false, tx('the limits contradict each other: no plan keeps them all', '限制互相矛盾：没有计划能全部守住')); return;
     }
     var cmp = LPCheck.compare(ref, learner);
     light(cmp);
@@ -163,8 +169,35 @@
       if (sol.status === 'unbounded') h('div', 'card no', tx('With your limits the goal has no best value: something is missing.', '按你的限制，目标没有最优值：缺了某条限制。'), res);
     }
     K.report();
+    // the verdict in words: the goal, the problem's limits not enforced, the lines that are not real limits, the answer
+    var missing = cmp.enforced.filter(function (e) { return !e.ok; }).map(function (e) { return e.label; });
+    var v = cmp.same_model ? tx('the model means the same as the problem’s', '模型和题目的意思相同') + (sol.status === 'optimal' ? (P.goal ? tx(', best ' + t(P.goal) + ' ', '，最优' + t(P.goal) + ' ') : tx(', best ', '，最优 ')) + money + fmt(sol.obj, 2) + ' ' + plan_text(sol.x) : '')
+      : (og.length ? tx('goal wrong', '目标不对') : tx('goal right', '目标正确')) + tx('; ', '；') + tx(got + ' of ' + ref.rows.length + ' limits enforced', '守住了 ' + got + ' / ' + ref.rows.length + ' 条题目的限制') + (missing.length ? tx(' (not: ', '（没守住：') + missing.join(tx(', ', '、')) + tx(')', '）') : '') +
+        tx('; ' + lines_ok + ' of ' + k + ' lines are real limits', '；写的 ' + k + ' 行里 ' + lines_ok + ' 行是真实的限制') + (sol.status === 'unbounded' ? tx('; the goal has no best value', '；目标没有最优值') : '');
+    judged(cmp.same_model, v);
   }
-  K.ready();
+  // a check that read as a model: one attempt at the item 'model'
+  function written() {
+    var ls = inputs.map(function (r) { return r.inp.value.trim(); }).filter(Boolean);
+    return (state.sense ? (state.sense === 'max' ? 'max ' : 'min ') : '') + (obj.value.trim() || '?') + (ls.length ? ' | ' + ls.join('; ') : '');
+  }
+  function judged(right, v) {
+    checks++;
+    K.answer('model', right, written());
+    verdict = v;
+    if (right && !accepted) { accepted = true; K.done(checks === 1 ? 1 : 0); }
+    tell();
+  }
+  // the model in hand and the last check's verdict, for the tutor
+  function tell() {
+    var ls = inputs.map(function (r) { return r.inp.value.trim(); }).filter(Boolean);
+    var s = (state.sense ? tx(state.sense === 'max' ? 'Maximise. ' : 'Minimise. ', state.sense === 'max' ? '最大化。' : '最小化。') : tx('Maximise or minimise not chosen. ', '还没选最大化或最小化。')) +
+      tx('Goal: ', '目标：') + (obj.value.trim() ? 'z = ' + obj.value.trim() : tx('empty', '空')) + tx('. ', '。') +
+      (ls.length ? tx('Limits: ', '限制：') + ls.join(tx('; ', '；')) + tx('. ', '。') : tx('No limit written. ', '还没写限制。'));
+    if (verdict) s += tx('Last check: ', '上次检查：') + verdict + tx('.', '。');
+    K.state(s);
+  }
+  tell(); K.ready();
 })();
 </script>
 </body></html>
