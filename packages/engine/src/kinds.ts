@@ -667,8 +667,29 @@ export function fmt_tick(v: number): string {
 /** Something drawn in a plot's data coordinates. */
 export abstract class Mark extends Thing {
   plot!: Plot;
-  constructor(o: { id?: string; role?: string; says?: L10n; z?: number; style?: Style } = {}) {
+  /**
+   * How established it is: 0 a guess (the learner's prediction, a conjecture), 1 true; undefined: simply true. A path's
+   * dashes close up as it grows, a dot's ring fills from its edge, a region's tint comes in (hollow → solid, the same
+   * everywhere: NEXT.md). A param here makes it a motion: set(k, 1, 'converge').
+   */
+  certain?: Val<number>;
+  constructor(o: { id?: string; role?: string; says?: L10n; z?: number; style?: Style; certain?: Val<number> } = {}) {
     super({ ...o, z: o.z ?? 2 });
+    this.certain = o.certain;
+  }
+  /** Its certainty now (0..1), or null when it has none (it is simply true). */
+  protected k(): number | null {
+    if (this.certain === undefined) return null;
+    const v = read(this.certain);
+    return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : null;
+  }
+  /** A stroke's dashes for a certainty: open for a guess, closing up as it is established (solid at 1). */
+  protected certain_dash(width: number, own?: number[]): number[] {
+    const k = this.k();
+    if (k === null || k >= 0.999) return own ?? [];
+    // (round caps reach half a width past each dash's end: the gap a reader sees is off − width, closing to nothing at 1)
+    const on = Math.max(3, width * 2.4), off = width + Math.max(2.5, width * 1.8) * (1 - k);
+    return [on, off];
   }
   protected clip(env: DrawEnv): void {
     const d = this.plot.data;
@@ -680,7 +701,7 @@ export abstract class Mark extends Thing {
     const m = this.material, g = env.g;
     g.strokeStyle = this.color;
     g.lineWidth = m.stroke ?? 2;
-    g.setLineDash(m.dash ?? []);
+    g.setLineDash(this.certain_dash(g.lineWidth, m.dash));
     g.globalAlpha *= m.stroke_opacity ?? 1;
     g.lineJoin = 'round';
     g.lineCap = 'round';
@@ -712,13 +733,13 @@ export class Path extends Mark {
     g.save();
     this.clip(env);
     this.stroke_style(env);
-    if (this.o.width && this.style.width === undefined) g.lineWidth = this.o.width;
+    if (this.o.width && this.style.width === undefined) { g.lineWidth = this.o.width; if (this.k() !== null) g.setLineDash(this.certain_dash(g.lineWidth, this.material.dash)); }
     if (this.o.alpha !== undefined && this.style.alpha === undefined) g.globalAlpha *= this.o.alpha;
     g.beginPath();
     for (const pl of this.px) pl.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     if (this.o.closed) g.closePath();
     if (this.style.fill && this.o.closed) {
-      g.fillStyle = rgba(this.fill_color, this.style.fill_alpha ?? 1);
+      g.fillStyle = rgba(this.fill_color, (this.style.fill_alpha ?? 1) * (this.k() ?? 1));
       g.fill();
     }
     g.stroke();
@@ -783,7 +804,7 @@ export class Path extends Mark {
 export class Region extends Mark {
   kind = 'region';
   private px: XY[] = [];
-  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean; fill?: number; style?: Style } = {}) {
+  constructor(public pts: Val<XY[]>, o: { id?: string; role?: string; says?: L10n; z?: number; edge?: boolean; fill?: number; style?: Style; certain?: Val<number> } = {}) {
     super({ ...o, role: o.role ?? 'region', z: o.z ?? 1.5 });
     this.edge = o.edge ?? true;
     this.fill = o.fill;
@@ -804,12 +825,14 @@ export class Region extends Mark {
     g.beginPath();
     this.px.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     g.closePath();
-    g.fillStyle = rgba(this.fill_color, this.style.fill_alpha ?? this.fill ?? m.fill_opacity ?? 0.12);
+    const k = this.k();
+    g.fillStyle = rgba(this.fill_color, (this.style.fill_alpha ?? this.fill ?? m.fill_opacity ?? 0.12) * (k ?? 1));
     g.fill();
-    if (this.edge) {
+    // (a region that is only a guess shows its edge, dashed, even when its role draws none)
+    if (this.edge || (k !== null && k < 1)) {
       g.strokeStyle = rgba(this.color, this.style.alpha ?? 0.6);
       g.lineWidth = m.stroke ?? 2;
-      g.setLineDash(m.dash ?? []);
+      g.setLineDash(this.certain_dash(g.lineWidth, m.dash));
       g.stroke();
     }
     g.restore();
@@ -826,7 +849,7 @@ export type MarkerShape = 'dot' | 'cross' | 'square' | 'ring' | 'arrow';
 export class Marker extends Mark {
   kind = 'marker';
   private at: XY | null = null;
-  constructor(public pos: Val<XY | null>, public o: { id?: string; role?: string; says?: L10n; shape?: MarkerShape; r?: number; z?: number; dir?: Val<XY>; clip?: boolean; style?: Style } = {}) {
+  constructor(public pos: Val<XY | null>, public o: { id?: string; role?: string; says?: L10n; shape?: MarkerShape; r?: number; z?: number; dir?: Val<XY>; clip?: boolean; style?: Style; certain?: Val<number> } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   r(): number {
@@ -849,7 +872,20 @@ export class Marker extends Mark {
     g.lineCap = 'round';
     if (st.alpha !== undefined) g.globalAlpha *= st.alpha;
     if (st.dash) g.setLineDash(st.dash);
-    if (shape === 'dot') {
+    const k = this.k();
+    if ((shape === 'dot' || shape === 'ring') && k !== null && k < 0.999) {
+      // a guess: a ring on paper, filling from its edge inward as it is established (solid at 1)
+      const ring = st.width ?? 2.2, ri = Math.max(0, r - ring);
+      g.beginPath();
+      g.arc(x, y, r + 2, 0, Math.PI * 2);
+      g.fillStyle = env.look.palette.bg;
+      g.fill();
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.arc(x, y, ri * (1 - k), 0, Math.PI * 2, true);
+      g.fillStyle = this.fill_color;
+      g.fill('evenodd');
+    } else if (shape === 'dot') {
       // (a paper ring keeps it apart from the lines under it; `width` is the ring's)
       g.beginPath();
       g.arc(x, y, r + (st.width ?? 2), 0, Math.PI * 2);
@@ -920,7 +956,7 @@ export class Arrow extends Mark {
   kind = 'arrow';
   private seg: [XY, XY] | null = null;
   /** `upto`: how much of it has grown out of its tail (0..1; a script's set() grows it). */
-  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number; upto?: Val<number>; style?: Style; head?: number } = {}) {
+  constructor(public from: Val<XY>, public to: Val<XY>, public o: { id?: string; role?: string; says?: L10n; z?: number; width?: number; upto?: Val<number>; style?: Style; head?: number; certain?: Val<number> } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   draw(env: DrawEnv): void {
@@ -940,15 +976,25 @@ export class Arrow extends Mark {
     g.fillStyle = this.color;
     g.lineWidth = w;
     g.lineCap = 'round';
+    g.setLineDash(this.certain_dash(w));
     g.beginPath();
     g.moveTo(a[0], a[1]);
     g.lineTo(b[0] - ux * head * 0.8, b[1] - uy * head * 0.8);
     g.stroke();
+    g.setLineDash([]);
+    // (a guessed arrow's head is an outline: it is not yet there)
+    const kk = this.k(), open = kk !== null && kk < 0.999;
     g.beginPath();
     g.moveTo(b[0], b[1]);
     g.lineTo(b[0] - ux * head - uy * head * 0.45, b[1] - uy * head + ux * head * 0.45);
     g.lineTo(b[0] - ux * head + uy * head * 0.45, b[1] - uy * head - ux * head * 0.45);
     g.closePath();
+    if (open) {
+      g.lineWidth = Math.max(1.5, w * 0.55);
+      g.lineJoin = 'round';
+      g.stroke();
+      g.globalAlpha *= kk!;
+    }
     g.fill();
     g.restore();
     this.box = bounds([a, b]);
@@ -966,12 +1012,12 @@ export class Arrow extends Mark {
 export class Dots extends Mark {
   kind = 'dots';
   private px: XY[] = [];
-  constructor(public pts: Val<XY[]>, public o: { id?: string; role?: string; says?: L10n; r?: number; z?: number; style?: Style } = {}) {
+  constructor(public pts: Val<XY[]>, public o: { id?: string; role?: string; says?: L10n; r?: number; z?: number; style?: Style; certain?: Val<number> } = {}) {
     super({ ...o, z: o.z ?? 3 });
   }
   draw(env: DrawEnv): void {
     this.px = read(this.pts).map((p) => this.plot.P(p));
-    const g = env.g, r = this.o.r ?? 4;
+    const g = env.g, r = this.o.r ?? 4, k = this.k(), inner = k === null || k >= 0.999 ? 0 : Math.max(0, r - 1.6) * (1 - k);
     g.save();
     this.clip(env);
     g.fillStyle = this.fill_color;
@@ -979,7 +1025,9 @@ export class Dots extends Mark {
     for (const [x, y] of this.px) {
       g.beginPath();
       g.arc(x, y, r, 0, Math.PI * 2);
-      g.fill();
+      // (guessed points are rings, filling as they are established)
+      if (inner > 0) g.arc(x, y, inner, 0, Math.PI * 2, true);
+      g.fill(inner > 0 ? 'evenodd' : 'nonzero');
     }
     g.restore();
     this.box = this.px.length ? bounds(this.px.flatMap(([x, y]) => [[x - r, y - r], [x + r, y + r]] as XY[])) : { x: 0, y: 0, w: 0, h: 0 };
