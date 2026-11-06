@@ -5,13 +5,14 @@
 // second is drawn as its two legs, Δx in one colour and Δy in another, with their numbers beside: Δx never changes,
 // Δy shrinks to nothing at the top (ticked) and grows again, downward. The motion is integrated (the engine's Sim,
 // velocity Verlet, exact for a constant force); in explore the learner drags the aim and lets go to throw again.
-import { Arrow, Figure, Marker, Path, Trail, beat, column, derive, reveal, row, run, t, wait, type XY } from '@mathnim/engine';
+import { Arrow, Figure, Gap, Marker, Path, Trail, beat, column, derive, guess, reveal, row, run, t, wait, type Thing, type XY } from '@mathnim/engine';
 import { define_figure } from '../visual';
 import { LANG_SPEC, figure_lang } from '../mpc/kit';
 
 export interface ThrowParams extends Record<string, unknown> {
   speed: number;
   angle: number;
+  predict: boolean;
   lang: string;
 }
 
@@ -46,7 +47,7 @@ export function throw_figure(p: Partial<ThrowParams> = {}): Figure {
   // (the window fits the throw it is made with, with room; a throw the hand aims is kept inside it)
   const range0 = (speed * speed * Math.sin(2 * angle)) / G, top0 = (speed * Math.sin(angle)) ** 2 / (2 * G);
   const X1 = Math.max(3, range0 * 1.3 + 0.4), Y1 = Math.max(1.6, top0 * 1.45 + 0.35, (X1 + 0.6) * 0.3);
-  const stage = fig.plot({ id: 'stage', x: [-0.6, X1], y: [-0.4, Y1], aspect: 'equal', axes: 'none', grid: false, priority: 2, says: t('a ball thrown from the ground', '从地面抛出的球') });
+  const stage = fig.plot({ id: 'stage', x: [-0.6, X1], y: [p.predict ? -0.85 : -0.4, Y1], aspect: 'equal', axes: 'none', grid: false, priority: 2, says: t('a ball thrown from the ground', '从地面抛出的球') });
   const ground = stage.add(new Path([[-0.6, 0], [X1, 0]], { id: 'ground', role: 'scaffold', says: t('the ground', '地面') }));
   const trail = stage.add(new Trail({ sim, xy: (y) => [y[0], y[1]] }, {
     id: 'trail', role: 'noun:ball', at: shown, every: EVERY, ahead: 0.35, until: T, r: 5,
@@ -64,7 +65,8 @@ export function throw_figure(p: Partial<ThrowParams> = {}): Figure {
   const leg_y = stage.add(new Path(() => (legs.value ? [legs.value.corner, legs.value.b] : []), { id: 'leg_y', role: 'noun:vertical', width: 2.4, says: t('how far it went up or down in that tenth of a second', '这 0.1 秒里竖直走了多远') }));
   const aim = stage.add(new Arrow([0, 0], () => [vx.value * AIM, vy.value * AIM], { id: 'aim', role: 'noun:ball', width: 2, says: t('the throw: its velocity (where it would be in a quarter of a second without gravity)', '抛出的速度（没有重力时，0.25 秒后球会在哪里）') }));
   const ball = stage.add(new Marker(ball_xy, { id: 'ball', role: 'noun:ball', r: 9, z: 3, says: t('the ball', '球') }));
-  const hand = fig.handle(stage, sp, ang, {
+  // (predict: the throw is the figure's, the hand guesses where it lands instead of aiming)
+  const hand = p.predict ? null : fig.handle(stage, sp, ang, {
     id: 'aim_handle', says: t('the throw: drag to aim, let go to throw', '抛出：拖动瞄准，松手抛出'),
     // (the tip of the arrow is the velocity times AIM)
     to: (d) => {
@@ -79,7 +81,29 @@ export function throw_figure(p: Partial<ThrowParams> = {}): Figure {
       fig.tell({ kind: 'state', text: L(`thrown at ${f2(v)} m/s, ${a.toFixed(0)}°: across ${f2(vx.peek() * EVERY)} m every 0.1 s, the top after ${f2(T.peek() / 2)} s`, `以 ${f2(v)} 米/秒、${a.toFixed(0)}° 抛出：每 0.1 秒横向走 ${f2(vx.peek() * EVERY)} 米，${f2(T.peek() / 2)} 秒后到最高点`) });
     },
   });
-  sim.hold_with(hand);
+  if (hand) sim.hold_with(hand);
+
+  // ---- predict first: where will it land? A hollow ring on the ground, let go to throw; then the gap, said
+  let predicted: { fresh: ReturnType<typeof guess>['fresh']; things: Thing[] } | null = null;
+  if (p.predict) {
+    const range = () => (2 * vx.value * vy.value) / G, tol = Math.max(0.12, range0 * 0.04);
+    const land = fig.param('land', Math.max(0.4, range0 * 0.3), { range: [0.2, X1 - 0.2], doc: 'the guess of where it lands (m)' });
+    const g = guess(fig, stage, land, {
+      id: 'landing', role: 'noun:ball', at: (v) => [v, 0], to: (d) => Math.max(0.2, Math.min(X1 - 0.2, d[0])), truth: range, tolerance: tol,
+      says: t('your guess: where the ball lands (drag it, let go to throw)', '你的猜测：球落在哪里（拖动它，松手就抛）'),
+    });
+    g.on_commit(() => { sim.restart(); sim.play(); });
+    const said = derive(() => (g.committed.value ? Math.max(0, Math.min(1, (sim.clock.value - T.value) / 0.35)) : 0), 'the gap shown');
+    const gap = stage.add(new Gap(() => [g.guessed.value, -0.22], () => [range(), -0.22], {
+      id: 'gap', role: 'noun:ball', shown: said,
+      text: () => {
+        const e = g.error.value, d = f2(Math.abs(e));
+        return Math.abs(e) <= tol ? L('right there', '正中') : e < 0 ? L(`${d} m short`, `近了 ${d} 米`) : L(`${d} m long`, `远了 ${d} 米`);
+      },
+      says: t('how far the guess was from where it landed', '猜测和实际落点相差多远'),
+    }));
+    predicted = { fresh: g.fresh, things: [g.ring, gap] };
+  }
 
   // ---- the numbers: the two legs of the last tenth of a second
   const dx_word = fig.readout([{ tex: '\\Delta x =' }, { value: () => (legs.value ? legs.value.b[0] - legs.value.a[0] : vx.value * EVERY), decimals: 2, template: '0.00' }, { tex: '\\mathrm{m}' }], { id: 'dx', role: 'noun:horizontal', kind: 'display', says: t('across, in the last 0.1 s', '最近 0.1 秒横向走的距离') });
@@ -103,6 +127,11 @@ export function throw_figure(p: Partial<ThrowParams> = {}): Figure {
   });
   fig.report_with(() => ({ speed: sp.peek(), angle_deg: ang.peek() / RAD, time: shown.peek(), flight_time: T.peek(), top_at: T.peek() / 2, range: (2 * vx.peek() * vy.peek()) / G, dx_per_tenth: vx.peek() * EVERY }));
 
+  if (predicted) {
+    // (the throw waits for the guess: the script only sets the scene, and a replay starts the guess and the throw again)
+    fig.script(predicted.fresh(sim.clock, sim.running), reveal(stage, ground, aim, ball, trail, leg_x, leg_y, dx_word, dy_word, per, ...predicted.things), wait(0.6));
+    return fig;
+  }
   fig.script(
     reveal(stage, ground, aim, ball, trail, leg_x, leg_y, dx_word, dy_word, per),
     wait(0.6),
@@ -120,9 +149,10 @@ export const phys_throw = define_figure<ThrowParams>({
   params: {
     speed: { type: 'number', min: 1, max: MAX_SPEED, default: 7, doc: 'the speed it is thrown with (m/s)' },
     angle: { type: 'number', min: 10, max: 85, default: 60, doc: 'the angle above the ground it is thrown at (degrees)' },
+    predict: { type: 'boolean', default: false, doc: 'predict first: the learner drags a hollow ring to where they think it lands and lets go to throw; the gap to the landing is drawn and said (and reported to the lesson)' },
     lang: LANG_SPEC,
   },
-  examples: [{}, { lang: 'zh' }, { speed: 8, angle: 30 }, { speed: 6, angle: 80, lang: 'zh' }],
+  examples: [{}, { lang: 'zh' }, { speed: 8, angle: 30 }, { speed: 6, angle: 80, lang: 'zh' }, { predict: true }, { predict: true, angle: 40, lang: 'zh' }],
   ids: ['stage', 'ground', 'trail', 'leg_x', 'leg_y', 'aim', 'ball', 'dx', 'dy'],
   figure: (p) => throw_figure(p),
   // the ball waits where it landed; the hand aims (the handle) and the throw runs again when it lets go (hold_with)

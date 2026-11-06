@@ -46,6 +46,13 @@ dropped: after the batched seek a plot is drawn only while it is revealed (27 to
 listed last under Test: one lesson, three pages (figure, world, text). On the way: a formula step's reason shows its
 `$…$` as the characters it means (`tex_as_text`), and the chain of why's classes are `mn-chain-*`.
 
+**Then, the missing piece: guess, then see** (`guess.ts`). None of the above asks the learner to commit before the
+answer, and the research NEXT.md leans on says that is where predicting pays (the surprise, drawn as a gap). A guess
+is a hollow ring the hand drags; letting go commits it (no button) and reports it to the lesson; the figure says what
+showing the answer is; a Gap draws and says how far off. First use: `phys_throw` with `predict: true` ("where will it
+land?"), on the demo's world page. Next uses it is made for: the tangent's slope guessed before the fan develops, a
+sketch of a curve before the true one converges (a guess of many numbers).
+
 ## What waits, and why
 
 | What | Why it waits |
