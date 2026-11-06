@@ -14,7 +14,7 @@ import { make_canvas } from './render';
 import { beat, set, wait, type Step } from './script';
 import { param, read, untracked, type Param } from './state';
 import { tex_scale } from './tex';
-import { break_lines, font_css, font_of, type Lang } from './text';
+import { break_lines, font_css, font_of, tex_as_text, type Lang } from './text';
 import { Thing, type DrawEnv, type Style } from './thing';
 
 // ------------------------------------------------------------------ the lines, as people write them
@@ -72,7 +72,8 @@ function split_top(s: string, sep: '\\\\' | '&'): string[] {
   return out;
 }
 const clean_why = (s: string): string | null => {
-  let w = s.replace(/\\(?:text|textrm|mathrm|mbox|textit|emph)\{([^{}]*)\}/g, '$1').replace(/\\[,;:! ]|\\q?quad/g, ' ');
+  // (a reason is drawn as text: its $…$ TeX becomes the characters it would show)
+  let w = tex_as_text(s).replace(/\\(?:text|textrm|mathrm|mbox|textit|emph)\{([^{}]*)\}/g, '$1').replace(/\\[,;:! ]|\\q?quad/g, ' ');
   w = w.replace(/^[\s:：,，;；—–\-→⇒]+|[\s:：,，;；—–\-]+$/g, '').trim();
   w = w.replace(/^\((.*)\)$/, '$1').replace(/^（(.*)）$/, '$1').replace(/^\[(.*)\]$/, '$1').trim();
   return w ? w.replace(/\s+/g, ' ').slice(0, 120) : null;

@@ -128,3 +128,76 @@ export function parse_marks(s: string, color_of: (role: string) => string, ink: 
   if (last < s.length) out.push({ s: s.slice(last), color: ink });
   return out;
 }
+
+// ---------------------------------------------------------------- a little TeX as plain text
+// For short text drawn as text, not typeset (a formula step's reason, a label): "divide by $h$" → "divide by h",
+// "$x^2$ cancels" → "x² cancels", "let $h \to 0$" → "let h → 0". Only what reads well in one line of text is
+// converted; anything else keeps its letters (a fraction becomes a/b).
+const SUP: Record<string, string> = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', '−': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', n: 'ⁿ', i: 'ⁱ', k: 'ᵏ', T: 'ᵀ', x: 'ˣ', '′': '′' };
+const SUB: Record<string, string> = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉', '+': '₊', '-': '₋', '−': '₋', '=': '₌', '(': '₍', ')': '₎', a: 'ₐ', e: 'ₑ', o: 'ₒ', x: 'ₓ', h: 'ₕ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', p: 'ₚ', s: 'ₛ', t: 'ₜ', i: 'ᵢ', j: 'ⱼ', r: 'ᵣ', u: 'ᵤ', v: 'ᵥ' };
+const SYM: Record<string, string> = {
+  to: '→', rightarrow: '→', Rightarrow: '⇒', implies: '⇒', leftarrow: '←', iff: '⇔', mapsto: '↦', cdot: '·', times: '×', div: '÷', pm: '±', mp: '∓',
+  le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈', equiv: '≡', sim: '∼', propto: '∝', infty: '∞', partial: '∂', nabla: '∇',
+  sum: 'Σ', prod: 'Π', int: '∫', in: '∈', notin: '∉', subset: '⊂', subseteq: '⊆', cup: '∪', cap: '∩', emptyset: '∅', forall: '∀', exists: '∃',
+  ldots: '…', cdots: '⋯', dots: '…', prime: '′', circ: '∘', deg: '°', degree: '°', neg: '¬', land: '∧', lor: '∨',
+  alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε', zeta: 'ζ', eta: 'η', theta: 'θ', vartheta: 'ϑ', iota: 'ι', kappa: 'κ',
+  lambda: 'λ', mu: 'μ', nu: 'ν', xi: 'ξ', pi: 'π', rho: 'ρ', sigma: 'σ', tau: 'τ', upsilon: 'υ', phi: 'φ', varphi: 'φ', chi: 'χ', psi: 'ψ', omega: 'ω',
+  Gamma: 'Γ', Delta: 'Δ', Theta: 'Θ', Lambda: 'Λ', Xi: 'Ξ', Pi: 'Π', Sigma: 'Σ', Phi: 'Φ', Psi: 'Ψ', Omega: 'Ω',
+  lim: 'lim', sin: 'sin', cos: 'cos', tan: 'tan', log: 'log', ln: 'ln', exp: 'exp', max: 'max', min: 'min', det: 'det',
+};
+/** One group's content: {…} or the next character (or command). */
+function group(s: string, i: number): [string, number] {
+  while (s[i] === ' ') i++;
+  if (s[i] === '{') {
+    let d = 1, j = i + 1;
+    for (; j < s.length && d; j++) d += s[j] === '{' ? 1 : s[j] === '}' ? -1 : 0;
+    return [s.slice(i + 1, j - 1), j];
+  }
+  if (s[i] === '\\') {
+    const m = /^\\([a-zA-Z]+|.)/.exec(s.slice(i));
+    if (m) return [m[0], i + m[0].length];
+  }
+  return [s[i] ?? '', i + 1];
+}
+function math_text(s: string): string {
+  let out = '';
+  for (let i = 0; i < s.length; ) {
+    const c = s[i];
+    if (c === '\\') {
+      const m = /^\\([a-zA-Z]+|.)/.exec(s.slice(i))!;
+      const name = m[1];
+      i += m[0].length;
+      if (name === 'frac' || name === 'dfrac' || name === 'tfrac') {
+        const [a, j] = group(s, i), [b, k] = group(s, j);
+        const wrap = (x: string) => (x.length > 1 && /[+\-−=\s]/.test(x) ? `(${x})` : x);
+        out += `${wrap(math_text(a))}/${wrap(math_text(b))}`;
+        i = k;
+      } else if (name === 'sqrt') {
+        const [a, j] = group(s, i), t = math_text(a);
+        out += t.length > 1 ? `√(${t})` : `√${t}`;
+        i = j;
+      } else if (/^(text|textrm|mathrm|mathit|mathbf|mathsf|operatorname|mbox|textit|emph|boldsymbol|bm)$/.test(name)) {
+        const [a, j] = group(s, i);
+        out += name.startsWith('text') || name === 'mbox' || name === 'emph' ? a : math_text(a);
+        i = j;
+      } else if (/^(left|right|big|Big|bigg|Bigg|displaystyle|limits|nolimits)$/.test(name)) {
+        /* sizing: nothing */
+      } else if (name === ',' || name === ';' || name === ':' || name === ' ' || name === 'quad' || name === 'qquad') out += ' ';
+      else if (name === '{' || name === '}' || name === '%' || name === '$' || name === '&' || name === '#' || name === '_') out += name;
+      else out += SYM[name] ?? name;
+    } else if (c === '^' || c === '_') {
+      const [a, j] = group(s, i + 1), t = math_text(a), map = c === '^' ? SUP : SUB;
+      const all = [...t].every((ch) => map[ch]);
+      out += all ? [...t].map((ch) => map[ch]).join('') : `${c}${t.length > 1 ? `(${t})` : t}`;
+      i = j;
+    } else if (c === '{' || c === '}') i++;
+    else if (c === '-') { out += '−'; i++; }
+    else if (c === "'") { out += '′'; i++; }
+    else { out += c; i++; }
+  }
+  return out.replace(/\s+/g, ' ');
+}
+/** Text with $…$ TeX in it, as plain text (the TeX turned into the characters it would show). */
+export function tex_as_text(s: string): string {
+  return s.replace(/\$\$([^$]+)\$\$|\$([^$]+)\$/g, (_m, a: string | undefined, b: string | undefined) => math_text((a ?? b ?? '').trim()));
+}

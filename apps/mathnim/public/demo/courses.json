@@ -7661,5 +7661,91 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "engine-zones",
+  "title": {
+   "en": "Three zones (engine test)",
+   "zh": "三个区域（引擎测试）"
+  },
+  "summary": {
+   "en": "Not a course: the design specimen's materials as they joined the engine, in figure, world and text.",
+   "zh": "不是一门课：设计样本里的材质并入引擎后的样子，分在图、物、文三个区域。"
+  },
+  "audience": {
+   "en": "Reviewers of the engine.",
+   "zh": "引擎的审阅者。"
+  },
+  "outcomes": [],
+  "lang": "en",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "test": true,
+  "packs": [
+   "physics"
+  ],
+  "origin": {
+   "decks": 0,
+   "exams": 0,
+   "note": {
+    "en": "Written by an AI (Claude) as an engine test · not a course",
+    "zh": "由 AI（Claude）为测试引擎而写 · 不是一门课"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "Zones",
+     "zh": "区域"
+    },
+    "lessons": [
+     "engine-zones-tour"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "engine-zones-tour",
+    "title": {
+     "en": "The three zones (engine test)",
+     "zh": "三个区域（引擎测试）"
+    },
+    "summary": {
+     "en": "What joined the engine from the design specimen, each in its zone.",
+     "zh": "从设计样本并入引擎的东西，各在各的区域。"
+    },
+    "minutes": 6,
+    "meta": {
+     "title": {
+      "en": "The three zones (engine test)",
+      "zh": "三个区域（引擎测试）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "engine-zones.tour",
+       "name": {
+        "en": "The three zones",
+        "zh": "三个区域"
+       },
+       "description": {
+        "en": "Figure, world and text, as the engine draws them.",
+        "zh": "图、物、文，引擎画出来的样子。"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
  }
 ]

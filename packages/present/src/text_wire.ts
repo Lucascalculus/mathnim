@@ -14,12 +14,12 @@ export function wire_text(root: Document | HTMLElement = document): void {
       if (body) body.hidden = !open;
       return;
     }
-    const ring = el?.closest?.('.mn-why-ring') as HTMLElement | null;
+    const ring = el?.closest?.('.mn-chain-ring') as HTMLElement | null;
     if (ring) {
       const under = ring.parentElement?.nextElementSibling as HTMLElement | null;
       const open = ring.getAttribute('aria-expanded') !== 'true';
       ring.setAttribute('aria-expanded', String(open));
-      if (under?.classList.contains('mn-why-because')) under.hidden = !open;
+      if (under?.classList.contains('mn-chain-because')) under.hidden = !open;
     }
   });
 }

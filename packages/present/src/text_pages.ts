@@ -88,10 +88,10 @@ export class BlockRenderer {
   /** One step of a chain of why: its text, a hollow ring when it has reasons (filled when they are open), its reasons hidden under it; where the chain ends, what it ends on. */
   why_node(n: WhyNode, claim = false): string {
     const kids = n.because ?? [];
-    const ring = kids.length ? `<button type="button" class="mn-why-ring" aria-expanded="false" aria-label="${esc(t('why_ask', undefined, this.lang))}"></button>` : '<span class="mn-why-dot" aria-hidden="true"></span>';
-    const kind = n.kind ? `<span class="mn-why-kind">${esc(t(`why_${n.kind}`, undefined, this.lang))}</span>` : '';
-    const under = kids.length ? `<div class="mn-why-because" hidden>${kids.map((k) => `<div class="mn-why-node">${this.why_node(k)}</div>`).join('')}</div>` : '';
-    return `<div class="mn-why-line${claim ? ' mn-why-claim' : ''}">${ring}<span class="mn-why-text">${this.prose(n.text)}</span>${kind}</div>${under}`;
+    const ring = kids.length ? `<button type="button" class="mn-chain-ring" aria-expanded="false" aria-label="${esc(t('why_ask', undefined, this.lang))}"></button>` : '<span class="mn-chain-dot" aria-hidden="true"></span>';
+    const kind = n.kind ? `<span class="mn-chain-kind">${esc(t(`why_${n.kind}`, undefined, this.lang))}</span>` : '';
+    const under = kids.length ? `<div class="mn-chain-because" hidden>${kids.map((k) => `<div class="mn-chain-node">${this.why_node(k)}</div>`).join('')}</div>` : '';
+    return `<div class="mn-chain-line${claim ? ' mn-chain-claim' : ''}">${ring}<span class="mn-chain-text">${this.prose(n.text)}</span>${kind}</div>${under}`;
   }
   /** Prose (L10n) as HTML: TeX, emphasis, `code`, links, footnote markers (in `lang`, the page's by default). */
   prose(s: L10n | undefined, lang: Lang = this.lang): string {
@@ -134,7 +134,7 @@ export class BlockRenderer {
         return `<${tag} class="mn-list">${b.items.map((x) => `<li>${this.prose(x)}</li>`).join('')}</${tag}>`;
       }
       case 'why':
-        return `<div class="mn-why">${this.why_node({ text: b.claim, because: b.because }, true)}</div>`;
+        return `<div class="mn-chain">${this.why_node({ text: b.claim, because: b.because }, true)}</div>`;
       case 'steps':
         this.formulas++;
         return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })));

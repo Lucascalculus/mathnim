@@ -151,16 +151,16 @@ export const CSS = `
 .mn-def-body{display:block;margin:.3em 0 .45em;padding:.05em 0 .05em .85em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 22%,transparent);color:var(--mn-ink2,#5B5B62);font-size:.94em;animation:mn-unfold .28s ease-out}
 .mn-def-body[hidden]{display:none}
 @keyframes mn-unfold{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
-.mn-why{margin:.9em 0}
-.mn-why-line{display:flex;align-items:baseline;gap:.55em}
-.mn-why-claim .mn-why-text{font-weight:500}
-.mn-why-ring{flex:none;width:.72em;height:.72em;border-radius:50%;border:1.5px solid currentColor;background:transparent;padding:0;cursor:pointer;transform:translateY(.06em);transition:background-color .25s,box-shadow .25s;color:var(--mn-ink,#111)}
-.mn-why-ring[aria-expanded="true"]{background:currentColor}
-.mn-why-dot{flex:none;width:.72em;height:.72em;display:inline-block}
-.mn-why-kind{font-size:.72em;letter-spacing:.04em;color:var(--mn-ink2,#5B5B62);text-transform:lowercase}
-.mn-why-because{margin:.35em 0 .2em .32em;padding-left:1.05em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 18%,transparent);animation:mn-unfold .28s ease-out}
-.mn-why-because[hidden]{display:none}
-.mn-why-node{margin:.3em 0}
+.mn-chain{margin:.9em 0}
+.mn-chain-line{display:flex;align-items:baseline;gap:.55em}
+.mn-chain-claim .mn-chain-text{font-weight:500}
+.mn-chain-ring{flex:none;width:.72em;height:.72em;border-radius:50%;border:1.5px solid currentColor;background:transparent;padding:0;cursor:pointer;transform:translateY(.06em);transition:background-color .25s,box-shadow .25s;color:var(--mn-ink,#111)}
+.mn-chain-ring[aria-expanded="true"]{background:currentColor}
+.mn-chain-dot{flex:none;width:.72em;height:.72em;display:inline-block}
+.mn-chain-kind{font-size:.72em;letter-spacing:.04em;color:var(--mn-ink2,#5B5B62);text-transform:lowercase}
+.mn-chain-because{margin:.35em 0 .2em .32em;padding-left:1.05em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 18%,transparent);animation:mn-unfold .28s ease-out}
+.mn-chain-because[hidden]{display:none}
+.mn-chain-node{margin:.3em 0}
 /* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
 .mn-steps{margin:10px 0}
 .mn-step{text-align:center;margin:2px 0}

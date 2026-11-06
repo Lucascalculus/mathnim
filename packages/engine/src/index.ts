@@ -23,4 +23,5 @@ export * from './vectors';
 export * from './version';
 export * from './steps';
 export * from './cases';
+export * from './trail';
 export * from './steps_check';

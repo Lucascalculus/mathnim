@@ -70,14 +70,14 @@ describe('chains of why', () => {
   };
   it('the claim with a hollow ring, its reasons hidden under it, and where the chain ends named', () => {
     const html = blocks_html([block], 'en');
-    expect(html).toContain('class="mn-why"');
-    expect(html).toContain('mn-why-claim');
-    expect(html.match(/class="mn-why-ring" aria-expanded="false"/g)?.length).toBe(2); // the claim, the first reason
-    expect(html.match(/class="mn-why-because" hidden/g)?.length).toBe(2);
+    expect(html).toContain('class="mn-chain"');
+    expect(html).toContain('mn-chain-claim');
+    expect(html.match(/class="mn-chain-ring" aria-expanded="false"/g)?.length).toBe(2); // the claim, the first reason
+    expect(html.match(/class="mn-chain-because" hidden/g)?.length).toBe(2);
     expect(html).toContain('>definition<');
     expect(html).toContain('>assumption<');
     // a leaf has no ring to open
-    expect(html.match(/mn-why-dot/g)?.length).toBe(2);
+    expect(html.match(/mn-chain-dot/g)?.length).toBe(2);
   });
   it('in Chinese: the labels too', () => {
     const html = blocks_html([block], 'zh');

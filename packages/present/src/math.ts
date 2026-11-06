@@ -78,7 +78,7 @@ const STEPS_FENCE = /```[ \t]*steps[^\n]*\n([\s\S]*?)(```|$)/g;
 /** A derivation's lines as the column of formulas mount_steps() turns into the engine's (a steps block of a page). */
 export function steps_rows_html(rows: { tex: string; why?: string }[]): string {
   const body = rows.map((r) => `${r.tex}${r.why ? ` % ${r.why}` : ''}`).join('\n');
-  const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${esc(r.why)}</div>` : ''}</div>`).join('');
+  const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${prose_math_html(r.why)}</div>` : ''}</div>`).join('');
   return `<div class="mn-steps" data-steps="${esc(body)}">${html}</div>`;
 }
 function steps_html(body: string, closed: boolean): string {
@@ -92,7 +92,7 @@ function steps_html(body: string, closed: boolean): string {
     if (l) rows.push({ tex: l, why });
     else if (why && rows.length && !rows[rows.length - 1].why) rows[rows.length - 1].why = why; // (a reason on its own line)
   }
-  const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${esc(r.why)}</div>` : ''}</div>`).join('');
+  const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${prose_math_html(r.why)}</div>` : ''}</div>`).join('');
   return `<div class="mn-steps" data-steps="${esc(body)}">${html}</div>`;
 }
 

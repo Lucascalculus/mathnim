@@ -76,6 +76,8 @@ export const NOUNS: Record<string, Pigment> = {
   'bob': 'ink', 'small-angle': 'violet', 'kinetic': 'cobalt', 'potential': 'ochre', 'energy': 'ink',
   'positive': 'vermilion', 'negative': 'cobalt', 'field': 'ink',
   'lever': 'ink', 'lever-arm': 'cobalt', 'force': 'vermilion', 'torque': 'violet',
+  // a thrown ball (time as matter): the ball, and the two legs of each tenth of a second (across stays, up changes)
+  'ball': 'ink', 'horizontal': 'cobalt', 'vertical': 'ochre',
 };
 
 /**
