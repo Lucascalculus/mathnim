@@ -7594,7 +7594,8 @@
   "mine": false,
   "public": true,
   "ready": true,
-  "hidden": true,
+  "test": true,
+  "cover": "/thumbs/physics-stress.webp",
   "packs": [
    "physics"
   ],

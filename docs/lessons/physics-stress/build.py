@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # The physics stress test's demo course (docs/design/PHYSICS-STRESS.md): one lesson, three pages, one engine figure
 # each, as Mathium lesson JSON in apps/mathnim/public/demo/physics-stress/, and its entry in
-# apps/mathnim/public/demo/courses.json with `hidden`: reachable by its address (/course-physics-stress/...), listed
-# nowhere. Not a course: a place to open the figures in the real page.
+# apps/mathnim/public/demo/courses.json with `test`: listed last on the home page, under Test (Lucas, 2026-11-06).
+# Not a course: a place to open the figures in the real page.
 #   python3 docs/lessons/physics-stress/build.py && node apps/mathnim/tools/demo_check.mjs physics-stress
 import json
 import os
@@ -58,7 +58,7 @@ def build():
         'summary': T('Not a course: three figures that test the figure engine (a pendulum, point charges, torque in 3D).', '不是一门课：三张测试图形引擎的图（单摆、点电荷、三维力矩）。'),
         'audience': T('Reviewers of the engine.', '引擎的审阅者。'),
         'outcomes': [],
-        'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'hidden': True, 'packs': ['physics'],
+        'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'test': True, 'cover': '/thumbs/physics-stress.webp', 'packs': ['physics'],
         'origin': {'decks': 0, 'exams': 0, 'note': T('Written by an AI (Claude) as an engine test · not a course', '由 AI（Claude）为测试引擎而写 · 不是一门课')},
         'units': [{'title': T('Figures', '图'), 'lessons': [LID]}], 'lessons': [entry], 'demo': True,
     }

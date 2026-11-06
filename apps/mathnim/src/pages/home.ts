@@ -38,13 +38,15 @@ const accent = (c: Course) => (c.accent ? ` style="--course-accent:${esc(c.accen
 
 function course_card(c: Course): string {
   const lang = ui_lang();
+  // an experiment is not dressed as a course the model generated from slides
+  const gen = c.test ? undefined : c.generated;
   const all = lessons_of(c), done = done_in(c);
   // a course already begun says where to pick up, right on its card (no separate "continue" section)
   const go = started(c) ? current_lesson(c) : undefined;
   return `
-    <article class="card course-card${c.generated ? ' gen' : ''}"${accent(c)}>${c.generated ? '<i></i><i></i><i></i><i></i>' : ''}
+    <article class="card course-card${gen ? ' gen' : ''}"${accent(c)}>${gen ? '<i></i><i></i><i></i><i></i>' : ''}
       <a class="course-link" href="${course_path(c)}">
-        ${c.generated ? `<span class="gen-label">${esc(c.generated.note ? tr(c.generated.note, ui_lang()) : t('gen_label', { d: c.generated.decks, n: c.generated.lessons }))}</span>` : ''}
+        ${gen ? `<span class="gen-label">${esc(gen.note ? tr(gen.note, ui_lang()) : t('gen_label', { d: gen.decks, n: gen.lessons }))}</span>` : ''}
         ${cover(c)}
         <div class="course-name">${math_html(tr(c.title, lang))}</div>
         ${c.summary ? `<div class="muted course-sum">${math_html(tr(c.summary, lang))}</div>` : ''}
@@ -55,15 +57,34 @@ function course_card(c: Course): string {
     </article>`;
 }
 
+/** Pages in the Test section that are not courses: the design specimen's material tests (a page of its own, so the
+ * link leaves the app: target="_self" keeps intercept_links off it; index.html works on the dev server too). */
+const TEST_PAGES: { href: string; cover: string; title: L10n; summary: L10n }[] = [
+  {
+    href: '/p/0y7r2k8c6i/index.html?v=materials', cover: '/thumbs/specimen.webp',
+    title: { en: 'Materials and motion (specimen)', zh: '材质与动效（样张）' },
+    summary: { en: 'The six materials, the candidates, the motion and the 28 building blocks of figures: where Mathium’s look is tried before a course uses it.', zh: '六种材质、候选材质、动效和 28 块图形积木：Mathium 的样子先在这里试，再进课。' },
+  },
+];
+const page_card = (p: (typeof TEST_PAGES)[number]) => `
+    <article class="card course-card">
+      <a class="course-link" href="${esc(p.href)}" target="_self">
+        <img class="thumb" src="${esc(p.cover)}" alt="" loading="lazy">
+        <div class="course-name">${esc(tr(p.title, ui_lang()))}</div>
+        <div class="muted course-sum">${esc(tr(p.summary, ui_lang()))}</div>
+      </a>
+    </article>`;
+
 /** Home: every course, grouped by category; a course already begun shows where to pick up on its card. */
 export function home(root: HTMLElement): void {
   const lang = ui_lang();
   // a course being built (hidden) is not listed yet; its pages open by their address
   const shown = COURSES.filter((c) => !c.hidden);
-  // courses the model made from slides are a section of their own, after the ones people made
-  const generated = shown.filter((c) => c.generated);
+  // courses the model made from slides are a section of their own, after the ones people made; experiments come last
+  const tests = shown.filter((c) => c.test);
+  const generated = shown.filter((c) => c.generated && !c.test);
   const groups: { name: string; courses: Course[] }[] = [];
-  for (const c of shown.filter((x) => !x.generated)) {
+  for (const c of shown.filter((x) => !x.generated && !x.test)) {
     const name = c.category ? tr(c.category, lang) : t('all_courses');
     const g = groups.find((x) => x.name === name) ?? (groups.push({ name, courses: [] }), groups[groups.length - 1]);
     g.courses.push(c);
@@ -73,7 +94,8 @@ export function home(root: HTMLElement): void {
       ? `<section class="gen-section"><h2 class="section-title">${esc(t('gen_section'))}</h2><p class="gen-lead">${esc(t('gen_lead'))}</p>
         ${generated.length ? `<div class="catalog">${generated.map(course_card).join('')}</div>` : ''}
         ${studio_available() ? `<a class="studio-entry" href="/studio">＋ ${esc(t('studio_entry'))}</a>` : ''}</section>`
-      : '');
+      : '')
+    + `<section class="test-section"><h2 class="section-title">${esc(t('test_section'))}</h2><div class="catalog">${tests.map(course_card).join('')}${TEST_PAGES.map(page_card).join('')}</div></section>`;
   draw_thumbnails(root);
 }
 

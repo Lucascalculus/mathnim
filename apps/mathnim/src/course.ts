@@ -107,6 +107,8 @@ export interface Course {
   labs?: Lab[];
   /** Not listed on the home page yet (being built); its pages still open by their address. */
   hidden?: boolean;
+  /** An experiment, not a course yet (a stress test of the engine): listed last on the home page, under Test. */
+  test?: boolean;
   /** Made by the model from uploaded slides in one pass, with no person editing it (pages/studio.ts): what from. */
   generated?: { decks: number; exams: number; lessons: number; /** How it was made, when not by the studio in one pass (a demo written another way). */ note?: L10n };
   units: Unit[];
