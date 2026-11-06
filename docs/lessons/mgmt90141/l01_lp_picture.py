@@ -1,19 +1,14 @@
 # Lesson 1 (lp-picture): what a plan is, and why the best one sits in a corner. Decks: W1 (business analytics, LP elements,
-# assumptions, Shader Electronics, special cases). The instrument is lp_plane; every number is solved by common.lp_solve.
+# assumptions, Shader Electronics, special cases). The figure is the engine's mgmt_lp_plane (packages/visuals/src/mgmt/lp_plane.ts:
+# a plan, the profit line or a wall in the hand); every number is solved by common.lp_solve.
 from common import *
 
 SK = 'mg.lp-picture'
-X1, X2 = T('x-pods', 'x-pod 数'), T('BlueBerrys', 'BlueBerry 数')
 
 
-def plane(rows, obj=(7, 5), tools='plan', view=(60, 90), alt=None, caption=None, sense='max', **extra):
-    return frame('lp_plane.html', alt or T('The plan plane: every point is a plan, every line a limit.', '计划平面：每个点是一个计划，每条线是一条限制。'), caption,
-                 rows=rows, obj=list(obj), sense=sense, view=list(view), tools=tools, money='$', axes=[X1, X2], **extra)
-
-
-ELEC = dict(a=[4, 3], op='<=', b=240, label=T('Electronic hours', '电子工时'))
-ASSY = dict(a=[2, 1], op='<=', b=100, label=T('Assembly hours', '装配工时'))
-PACK = dict(a=[1, 1], op='<=', b=120, label=T('Packing', '包装'))
+def plane(caption, problem='shader', tool='look', story='shown', **extra):
+    """The plan plane on the engine: problem is one of lp2d.PROBLEMS (shader, alternative, infeasible, unbounded, redundant)."""
+    return visual('mgmt_lp_plane', caption, problem=problem, tool=tool, story=story, **extra)
 
 
 def L_lp_picture():
@@ -58,9 +53,11 @@ def L_lp_picture():
                  chapter=T('The decision', '要做的决策')),
 
             read('touch', T('Every point is a plan', '每个点都是一个计划'),
-                 plane([ELEC, ASSY], tools='plan', caption=T(r"Drag the dot. Blue: allowed. Red: some department runs out of hours.", r"拖动圆点。蓝色：允许。红色：某个车间的工时不够。")),
-                 p(T(r"Inside the blue set both departments have hours to spare. **On** a line, that department is used up completely. **Past** a line, the plan asks for hours that do not exist.",
-                     r"蓝色区域里，两个车间都有富余。**落在**线上，那个车间的工时正好用完。**越过**线，这个计划要的工时就不存在了。")),
+                 plane(T(r"Each point is a plan: $x_1$ x-pods and $x_2$ BlueBerrys. The two lines are the departments’ hours; the green set is every plan that keeps both. The numbers: what the plan in hand earns, and how much of each department it uses.",
+                         r"每个点是一个计划：$x_1$ 个 x-pod、$x_2$ 个 BlueBerry。两条线是两个车间的工时；绿色区域是同时守住两条限制的全部计划。数字是手里这个计划赚多少、各用了每个车间多少工时。"),
+                       tool='plan', story='build', plan=[20, 20]),
+                 p(T(r"Inside the green set both departments have hours to spare. **On** a line, that department is used up completely. **Past** a line, the plan asks for hours that do not exist.",
+                     r"绿色区域里，两个车间都有富余。**落在**线上，那个车间的工时正好用完。**越过**线，这个计划要的工时就不存在了。")),
                  chapter=T('Touch', '动手')),
             number('earns', T('What a plan earns', '一个计划赚多少'), SK,
                    T(r"The plan with 20 x-pods and 40 BlueBerrys: how much profit does it earn?", r"20 个 x-pod 加 40 个 BlueBerry 的计划，利润是多少？"),
@@ -76,18 +73,19 @@ def L_lp_picture():
                     (T(r"Only BlueBerrys, as many as the electronic hours allow (80).", r"只做 BlueBerry，做到电子工时用完（80 个）。"),
                      T(r"That plan earns \$400 and leaves 20 assembly hours idle. Replace 4 BlueBerrys by 3 x-pods: the same 12 electronic hours, 2 more assembly hours, and profit rises by $21 - 20 = 1$.",
                        r"这个计划赚 \$400，还有 20 个装配工时闲着。把 4 个 BlueBerry 换成 3 个 x-pod：电子工时同样是 12，装配多用 2 个，利润涨 $21 - 20 = 1$。"), 'greedy-product'),
-                    (T(r"A balanced plan in the middle of the blue set, with hours left in both departments.", r"蓝色区域中间的一个“均衡”计划，两个车间都还有富余。"),
+                    (T(r"A balanced plan in the middle of the green set, with hours left in both departments.", r"绿色区域中间的一个“均衡”计划，两个车间都还有富余。"),
                      T(r"Hours left over earn nothing: from any plan with spare hours in both departments you can make a little more of something and earn more. The best plan cannot be inside.",
                        r"剩下的工时不赚钱：只要两个车间都有富余，就总能多做一点什么、多赚一点。最好的计划不可能在里面。"), 'best-in-the-middle'),
                     (T(r"A plan that uses up the hours of both departments.", r"把两个车间的工时都用完的计划。"), True)],
-                   T(r"The next page shows why: the best plan is where a profit line leaves the blue set last.", r"下一页会让你看到原因：最好的计划是利润线最后离开蓝色区域的地方。")),
+                   T(r"The next page shows why: the best plan is where a profit line leaves the green set last.", r"下一页会让你看到原因：最好的计划是利润线最后离开绿色区域的地方。")),
 
             read('sweep', T('Sliding the profit line', '推动利润线'),
                  p(T(r"A profit of \$300 can be reached by many plans: every point on the line $7x_1 + 5x_2 = 300$ earns exactly that. A profit of \$350 is another line, parallel to the first and further out.",
                      r"很多计划都能赚到 \$300：直线 $7x_1 + 5x_2 = 300$ 上的每个点正好赚这么多。\$350 是另一条线，和第一条平行、更靠外。")),
-                 plane([ELEC, ASSY], tools='plan,sweep', caption=T(r"The orange line is the profit of the plan in hand; thick: the allowed plans on it. Drag the dot, or press the button.", r"橙色线是手里这个计划的利润；粗的部分：线上被允许的计划。可以拖动圆点，也可以按按钮。")),
-                 p(T(r"As the line slides out, its thick part shrinks. The last allowed plan it touches is the **best plan**. The blue set has straight sides, so the line always leaves it at a **corner**, or along a whole edge if the line is parallel to that edge.",
-                     r"线往外推，粗的部分越来越短。它最后碰到的那个被允许的计划就是**最优计划**。蓝色区域的边是直的，所以线总是在**角**上离开；线和某条边平行时，就沿着整条边离开。")),
+                 plane(T(r"The profit line for the level in hand. Thick: the plans on it that are allowed.", r"手里这个利润水平对应的利润线。粗的部分：线上被允许的计划。"),
+                       tool='sweep', level=100),
+                 p(T(r"As the line slides out, its thick part shrinks. The last allowed plan it touches is the **best plan**. The green set has straight sides, so the line always leaves it at a **corner**, or along a whole edge if the line is parallel to that edge.",
+                     r"线往外推，粗的部分越来越短。它最后碰到的那个被允许的计划就是**最优计划**。绿色区域的边是直的，所以线总是在**角**上离开；线和某条边平行时，就沿着整条边离开。")),
                  chapter=T('Find the best', '找最好的')),
             choice('why_corner', T('Why a corner?', '为什么是角？'), SK,
                    T(r"Why does the last plan the profit line touches have to be a corner (or a whole edge)?", r"为什么利润线最后碰到的那个计划一定是个角（或一整条边）？"),
@@ -97,7 +95,7 @@ def L_lp_picture():
                    T(r"This is why a solver only has to look at corners, however many variables there are.", r"这就是为什么不管有多少变量，求解器只需要看角点。"), purpose='check'),
 
             read('corners', T('Only the corners need checking', '只需要检查角点'),
-                 plane([ELEC, ASSY], tools='look', corners=True, caption=T(r"The four corners of the allowed set and what each earns.", r"允许区域的四个角，以及每个角赚多少。")),
+                 plane(T(r"The four corners of the allowed set and what each earns.", r"允许区域的四个角，以及每个角赚多少。"), best=True, corners=True),
                  p(T(r"So there is no need to try every plan: find the corners, work out the profit at each, take the largest. A corner is where two lines meet, so you find it by solving their two equations together.",
                      r"所以没必要试遍所有计划：找出各个角，算出每个角的利润，取最大的。角是两条线相交的地方，解这两条线的方程组就能找到它。")),
                  table([T('Corner', '角'), T('Where', '位置'), T('Profit', '利润')],
@@ -114,7 +112,7 @@ def L_lp_picture():
 
             read('walls', T('Which limits matter', '哪些限制起作用'),
                  p(T(r"At the best plan both departments’ hours are used up. Now move the walls and watch the best plan and its profit.", r"在最优计划处两个车间的工时都用完了。现在移动这两面墙，看最优计划和它的利润怎么变。")),
-                 plane([ELEC, ASSY], tools='walls', caption=T(r"Drag a wall by its handle. The ring is the best plan; the gauges show what it uses.", r"拖动墙上的圆点。圆环是最优计划；刻度条显示它用了多少。")),
+                 plane(T(r"Each wall can be moved. Thick walls are the limits that hold the best plan.", r"每面墙都可以移动。粗的墙是卡住最优计划的那些限制。"), tool='walls', best=True),
                  p(T(r"A limit the best plan uses up completely is **binding**. A limit with hours left over is **slack**. Moving a binding wall changes the best profit; moving a slack wall changes nothing.",
                      r"最优计划把某条限制用完，这条限制就是**紧的**（binding）；还有富余的是**松的**（slack）。移动紧的墙，最优利润会变；移动松的墙，什么都不变。")),
                  chapter=T('Binding and slack', '紧与松')),
@@ -124,7 +122,7 @@ def L_lp_picture():
                          r"新的角满足 $4x_1 + 3x_2 = 250$ 和 $2x_1 + x_2 = 100$：$x_1 = 25$，$x_2 = 50$，利润 $7 \cdot 25 + 5 \cdot 50 = 425$，比 \$410 多 \$15：每多一个电子工时多赚 \$1.50。报告里把它叫作**影子价格**（第 3 课）。"),
                    tolerance=0.01, unit=T('dollars', '美元'), purpose='practice'),
             read('slack', T('A limit that never binds', '一条永远不起作用的限制'),
-                 plane([ELEC, ASSY, PACK], tools='walls', caption=T(r"A third limit: packing, 120 units. Move it.", r"第三条限制：包装，120 件。移动它。")),
+                 plane(T(r"A third limit: packing capacity, 120 units.", r"第三条限制：包装能力 120 件。"), problem='redundant', tool='walls', best=True),
                  p(T(r"The best plan packs only $30 + 40 = 70$ units, so packing is **slack**: there is room to spare, and moving its wall changes nothing. Such a limit is called redundant when it can never bind.",
                      r"最优计划只包 $30 + 40 = 70$ 件，所以包装是**松的**：有富余，移动它的墙什么都不变。一条永远不会起作用的限制叫作冗余的。")),
                  chapter=T('Binding and slack', '紧与松')),
@@ -137,12 +135,12 @@ def L_lp_picture():
 
             read('cases', T('Three ways a picture surprises you', '图会给你的三种意外'),
                  p(T(r"The picture does not always have one best corner. Here are the three surprises the exam can ask about.", r"图并不总是有唯一的最优角。下面是考试可能问到的三种意外。")),
-                 plane([ELEC, ASSY], obj=(4, 3), tools='sweep', caption=T(r"Profit $4x_1 + 3x_2$ is parallel to the electronic wall.", r"利润 $4x_1 + 3x_2$ 和电子线平行。")),
+                 plane(T(r"Profit $4x_1 + 3x_2$ is parallel to the electronic wall.", r"利润 $4x_1 + 3x_2$ 和电子线平行。"), problem='alternative', tool='sweep', level=240, best=True),
                  p(T(r"**Alternative optima.** The profit line leaves along a whole edge, so many plans tie at \$240. A solver reports one corner of that edge; any plan between its two ends is just as good.",
                      r"**多个最优解。** 利润线沿着整条边离开，所以很多计划并列在 \$240。求解器只报告这条边的一个端点；两端之间的任何计划一样好。")),
-                 plane([ELEC, ASSY, dict(a=[1, 0], op='>=', b=60, label=T('Contract: at least 60 x-pods', '合同：x-pod 至少 60'))], tools='plan', caption=T(r"A contract demands at least 60 x-pods, but assembly allows only 50.", r"合同要求至少 60 个 x-pod，但装配最多只允许 50 个。")),
+                 plane(T(r"A contract demands at least 60 x-pods, but assembly allows only 50.", r"合同要求至少 60 个 x-pod，但装配最多只允许 50 个。"), problem='infeasible', best=True),
                  p(T(r"**Infeasible.** No plan keeps every limit, so there is no best plan. The fix is in the model or in the promises, not in the solver.", r"**无可行解。** 没有任何计划能同时守住所有限制，所以没有最优计划。要改的是模型或承诺，不是求解器。")),
-                 plane([dict(a=[1, 1], op='>=', b=30, label=T('At least 30 in all', '合计至少 30')), dict(a=[1, 0], op='>=', b=10, label=T('At least 10 x-pods', 'x-pod 至少 10'))], tools='plan', caption=T(r"Only minimums: the allowed set runs off the page.", r"只有下限：允许区域一直延伸出画面。")),
+                 plane(T(r"Only minimums: the allowed set runs off the page.", r"只有下限：允许区域一直延伸出画面。"), problem='unbounded', best=True),
                  p(T(r"**Unbounded.** Profit can grow forever. In a real business this means a limit is missing from the model, never that profit is infinite.", r"**无界。** 利润可以无限增大。在真实的业务里，这说明模型漏了某条限制，而不是利润真的无限。")),
                  quiz(T(r"A solver reports **infeasible**. What does the picture look like?", r"求解器报告**无可行解**。图是什么样的？"),
                       [(T(r"The allowed set is empty: the limits contradict each other.", r"允许区域是空的：限制互相矛盾。"), True),

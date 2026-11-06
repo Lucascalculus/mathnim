@@ -83,10 +83,9 @@ def L_lp_formulate():
                  chapter=T('Write it', '动手写')),
 
             read('picture', T('Your model, drawn', '把你的模型画出来'),
-                 frame('lp_plane.html', T('The plan plane of Consolidated Electronics: every limit a wall, the allowed plans between them.', 'Consolidated Electronics 的计划平面：每条限制一面墙，允许的计划在墙之间。'),
-                       caption=T(r"The orange line is a cost; thick: the allowed plans that cost exactly that. Press the button to slide it in from the expensive side.", r"橙色线是一个成本；粗的部分：恰好花这么多、又被允许的计划。按按钮把它从贵的一边往里推。"),
-                       rows=[dict(r, label=r['label']) for r in CE_ROWS], obj=[10000, 8000], sense='min', view=[32, 46], tools='plan,sweep', money='$', snap=1,
-                       axes=[T('teaming', '团队协作'), T('problem solving', '问题解决')], start=[20, 30], measure=T('Cost', '成本')),
+                 visual('mgmt_lp_plane', T(r"Each line you wrote is a wall: the allowed plans are on the side the sign points to. The blue line is a cost; thick: the allowed plans that cost exactly that.",
+                                           r"你写的每一行都是一面墙：允许的计划在符号所指的一侧。蓝线是一个成本；粗的部分：恰好花这么多、又被允许的计划。"),
+                        problem='consolidated', tool='sweep', story='shown', level=300000),
                  p(T(r"This is lesson 1 with the signs turned round. The allowed set is **above** the minimums and **below** the consultant’s days, and the best plan is the **first** corner a cost line touches as it slides **in** from the expensive side.",
                      r"这就是第 1 课，只是符号反过来了。允许的区域在各个下限的**上方**、顾问天数的**下方**，最优计划是成本线从贵的一边往里推时**最先**碰到的那个角。")),
                  chapter=T('The picture', '看图')),
