@@ -196,7 +196,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string }
+  | { type: 'math'; tex: string; label?: string; /** Named pieces of the formula and what each means: tapped, it comes apart (an exploded formula). */ parts?: { tex: string; says: L10n }[] }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
@@ -204,7 +204,7 @@ export type Block =
   /** A drawing given as SVG markup (generated courses draw their own diagrams; one per language when it has words); shown as an image, so it runs no code. */
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
-  | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
+  | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean; /** The figure's params that follow the page's numbers ({ figure param: number's name }): a number dragged in the text moves the figure, and the figure moves it back. */ bind?: Record<string, string> }
   /**
    * An interactive instrument: a self-contained HTML page from the app's public folder (`src`, e.g. 'frames/mgmt90141/lp_plane.html'),
    * shown in a sandboxed frame that gets the learner's language (?lang=) and `params` (?p=, JSON) and reports its own height. `alt` says what it is
@@ -216,10 +216,7 @@ export type Block =
    * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
    * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
    */
-  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n; /** Symbols and the nouns they name ({ x_0: 'value' }): drawn in the noun's colour, as in the figure. */ nouns?: Record<string, string> }
-  /**
-   * A claim and its reasons, each opened on demand under it, down to a definition or an assumption (where the chain of
-   * "why?" en
+  | { type:
 ```
 
 ## Visuals
@@ -548,6 +545,115 @@ export type Block =
   - topics: mpc, discretization, zero-order hold, euler, double integrator
   - used in: `mpc/m2_model.ts`
 
+## The engine's library (the registry)
+
+Every piece an author can use, registered where it is written (`packages/engine/src/kernel/registry.ts`; how a piece joins: `docs/design/ENGINE-ARCH.md`). *experiment*: the gallery (`/engine`) only; *preview*: course authors; *stable*: everyone, the tutor included. The text tools' guide is `docs/TEXT-MARKUP.md`.
+
+### The tutor's acts
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `point` | stable | the tutor's light falls on one thing while the learner reads | `ACT: point <id>` | — | `engine/src/kernel/acts.ts` |
+| `set` | stable | the tutor moves what the learner's hand could move, slowly, so it is seen | `ACT: set <param> <value>` | — | `engine/src/kernel/acts.ts` |
+| `note` | stable | a few words on one thing, beside it | `ACT: note <id> <words>` | — | `engine/src/kernel/acts.ts` |
+| `reset` | stable | everything the tutor moved goes back | `ACT: reset` | — | `engine/src/kernel/acts.ts` |
+
+### Things
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `circle` | stable, kit | a circle | `P.add(new Circle(center, r, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `ellipse` | stable, kit | an ellipse | `P.add(new Ellipse(center, rx, ry, angle, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `arc` | stable, kit | an arc of a circle | `P.add(new Arc(center, r, a0, a1, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `sector` | stable, kit | a slice of a disc | `P.add(new Sector(center, r, a0, a1, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `polygon` | stable, kit | a polygon | `P.add(new Polygon(pts, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `rect` | stable, kit | a rectangle, rounded if asked | `P.add(new Rect(a, b, { role, corner }))` | — | `engine/src/lib/shapes.ts` |
+| `line` | stable, kit | a segment | `P.add(new Line(a, b, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `brace` | stable, kit | a brace under a span, with a place for its label | `P.add(new Brace(a, b, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `right_angle` | stable, kit | the mark of a right angle | `P.add(new RightAngle(corner, p, q))` | — | `engine/src/lib/shapes.ts` |
+| `angle` | stable, kit | an angle between two directions | `P.add(new Angle(corner, p, q, radius, { role }))` | — | `engine/src/lib/shapes.ts` |
+| `tex_mark` | stable, kit | TeX or words at a point (MathTex, Text, DecimalNumber) | `P.add(new TexMark(() => 'x^2', at))` | — | `engine/src/lib/shapes.ts` |
+| `flash_mark` | stable, kit | a brief flash at a point | `P.add(new Flash(at))` | — | `engine/src/lib/shapes.ts` |
+| `image_mark` | stable, kit | an image placed in the plot | `P.add(new ImageMark(src, a, b))` | — | `engine/src/lib/shapes.ts` |
+| `view3d` | preview | a small 3D view: points, lines, faces and solids lit by one light, turned by dragging | `const v = new View3D({ phi, theta }, { size, radius }); v.bar(from, to, { half }); orbit(fig, plot, v)` | — | `engine/src/lib/view3d.ts` |
+| `vector_field` | stable | a field as arrows: direction, and strength in length or ink | `P.add(new VectorField((x, y) => E(x, y), { role: 'noun:field', spacing: 36 }))` | rare/field | `engine/src/lib/vectors.ts` |
+| `streamline` | stable | a line that follows the field (a field line, a flow line) | `P.add(new Path(() => streamline(f, seed, { bounds }), { role: 'noun:field', heads: [0.5] }))` | rare/field | `engine/src/lib/vectors.ts` |
+| `steps` | stable | a derivation written line by line: each line comes down out of the one above, every line checked | `steps_figure('2x + 3 = 11\n2x = 8 % subtract 3\nx = 4 % divide by 2', { lang, nouns: { x: 'value' } })` | rare/algebra | `engine/src/lib/steps.ts` |
+| `cases` (`development`) | stable | a family of cases in transparent ink: where they agree, the ink is deepest | `P.add(new Cases((i) => secant(i), { id, role, count: 12, upto }))` | develop/tangent | `engine/src/lib/cases.ts` |
+| `trail` | stable | time as matter: equal-time ghosts of the past (spacing is speed), the future dashed | `P.add(new Trail({ sim, xy: (s) => [s[0], s[1]] }, { every: 1 / 12, ahead: 1 }))` | int/time | `engine/src/lib/trail.ts` |
+| `gap` | stable | how far off, drawn as a distance with its size in words | `P.add(new Gap(a, b, { shown, text: () => '0.4 m short' }))` | — | `engine/src/lib/guess.ts` |
+| `parts` | stable | an exploded formula: tapped, each part lifts on a card with what it means | `parts_figure(tex, [{ tex: 'P(A)', says: 'the prior' }, …], { lang })` | int/explode | `engine/src/lib/parts.ts` |
+| `plot` | stable | a plane with axes, where marks are drawn in the data's own coordinates | `fig.plot({ id, x: [x0, x1], y: [y0, y1], x_ticks, y_ticks, aspect })` | — | `engine/src/kernel/kinds.ts` |
+| `path` | stable | a curve or polyline; it can draw itself on (upto) and carry arrowheads along it | `P.add(new Path(() => pts, { id, role: 'noun:…', upto, heads }))` | — | `engine/src/kernel/kinds.ts` |
+| `region` | stable | a filled area: a set, a constraint, what is allowed | `P.add(new Region(() => pts, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
+| `marker` | stable | a point: a dot, ring, cross, square or arrow tip; a ring is a guess | `P.add(new Marker(() => [x, y], { id, role, shape }))` | — | `engine/src/kernel/kinds.ts` |
+| `dots` | stable | many points at once (data, samples) | `P.add(new Dots(() => pts, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
+| `arrow` | stable | an arrow from a point to a point (a vector, a step) | `P.add(new Arrow(() => from, () => to, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
+| `drawn` | stable | a shape drawn by hand in code, for what no kind covers | `P.add(new Drawn((env, plot) => { …; return box }, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
+| `handle` | stable | glass where the hand can move a value; it shows only where it can be moved | `fig.handle(P, px, py, { id, says, to, at })` | — | `engine/src/kernel/kinds.ts` |
+| `label` | stable | words attached to a thing, placed where they hide least | `fig.label('y = a x^2', thing, { tex: true })` | — | `engine/src/kernel/kinds.ts` |
+| `caption` | stable | a paragraph in the figure, with nouns in their colour | `fig.caption(t('the [cost](noun:cost) is a bowl', '[代价](noun:cost)是一个碗'))` | — | `engine/src/kernel/kinds.ts` |
+| `list` | stable | items revealed one by one | `fig.list([t('…', '…'), …])` | — | `engine/src/kernel/kinds.ts` |
+| `readout` | stable | a value read off the figure: TeX and numbers whose digits never jump sideways | `fig.readout([{ tex: 'J = ' }, { value: () => J.value, decimals: 2 }])` | — | `engine/src/kernel/kinds.ts` |
+| `legend` | stable | a key: a swatch in each role's colour and its name | `fig.legend([{ role: 'noun:cost', text: t('cost', '代价') }])` | — | `engine/src/kernel/kinds.ts` |
+| `canvas` | stable | the escape hatch: paint anything on a 2D canvas, keeping the boundary contract | `fig.canvas((env, box) => { … }, { id, says })` | — | `engine/src/kernel/kinds.ts` |
+| `field` | stable | a scalar field shaded with its level lines, on the GPU where there is one, the same picture on the CPU | `P.add(new Field(quadratic(() => [cx, cy, H11, H12, H22]), { role: 'noun:cost', levels: [1, 2, 3] }))` | — | `engine/src/kernel/gpu.ts` |
+| `sim` | stable | a simulation on the figure's clock: a fixed step, so it seeks exactly and replays bit for bit | `fig.sim({ inputs, start, accel \| deriv, method, dt, max_t })` | — | `engine/src/kernel/sim.ts` |
+
+### Motions
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `create` | stable, kit | a shape draws itself (Create, DrawBorderThenFill) | `create(...shapes)` | — | `engine/src/lib/shapes.ts` |
+| `uncreate` | stable, kit | a shape undraws itself | `uncreate(...shapes)` | — | `engine/src/lib/shapes.ts` |
+| `write` | stable, kit | words write themselves | `write(...marks)` | — | `engine/src/lib/shapes.ts` |
+| `grow` | stable, kit | a thing grows from a point, its centre or an edge | `grow(from, ...shapes)` | — | `engine/src/lib/shapes.ts` |
+| `indicate` | stable, kit | a thing swells for a moment to be seen | `indicate(...things)` | — | `engine/src/lib/shapes.ts` |
+| `flash` | stable, kit | a flash at a point | `flash(plot, at)` | — | `engine/src/lib/shapes.ts` |
+| `transform` | stable, kit | a shape becomes another | `transform(a, b)` | — | `engine/src/lib/shapes.ts` |
+| `crossfade` | stable, kit | words become other words | `crossfade(a, b)` | — | `engine/src/lib/shapes.ts` |
+| `reveal` | stable | things come in, each as its kind does (a path draws on, a word writes) | `reveal(...things)` | — | `engine/src/kernel/script.ts` |
+| `hide` | stable | things go | `hide(...things)` | — | `engine/src/kernel/script.ts` |
+| `set` | stable | a value moves to another with an intent (travel, grow, converge, settle…), so the picture follows | `set(param, to, 'travel', dur?)` | — | `engine/src/kernel/script.ts` |
+| `wait` | stable | a pause | `wait(seconds)` | — | `engine/src/kernel/script.ts` |
+| `beat` | stable | a § of the narration: the voice and the picture meet here | `beat()` | — | `engine/src/kernel/script.ts` |
+| `together` | stable | steps at the same time | `together(...steps)` | — | `engine/src/kernel/script.ts` |
+| `seq` | stable | steps one after another | `seq(...steps)` | — | `engine/src/kernel/script.ts` |
+| `lagged` | stable | steps started one after another, overlapping | `lagged(lag, ...steps)` | — | `engine/src/kernel/script.ts` |
+| `call` | stable | your own motion: a function of u from 0 to 1 over the params it names | `call(dur, (u) => …, [params])` | — | `engine/src/kernel/script.ts` |
+| `over` | stable | a step stretched or squeezed to a duration | `over(dur, step)` | — | `engine/src/kernel/script.ts` |
+| `run` | stable | a simulation runs for a while, as part of the script | `run(sim, seconds)` | — | `engine/src/kernel/sim.ts` |
+
+### Gestures (the prediction protocol)
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `point` | stable | a guess of a number is a hollow ring the hand drags; letting go commits it | `guess(fig, plot, fig.param('x', 1, { range }), { id, role: 'noun:…', says, at: (v) => [v, 0], to: (d) => d[0], truth, tolerance })` | core/certain | `engine/src/lib/guess.ts` |
+
+### Text tools
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `noun` | stable | a word in the colour of its thing in the figure | `[cost](noun:cost)` | int/brush | `present/src/markup/builtin.ts` |
+| `def` | stable | a definition that opens in its sentence | `[convex](def: a set that holds every segment between two of its points)` | int/stretch | `present/src/markup/builtin.ts` |
+| `number` | stable | a number in a sentence the learner drags | `{{n = 3, 1..12}}` | int/tangle | `present/src/markup/builtin.ts` |
+| `computed` | stable | a number computed from the ones the learner drags | `{{= 2.5*n}}` | int/tangle | `present/src/markup/builtin.ts` |
+| `why` | stable | a claim with its chain of reasons, each opened on demand | ````why … ```` | int/why | `present/src/markup/builtin.ts` |
+| `steps` | stable | a derivation written line by line, every line checked | ````steps … ```` | rare/algebra | `present/src/markup/builtin.ts` |
+| `parts` | stable | a formula that comes apart, each part with what it means | ````parts … ```` | int/explode | `present/src/markup/builtin.ts` |
+| `details` | stable | more, folded under the sentence, for who wants it | ````details Title … ```` | motion/fold | `present/src/markup/builtin.ts` |
+| `footnote` | stable | a source, condensed as glass beside its mark | `[^key]` | motion/condense | `present/src/markup/builtin.ts` |
+| `prose` | stable | TeX, emphasis, code and links in any sentence | ``$inline TeX$`, `$$display TeX$$`, `**bold**` (the one key idea), `*italic*`, `` `code` ``, `[text](https://…)`` | — | `present/src/markup/builtin.ts` |
+
+### Interface effects (the shell)
+
+| name | maturity | what it means | how it is written | from | file |
+|---|---|---|---|---|---|
+| `stretch` | stable | a definition opens in its sentence: the rest steps down, never sideways | `[term](def: …)` | int/stretch | `present/src/text_wire.ts` |
+| `chain_drop` | stable | reasons drop on threads from a hollow ring | ````why … ```` | int/why | `present/src/text_wire.ts` |
+| `fold` | stable | details unfold like folded paper | ````details Title … ```` | motion/fold | `present/src/text_wire.ts` |
+| `condense` | stable | a pane condenses as glass from where the finger is | `[^key]` | motion/condense | `present/src/glass.ts` |
+
 ## manim-web extensions (the interaction toolkit)
 
 `packages/manim-web/src/ext/`: the pieces worlds and visuals are built from. The guide with examples is `packages/manim-web/docs/EXTENSIONS.md`, and `packages/manim-web/dev/interact.demos.ts` runs them. Use one only when the action itself is the concept (`docs/lessons/llm-finetuning/INTERACTION-BAR.md`).
@@ -577,18 +683,28 @@ How lessons are shown: the essay and game views, text pages, narration, cues and
 
 | module | what it is |
 |---|---|
+| `packages/present/src/chain.ts` | A chain of why, as HTML (the text zone; docs/design/specimen gpu/int/why.js). Every claim carries a hollow ring in its margin with a short thread hanging from it: something is folded there. Tapped, its reasons drop out on threads, one step in, and the ring fills; a reason has its own ring, down to bedrock: a definition or an assumption ends in a ground mark instead of a ring. The threads are drawn by text_wire.ts once the chain is on the page. |
 | `packages/present/src/cue.ts` | One cue at a time. manim-web's AffordanceLayer gives every unused handle a pulsing halo and every kind of item its own lead pulse, so a world with three sliders and a card opens with four rings at once: noisy, and it hides the order of the task. A CueGuide keeps exactly one control "unused" for the layer - the first control of the cue order that the learner has not used yet - and marks the others as used, so they show their plain static ring (handles) or nothing (items), without pulse or label. When the cued control has been used, the cue moves to the next one. The coach demonstration is pointed at the cued control. |
+| `packages/present/src/glass.ts` | Condensing glass (凝结玻璃; specimen fx 'condense'): a pane that answers a tap does not pop up. A string of glass droplets flies from where you touched, gathers and melts into one pane of clear glass, and what it says is written on it as it forms (≤ 0.6 s). It is glass because it is held by your hand: tap anywhere else, or Esc, and it is gone. Clear, not frosted. Used for a source behind a footnote marker; open to any short answer to a tap. |
 | `packages/present/src/highlight.ts` | A small syntax highlighter for the code in lessons: python, bash, json, yaml and plain text. It tokenizes with ordered sticky regexes (first match wins, unknown characters are plain) and returns one HTML string per line, so a code page can number lines and highlight ranges. Classes: mn-t-c comment, mn-t-s string, mn-t-n number, mn-t-k keyword, mn-t-l literal (True, null), mn-t-b builtin, mn-t-f function / command, mn-t-d decorator, mn-t-a key or flag, mn-t-v variable. |
 | `packages/present/src/i18n.ts` | The learner's interface language and the one dictionary of UI strings. Lesson content is L10n data resolved with tr(); the chrome around it (buttons, labels, help) is looked up here by key. The app adds its own entries with define_ui() so the shell, its pages and the lesson view share one table. |
 | `packages/present/src/icons.ts` | Line icons for the controls (play, sound, menus, close, arrows): one family, Tabler's outline set (MIT, https://tabler.io/icons), only the ones used, drawn 1.5 px wide at 18 px with round ends, in the colour of the text. The site's own marks (the logo, the account, the crown, the outline's stations, the drawing-sheet corners) are drawn where they are used. |
 | `packages/present/src/index.ts` | @mathnim/present - presenters that put a lesson on screen. The essay view (chaptered scenes, checkpoints, explorations, text pages) is LessonView; the game view is the same class with mode 'game'. |
+| `packages/present/src/markup/builtin.ts` | The text tools Mathium has, as entries (markup/registry.ts). Their rendering is math.ts's (it decides the order in which a text's pieces are turned into HTML); their behaviour on the page is text_wire.ts's. What is here is what every guide says about them and how a malformed use is caught. A tool added later is its own file with its own define_markup, and brings its renderer (`html`, `pattern`). |
+| `packages/present/src/markup/check.ts` | What is wrong with a text's markup, in words a model can act on: every registered fence's own check, definitions whose parentheses do not close, numbers written in a way the page cannot read, computed numbers that read a name no number defines. The course generator's replies are checked with it on the server (studio/format.ts) and sent back for repair; nothing here touches the DOM. |
+| `packages/present/src/markup/guide.ts` | The guides written from the text tools' entries (npm run catalog writes them out): the markup guide for authors (docs/TEXT-MARKUP.md), the tutor's text tools and the course format's paragraph on text (packages/ai/src/prompts/markup.generated.ts). One source, so what a model is told is what the page does. |
+| `packages/present/src/markup/index.ts` | The text tools (docs/design/ENGINE-ARCH.md): their entries, the guides written from them, and the check of a text's markup. Importing this registers the built-in tools; a tool added later is a file imported here. |
+| `packages/present/src/markup/registry.ts` | Text tools as registry entries (docs/design/ENGINE-ARCH.md, "markup"). Every piece a text may hold - a noun, a definition in its sentence, a number to drag, a chain of why, a derivation, an exploded formula, folded details, a source - is an entry in the engine's one registry, carrying how it is written, what the learner sees, the words the tutor and the course generator are told, and a check that says what is wrong with a malformed use. The markup guide (docs/TEXT-MARKUP.md), the tutor's text tools and the course format's paragraph are generated from these entries (npm run catalog), so they cannot drift from what the page does. |
 | `packages/present/src/math.ts` | Text with inline TeX (`$...$`) in DOM elements. The TeX renderer is pluggable (the app passes manim-web's MathJax adapter); without one the TeX source is shown. |
 | `packages/present/src/narrator.ts` | Narration: pre-generated neural-voice audio (tools/gen_narration.py, edge-tts) with captions timed to its word boundaries. Lines without recorded audio (e.g. freshly generated by the AI) are synthesised on demand by the server (POST /api/tts: the same voice, word boundaries included) when it offers live narration (/api/providers says {tts: true}); otherwise, or when that fails, they are shown as captions only, unless the learner turns on the browser's own voice. |
+| `packages/present/src/page_text.ts` | The text as a zone of its page (engine kernel/page.ts). Every text root - a lesson's article, a tutor's answer, a card - has one page, made the first time anything in it needs one (page_for), so a host that only renders text gets brushing, shared numbers and the light without wiring anything. The text zone: |
 | `packages/present/src/sketchpad.ts` | Draw-your-prediction overlay: the learner sketches a curve (or places a point) on top of the scene; strokes are kept in data coordinates. |
 | `packages/present/src/steps_mount.ts` | The formula steps in a text (a tutor's answer, a page): each column of formulas math_html made from a ```steps block becomes the engine's derivation, one formula that changes line by line, played once when it is first seen; a click plays it again. Before it is drawn it is read, typeset and checked (review_steps): a block that does not read or typeset keeps its column; a line that does not follow from the one before is marked while it rests. |
 | `packages/present/src/styles.ts` | Styles for the lesson UI. Colours are CSS variables so a theme (or the host page) can restyle everything; the defaults are the quiet white theme. |
+| `packages/present/src/tangle.ts` | Numbers you drag, with rolling digits (the text zone; specimen gpu/int/tangle.js, after Bret Victor's Tangle). A number in a sentence is a handle: drag it sideways and the numbers that depend on it follow. Every number is an odometer: each digit is a wheel, and a wheel turns only while the one below it passes from 9 to 0, so carries are seen. At rest every wheel sits on a digit and the number reads its value exactly. The number you can drag is glass (your hand); the ones that follow are ink. |
+| `packages/present/src/tangle_hand.ts` | The hand on a number in a sentence (tangle.ts draws it). Dragging sideways (or the arrow keys) sets the page's shared value of that name (page_text.ts): the number in the hand rolls with the pointer, every other number of that name and every number computed from it follow, and a figure bound to it moves. Let go and it settles on its step. |
 | `packages/present/src/text_pages.ts` | Text pages: read (prose, formulas, code, figures, embedded visuals), derive (a derivation revealed line by line, with "why" notes and a fill-in line) and code (code next to its notes). The HTML is built as strings (blocks_html is pure, so it is tested without a DOM), then hydrate() binds the behaviour: copy buttons, code tabs, footnote links, embedded visuals. LessonView puts the article in its reading column and the outline or progress in the side panel. |
-| `packages/present/src/text_wire.ts` | The text's own interactions, for every page at once (one delegated listener): a definition opens in its sentence, a claim's reasons open under it. Nothing runs at rest. |
+| `packages/present/src/text_wire.ts` | The text zone's own interactions, for every page at once (one set of delegated listeners; nothing runs at rest): |
 | `packages/present/src/view.ts` | The lesson player UI (plain DOM, no framework): stage + side panel + timeline + mastery. Everything it shows comes from LessonRuntime events. Text steps (read, derive, code) replace the stage with a reading column (text_pages.ts). Every L10n text is shown in the learner's language (ViewOptions.lang, default the interface language of i18n.ts); the UI's own strings come from the i18n dictionary. |
 
 ## AI (`packages/ai`)
@@ -597,7 +713,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 
 | module | what it is |
 |---|---|
-| `packages/ai/src/acts.ts` | The tutor acting in the figure on the learner's screen (docs/design/ENGINE.md §10), on the model's side: the figure's manifest (what is on screen, what the learner can move) goes into the prompt, the model may end its answer with a few ACT lines, and they are parsed out of the text and checked against the manifest here. The figure checks them again against itself before it moves (packages/engine/src/acts.ts): the tutor can only do what the learner can. (The types are the engine's, written out: this module also runs on the server, which does not load the engine.) |
+| `packages/ai/src/acts.ts` | The tutor acting in the figure on the learner's screen (docs/design/ENGINE.md §10), on the model's side: the figure's manifest (what is on screen, what the learner can move) goes into the prompt, the model may end its answer with a few ACT lines, and they are parsed out of the text and checked against the manifest here. The figure checks them again against itself before it moves (packages/engine/src/kernel/acts.ts): the tutor can only do what the learner can. (The types are the engine's, written out: this module also runs on the server, which does not load the engine.) |
 | `packages/ai/src/backend.ts` | Where the page sends the tutor's operations (ops_types.ts). In production: the site's server (/api/ai), which writes the prompts and calls the model. Offline: recorded answers for known questions (a demo without a model). In a development build a model called from the page can run them too (local_backend.ts, never in production pages). |
 | `packages/ai/src/generate.ts` | Syllabus entry -> complete lesson: plan the steps (predict, watch, practise), then generate and validate each scene with the same pipeline as questions. |
 | `packages/ai/src/grade_text.ts` | Free-text answers checked against a rubric's key points by the active model (JSON mode, thinking off): which key points the answer makes, and one sentence of feedback in the learner's language. The lesson view falls back to self-assessment when there is no model or the call fails. |

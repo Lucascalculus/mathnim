@@ -44,7 +44,7 @@ its own frames, checks its shape and length, and names the source `frame:<page>#
 its label.
 
 **An engine figure** (a `visual` block or a step's figure): `fig.tell({ kind: 'answer', item, correct })`,
-`fig.tell({ kind: 'done', score })`, `fig.tell({ kind: 'state', text })` (`packages/engine/src/figure.ts`). The
+`fig.tell({ kind: 'done', score })`, `fig.tell({ kind: 'state', text })` (`packages/engine/src/kernel/figure.ts`). The
 source is `figure:<name>#<n>` on a page, `figure:<step id>` for a step's own figure.
 
 **A question in the text** (`quiz` block): reported by the page itself, as `quiz:<n>`, item `q`.

@@ -17,17 +17,18 @@ export type Route =
   | { page: 'course'; course: Course }
   | { page: 'lesson'; course: Course; lesson: string }
   | { page: 'lab'; course: Course; lab: string }
-  | { page: 'review' | 'settings' | 'admin' }
+  | { page: 'review' | 'settings' | 'admin' | 'engine' }
   | { page: 'studio'; id?: string };
 
-const OTHER = new Set(['review', 'settings']);
+// (/engine: the gallery of the engine's library, unlisted)
+const OTHER = new Set(['review', 'settings', 'engine']);
 
 /** The route of a path; unknown paths go home (and wrong course slugs to the lesson's own course). */
 export function parse(pathname: string): Route {
   const parts = pathname.split('/').filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return { page: 'home' };
   if (parts.length === 1 && (parts[0] === 'data' || parts[0] === 'admin')) return { page: 'admin' };
-  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' };
+  if (parts.length === 1 && OTHER.has(parts[0])) return { page: parts[0] as 'review' | 'settings' | 'engine' };
   if (parts[0] === 'studio' && parts.length <= 2) return { page: 'studio', id: parts[1] };
   const course = course_by_slug(parts[0]);
   if (course && parts.length === 1) return { page: 'course', course };

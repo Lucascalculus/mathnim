@@ -7,15 +7,16 @@
 // writes only the lines; parse_steps() takes them as people and models actually write them.
 import { tex_glyphs, type TexGlyph } from 'manim-web/utils/tex/mathjax';
 import { look, text_color_of } from '@mathnim/look';
-import type { Box } from './geom';
-import { Figure } from './figure';
-import { column, type Block, type LayoutEnv, type Size } from './layout';
-import { make_canvas } from './render';
-import { beat, set, wait, type Step } from './script';
-import { param, read, untracked, type Param } from './state';
-import { tex_scale } from './tex';
-import { break_lines, font_css, font_of, tex_as_text, text_width, type Lang } from './text';
-import { Thing, type DrawEnv, type Style } from './thing';
+import type { Box, XY } from '../kernel/geom';
+import { Figure } from '../kernel/figure';
+import { column, type Block, type LayoutEnv, type Size } from '../kernel/layout';
+import { make_canvas } from '../kernel/render';
+import { beat, set, wait, type Step } from '../kernel/script';
+import { param, read, untracked, type Param } from '../kernel/state';
+import { tex_scale } from '../kernel/tex';
+import { break_lines, font_css, font_of, t, tex_as_text, text_width, type Lang } from '../kernel/text';
+import { Thing, type DrawEnv, type Style } from '../kernel/thing';
+import { define_thing } from '../kernel/registry';
 
 // ------------------------------------------------------------------ the lines, as people write them
 
@@ -424,7 +425,7 @@ const ease = (u: number): number => smooth(0, 1, u);
 const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
 
 /** A token's ink at a moment: where its glyphs are moved to (TeX units), how big, how present. */
-interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean; /** from the line it leaves (A) or the one it arrives in (B) */ src?: 'A' | 'B'; role?: Role; /** how far down to the next line it has come (written lines kept: 0..1) */ ty?: number }
+interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean; /** from the line it leaves (A) or the one it arrives in (B) */ src?: 'A' | 'B'; role?: Role; /** how far down to the next line it has come (written lines kept: 0..1) */ ty?: number; /** the noun its symbol names */ noun?: string }
 
 /**
  * A derivation as one formula that changes line by line. `at` is where it is: 2 is the third line at rest, 1.4 is
@@ -663,7 +664,8 @@ export class Steps extends Thing implements Block {
     // (a noun's symbol in its noun's colour, as text: the hue it has in the figure, deep enough to read)
     const noun_color = (t: Token, line: number): string | null => { const nn = this.noun_of[line]?.get(t); return nn ? text_color_of(`noun:${nn}`, look()) : null; };
     const B = k < n - 1 ? this.typeset[k + 1] : A;
-    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t, B.tokens.includes(t) && !A.tokens.includes(t) ? k + 1 : k), liquid: false, ...extra });
+    const line_of = (t: Token) => (B.tokens.includes(t) && !A.tokens.includes(t) ? k + 1 : k);
+    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t, line_of(t)), noun: this.noun_of[line_of(t)]?.get(t), liquid: false, ...extra });
     if (u < 1e-6 || k >= n - 1) return A.tokens.map((t) => piece(t, G.ox[k]));
     const M = this.moves[k], oa = G.ox[k], ob = G.ox[k + 1];
     if (M.jump) return [...A.tokens.map((t) => piece(t, oa, { w: 1 - smooth(0.15, 0.6, u), src: 'A', role: 'cancel' })), ...B.tokens.map((t) => piece(t, ob, { w: smooth(0.4, 0.85, u), src: 'B', role: 'appear', ty: 1 }))];
@@ -718,7 +720,7 @@ export class Steps extends Thing implements Block {
     g.translate(x0 + (p.dx + p.cx) * k, y0 + (p.dy + p.cy) * k);
     g.scale(k * p.scale, k * p.scale);
     g.translate(-p.cx, -p.cy);
-    g.globalAlpha = alpha;
+    g.globalAlpha = alpha * this.attn_of(p);
     const lw = (2 * swell) / (k * p.scale);
     for (const gl of p.glyphs) {
       if (only && (only === 'rules') !== !!gl.rect) continue;
@@ -738,8 +740,32 @@ export class Steps extends Thing implements Block {
     }
     g.restore();
   }
+  // ---------------------------------------------------------------- the page's attention, symbol by symbol
+  /** The page's attention as of this frame (read while drawing, so a change of it draws the formula again). */
+  private attn: { noun: string | null; k: number } | null = null;
+  override own_focus = true;
+  /** A symbol of the noun the hand is on stays; the rest of the formula recedes (other nouns' symbols more). */
+  private attn_of(p: Piece): number {
+    const f = this.attn;
+    if (!f || !f.noun || f.k <= 0.001) return 1;
+    return p.noun === f.noun ? 1 : 1 - f.k * (1 - (p.noun ? 0.22 : 0.45));
+  }
+  /** Each noun's symbol in the lines shown, where it is drawn (the page's anchors; the pointer's noun). */
+  override noun_pieces(): { noun: string; box: Box }[] {
+    const k = Math.round(untracked(() => this.at.value));
+    if (!this.lines[k] || this.box.w <= 0) return [];
+    const G = this.geometry(), kk = tex_scale(this.px()), { x0, y0 } = this.frame_of(), P = this.stack ? this.pitch() : 0, out: { noun: string; box: Box }[] = [];
+    for (let j = this.stack ? 0 : k; j <= k; j++)
+      for (const [t, nn] of this.noun_of[j] ?? []) out.push({ noun: nn, box: { x: x0 + (G.ox[j] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
+    return out;
+  }
+  override noun_at(p: XY): string | null {
+    const near = (b: Box) => p[0] >= b.x - 4 && p[0] <= b.x + b.w + 4 && p[1] >= b.y - 4 && p[1] <= b.y + b.h + 4;
+    return this.noun_pieces().find((x) => near(x.box))?.noun ?? null;
+  }
   /** Written lines kept: the lines so far at rest, the next one coming down out of the last, each with its reason. */
   private draw_stack(env: DrawEnv): void {
+    this.attn = env.focus?.() ?? null;
     const g = env.g as CanvasRenderingContext2D, v = this.at.value, n = this.lines.length;
     const { x0, y0, k } = this.frame_of(), color = this.text_color, P = this.pitch(), G = this.geometry();
     const kk = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = v - kk, live = u > 1e-6 && kk < n - 1;
@@ -796,6 +822,7 @@ export class Steps extends Thing implements Block {
   }
   draw(env: DrawEnv): void {
     if (this.stack) return this.draw_stack(env);
+    this.attn = env.focus?.() ?? null;
     const g = env.g as CanvasRenderingContext2D, v = this.at.value;
     const { x0, y0, k } = this.frame_of(), color = this.text_color;
     const ps = this.pieces(v), n = this.lines.length, kk = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = v - kk;
@@ -933,3 +960,14 @@ export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_ste
 /** A line's ink at rest, for checks: the glyph pieces of line k as tex_to_svg draws them. */
 export const rest_pieces = (st: Steps, k: number) => untracked(() => st.pieces(k));
 export const read_at = (st: Steps): number => read(st.at);
+
+// ---------------------------------------------------------------- entry
+define_thing({
+  name: 'steps', says: t('a derivation written line by line: each line comes down out of the one above, every line checked', '一行一行写出的推导：每一行从上一行里落下来，每一行都检查过'),
+  zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'rare/algebra',
+  syntax: "steps_figure('2x + 3 = 11\\n2x = 8   % subtract 3\\nx = 4   % divide by 2', { lang, nouns: { x: 'value' } })",
+  rules: ['one complete formula per line, one change per line', 'a few words after % for what was done'],
+  accept: t('at rest every frame is exactly the typeset line; each line follows from the one before', '静止时每一帧都正好是排好的那一行；每一行都由上一行推出'),
+  demo: (lang) => steps_figure('2x + 3 = 11\n2x = 8   % subtract 3\nx = 4   % divide by 2', { lang, nouns: { x: 'value' } }),
+  source: 'packages/engine/src/lib/steps.ts',
+});

@@ -9,14 +9,15 @@
 // (in a text: a ```parts fence, the formula on its first line, then `piece: meaning` lines).
 import { look } from '@mathnim/look';
 import type { TexGlyph } from 'manim-web/utils/tex/mathjax';
-import type { Box } from './geom';
-import { Figure } from './figure';
-import { column, type Block, type LayoutEnv, type Size } from './layout';
-import { param, read, type Param } from './state';
+import type { Box } from '../kernel/geom';
+import { Figure } from '../kernel/figure';
+import { column, type Block, type LayoutEnv, type Size } from '../kernel/layout';
+import { param, read, type Param } from '../kernel/state';
 import { match_symbol, typeset_line, type TexLine, type Token } from './steps';
-import { tex_scale } from './tex';
-import { break_lines, font_css, font_of, tr, type L10n, type Lang } from './text';
-import { Thing, type DrawEnv } from './thing';
+import { tex_scale } from '../kernel/tex';
+import { break_lines, font_css, font_of, t, tr, type L10n, type Lang } from '../kernel/text';
+import { Thing, type DrawEnv } from '../kernel/thing';
+import { define_thing } from '../kernel/registry';
 
 export interface FormulaPart { tex: string; says: string | L10n }
 
@@ -222,3 +223,14 @@ export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang
   fig.check('the formula typesets and every part is in it', () => (p.issues.length ? p.issues.join('; ') : null));
   return fig;
 }
+
+// ---------------------------------------------------------------- entry
+define_thing({
+  name: 'parts', says: t('an exploded formula: tapped, each part lifts on a card with what it means', '分解的公式：点一下，每一部分带着它的意思升起来'),
+  zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'int/explode',
+  syntax: "parts_figure(tex, [{ tex: 'P(A)', says: 'the prior' }, …], { lang })",
+  rules: ['each piece as it is written in the formula', 'for a formula whose parts are the lesson'],
+  accept: t('closed, every glyph is where it was typeset; open, no card meets another', '合上时每个字形都在排版位置；打开时卡片互不相碰'),
+  demo: (lang) => parts_figure('P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}', [{ tex: 'P(A\\mid B)', says: lang === 'zh' ? '看到 B 之后 A 的可能' : 'how likely A is, now that B is seen' }, { tex: 'P(A)', says: lang === 'zh' ? '证据之前 A 有多常见' : 'how common A is before any evidence' }], { lang }),
+  source: 'packages/engine/src/lib/parts.ts',
+});

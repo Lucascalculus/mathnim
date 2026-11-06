@@ -5,10 +5,11 @@
 //   P.add(new VectorField((x, y) => E(x, y), { role: 'noun:field', spacing: 36 }));
 //   const line = streamline((x, y) => E(x, y), seed, { bounds: { x: [-3, 3], y: [-2, 2] }, stop: (p) => near_sink(p) });
 //   P.add(new Path(() => lines.map((l) => l.pts), { role: 'noun:field', heads: [0.5] }));
-import type { XY } from './geom';
-import { Mark } from './kinds';
-import type { DrawEnv, Obstacle, Style } from './thing';
-import type { L10n } from './text';
+import type { XY } from '../kernel/geom';
+import { Mark } from '../kernel/kinds';
+import type { DrawEnv, Obstacle, Style } from '../kernel/thing';
+import { t, type L10n } from '../kernel/text';
+import { define_thing } from '../kernel/registry';
 
 export interface VectorFieldOpts {
   id?: string;
@@ -170,3 +171,17 @@ export function streamline(f: (x: number, y: number) => XY, seed: XY, o: StreamO
   }
   return { pts, end: 'length', length: len };
 }
+
+// ---------------------------------------------------------------- entries
+define_thing({
+  name: 'vector_field', says: t('a field as arrows: direction, and strength in length or ink', '用箭头画场：方向，以及用长度或深浅表示的强弱'),
+  zones: ['figure', 'world'], maturity: 'stable', since: '0.2.1', from: 'rare/field',
+  syntax: "P.add(new VectorField((x, y) => E(x, y), { role: 'noun:field', spacing: 36 }))",
+  source: 'packages/engine/src/lib/vectors.ts',
+});
+define_thing({
+  name: 'streamline', says: t('a line that follows the field (a field line, a flow line)', '顺着场走的线（场线、流线）'),
+  zones: ['figure', 'world'], maturity: 'stable', since: '0.2.1', from: 'rare/field',
+  syntax: "P.add(new Path(() => streamline(f, seed, { bounds }), { role: 'noun:field', heads: [0.5] }))",
+  source: 'packages/engine/src/lib/vectors.ts',
+});

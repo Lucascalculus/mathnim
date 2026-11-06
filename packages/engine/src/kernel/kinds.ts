@@ -721,6 +721,18 @@ export class Path extends Mark {
    * of each polyline's length, pointing along it (which way a field line or a flow runs).
    */
   o: { closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; heads?: Val<number[]> };
+  /** A pointer touches a curve within a finger's reach of its line (not anywhere in the box around it). */
+  override hits(p: XY): boolean {
+    if (!super.hits([p[0], p[1]]) && !this.near_box(p)) return false;
+    const reach = 9 + (this.material.stroke ?? 2);
+    for (const pl of this.px)
+      for (let i = 1; i < pl.length; i++) if (seg_dist(p, pl[i - 1], pl[i]) <= reach) return true;
+    return false;
+  }
+  private near_box(p: XY): boolean {
+    const b = this.box, m = 12;
+    return b.w > 0 && p[0] >= b.x - m && p[0] <= b.x + b.w + m && p[1] >= b.y - m && p[1] <= b.y + b.h + m;
+  }
   draw(env: DrawEnv): void {
     const raw = read(this.pts);
     const polys = (raw.length && Array.isArray(raw[0]) && Array.isArray((raw[0] as XY[])[0]) ? raw : [raw]) as XY[][];
@@ -854,6 +866,10 @@ export class Marker extends Mark {
   }
   r(): number {
     return this.o.r ?? (this.o.shape === 'dot' || !this.o.shape ? 6.5 : 7);
+  }
+  /** Within a fingertip of its point. */
+  override hits(p: XY): boolean {
+    return !!this.at && Math.hypot(p[0] - this.at[0], p[1] - this.at[1]) <= this.r() + 10;
   }
   draw(env: DrawEnv): void {
     const p = read(this.pos);
@@ -1183,7 +1199,7 @@ export class Handle extends Mark {
   target(): number {
     return Math.max(this.r(), look().layout.min_target / 2);
   }
-  hits(p: XY): boolean {
+  override hits(p: XY): boolean {
     const [x, y] = this.center();
     return Math.hypot(p[0] - x, p[1] - y) <= this.target();
   }
@@ -1280,4 +1296,11 @@ export function backing(g: CanvasRenderingContext2D, b: Box, env: DrawEnv, alpha
   else g.rect(b.x, b.y, b.w, b.h);
   g.fill();
   g.restore();
+}
+
+/** The distance from p to the segment ab (CSS px). */
+function seg_dist(p: XY, a: XY, b: XY): number {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy;
+  const u = L ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)) : 0;
+  return Math.hypot(p[0] - a[0] - u * dx, p[1] - a[1] - u * dy);
 }

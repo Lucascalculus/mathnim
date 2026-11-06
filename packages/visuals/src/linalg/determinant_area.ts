@@ -88,6 +88,8 @@ export function determinant_figure(p: DeterminantAreaParams): DeterminantFigure 
   const j_hat = P.add(new Arrow([0, 0], () => [b.value, d.value], { id: 'j_hat', role: 'noun:j-hat', upto: grown, says: t('where ĵ lands: the second column of A', 'ĵ 落到的位置：A 的第二列') }));
   // the flash where the plane collapses (a ring at the origin, there for a moment)
   const flash = P.add(new Marker([0, 0], { id: 'flash', role: 'noun:collapsed', shape: 'ring', r: 18 }));
+  // (hidden until the script flashes it: without the collapse shown it never appears)
+  flash.opacity.set(0);
   // orientation: the short turn from î to ĵ
   const orient = P.add(new Drawn((env, pl) => {
     const m = M.get(), c1 = col(m, 0), c2 = col(m, 1), a1 = angle_of(c1), sweep = wrap_pi(angle_of(c2) - a1);

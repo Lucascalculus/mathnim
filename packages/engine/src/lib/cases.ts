@@ -7,12 +7,13 @@
 // it and seeking is exact. The cases shown are kept on a film (an offscreen canvas): when `upto` grows only the new
 // ones are drawn onto it, when it goes back, or what the cases read changes, or the plot is laid out again, the film
 // is drawn anew. A frame otherwise costs one image copy.
-import type { XY } from './geom';
-import { Mark } from './kinds';
-import { make_canvas } from './render';
-import { read, track, type Readable, type Val } from './state';
-import type { DrawEnv, Style } from './thing';
-import type { L10n } from './text';
+import type { XY } from '../kernel/geom';
+import { Mark } from '../kernel/kinds';
+import { make_canvas } from '../kernel/render';
+import { read, track, type Readable, type Val } from '../kernel/state';
+import type { DrawEnv, Style } from '../kernel/thing';
+import { t, type L10n } from '../kernel/text';
+import { define_thing } from '../kernel/registry';
 
 export class Cases extends Mark {
   kind = 'cases';
@@ -106,3 +107,12 @@ export class Cases extends Mark {
     return [];
   }
 }
+
+// ---------------------------------------------------------------- entry
+define_thing({
+  name: 'cases', aliases: ['development'], says: t('a family of cases in transparent ink: where they agree, the ink is deepest', '一族情形用透明墨叠画：它们一致的地方墨最深'),
+  zones: ['figure'], maturity: 'stable', since: '0.2.1', from: 'develop/tangent',
+  syntax: "P.add(new Cases((i) => secant(i), { id, role, count: 12, upto }))",
+  rules: ['for a limit, an invariant or a law that no one draws: it develops where the cases agree'],
+  source: 'packages/engine/src/lib/cases.ts',
+});

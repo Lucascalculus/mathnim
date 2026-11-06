@@ -17,7 +17,7 @@ import { Timeline, type Step } from './script';
 import { Sim, type SimSpec } from './sim';
 import { derive, now_version, param, read, untracked, type Derived, type Param, type ParamSpec, type Val } from './state';
 import { tr, type L10n, type Lang, type TextKind } from './text';
-import { Registry, contrast, type DrawEnv, type Obstacle, type Style, type Thing } from './thing';
+import { Registry, contrast, noun_of, type DrawEnv, type Obstacle, type Style, type Thing } from './thing';
 
 export type Listener = (type: string, data: Record<string, unknown>) => void;
 
@@ -65,6 +65,12 @@ export class Figure {
   private checks: { name: string; f: (fig: Figure) => string | null }[] = [];
   private reporter: (() => Record<string, unknown>) | null = null;
   private laid_out = '';
+  /**
+   * The page's attention on this figure (kernel/page.ts, zone_figure.ts): the noun the learner's hand is on, anywhere
+   * on the page, and how far the figure has turned to it (0..1). Things of that noun stay; the rest recede.
+   */
+  readonly focus: Param<string | null> = param<string | null>(null, { name: 'page.focus' });
+  readonly focus_k: Param<number> = param(0, { name: 'page.focus_k', range: [0, 1] });
 
   constructor(o: { lang?: Lang; id?: string } = {}) {
     this.lang = o.lang ?? 'en';
@@ -300,9 +306,42 @@ export class Figure {
       obstacles.push({ o: { box: inflate(l.box, 2), weight: 3 }, owner: l.id });
     }
   }
+  /**
+   * How much a thing shows under the page's attention: a thing of the noun the hand is on stays; things of other
+   * nouns recede far, the rest (axes, words) a little; the hand's glass and the tutor's light never recede.
+   */
+  private dim = (t: Thing): number => {
+    const k = this.focus_k.value;
+    if (k <= 0.001) return 1;
+    const noun = this.focus.value;
+    if (!noun || t.own_focus || t.kind === 'handle' || t.kind === 'light') return 1;
+    const n = noun_of(t.role_of?.() ?? t.role);
+    const to = n === noun ? 1 : n ? 0.22 : 0.55;
+    return 1 - k * (1 - to);
+  };
+  private focus_now = () => ({ noun: this.focus.value, k: this.focus_k.value });
+  /** The most particular thing under a pointer at p (CSS px), of those on screen; null: none. */
+  thing_at(p: XY): Thing | null {
+    let best: Thing | null = null, area = Infinity;
+    for (const t of this.registry.all()) {
+      if (t.kind === 'light' || t.kind === 'plot' || !untracked(() => t.visible()) || t.box.w <= 0 || !t.hits(p)) continue;
+      const a = t.box.w * t.box.h;
+      if (a < area) [best, area] = [t, a];
+    }
+    return best;
+  }
+  /** The noun under a pointer at p: of the most particular thing there that shows one. */
+  noun_at(p: XY): string | null {
+    const hit = this.registry.all()
+      .filter((t) => t.kind !== 'light' && t.kind !== 'handle' && untracked(() => t.visible()) && t.box.w > 0)
+      .map((t) => ({ t, n: t.noun_at(p) }))
+      .filter((x) => x.n)
+      .sort((a, b) => a.t.box.w * a.t.box.h - b.t.box.w * b.t.box.h)[0];
+    return hit?.n ?? null;
+  }
   /** Draw a frame; returns false when nothing changed (and nothing was drawn). */
   draw(g: CanvasRenderingContext2D, dpr: number, o: { force?: boolean } = {}): boolean {
-    const env: DrawEnv = { g, look: look(), lang: this.lang, dpr: dpr * this.view_scale, frame: this.frame };
+    const env: DrawEnv = { g, look: look(), lang: this.lang, dpr: dpr * this.view_scale, frame: this.frame, dim: this.dim, focus: this.focus_now };
     return this.renderer.frame(this.body(), this.overlay(), env, now_version(), {
       force: o.force,
       before: () => this.place_labels(),

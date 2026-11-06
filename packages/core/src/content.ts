@@ -65,7 +65,7 @@ export type Block =
   /** A drawing given as SVG markup (generated courses draw their own diagrams; one per language when it has words); shown as an image, so it runs no code. */
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
-  | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
+  | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean; /** The figure's params that follow the page's numbers ({ figure param: number's name }): a number dragged in the text moves the figure, and the figure moves it back. */ bind?: Record<string, string> }
   /**
    * An interactive instrument: a self-contained HTML page from the app's public folder (`src`, e.g. 'frames/mgmt90141/lp_plane.html'),
    * shown in a sandboxed frame that gets the learner's language (?lang=) and `params` (?p=, JSON) and reports its own height. `alt` says what it is

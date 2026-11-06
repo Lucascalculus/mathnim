@@ -8,6 +8,7 @@
 import { look, text_color_of } from '@mathnim/look';
 import { chain_html, parse_chain } from './chain';
 import { tangle_html, tangle_reset } from './tangle';
+import { fence_entry, fence_names, markup_entries, type MarkupCtx } from './markup';
 /** A ```parts fence: the formula on its first line, then `piece: what it means` lines. */
 export function parse_parts(body: string): { tex: string; parts: { tex: string; says: string }[] } | null {
   const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -61,7 +62,16 @@ function prose_html(text: string, o: MarkupOptions): string {
     const u = safe_url(url.replace(/&amp;/g, '&').replace(/&#39;/g, "'"));
     return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${label}</a>` : label;
   });
+  // (inline tools added by a file: each its pattern on the escaped prose; a renderer that gives up leaves the text as it is)
+  for (const e of markup_entries()) {
+    if (e.form !== 'inline' || !e.pattern || !e.html) continue;
+    s = s.replace(e.pattern, (m0: string, g1?: unknown) => e.html!(m0, typeof g1 === 'string' ? g1 : '', ctx_of(o)) ?? m0);
+  }
   return s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>').replace(/\n/g, '<br>');
+}
+/** What a tool added by a file gets to render with (markup/registry.ts). */
+function ctx_of(o: MarkupOptions, closed = true): MarkupCtx {
+  return { closed, prose: (s) => prose_math_html(s, o), text: (s) => math_html_in(s, o), tex: tex_html, esc };
 }
 
 function tex_html(tex: string, display: boolean): string {
@@ -168,16 +178,24 @@ function math_html_in(text: string, o: MarkupOptions): string {
  * The fences a text may hold, each turned into its own piece of the text zone: ```steps (a derivation written line by
  * line), ```why (a claim and its chain of reasons), ```details Summary (more, folded under the sentence).
  */
-const FENCE = /```[ \t]*(steps|why|details|parts)([^\n]*)\n([\s\S]*?)(```|$)/g;
+const BUILT_IN = new Set(['steps', 'why', 'details', 'parts']);
+let fence_re: { names: string; re: RegExp } | null = null;
+/** The fences a text may hold: the built-in ones and every one a file added (markup/registry.ts). */
+function fences(): RegExp {
+  const names = [...new Set([...BUILT_IN, ...fence_names()])].join('|');
+  if (fence_re?.names !== names) fence_re = { names, re: new RegExp('```[ \\t]*(' + names + ')([^\\n]*)\\n([\\s\\S]*?)(```|$)', 'g') };
+  return fence_re.re;
+}
 function fenced_html(text: string, o: MarkupOptions): string {
   if (!text.includes('```')) return prose_math_html(text, o);
   const out: string[] = [];
   let at = 0;
-  for (const m of text.matchAll(FENCE)) {
+  for (const m of text.matchAll(fences())) {
     if (m.index! > at) out.push(prose_math_html(text.slice(at, m.index).replace(/\s+$/, ''), o));
     const closed = m[4] === '```', body = m[3];
     if (m[1] === 'steps') out.push(steps_html(body, closed));
     else if (!closed) out.push('<div class="mn-steps mn-steps-wait"></div>');
+    else if (!BUILT_IN.has(m[1])) out.push(fence_entry(m[1])?.html?.(body, m[2].trim(), ctx_of(o, closed)) ?? prose_math_html(body, o));
     else if (m[1] === 'parts') {
       const p = parse_parts(body);
       out.push(p ? parts_html(p.tex, p.parts.map((x) => ({ tex: x.tex, says: x.says, html: prose_math_html(x.says, o) }))) : prose_math_html(body, o));

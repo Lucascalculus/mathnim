@@ -59,7 +59,7 @@ the file. Secrets are separate and are never in the file.
 
 ### Versions
 
-Mathium has one version number, `MATHIUM_VERSION` in `packages/engine/src/version.ts` (and the same in
+Mathium has one version number, `MATHIUM_VERSION` in `packages/engine/src/kernel/version.ts` (and the same in
 `packages/engine/package.json`; a test keeps them equal). Bump it before a deploy that changes what learners see:
 the last number for fixes and new lessons, the middle one for a new feature or a new course format, the first only
 when Lucas says so. Every build adds the commit and the day (`__MATHIUM_BUILD__`, from `apps/mathnim/vite.config.ts`;

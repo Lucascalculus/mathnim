@@ -1,7 +1,7 @@
 // The tutor acting in the figure on the learner's screen (docs/design/ENGINE.md §10), on the model's side: the
 // figure's manifest (what is on screen, what the learner can move) goes into the prompt, the model may end its answer
 // with a few ACT lines, and they are parsed out of the text and checked against the manifest here. The figure checks
-// them again against itself before it moves (packages/engine/src/acts.ts): the tutor can only do what the learner can.
+// them again against itself before it moves (packages/engine/src/kernel/acts.ts): the tutor can only do what the learner can.
 // (The types are the engine's, written out: this module also runs on the server, which does not load the engine.)
 
 export type FigureAct =

@@ -5,14 +5,15 @@
 // its role's colour and material (or its style), so the grammar, the lint, the labels' avoidance and the DOM mirror
 // work on it like on any other thing; each motion is a step of the script, so seeking stays exact.
 import { color_of, look } from '@mathnim/look';
-import { bounds_of, type Box, type XY } from './geom';
-import { Mark, Plot, Readout, TextBlock, type PlotSpec } from './kinds';
-import { Row, type Block } from './layout';
-import { call, hide, over, reveal, seq, set, together, type Step } from './script';
-import { param, read, type Param, type Val } from './state';
-import { draw_tex, tex_size } from './tex';
-import { font_css, font_of, text_width, tr, type L10n } from './text';
-import { Thing, rgba, type DrawEnv, type Obstacle, type Style } from './thing';
+import { bounds_of, type Box, type XY } from '../kernel/geom';
+import { Mark, Plot, Readout, TextBlock, type PlotSpec } from '../kernel/kinds';
+import { Row, type Block } from '../kernel/layout';
+import { call, hide, over, reveal, seq, set, together, type Step } from '../kernel/script';
+import { param, read, type Param, type Val } from '../kernel/state';
+import { draw_tex, tex_size } from '../kernel/tex';
+import { font_css, font_of, text_width, tr, type L10n } from '../kernel/text';
+import { Thing, rgba, type DrawEnv, type Obstacle, type Style } from '../kernel/thing';
+import { define_motion, define_thing } from '../kernel/registry';
 
 type ShapeOpts = { id?: string; role?: string; says?: L10n; z?: number; style?: Style; closed?: boolean; grow_from?: GrowFrom };
 /** Where a shape grows from (GrowFromCenter, GrowFromEdge, GrowFromPoint). */
@@ -505,3 +506,31 @@ export function crossfade(a: Thing, b: Thing, dur = 0.8): Step {
 /** A colour for a thing's role (for kits drawing their own). */
 export const role_color = (role: string): string => color_of(role);
 export type { Box };
+
+// ---------------------------------------------------------------- entries (manim's shapes and motions, for kits that port a scene)
+const SRC = 'packages/engine/src/lib/shapes.ts';
+const shape = (name: string, en: string, zh: string, syntax: string) =>
+  define_thing({ name, says: { en, zh }, zones: ['figure'], maturity: 'stable', since: '0.2.0', syntax, source: SRC, internal: true });
+shape('circle', 'a circle', '圆', 'P.add(new Circle(center, r, { role }))');
+shape('ellipse', 'an ellipse', '椭圆', 'P.add(new Ellipse(center, rx, ry, angle, { role }))');
+shape('arc', 'an arc of a circle', '圆弧', 'P.add(new Arc(center, r, a0, a1, { role }))');
+shape('sector', 'a slice of a disc', '扇形', 'P.add(new Sector(center, r, a0, a1, { role }))');
+shape('polygon', 'a polygon', '多边形', 'P.add(new Polygon(pts, { role }))');
+shape('rect', 'a rectangle, rounded if asked', '矩形（可圆角）', 'P.add(new Rect(a, b, { role, corner }))');
+shape('line', 'a segment', '线段', 'P.add(new Line(a, b, { role }))');
+shape('brace', 'a brace under a span, with a place for its label', '标在一段下面的大括号，留出标签的位置', 'P.add(new Brace(a, b, { role }))');
+shape('right_angle', 'the mark of a right angle', '直角记号', 'P.add(new RightAngle(corner, p, q))');
+shape('angle', 'an angle between two directions', '两条方向之间的角', 'P.add(new Angle(corner, p, q, radius, { role }))');
+shape('tex_mark', 'TeX or words at a point (MathTex, Text, DecimalNumber)', '某一点上的公式或文字', "P.add(new TexMark(() => 'x^2', at))");
+shape('flash_mark', 'a brief flash at a point', '某一点上的一闪', 'P.add(new Flash(at))');
+shape('image_mark', 'an image placed in the plot', '放在图里的图片', 'P.add(new ImageMark(src, a, b))');
+const motion = (name: string, en: string, zh: string, syntax: string) =>
+  define_motion({ name, says: { en, zh }, zones: ['figure'], maturity: 'stable', since: '0.2.0', syntax, source: SRC, internal: true });
+motion('create', 'a shape draws itself (Create, DrawBorderThenFill)', '形状自己画出来', 'create(...shapes)');
+motion('uncreate', 'a shape undraws itself', '形状自己擦掉', 'uncreate(...shapes)');
+motion('write', 'words write themselves', '字一笔笔写出来', 'write(...marks)');
+motion('grow', 'a thing grows from a point, its centre or an edge', '东西从一点、中心或一边长出来', 'grow(from, ...shapes)');
+motion('indicate', 'a thing swells for a moment to be seen', '东西放大一下，让人注意到', 'indicate(...things)');
+motion('flash', 'a flash at a point', '某一点闪一下', 'flash(plot, at)');
+motion('transform', 'a shape becomes another', '一个形状变成另一个', 'transform(a, b)');
+motion('crossfade', 'words become other words', '一句话变成另一句', 'crossfade(a, b)');

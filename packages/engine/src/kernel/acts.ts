@@ -5,8 +5,10 @@
 import type { Figure } from './figure';
 import { inflate, type Box, type XY } from './geom';
 import { Label } from './kinds';
+import type { FigurePlayer } from './player';
+import { define, lookup, type Entry } from './registry';
 import { param, untracked, type Param } from './state';
-import { tr } from './text';
+import { t, tr } from './text';
 import { Thing, rgba, type DrawEnv } from './thing';
 
 export type Act =
@@ -14,13 +16,36 @@ export type Act =
   | { op: 'set'; param: string; to: number }
   | { op: 'note'; id: string; text: string }
   | { op: 'reset' };
+/** An act a library file added (define_act): its op and whatever it names. */
+export interface CustomAct {
+  op: string;
+  [k: string]: unknown;
+}
+const BUILTIN = new Set(['point', 'set', 'note', 'reset']);
+const is_builtin = (a: Act | CustomAct): a is Act => BUILTIN.has(a.op);
+
+/**
+ * A tutor's act as a registry entry. The four built-in ones (point, set, note, reset) are entries for the catalog;
+ * a new one brings its behaviour: `check` (null when it can be done now, else why not, in words an agent can act on),
+ * `now` (done at once: node, tests, the doctor) and `play` (animated, in the page; default: now).
+ */
+export interface ActEntry extends Entry {
+  kind: 'act';
+  check?: (fig: Figure, a: CustomAct) => string | null;
+  now?: (fig: Figure, a: CustomAct) => void;
+  play?: (player: FigurePlayer, a: CustomAct) => Promise<void>;
+}
+export function define_act(e: Omit<ActEntry, 'kind'>): ActEntry {
+  return define({ ...e, kind: 'act' } as ActEntry);
+}
+const custom = (op: string): ActEntry | undefined => lookup('act', op) as ActEntry | undefined;
 /** What the tutor may act on: the things on screen now and the params the learner can move. */
 export interface Manifest {
   things: { id: string; kind: string; says?: string; text?: string }[];
   params: { name: string; value: number; range?: [number, number]; step?: number; doc?: string }[];
 }
 export interface ActRecord {
-  act: Act;
+  act: Act | CustomAct;
   ok: boolean;
   /** Why it was not done. */
   why?: string;
@@ -61,7 +86,13 @@ export function manifest_of(fig: Figure): Manifest {
 }
 
 /** null when the act can be done now, else why not (in words an agent can act on). */
-export function check_act(fig: Figure, a: Act): string | null {
+export function check_act(fig: Figure, act: Act | CustomAct): string | null {
+  if (!is_builtin(act)) {
+    const e = custom(act.op);
+    if (!e || !(e.now || e.play)) return `unknown act '${act.op}'`;
+    return e.check ? e.check(fig, act) : null;
+  }
+  const a = act;
   switch (a.op) {
     case 'point':
     case 'note': {
@@ -150,7 +181,7 @@ export class Hands {
     fig.registry.add(this.light);
     fig.registry.add(this.note);
   }
-  record(act: Act, why?: string): ActRecord {
+  record(act: Act | CustomAct, why?: string): ActRecord {
     const r: ActRecord = { act, ok: !why, ...(why ? { why } : {}), at: now() };
     this.history.push(r);
     return r;
@@ -177,9 +208,14 @@ export class Hands {
 }
 
 /** Do an act at once (no motion): node, tests and the doctor; the player animates the same acts. */
-export function act_now(fig: Figure, a: Act): ActRecord {
-  const h = fig.hands(), why = check_act(fig, a);
-  if (why) return h.record(a, why);
+export function act_now(fig: Figure, act: Act | CustomAct): ActRecord {
+  const h = fig.hands(), why = check_act(fig, act);
+  if (why) return h.record(act, why);
+  if (!is_builtin(act)) {
+    custom(act.op)!.now?.(fig, act);
+    return h.record(act);
+  }
+  const a = act;
   if (a.op === 'set') {
     const p = h.param(a.param)!;
     h.keep(p);
@@ -196,3 +232,10 @@ export function act_now(fig: Figure, a: Act): ActRecord {
   }
   return h.record(a);
 }
+
+// ---------------------------------------------------------------- the built-in acts, as entries
+const SRC = 'packages/engine/src/kernel/acts.ts';
+define_act({ name: 'point', says: t('the tutor\'s light falls on one thing while the learner reads', '导师的光落在一样东西上，学生边读边看'), zones: ['figure', 'world', 'text'], maturity: 'stable', since: '0.2.0', syntax: 'ACT: point <id>', example: 'ACT: point landing', source: SRC });
+define_act({ name: 'set', says: t('the tutor moves what the learner\'s hand could move, slowly, so it is seen', '导师像学生那样拖动一个量，慢慢地，让人看见'), zones: ['figure', 'world', 'page'], maturity: 'stable', since: '0.2.0', syntax: 'ACT: set <param> <value>', example: 'ACT: set angle 45', source: SRC });
+define_act({ name: 'note', says: t('a few words on one thing, beside it', '在一样东西旁边写几个字'), zones: ['figure', 'world'], maturity: 'stable', since: '0.2.0', syntax: 'ACT: note <id> <words>', example: 'ACT: note landing too far', rules: ['at most 60 characters'], source: SRC });
+define_act({ name: 'reset', says: t('everything the tutor moved goes back', '导师动过的都放回原处'), zones: ['figure', 'world'], maturity: 'stable', since: '0.2.0', syntax: 'ACT: reset', source: SRC });

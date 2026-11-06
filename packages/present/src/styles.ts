@@ -146,7 +146,11 @@ export const CSS = `
 .mn-math svg{vertical-align:middle}
 /* the text zone (docs/design/specimen gpu/int): paper, ink, glass for the hand; no boxes */
 /* a noun in its colour: touched, its thing in the figure answers */
-.mn-noun{font-weight:500;cursor:default}
+.mn-noun{font-weight:500;cursor:default;border-radius:3px;transition:background-color .18s ease,box-shadow .18s ease}
+/* the hand on this noun, anywhere on the page (a word, its thing in a figure, a symbol of a formula): a faint ground of its own colour */
+.mn-noun.mn-lit{background:color-mix(in srgb,currentColor 13%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,currentColor 13%,transparent)}
+/* the page's one light on this word (the tutor pointing at it) */
+.mn-noun.mn-light{box-shadow:0 0 0 2px color-mix(in srgb,#E4572E 55%,transparent),0 0 14px color-mix(in srgb,#E4572E 30%,transparent)}
 /* a definition in its sentence: a dotted term; opened, the definition follows it on a faint ground and the rest of the sentence drops by whole lines, keeping its x */
 .mn-def-term{font:inherit;color:inherit;background:none;border:0;padding:0 0 .12em;margin:0;cursor:pointer;position:relative;
   background-image:radial-gradient(circle,rgba(68,70,77,.85) .95px,transparent 1.25px);background-size:5px 3px;background-repeat:repeat-x;background-position:0 100%}

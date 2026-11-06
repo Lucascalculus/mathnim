@@ -9,6 +9,7 @@ import { lab_page, lesson_page } from './pages/lesson';
 import { admin_page } from './pages/admin';
 import { review } from './pages/review';
 import { settings_page } from './pages/settings';
+import { engine_page } from './pages/engine';
 import { studio_page } from './pages/studio';
 import { navigate } from './router';
 import { detect_server_providers, load_settings } from './settings';
@@ -33,7 +34,7 @@ wire_text();
 Promise.allSettled([detect_server_providers(), account]).finally(() => {
   visual_lang(start_lang);
   set_ui_lang(start_lang);
-  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, settings: settings_page, studio: studio_page, admin: admin_page });
+  mount_shell({ home, course: course_page, lesson: lesson_page, lab: lab_page, review, settings: settings_page, studio: studio_page, admin: admin_page, engine: engine_page });
   // ... and it loads once the first page is up, so a lesson opened from here does not wait for it
   const idle = window.requestIdleCallback ?? ((f: () => void) => setTimeout(f, 300));
   idle(() => void enable_dom_tex(), { timeout: 2000 });

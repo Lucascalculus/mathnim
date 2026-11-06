@@ -15,6 +15,7 @@ learner genuinely understand (讲明白)?
 | build an interactive world | `docs/lessons/llm-finetuning/INTERACTION-BAR.md`, `packages/manim-web/docs/EXTENSIONS.md` |
 | make anything the learner works with (an instrument, a figure, a widget) | `docs/REPORTS.md`: how it tells the lesson what the learner did |
 | write a visual | `packages/engine/README.md` (new visuals are engine figures), `packages/visuals/README.md`, and a kit such as `docs/lessons/mpc/KIT.md` |
+| add to the engine (a thing, a gesture, a motion, a tutor's act, a text tool, an effect) | `docs/design/ENGINE-ARCH.md`: the registry, the page, the contract each piece signs; try it in the gallery at `/engine` |
 | change the site (pages, margin, settings) | `docs/SITE-STRUCTURE.md`, `docs/ARCHITECTURE.md` |
 | set up, add a lesson, conventions | `docs/DEVELOPMENT.md` |
 | deploy | `docs/DEPLOY.md` (the AI route, what the build does to the code; marks in the code: `docs/FINGERPRINTS.md`) |
@@ -48,7 +49,7 @@ node apps/mathnim/tools/beats.mjs <lesson-id>[/<step-id>]   # a narrated scene a
 npm run check -w @mathnim/visuals -- --only <names>   # a visual: checks + contact sheets (look at them)
 node apps/mathnim/tools/lesson_text.mjs <lesson-id> zh # a lesson as the student reads it
 node apps/mathnim/tools/page_shots.mjs <url> <out> <w> <h> <steps.json>   # click through the site headlessly
-npm run catalog                   # after adding a visual, field or module: docs/CAPABILITIES.md and the tutor's catalog on the server
+npm run catalog                   # after adding a visual, field, module or registry entry: docs/CAPABILITIES.md, docs/TEXT-MARKUP.md, the tutor's catalog and text tools
 ```
 
 ## Ground rules

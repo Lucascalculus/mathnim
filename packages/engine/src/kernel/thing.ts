@@ -6,6 +6,12 @@ import type { Box, Ctx2D, XY } from './geom';
 import { param, type Param } from './state';
 import type { L10n, Lang } from './text';
 
+/** The noun a role shows: 'noun:cost' and a region of it, 'region:cost' (a tint of its noun), both show cost. */
+export function noun_of(role: string): string | null {
+  const m = /^(?:noun|region):(.+)$/.exec(role);
+  return m ? m[1] : null;
+}
+
 export interface DrawEnv {
   g: Ctx2D;
   look: Look;
@@ -14,6 +20,14 @@ export interface DrawEnv {
   dpr: number;
   /** The figure's frame (CSS px). */
   frame: Box;
+  /**
+   * How much a thing shows under the page's attention (1: fully; less: it recedes while the hand is on another noun).
+   * The renderer applies it to every thing; a thing that draws pieces of several nouns (formula steps) sets
+   * `own_focus` and reads `focus` itself, piece by piece.
+   */
+  dim?: (t: Thing) => number;
+  /** The noun the page's attention is on, and how far it has come in (0..1). */
+  focus?: () => { noun: string | null; k: number };
 }
 
 /** What a placed label must keep clear of. */
@@ -129,6 +143,20 @@ export abstract class Thing {
   }
   /** Its words piece by piece where each is drawn (a legend's entries, a readout's parts), for the DOM mirror. */
   parts_of?: (lang: Lang) => { text: string; tex?: boolean; box: Box }[];
+  /** Does a pointer at p (CSS px) touch it? Default: inside its box. A thin thing (a curve) measures its distance. */
+  hits(p: XY): boolean {
+    const b = this.box;
+    return b.w > 0 && p[0] >= b.x && p[0] <= b.x + b.w && p[1] >= b.y && p[1] <= b.y + b.h;
+  }
+  /** The noun under a pointer at p (null: none): its own, or a piece's (a token of a formula). */
+  noun_at(p: XY): string | null {
+    const n = noun_of(this.role_of?.() ?? this.role);
+    return n && this.hits(p) ? n : null;
+  }
+  /** It answers the page's attention itself, piece by piece (env.focus), instead of receding as a whole. */
+  own_focus = false;
+  /** The nouns of its pieces and where each is drawn (a formula's tokens), for the page's anchors; none by default. */
+  noun_pieces?(): { noun: string; box: Box }[];
   /** Is it on screen now? */
   visible(): boolean {
     return !this.dropped && this.opacity.value > 0.001 && (!this.parent || this.parent.visible());

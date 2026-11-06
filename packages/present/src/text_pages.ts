@@ -9,13 +9,14 @@ import { tr, code_line_count, is_engine_ui, is_figure, is_figure_player, make_pl
 import type { Scene } from 'manim-web';
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { preload, type ScenePlayer } from 'manim-web/ext/player';
-import { load_tex } from '@mathnim/engine';
+import { figure_zone, load_tex } from '@mathnim/engine';
 import { highlight_lines, lang_label } from './highlight';
 import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
 import { display_math_html, esc, fold_html, math_html, parts_html, steps_rows_html } from './math';
 import { chain_html, type ChainNode } from './chain';
 import { condense } from './glass';
+import { page_for } from './page_text';
 
 /** The notes a figure keeps beside itself (@mathnim/visuals' aside()), as one line. */
 export const asides = (p: StagePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
@@ -395,7 +396,8 @@ async function copy_text(code: string, pre: HTMLElement, btn: HTMLButtonElement,
 /** An embedded visual: loads when scrolled into view, plays once, then (optionally) becomes explorable. */
 class VisualSlot {
   private player: StagePlayer | null = null;
-  private on_noun: ((e: Event) => void) | null = null;
+  /** Leaving the page: the figure's zone detached, its bindings undone. */
+  private off_page: (() => void)[] = [];
   private ui: StageUI | null = null;
   private aff: AffordanceLayer | null = null;
   private cue: CueGuide | null = null;
@@ -446,21 +448,16 @@ class VisualSlot {
     await p.load();
     if (this.disposed) return;
     this.player = p;
-    // a noun touched in the text: its thing in this figure lights up ("this is that", text to figure)
+    // the figure joins its text's page: a noun touched in the text and its thing in the figure answer each other, and
+    // the figure's params named in `bind` follow the page's numbers (and move them back)
     if (is_figure_player(p)) {
-      let last = '', at = 0;
-      this.on_noun = (e: Event) => {
-        const key = (e as CustomEvent<{ key?: string }>).detail?.key;
-        if (!key || (key === last && performance.now() - at < 1800)) return;
-        // (the most particular thing of that noun: a point before the whole family of lines it sits on)
-        // (a drawn thing, not its number or its name: a word points at what it names)
-        const t = p.scene.registry.all().filter((x) => x.role === `noun:${key}` && !/readout|label|text|caption/.test(x.kind) && x.opacity.peek() > 0.05 && x.box.w > 0).sort((a, b) => a.box.w * a.box.h - b.box.w * b.box.h)[0];
-        if (!t) return;
-        last = key;
-        at = performance.now();
-        void p.act({ op: 'point', id: t.id });
-      };
-      (this.fig.closest('article') ?? document).addEventListener('mn-noun', this.on_noun);
+      const page = page_for(this.fig);
+      this.off_page.push(page.attach(figure_zone(p, { id: this.b.name })));
+      for (const [param, name] of Object.entries(this.b.bind ?? {})) {
+        const fp = p.scene.params.get(param);
+        if (fp) this.off_page.push(page.bind(name, fp));
+        else console.warn(`visual ${this.b.name}: no param '${param}' to bind to '${name}'`);
+      }
     }
     // what the figure is (a simulation, a toy model, real data): a faint line under it, never in it
     const notes = asides(p);
@@ -503,7 +500,7 @@ class VisualSlot {
   }
   dispose(): void {
     this.disposed = true;
-    if (this.on_noun) (this.fig.closest('article') ?? document).removeEventListener('mn-noun', this.on_noun);
+    for (const f of this.off_page.splice(0)) f();
     this.io?.disconnect();
     this.cue?.dispose();
     this.aff?.dispose();

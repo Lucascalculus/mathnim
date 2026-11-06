@@ -2,7 +2,7 @@
 // must read "divide by h", not show its dollar signs.
 import { describe, expect, it } from 'vitest';
 import { tex_as_text } from '../src/index';
-import { parse_steps } from '../src/steps';
+import { parse_steps } from '../src/lib/steps';
 
 describe('TeX in text, as text', () => {
   it('letters, powers, indices, arrows, Greek', () => {

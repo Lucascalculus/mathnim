@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { dev_api } from './server/dev';
 import { mangle_internals } from './vite.mangle';
-import { MATHIUM_VERSION } from '../../packages/engine/src/version';
+import { MATHIUM_VERSION } from '../../packages/engine/src/kernel/version';
 
 // Model keys live in the repo's .env.local (or the environment) and are only
 // read here, on the dev server, so a key never reaches the browser. The /api

@@ -280,6 +280,10 @@ export default figure({ params: { N: int(3, 12, 8) } }, ({ N }) => {
 
 ## 8. 插件
 
+> 2026-11-06 起，这一节由 `docs/design/ENGINE-ARCH.md` 实现并细化：注册表（`kernel/registry.ts`）、页（`kernel/page.ts`）、
+> 内核与库分目录（`src/kernel`、`src/lib`）、六种条目（东西、动作、手势、导师动作、文字工具、界面效果）、成熟度、画廊 `/engine`。
+> 下面的 `define_kind` 草图对应现在的 `define_thing`。
+
 ### 8.1 新增一种东西
 
 ```ts

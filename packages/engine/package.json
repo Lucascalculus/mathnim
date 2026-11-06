@@ -1,6 +1,6 @@
 {
   "name": "@mathnim/engine",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Mathium engine: figures as state, things with roles, rule-based flow layout with attached labels, scripts as pure functions of time, a renderer that draws only what changed, GPU fields, the taste lint and describe()/explain().",
   "type": "module",
   "main": "src/index.ts",

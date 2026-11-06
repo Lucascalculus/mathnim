@@ -64,7 +64,7 @@ export class Renderer {
   private draw_one(t: Thing, env: DrawEnv): void {
     const g = env.g;
     const { deps } = track(() => {
-      const a = t.opacity.value * (t.parent ? t.parent.opacity.value : 1);
+      const a = t.opacity.value * (t.parent ? t.parent.opacity.value : 1) * (env.dim ? env.dim(t) : 1);
       if (a <= 0.001) return;
       g.save();
       g.globalAlpha = a;

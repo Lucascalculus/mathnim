@@ -4,6 +4,7 @@
 // gone. Clear, not frosted. Used for a source behind a footnote marker; open to any short answer to a tap.
 //
 //   condense(html, { x, y }, anchor_rect)   →  { el, close() }
+import { define_effect, t } from '@mathnim/engine';
 
 let current: { el: HTMLElement; close: () => void; key?: string } | null = null;
 
@@ -107,3 +108,5 @@ function drops(src: { x: number; y: number }, R: { x: number; y: number; w: numb
   };
   requestAnimationFrame(frame);
 }
+
+define_effect({ name: 'condense', says: t('a pane condenses as glass from where the finger is', '面板从手指的地方凝结成玻璃'), zones: ['text'], maturity: 'stable', since: '0.2.1', from: 'motion/condense', syntax: '[^key]', accept: t('formed within 0.6 s; not frosted', '0.6 秒内成形；不磨砂'), source: 'packages/present/src/glass.ts' });

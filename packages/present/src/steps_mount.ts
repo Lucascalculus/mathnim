@@ -2,7 +2,8 @@
 // becomes the engine's derivation, one formula that changes line by line, played once when it is first seen; a click
 // plays it again. Before it is drawn it is read, typeset and checked (review_steps): a block that does not read or
 // typeset keeps its column; a line that does not follow from the one before is marked while it rests.
-import { FigurePlayer, load_tex, parts_figure, review_steps, steps_figure, type Lang } from '@mathnim/engine';
+import { FigurePlayer, figure_zone, load_tex, parts_figure, review_steps, steps_figure, type Lang } from '@mathnim/engine';
+import { page_for } from './page_text';
 
 /** Turn every column of steps under `root` that is not yet live into the engine's derivation. */
 export async function mount_steps(root: ParentNode, lang: Lang): Promise<void> {
@@ -33,6 +34,8 @@ async function mount_one(el: HTMLElement, lang: Lang): Promise<void> {
   canvas.style.width = `${canvas.width / dpr}px`;
   canvas.style.height = `${canvas.height / dpr}px`;
   el.classList.add('mn-steps-live');
+  // (the derivation joins its text's page: a noun's symbols answer the hand on that noun anywhere on the page)
+  if (Object.keys(r.nouns ?? {}).length) page_for(el).attach(figure_zone(p, { id: 'steps' }));
   const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (still) { p.show_end(); return; }
   canvas.addEventListener('click', () => { p.seek_time(0); p.play(); });

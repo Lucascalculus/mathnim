@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import pkg from '../package.json';
-import { MATHIUM_VERSION } from '../src/version';
+import { MATHIUM_VERSION } from '../src/kernel/version';
 
 // The version a learner can read in Settings and in the page's <meta name="generator"> is this one number.
 describe('version', () => {

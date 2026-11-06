@@ -4,6 +4,9 @@
 // model (LESSON_FORMAT) and every reply is checked against it (check_lesson)
 // before it is stored; the errors go back to the model for one repair.
 import type { Block, CheckpointStep, Lesson, Step, WhyNode } from '@mathnim/core';
+// what a text string may hold, and what is wrong with one: from the text tools' entries (docs/design/ENGINE-ARCH.md)
+import { MARKUP_LESSON } from '../../../../packages/ai/src/prompts/markup.generated';
+import { markup_issues, number_names } from '../../../../packages/present/src/markup/check';
 
 export const LESSON_FORMAT = `A lesson is ONE JSON object (no comments, no trailing commas):
 {
@@ -57,11 +60,7 @@ Block is one of:
      // dark strokes, font-family="sans-serif", text at least 14 units high; no scripts, no links,
      // no images, no foreignObject. Draw structures (packet headers, timelines, state machines,
      // topologies, trees) when a picture explains better than words.
-Text in strings: inline TeX between $...$ (escape a literal dollar as \\$), **bold**, *italic*, \`code\`,
-a definition in its sentence: [term](def: what it means), opened in place when the learner taps the term
-(use it the first time a term appears, instead of a sentence of definition that interrupts the argument),
-and numbers the learner drags: {{n = 3, 1..12}} (value, range) with {{= 2.5*n, 2}} following it (2 decimals),
-where "what if it were bigger?" is the point of the paragraph.
+${MARKUP_LESSON}
 In JSON, every backslash in TeX is written twice ("$\\\\frac{a}{b}$").`;
 
 export interface Checked {
@@ -97,9 +96,12 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
   const errors: string[] = [];
   const size = JSON.stringify(data ?? null).length;
   const err = (where: string, what: string) => errors.length < 60 && errors.push(`${where}: ${what}`);
+  // (the numbers of one page share their names: a computed number may read one defined elsewhere on its step)
+  let page_names: string[] = [];
   const str = (v: unknown, where: string, required = true): v is string => {
     if (typeof v === 'string' && v.trim()) {
       if (!dollars_ok(v)) err(where, 'unpaired $ (inline TeX needs an opening and a closing $; write \\$ for a dollar sign)');
+      for (const issue of markup_issues(v, { names: page_names })) err(where, issue);
       return true;
     }
     if (required || v !== undefined) err(where, 'a non-empty string is required');
@@ -256,6 +258,7 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
   steps.forEach((s, i) => {
     const at = `steps[${i}]`;
     if (!obj(s)) return err(at, 'a step object');
+    page_names = number_names(JSON.stringify(s));
     if (typeof s.id !== 'string' || !ID.test(s.id)) err(at, 'id: letters, digits, . _ - (at most 48)');
     else if (step_ids.has(s.id)) err(at, `id '${s.id}' is used twice`);
     step_ids.add(String(s.id));

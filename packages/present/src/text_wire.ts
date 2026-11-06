@@ -1,8 +1,10 @@
 // The text zone's own interactions, for every page at once (one set of delegated listeners; nothing runs at rest):
 //   a definition opens in its sentence (specimen gpu/int/stretch.js), a chain of why drops its reasons on threads
-//   (gpu/int/why.js), details unfold like folded paper (fx 'fold'), numbers are dragged (tangle.ts), a noun touched
-//   in the text lights its thing in the figure ('mn-noun' events, answered by the page's figures).
-import { wire_tangle } from './tangle';
+//   (gpu/int/why.js), details unfold like folded paper (fx 'fold'), numbers are dragged (tangle_hand.ts), and the
+//   hand on a noun tells the text's page (page_text.ts), so its things light in every zone of the page.
+import { define_effect, t } from '@mathnim/engine';
+import { page_for } from './page_text';
+import { wire_tangle } from './tangle_hand';
 
 let wired = false;
 export function wire_text(root: Document | HTMLElement = document): void {
@@ -24,10 +26,16 @@ export function wire_text(root: Document | HTMLElement = document): void {
     const head = el?.closest?.('.mn-fold-head') as HTMLElement | null;
     if (head) return toggle_fold(head);
   });
-  // a noun in the text: its thing in the figure lights up (the page's figures listen)
+  // the hand on a noun in the text: the page hears it, and every zone shows that noun (a figure turns to its thing)
   root.addEventListener('pointerover', (e) => {
     const n = (e.target as HTMLElement | null)?.closest?.('.mn-noun') as HTMLElement | null;
-    if (n) n.dispatchEvent(new CustomEvent('mn-noun', { bubbles: true, detail: { key: n.dataset.noun } }));
+    if (n) page_for(n).hover(n.dataset.noun!, 'text');
+  });
+  root.addEventListener('pointerout', (e) => {
+    const n = (e.target as HTMLElement | null)?.closest?.('.mn-noun') as HTMLElement | null;
+    if (!n || n.contains((e as PointerEvent).relatedTarget as Node | null)) return;
+    const page = page_for(n);
+    if (page.attention.from === 'text') page.hover(null);
   });
   if (typeof ResizeObserver !== 'undefined') {
     const ro = new ResizeObserver(() => document.querySelectorAll<HTMLElement>('.mn-chain').forEach(draw_threads));
@@ -208,3 +216,9 @@ function toggle_fold(head: HTMLElement): void {
   };
   requestAnimationFrame(tick);
 }
+
+// ---------------------------------------------------------------- entries (the gallery shows them; docs/design/ENGINE-ARCH.md)
+const SRC = 'packages/present/src/text_wire.ts';
+define_effect({ name: 'stretch', says: t('a definition opens in its sentence: the rest steps down, never sideways', '定义在句子里展开：后面的字往下让，从不横移'), zones: ['text'], maturity: 'stable', since: '0.2.1', from: 'int/stretch', syntax: '[term](def: …)', demo: (lang) => (lang === 'zh' ? '函数在一点[可导](def: 割线斜率在那里有[极限](def: 越来越接近、要多近有多近的那个数))，那里就一定连续。' : 'A function [differentiable](def: its secants\' slopes have a [limit](def: the number they get as close to as you like) there) at a point is continuous there.'), accept: t('closed again, every word is exactly where it was', '全部收回后每个字都回到原位'), source: SRC });
+define_effect({ name: 'chain_drop', says: t('reasons drop on threads from a hollow ring', '理由顺着线从空心环垂下来'), zones: ['text'], maturity: 'stable', since: '0.2.1', from: 'int/why', syntax: '```why … ```', demo: (lang) => (lang === 'zh' ? '```why\n球停在墙边。\n- 山谷的最低点在围栏外面\n  - 围栏是约束：围栏外的计划不允许 [定义]\n- 沿着围栏，代价朝墙的方向下降\n```' : '```why\nThe ball stops at the wall.\n- the valley\'s lowest point is outside the fence\n  - the fence is a constraint: a plan outside it is not allowed [definition]\n- along the fence the cost falls toward the wall\n```'), source: SRC });
+define_effect({ name: 'fold', says: t('details unfold like folded paper', '细节像折起来的纸一样打开'), zones: ['text'], maturity: 'stable', since: '0.2.1', from: 'motion/fold', syntax: '```details Title … ```', demo: (lang) => (lang === 'zh' ? '```details 反过来不成立\n$|x|$ 在 0 处连续，却没有导数。\n\n两边合拢到不同的直线上。\n```' : '```details The other way round is false\n$|x|$ is continuous at 0 but has no derivative there.\n\nThe two sides close onto different lines.\n```'), accept: t('at rest nothing is deformed (the words are sharp)', '静止时没有任何变形（字是锐的）'), source: SRC });

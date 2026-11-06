@@ -12,14 +12,16 @@
 //     at: (v) => [v, 0], to: (d) => d[0], truth: () => range, tolerance: 0.15, says: t('where it lands', '落点') });
 //   g.on_commit(() => { sim.restart(); sim.play(); });
 //   stage.add(new Gap(() => [g.guessed.value, -0.2], () => [range, -0.2], { shown, text: () => '0.4 m short' }));
-import type { Figure } from './figure';
-import type { XY } from './geom';
-import { Mark, Marker, type Handle, type Plot } from './kinds';
-import { call, type Step } from './script';
-import type { Sim } from './sim';
-import { derive, read, type Derived, type Param, type Val } from './state';
-import { font_css, font_of, text_width, type L10n } from './text';
-import type { DrawEnv, Style } from './thing';
+import { Figure } from '../kernel/figure';
+import type { XY } from '../kernel/geom';
+import { Mark, Marker, type Handle, type Plot } from '../kernel/kinds';
+import { define_thing } from '../kernel/registry';
+import { call, type Step } from '../kernel/script';
+import type { Sim } from '../kernel/sim';
+import { derive, read, type Derived, type Param, type Val } from '../kernel/state';
+import { font_css, font_of, t, text_width, type L10n } from '../kernel/text';
+import type { DrawEnv, Style } from '../kernel/thing';
+import { define_gesture, type Prediction } from './predict';
 
 export interface GuessSpec {
   id: string;
@@ -38,24 +40,16 @@ export interface GuessSpec {
   /** The ring's radius (px, default 8). */
   r?: number;
 }
-export interface Guess {
+/** A point guess: the prediction protocol (predict.ts) with a hollow ring the hand drags. */
+export interface Guess extends Prediction<number> {
   /** What the hand is setting now. */
   value: Param<number>;
-  /** 1 once the learner has let go of a guess (then it stays until a replay). */
-  committed: Param<number>;
   /** The guess: what the hand set while it is being made, what was let go of after. */
   guessed: Derived<number>;
   /** Guess − truth. */
   error: Derived<number>;
-  right: Derived<boolean>;
   ring: Marker;
   handle: Handle;
-  on_commit(f: () => void): void;
-  /**
-   * A script step that does nothing but names the guess's params, so a seek or a replay puts them back (the script
-   * resets what it touches): the first step of a figure with a guess. Pass more params (a sim's clock) to reset too.
-   */
-  fresh(...more: Param<number>[]): Step;
 }
 
 /** A guess of a number on a plot: a hollow ring the hand drags, committed when it lets go (once). */
@@ -84,7 +78,7 @@ export function guess(fig: Figure, P: Plot, value: Param<number>, spec: GuessSpe
   // (once made, the guess has no glass on it: nothing there to take hold of; a replay brings it back)
   const look0 = handle.o.look;
   committed.listeners.add((v) => { handle.o.look = v ? 'none' : look0; });
-  return { value, committed, guessed, error, right, ring, handle, on_commit: (f) => void hooks.push(f), fresh: (...more) => call(0, () => {}, [value, committed, locked, ...more]) };
+  return { id: spec.id, says: spec.says, value, committed, guessed, error, right, ring, handle, on_commit: (f) => void hooks.push(f), fresh: (...more) => call(0, () => {}, [value, committed, locked, ...more]) };
 }
 
 /** A clock for a motion in explore (a reveal): `t` runs 0 → 1 over `dur` seconds once played; a sim underneath, so it seeks and replays. */
@@ -156,3 +150,30 @@ export class Gap extends Mark {
     this.box = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   }
 }
+
+// ---------------------------------------------------------------- entries
+const SRC = 'packages/engine/src/lib/guess.ts';
+/** A small figure with a guess of where a point lies, its truth at 4 (the gallery's and the generic tests' demo). */
+function guess_demo(lang: 'en' | 'zh'): Figure {
+  const fig = new Figure({ lang });
+  const P = fig.plot({ id: 'line', x: [0, 6], y: [0, 0.8], x_ticks: [0, 2, 4, 6], axes: 'x', aspect: 7.5 });
+  const g = guess(fig, P, fig.param('x', 1, { range: [0, 6] }), { id: 'spot', role: 'noun:ball', says: t('where it lands', '落点'), at: (v) => [v, 0], to: (d) => d[0], truth: 4, tolerance: 0.2 });
+  fig.layout(P);
+  fig.script(g.fresh());
+  return fig;
+}
+define_gesture({
+  name: 'point', says: t('a guess of a number is a hollow ring the hand drags; letting go commits it', '对一个数的猜测是手拖动的空心圈；松手就是提交'),
+  zones: ['figure', 'world'], maturity: 'stable', since: '0.2.1', from: 'core/certain',
+  syntax: "guess(fig, plot, fig.param('x', 1, { range }), { id, role: 'noun:…', says, at: (v) => [v, 0], to: (d) => d[0], truth, tolerance })",
+  example: "const g = guess(fig, P, fig.param('land', 1, { range: [0, 6] }), { id: 'landing', role: 'noun:ball', says: t('where it lands', '落点'), at: (v) => [v, 0], to: (d) => d[0], truth: () => range, tolerance: 0.15 });\ng.on_commit(() => { sim.restart(); sim.play(); });",
+  rules: ['before the answer is shown, never after', 'the figure decides what showing the answer is (on_commit)', 'draw the gap and say its size (Gap)'],
+  accept: t('the guess commits once, when the hand lets go; the lesson hears one answer; a replay starts it again', '猜测只在松手时提交一次；课只收到一个回答；重放后重新开始'),
+  demo: guess_demo, make: guess as never, source: SRC,
+});
+define_thing({
+  name: 'gap', says: t('how far off, drawn as a distance with its size in words', '差了多少：画成一段距离，旁边写着大小'),
+  zones: ['figure', 'world'], maturity: 'stable', since: '0.2.1',
+  syntax: "P.add(new Gap(a, b, { shown, text: () => '0.4 m short' }))",
+  rules: ['with a guess (how far off) or a residual; never left for the learner to judge by eye'], source: SRC,
+});

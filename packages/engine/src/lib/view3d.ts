@@ -8,12 +8,13 @@
 // far-to-near order is right piece by piece; `bar()` is a solid bar with outward faces, the ones facing away culled and the
 // rest shaded by one fixed light (flat, Lambert); `px()` puts a label or a handle on a 3D point; `screen_axes()` and
 // `handle3d()` drag a 3D point in the plane of the screen.
-import { bounds_of, type XY } from './geom';
-import { Handle, Mark, type Plot } from './kinds';
-import { read, type Param, type Val } from './state';
-import { rgba, type DrawEnv, type Obstacle, type Style } from './thing';
+import { bounds_of, type XY } from '../kernel/geom';
+import { Handle, Mark, type Plot } from '../kernel/kinds';
+import { read, type Param, type Val } from '../kernel/state';
+import { rgba, type DrawEnv, type Obstacle, type Style } from '../kernel/thing';
 import { color_of, material_of, resolve_color } from '@mathnim/look';
-import type { L10n } from './text';
+import { t, type L10n } from '../kernel/text';
+import { define_thing } from '../kernel/registry';
 
 export type P3 = [number, number, number];
 type Item = { kind: 'line' | 'poly' | 'dots' | 'arrow'; pts: Val<P3[]>; role: string; style: Style; r?: number; pieces?: number; shade?: boolean; cull?: boolean; show?: Val<number>; bias?: number };
@@ -336,3 +337,12 @@ export function handle3d(fig: { handles: Handle[] }, P: Plot, v: View3D, o: { id
   fig.handles.push(h);
   return h;
 }
+
+// ---------------------------------------------------------------- entry
+define_thing({
+  name: 'view3d', says: t('a small 3D view: points, lines, faces and solids lit by one light, turned by dragging', '一个小的三维视图：点、线、面和实体，一束光照着，可以拖着转'),
+  zones: ['figure', 'world'], maturity: 'preview', since: '0.2.1',
+  syntax: "const v = new View3D({ phi, theta }, { size, radius }); v.bar(from, to, { half }); orbit(fig, plot, v)",
+  rules: ['minimal: no depth buffer; cut lines into pieces for the order'],
+  source: 'packages/engine/src/lib/view3d.ts',
+});

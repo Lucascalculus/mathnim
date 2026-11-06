@@ -12,7 +12,8 @@ import type { Figure } from './figure';
 import type { XY } from './geom';
 import type { Handle } from './kinds';
 import { init_gpu } from './gpu';
-import { check_act, type Act, type ActRecord, type Hands } from './acts';
+import { check_act, type Act, type ActEntry, type ActRecord, type CustomAct, type Hands } from './acts';
+import { lookup } from './registry';
 import { Mirror } from './mirror';
 import { ease_in_out } from './script';
 import { watch_writes, type Param } from './state';
@@ -370,11 +371,19 @@ export class FigurePlayer {
    * fades by itself), a note appears on a thing, or everything the tutor moved goes back. Resolves when the motion is
    * done; an act that cannot be done is recorded with why, and nothing moves.
    */
-  async act(a: Act): Promise<ActRecord> {
-    const fig = this.scene, h = fig.hands(), why = check_act(fig, a);
-    if (why) return h.record(a, why);
+  async act(act: Act | CustomAct): Promise<ActRecord> {
+    const fig = this.scene, h = fig.hands(), why = check_act(fig, act);
+    if (why) return h.record(act, why);
     if (this.playing) this.pause();
     this.start_live();
+    if (!['point', 'set', 'note', 'reset'].includes(act.op)) {
+      // (an act a library file added: its own motion, or done at once)
+      const e = lookup('act', act.op) as ActEntry;
+      if (e.play) await e.play(this, act as CustomAct);
+      else e.now?.(fig, act as CustomAct);
+      return h.record(act);
+    }
+    const a = act as Act;
     const slow = look().reduced_motion ? 0 : 1;
     if (a.op === 'set') {
       const p = h.param(a.param)!, r = p.spec.range, to = r ? Math.max(r[0], Math.min(r[1], a.to)) : a.to;
@@ -401,8 +410,8 @@ export class FigurePlayer {
       if (token === this.light_token) void this.tween(h.light.level, 0, 0.6);
     }, after * 1000);
   }
-  /** Move a param to a value over dur seconds (slow in, slow out), a frame at a time. */
-  private tween(p: Param<number>, to: number, dur: number): Promise<void> {
+  /** Move a param to a value over dur seconds (slow in, slow out), a frame at a time (zones use it for attention). */
+  tween(p: Param<number>, to: number, dur: number): Promise<void> {
     const from = p.peek();
     if (dur <= 0 || from === to) {
       p.set(to, true);
@@ -493,8 +502,12 @@ export class FigurePlayer {
       this.on_input?.();
     });
   }
+  /** A pointer's place on the figure (CSS px of its frame). */
+  point_of(e: { clientX: number; clientY: number }): XY {
+    return this.at(e);
+  }
   /** Pointer → figure CSS px. */
-  private at(e: PointerEvent): XY {
+  private at(e: { clientX: number; clientY: number }): XY {
     const c = this.canvas as HTMLCanvasElement, r = c.getBoundingClientRect(), f = this.scene.frame;
     return [((e.clientX - r.left) / r.width) * f.w, ((e.clientY - r.top) / r.height) * f.h];
   }

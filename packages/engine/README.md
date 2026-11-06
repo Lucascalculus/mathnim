@@ -35,6 +35,29 @@ export const bowl = define_figure({
 });
 ```
 
+## How it is organised, and how it grows
+
+`docs/design/ENGINE-ARCH.md` is the design. In short:
+
+- `src/kernel/` is the kernel (state, things, layout, script, render, the player, the tutor's hands, the mirror, the
+  registry, the page). It stays under 10 000 lines, never imports `src/lib/` and touches no DOM when imported
+  (`test/arch.test.ts` holds all three).
+- `src/lib/` is the library: one file per piece (steps, parts, cases, trail, guess, vectors, view3d, shapes), each
+  registering itself.
+- **The registry** (`kernel/registry.ts`) is one index of every piece: `define_thing`, `define_motion`,
+  `define_gesture` (`lib/predict.ts`), `define_act` (`kernel/acts.ts`); present adds `define_markup` (text tools) and
+  `define_effect` (the shell's effects). An entry says what the piece means (`says`, both languages), how it is
+  written (`syntax`, `example`, `rules`), its `maturity` (experiment → preview → stable: only stable pieces reach the
+  tutor), its acceptance (`accept`, `checks`), a live `demo`, and the specimen experiment it came from. `npm run
+  catalog` writes the library into `docs/CAPABILITIES.md`, the text tools into `docs/TEXT-MARKUP.md` and into what the
+  tutor and the course generator are told. `/engine` is the gallery: every entry, its demo live, its checks run.
+- **The page** (`kernel/page.ts`) is where the zones of one page meet: shared values (a number in a sentence; a
+  figure's param bound to it with `page.bind`), nouns and attention (the hand on a noun anywhere lights its things
+  everywhere: `figure.focus` makes the rest recede), the one light, reports in one log, the tutor's acts routed by
+  zone. `figure_zone(player)` makes a figure a zone; present's `page_for(el)` gives every text its page.
+- **A new piece** is a file in `src/lib/` with its entry, `maturity: 'experiment'`, its acceptance as `checks` and a
+  `demo`. It shows in `/engine` first; promote it by changing the maturity.
+
 Read a ported figure before writing one: `packages/visuals/src/mpc/qp_figure.ts` (a scene and a world),
 `mpc/shift_tail.ts` (a page figure), `linalg/determinant_area.ts` (handles on vectors),
 `ft/b/training_curves.ts` (small multiples). The MPC kit for the cart is `mpc/track.ts`.
@@ -63,6 +86,8 @@ Read a ported figure before writing one: `packages/visuals/src/mpc/qp_figure.ts`
 | guess, then see (`guess.ts`) | `const g = guess(fig, P, value, { id, role, at: (v) => xy, to: (d) => v, truth, tolerance, says })`: a hollow ring the hand drags; letting go commits it, once (no button), and tells the lesson an answer (right within the tolerance). `g.on_commit(f)`: what showing the answer is (a sim plays, a reveal runs); `g.fresh(...)` first in the script, so a replay asks again. `new Gap(a, b, { shown, text })`: a distance drawn and said (how far off). `timer(fig, id, dur)`: a 0 → 1 clock for a reveal in explore (a sim underneath). Visual: `phys_throw` with `predict: true` |
 | an exploded formula (`parts.ts`) | `parts_figure(tex, [{ tex: 'P(A)', says: 'the prior' }, ...])`: assembled, a dotted line under each named part; `open` (0..1, the tutor's to move) lifts each part on a card above the formula with its meaning, rows packed so no two meet, its shadow left in place; `room_end()` lets a page show only the formula until it opens. In a text: a ```parts fence or a math block's `parts` |
 | formula steps (`steps.ts`, `steps_check.ts`) | `new Steps(lines)` is one block of any figure's layout (beside a plot: `row([P, column([st])], { align: 'center' })`), moved by the figure's script with `st.go(k)` in `together(...)` with the rest, a `beat()` before each line; `steps_figure(lines)` is a figure of the steps alone (filling a stage); visuals `formula_steps` and `substitute_point` (a graph and the steps of putting a number in). A derivation as one formula that changes line by line (any subject: algebra, calculus, units, chemistry `\ce{}`, logic, Chinese in `\text{}`); every resting frame is the typeset line; tokens are matched from the TeX (stay, travel over the relation on an arc, flow together, cancel, appear); `parse_steps` takes lines as people and models write them (`% reason`, `$…$`, aligned, numbered); `review_steps` reads, typesets and checks them (`check_steps`: equations keep their solutions, chains stay equal, inequalities keep their direction, d/dx, limits, values put in, units by size, truth tables, balanced reactions; what it cannot read is `unchecked`, never `ok`). In a text a ```` ```steps ```` block becomes one (present's `math_html` + `mount_steps`); the tutor's prompt says how to write them Nouns: `new Steps(lines, { nouns: { x_0: 'value', f: 'function' } })` (or a block's line `% nouns: x_0 = value`) draws those symbols, in every line, in their noun's colour and names them for the mirror; a reason's `$…$` is drawn as the characters it shows |
+| the page (`page.ts`, `zone_figure.ts`) | `new Page(lang)`; `page.attach(figure_zone(player))`; `page.value(name, v, spec)`, `page.formula('2.5*n')`, `page.bind(name, fig.params.get('a')!)` (both ways); `page.hover(noun, zone)`, `page.point({ noun } \| { zone, id })`; `page.tell(zone, report)`, `page.act({ op, zone?, … })`, `snapshot()` / `restore()`. A thing that draws several nouns (a formula's symbols) gives `noun_pieces()` and answers `env.focus` itself (`own_focus`) |
+| the registry (`registry.ts`) | `define({ kind, name, says, zones, maturity, since, syntax, source, … })` and the typed `define_thing` / `define_motion` / `define_gesture` / `define_act` / `define_effect`; `lookup(kind, name)` (old names too), `entries({ kind, maturity, zone, audience })`, `for_models(kind, 'tutor' \| 'author')`, `run_checks()` |
 | the tutor's hands | `manifest_of(fig)` (what is on screen, what the hand can move: params under a handle or `{ tutor: true }`, named by `says`); `player.act({ op: 'point' \| 'set' \| 'note' \| 'reset', … })` checks the act (`check_act`), moves as a hand would and keeps `fig.hands().history`; `act_now` does it at once (node). The model writes `ACT:` lines after its words (`packages/ai/src/acts.ts`); `node apps/mathnim/tools/tutor_acts_e2e.cjs` checks it all in the page |
 
 ## Overrides (the freedom layer)

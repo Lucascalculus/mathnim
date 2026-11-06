@@ -11,12 +11,13 @@
 //
 //   P.add(new Trail((t) => [v0 * t, v0 * t - 4.9 * t * t], { id: 'trail', role: 'noun:ball', at: time, ahead: 0.6 }));
 //   P.add(new Trail({ sim, xy: (y) => bob_at(y[0]) }, { id: 'trail', role: 'noun:bob', past: 1.5 }));   // at: sim.clock
-import type { XY } from './geom';
-import { Mark } from './kinds';
-import type { Sim } from './sim';
-import { Derived, read, track, type Readable, type Val } from './state';
-import type { DrawEnv, Style } from './thing';
-import type { L10n } from './text';
+import type { XY } from '../kernel/geom';
+import { Mark } from '../kernel/kinds';
+import type { Sim } from '../kernel/sim';
+import { Derived, read, track, type Readable, type Val } from '../kernel/state';
+import type { DrawEnv, Style } from '../kernel/thing';
+import { t, type L10n } from '../kernel/text';
+import { define_thing } from '../kernel/registry';
 
 /** What moves: its position at a time (data coordinates; null: not there), or a simulation and where a state puts it. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -210,3 +211,12 @@ export class Trail extends Mark {
 
 /** The newest version of what was read (a derived value's version moves only when it is recomputed, so peek first). */
 const sig_of = (deps: Readable<unknown>[]): number => deps.reduce((a, d) => Math.max(a, d instanceof Derived ? (d.peek(), d.version) : d.version), 0);
+
+// ---------------------------------------------------------------- entry
+define_thing({
+  name: 'trail', says: t('time as matter: equal-time ghosts of the past (spacing is speed), the future dashed', '时间是一种材质：过去留下等时残影（间距就是速度），未来是虚线'),
+  zones: ['world', 'figure'], maturity: 'stable', since: '0.2.1', from: 'int/time',
+  syntax: "P.add(new Trail({ sim, xy: (s) => [s[0], s[1]] }, { every: 1 / 12, ahead: 1 }))",
+  accept: t('the arc between neighbouring ghosts over the time step is the speed at the midpoint (within 2%)', '相邻残影的弧长 ÷ 时间步 = 中点速度（误差 2% 以内）'),
+  source: 'packages/engine/src/lib/trail.ts',
+});
