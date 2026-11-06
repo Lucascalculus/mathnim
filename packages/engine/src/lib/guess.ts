@@ -156,8 +156,22 @@ const SRC = 'packages/engine/src/lib/guess.ts';
 /** A small figure with a guess of where a point lies, its truth at 4 (the gallery's and the generic tests' demo). */
 function guess_demo(lang: 'en' | 'zh'): Figure {
   const fig = new Figure({ lang });
-  const P = fig.plot({ id: 'line', x: [0, 6], y: [0, 0.8], x_ticks: [0, 2, 4, 6], axes: 'x', aspect: 7.5 });
-  const g = guess(fig, P, fig.param('x', 1, { range: [0, 6] }), { id: 'spot', role: 'noun:ball', says: t('where it lands', '落点'), at: (v) => [v, 0], to: (d) => d[0], truth: 4, tolerance: 0.2 });
+  const say = (en: string, zh: string) => (lang === 'zh' ? zh : en);
+  const P = fig.plot({ id: 'line', x: [0, 6], y: [0, 1], x_ticks: [0, 2, 4, 6], axes: 'x', aspect: 5 });
+  const truth = 4, tol = 0.2, Y = 0.62;
+  // the whole contract: the guess, let go; then the answer comes in and the gap between them is drawn and said
+  const g = guess(fig, P, fig.param('x', 1, { range: [0, 6] }), { id: 'spot', role: 'noun:ball', says: t('where it lands', '落点'), at: (v) => [v, Y], to: (d) => d[0], truth, tolerance: tol });
+  const shown = timer(fig, 'reveal', 0.6);
+  g.on_commit(() => shown.play());
+  P.add(new Marker(() => (g.committed.value && shown.t.value > 0 ? [truth, Y] : null), { id: 'truth', role: 'noun:ball', says: t('where it landed', '实际落点') }));
+  P.add(new Gap(() => [g.guessed.value, Y - 0.3], () => [truth, Y - 0.3], {
+    id: 'gap', role: 'noun:ball', shown: derive(() => (g.committed.value ? shown.t.value : 0), 'the gap shown'),
+    text: () => {
+      const e = g.error.value, d = Math.abs(e).toFixed(1);
+      return Math.abs(e) <= tol ? say('right there', '正中') : e < 0 ? say(`${d} short`, `近了 ${d}`) : say(`${d} long`, `远了 ${d}`);
+    },
+    says: t('how far the guess was from the answer', '猜测和答案相差多远'),
+  }));
   fig.layout(P);
   fig.script(g.fresh());
   return fig;

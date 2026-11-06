@@ -7,7 +7,7 @@
 //   - puts its numbers to drag on the page as shared values (so a figure can bind to them), and shows every number of
 //     that name, and every number computed from it, when a value changes - whoever changed it.
 import { Page, type NounAnchor, type Attention, type Zone } from '@mathnim/engine';
-import { odometer } from './tangle';
+import { odometer, settled } from './tangle';
 import { ui_lang } from './i18n';
 
 /** The roots a page belongs to: the nearest of these around an element. */
@@ -85,7 +85,7 @@ export function show_numbers(root: ParentNode, page: Page, name: string, v: numb
   root.querySelectorAll<HTMLElement>('.mn-num-out[data-expr]').forEach((n) => {
     const x = page.formula(n.dataset.expr!).value;
     if (!Number.isFinite(x)) { n.textContent = '…'; return; }
-    const dec = +n.dataset.dec!;
-    n.innerHTML = odometer(x, dec, Math.max(1, Math.floor(Math.log10(Math.max(1, Math.abs(Math.round(x))))) + 1));
+    const dec = +n.dataset.dec!, r = settled(x, dec);
+    n.innerHTML = odometer(r, dec, Math.max(1, Math.floor(Math.log10(Math.max(1, Math.abs(Math.round(r))))) + 1));
   });
 }

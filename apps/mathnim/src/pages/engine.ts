@@ -19,6 +19,7 @@ const STYLE = `
 .eng h2{font-size:21px;margin:44px 0 6px;font-weight:600}
 .eng-entry{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:8px 32px;padding:22px 0;border-top:1px solid var(--mn-border)}
 .eng-entry.solo{grid-template-columns:minmax(0,1fr)}
+.eng-entry[hidden],.eng section[hidden]{display:none}
 .eng-name{font:600 14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 .eng-mat{margin-left:8px;font:500 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mn-muted)}
 .eng-mat.experiment{color:#C2410C}.eng-mat.preview{color:#2563EB}
@@ -50,7 +51,9 @@ export async function engine_page(root: HTMLElement): Promise<() => void> {
   const count = (k: string) => all.filter((e) => e.kind === k).length;
   el.innerHTML = `<div class="eng-kicker">Mathium ${esc(MATHIUM_VERSION)}</div><h1>${zh ? '引擎的库' : 'The engine\'s library'}</h1>
     <p class="eng-sum">${KINDS.map(([k, , z, one]) => `${count(k)} ${zh ? z : count(k) === 1 ? one : `${one}s`}`).join(' · ')}</p>
-    <div class="eng-filter">${['all', 'experiment', 'preview', 'stable'].map((m, i) => `<button type="button" data-m="${m}" aria-pressed="${i === 0}">${m === 'all' ? (zh ? '全部' : 'all') : zh ? MATURITY_ZH[m] : m}</button>`).join('')}</div>
+    <div class="eng-filter">${['all', 'experiment', 'preview', 'stable'].map((m) => [m, m === 'all' ? all.length : all.filter((e) => e.maturity === m).length] as const)
+      // (a maturity nothing has yet is left out, rather than a button that empties the page)
+      .filter(([, n]) => n).map(([m, n], i) => `<button type="button" data-m="${m}" aria-pressed="${i === 0}">${m === 'all' ? (zh ? '全部' : 'all') : zh ? MATURITY_ZH[m] : m} ${n}</button>`).join('')}</div>
     ${KINDS.filter(([k]) => count(k)).map(([k, en, z]) => `<section data-kind="${k}"><h2>${zh ? z : en}</h2>${all.filter((e) => e.kind === k).map((e) => entry_html(e, lang)).join('')}</section>`).join('')}`;
   root.append(el);
   // maturity: show one kind of piece at a time (an experiment among the stable ones is easy to miss)
@@ -59,6 +62,8 @@ export async function engine_page(root: HTMLElement): Promise<() => void> {
     if (!b) return;
     el.querySelectorAll('.eng-filter button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     el.querySelectorAll<HTMLElement>('.eng-entry').forEach((x) => { x.hidden = b.dataset.m !== 'all' && x.dataset.m !== b.dataset.m; });
+    // (a kind with nothing of that maturity goes too, rather than a heading over nothing)
+    el.querySelectorAll<HTMLElement>('section[data-kind]').forEach((s) => { s.hidden = !s.querySelector('.eng-entry:not([hidden])'); });
   });
   // the demos play when seen; each entry's acceptance checks run once
   const players: FigurePlayer[] = [];

@@ -39,10 +39,16 @@ export function tangle_html(s: string): string {
     let value = NaN;
     try { value = eval_expr_(src, scope); } catch { /* shown as … until the numbers it reads are known */ }
     const decimals = dec !== undefined ? +dec : Number.isFinite(value) && !Number.isInteger(+value.toFixed(6)) ? 2 : 0;
-    return `<span class="mn-num mn-num-out" data-expr="${attr(src)}" data-dec="${decimals}">${Number.isFinite(value) ? odometer(value, decimals, int_digits(value)) : '…'}</span>`;
+    const r = settled(value, decimals);
+    return `<span class="mn-num mn-num-out" data-expr="${attr(src)}" data-dec="${decimals}">${Number.isFinite(r) ? odometer(r, decimals, int_digits(r)) : '…'}</span>`;
   });
 }
 
+/**
+ * A computed number rounded to its places (it is not moving): the odometer turns the lowest wheel by what is below
+ * it, which on a number at rest reads as a misprint (2.828… would stop half way between 2 and 3).
+ */
+export const settled = (v: number, decimals: number): number => Math.round(v * 10 ** decimals) / 10 ** decimals;
 const int_digits = (v: number) => Math.max(1, Math.floor(Math.log10(Math.max(1, Math.abs(Math.round(v))))) + 1);
 /**
  * A number as wheels: each digit place a reel of 0-9 (and 0 again) turned to its position. The lowest place turns
