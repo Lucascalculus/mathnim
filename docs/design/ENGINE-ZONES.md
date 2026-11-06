@@ -81,3 +81,35 @@ engine mostly has (plots, paths, markers, fields, vector fields); each joins whe
   (incremental frames equal full redraws), and a look at its contact sheet in both languages.
 - Text features: markup tests, and a look in the real page.
 - `npm run typecheck && npm test`, doctor all green; the catalog regenerated.
+
+
+## The text zone, redone as the experiments designed it (2026-11-06, later)
+
+Lucas found the first text zone unlike the experiments and the derivation hard to read ("应该留着上一步公式，一步步推
+下去"), and asked for every text-related experiment in the engine, writable by a dumb model, with condensing glass and
+folding paper added. Now (all in `docs/TEXT-MARKUP.md`, one page for whoever writes text):
+
+| Experiment | In the product | Written as |
+|---|---|---|
+| stretch (definitions in the sentence) | the definition follows its term on a faint ground; the rest of the sentence keeps its x and steps down, a dotted leader to where it resumes; tap it to fold back | `[term](def: …)` |
+| why (a chain of why) | rings in the margin with a stub of thread; reasons drop on threads that keep to the margin; bedrock ends in a ground mark | the `why` block, or a ```` ```why ```` fence |
+| the derivation | lines kept, the next coming down out of the last; the line above steps back to the second ink; reasons beside | ```` ```steps ```` (as before) |
+| tangle (numbers you drag) | glass numbers; the ones that follow are ink; every digit a wheel with visible carries | `{{n = 3, 1..12}}`, `{{= 2.5*n, 2}}` |
+| explode (an exploded formula) | assembled, a dotted line under each named part; tapped, the room opens and each part lifts on a card with its meaning (rows packed), its shadow left in place | ```` ```parts ```` or a math block's `parts` |
+| pull / brush (this is that) | a noun touched in the text lights its thing in the page's figure (a drawn thing, never its number) | `[word](noun:key)` |
+| fold (folding paper) | details unfold like paper folded in a zigzag (lit face up, shaded face down), plain text at rest | the `details` block, or ```` ```details Title ```` |
+| condense (condensing glass) | a footnote's source condenses from the tap as a clear pane; tap elsewhere and it is gone | `[^key]` and a `cite` block |
+
+The ripple (dependent cells) is what the numbers that follow already do, without its hollow-to-solid wait; the tutor as
+light and the asking note belong to the margin tutor, which works that way already.
+
+## The lesson page (the experiments' MPC lesson)
+
+Lucas left it to me: all of it, some of it, or none. Taken: the paper (no reading card, no frames round figures or
+tables: a figure in a text draws on the page's own paper), the page's type (a quiet kicker, a large title, 18 px body
+at 1.86), and the way on as a floating glass island holding the progress and the one vermilion verb. Why: STYLE.md's
+rules (no card borders; one vermilion element, the next step; glass only for the hand) are the experiments' own, and
+the reading page was the last place that broke them. Not taken: the experiments' margin notes and island modes, since
+the margin tutor already answers level with what it is about, and its behaviour is not a layout change; the camera
+toggle and the readouts beside the figure, since those are a figure's own composition (the engine's layout), not the
+page's.

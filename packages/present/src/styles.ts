@@ -550,6 +550,31 @@ export const CSS = `
 .mn-labcard-title{font-weight:600;font-size:15px}
 .mn-labcard-note{font-size:13px;color:var(--mn-muted)}
 @media (prefers-reduced-motion:reduce){.mn-app *{transition:none!important;animation:none!important}}
+/* the lesson on paper (the experiments' lesson page, docs/design/specimen #lesson): no card and no frames, the page's
+   own type (a quiet kicker, a large title, 18 px body with air), and the way on as a floating glass island holding the
+   progress and the one vermilion verb (docs/design/STYLE.md: one vermilion element, glass only for the hand) */
+.mn-textstep .mn-page,.mn-casestep .mn-page{background:none;border:0;box-shadow:none;padding:clamp(8px,2vw,22px) clamp(2px,1.6vw,22px) 0}
+.mn-page{font-size:18px;line-height:1.86;letter-spacing:.005em}
+.mn-page-kicker{font-size:14px;color:var(--mn-muted)}
+.mn-page-title{font-size:clamp(28px,3.4vw,38px);line-height:1.18;font-weight:650;letter-spacing:-.025em;margin:6px 0 24px}
+.mn-vis-stage{border:0;background:none;border-radius:0}
+.mn-lessonbar{background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;pointer-events:none}
+.mn-lessonbar-in{padding:0 40px calc(16px + env(safe-area-inset-bottom))}
+.mn-lessonbar .mn-lb-main{pointer-events:auto;justify-self:center;width:min(100%,640px);box-sizing:border-box;height:56px;padding:6px 6px 6px 8px;border-radius:28px;
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.8));-webkit-backdrop-filter:saturate(1.5);backdrop-filter:saturate(1.5);
+  box-shadow:inset 0 .75px 0 #fff,inset 0 -.5px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.13),0 1.5px 2px rgba(26,27,31,.05),0 14px 34px -10px rgba(26,27,31,.2)}
+.mn-lessonbar .mn-btn:not(.primary),.mn-lessonbar .mn-lb-start button{background:transparent;border-color:transparent;border-radius:22px;box-shadow:none}
+.mn-lessonbar .mn-btn:not(.primary):hover{background:rgba(26,27,31,.06);border-color:transparent}
+.mn-lessonbar .mn-go{background:var(--mn-verb,#E4572E);border-color:var(--mn-verb,#E4572E);color:#fff;border-radius:22px;height:44px;padding:0 24px;min-width:120px;box-shadow:0 6px 16px -6px rgba(228,87,46,.5)}
+.mn-lessonbar .mn-btn.primary:not(:disabled):hover{background:color-mix(in srgb,var(--mn-verb,#E4572E) 88%,#000)}
+.mn-lessonbar .mn-go:disabled{background:var(--mn-faint);border-color:var(--mn-faint);color:var(--mn-muted);box-shadow:none}
+.mn-app.mn-dark .mn-lessonbar .mn-lb-main{background:linear-gradient(180deg,rgba(32,36,44,.92),rgba(20,23,28,.84));box-shadow:0 0 0 .5px rgba(255,255,255,.12),0 14px 34px -10px rgba(0,0,0,.5)}
+@media (max-width:640px){.mn-lessonbar-in{padding:0 10px calc(10px + env(safe-area-inset-bottom))}.mn-lessonbar .mn-lb-main{width:100%}}
+/* tables on paper: no box, a hairline between rows, the head in quiet type */
+.mn-table-wrap{border:0;border-radius:0}
+.mn-table th,.mn-table td{border-bottom:0;border-top:.5px solid rgba(26,27,31,.14);padding:9px 14px 9px 0}
+.mn-table th{background:none;color:var(--mn-muted);font-size:13px;font-weight:600;border-top:0}
+.mn-app.mn-dark .mn-table th,.mn-app.mn-dark .mn-table td{border-top-color:rgba(255,255,255,.12)}
 `;
 let injected = false;
 export function inject_styles(doc: Document = document): void {

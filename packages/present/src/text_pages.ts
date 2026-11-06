@@ -5,7 +5,7 @@
 // the behaviour: copy buttons, code tabs, footnote links, embedded visuals.
 // LessonView puts the article in its reading column and the outline or
 // progress in the side panel.
-import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, ReportHub, type Report, type ReportSource, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type WhyNode, type TextStep, expr } from '@mathnim/core';
+import { tr, code_line_count, is_engine_ui, is_figure, is_figure_player, make_player, make_ui, ReportHub, type Report, type ReportSource, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type WhyNode, type TextStep, expr } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { preload, type ScenePlayer } from 'manim-web/ext/player';
@@ -433,7 +433,10 @@ class VisualSlot {
     await load_tex();
     if (this.disposed) return;
     const canvas = this.fig.querySelector('canvas')!;
-    const p = make_player(v.scene(), canvas, { audio: false });
+    const sc = v.scene();
+    // (a figure in a text is drawn on the page's own paper: no box of its own)
+    if (is_figure(sc)) sc.paper = 'clear';
+    const p = make_player(sc, canvas, { audio: false });
     if (!is_figure_player(p)) this.ctx.on_player?.(p);
     // the figures' adapter: an engine figure tells what the learner did with fig.tell(...) (an 'report' event)
     else p.scene.listen((type, data) => {
