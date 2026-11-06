@@ -42,7 +42,11 @@ export function lesson_context(cl: CourseLesson, view: LessonView): AskContext {
   const step = view.runtime.step;
   const player = view.runtime.player;
   // a text page has no scene: what the student reads is the page itself (and a case's brief)
-  const screen = step && (is_text_step(step) || (step.kind === 'checkpoint' && step.group)) ? describe_step(step, lang) : player ? (is_figure_player(player) ? player.scene.describe() : describe_text(player.scene)) : '';
+  const base = step && (is_text_step(step) || (step.kind === 'checkpoint' && step.group)) ? describe_step(step, lang) : player ? (is_figure_player(player) ? player.scene.describe() : describe_text(player.scene)) : '';
+  // what the learner has done in the page's instruments and figures, as they report it (core/reports.ts); first, so
+  // the cut at MAX_SCREEN never drops it
+  const done = view.runtime.reports.states().map((s) => `- ${s.label ? `${s.label}: ` : ''}${s.text}`).join('\n');
+  const screen = done ? `What the learner has done on this page, as the instruments report it:\n${done}\n\n${base}` : base;
   return {
     topics: LESSON_TOPICS[cl.id],
     level: cl.level !== undefined ? tr(cl.level, lang) : cl.entry?.level,

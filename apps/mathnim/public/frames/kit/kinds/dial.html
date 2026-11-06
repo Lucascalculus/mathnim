@@ -17,6 +17,7 @@
 //  slider ids, consts and earlier outs), plot{x (slider id), ys[{out,label,color}], steps, xlabel, ylabel, ymin, ymax},
 //  notes[{when (expr),text}] (every note whose condition holds is shown), presets[{label,set{id:value}}], prompt.
 // bar: {max} draws that output as a bar instead of a number.
+// Reports (kit.js): a state only (it asks nothing with a right answer): the slider values, the outputs shown, the notes shown.
 (function () {
   'use strict';
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt, app = document.getElementById('app');
@@ -69,9 +70,14 @@
       if (e.bar) e.bar.style.width = Math.max(0, Math.min(100, v / o.bar.max * 100)) + '%';
     });
     nbox.innerHTML = '';
-    N.forEach(function (n) { var ok = false; try { ok = !!n.f.apply(null, args_of(r)); } catch (e) {} if (ok) h('div', 'note', md(t(n.text)), nbox); });
+    var shown = [];
+    N.forEach(function (n) { var ok = false; try { ok = !!n.f.apply(null, args_of(r)); } catch (e) {} if (ok) { h('div', 'note', md(t(n.text)), nbox); shown.push(n); } });
     if (plot) draw_plot(r);
     K.report();
+    // the settings and what they give, as the learner reads them
+    K.state(S.map(function (s) { return K.clip(s.label, 40) + ' ' + tops[s.id].textContent; }).join(tx(', ', '，')) + ' → ' +
+      O.filter(function (o) { return oel[o.id]; }).map(function (o) { return K.clip(o.label, 40) + ' ' + oel[o.id].v.textContent; }).join(tx(', ', '，')) + tx('.', '。') +
+      (shown.length ? tx(' Shown: ', '提示：') + shown.map(function (n) { return K.clip(n.text, 140); }).join(' ') : ''));
   }
   function draw_plot(r0) {
     var pl = P.plot, W = 560, H = 230, L = 46, R = 12, T = 14, B = 34, xs = S.filter(function (s) { return s.id === pl.x; })[0];

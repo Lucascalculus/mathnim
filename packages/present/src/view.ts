@@ -14,7 +14,7 @@ import { export_video } from 'manim-web/ext/export';
 import { lint_timeline } from 'manim-web/ext/lint';
 import type { ScenePlayer } from 'manim-web/ext/player';
 import type { Scene } from 'manim-web';
-import { is_engine_ui, is_figure_player, type StagePlayer } from '@mathnim/core';
+import { is_engine_ui, is_figure_player, ReportHub, type StagePlayer } from '@mathnim/core';
 import { make_look, set_look } from '@mathnim/look';
 import {
   BEAT, BEAT_LEAD, VOICE_DELAY, EventLog, GAME_FLOW, LINEAR_FLOW, LearnerModel, LessonRuntime, MASTERY, case_position, expr, fill, is_text_step, is_voiced, lesson_langs, local_store, scene_beats, tr, unbeat,
@@ -356,6 +356,14 @@ export class LessonView {
   // ---------------------------------------------------------------- player + bar
   private bind_player(p: StagePlayer): void {
     if (!is_figure_player(p)) this.o.on_player?.(p);
+    // a step's own engine figure reports through the same hub as everything on a page (core/reports.ts)
+    else {
+      const step = this.runtime.step;
+      p.scene.listen((type, data) => {
+        const r = type === 'report' ? ReportHub.parse(data) : null;
+        if (r && step) this.runtime.reports.report({ id: `figure:${step.id}`, label: this.tr(step.title) }, r);
+      });
+    }
     this.step_player = p;
     const seek = this.el.seek as HTMLInputElement;
     // (the figure's notes are known once it is built: its first frame)
@@ -914,6 +922,7 @@ export class LessonView {
       submit_blank: (text) => this.runtime.submit_blank(text),
       reveal_blank: () => this.runtime.reveal_blank(),
       on_progress: () => sync(),
+      report: (source, r) => this.runtime.reports.report(source, r),
     });
     this.page = page;
     this.el.page.append(page.el);

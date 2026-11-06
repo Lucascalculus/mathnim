@@ -21,7 +21,7 @@
 4. **HKBC**: the deck's range for the corporate-policy limit (56 to 116) is not reproduced; the optimum is degenerate and the engine's ranges differ. No question asks for them.
 5. **Additional constraints 3-5** were images in WMF format that could not be read; lesson 6 teaches the same big-M idea in its own words.
 6. **Integer programs** have no 2025 question and the LP engine is LP-only: the integer numbers come from enumerating the whole-number or yes/no plans (and scipy's `milp` as a check).
-7. **The decision-tree picture on a phone** is scaled down (the exam tree is wide). The interactive outline (`tree_roll`) is the phone-friendly form; the drawn tree is for desktop reading.
+7. **The decision trees** are the engine figure `mgmt_tree` (lesson 11): the exam's tree on a wide stage, an outline top to bottom on a phone, rolled back as motion with one probability under the hand. The normal curve's explanation is `mgmt_normal` (lesson 13). The `tree_roll` and `normal_area` frames stay for typed practice. (retro.md, 2026-11-06.)
 8. Frames cannot send events to the page (sandboxed, no storage): every instrument holds its own checking; the lessons' number and choice steps are the page-level practice.
 
 ## Not checked / open

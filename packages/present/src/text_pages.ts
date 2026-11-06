@@ -5,7 +5,7 @@
 // the behaviour: copy buttons, code tabs, footnote links, embedded visuals.
 // LessonView puts the article in its reading column and the outline or
 // progress in the side panel.
-import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type TextStep, expr } from '@mathnim/core';
+import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, ReportHub, type Report, type ReportSource, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type TextStep, expr } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { preload, type ScenePlayer } from 'manim-web/ext/player';
@@ -40,6 +40,8 @@ export interface PageContext {
   reveal_blank?: () => void;
   /** Something changed that the view shows elsewhere (derivation progress). */
   on_progress?: () => void;
+  /** What a thing on the page reports (an instrument, a figure, a question): the runtime's ReportHub (core/reports.ts). */
+  report?: (source: ReportSource, r: Report) => void;
 }
 
 /** What the view needs from a page on screen. */
@@ -308,6 +310,7 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): { dispo
     opts.forEach((btn, i) => {
       btn.onclick = () => {
         const right = i === q.right;
+        ctx.report?.({ id: `quiz:${box.dataset.quiz}`, label: box.querySelector('.mn-quiz-q > div')?.textContent ?? undefined }, { kind: 'answer', item: 'q', correct: right, response: btn.lastElementChild?.textContent ?? undefined });
         btn.classList.add(right ? 'good' : 'bad');
         btn.disabled = true;
         if (right) {
@@ -328,16 +331,28 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): { dispo
   });
   const slots: { dispose(): void }[] = [...root.querySelectorAll<HTMLElement>('.mn-vis')].map((fig) => new VisualSlot(fig, r.visuals[+fig.dataset.vis!], ctx));
   const frames = [...root.querySelectorAll<HTMLIFrameElement>('.mn-frame iframe')];
-  if (frames.length) slots.push(listen_frames(frames));
+  if (frames.length) slots.push(listen_frames(frames, ctx));
   return slots;
 }
 
-/** Instruments report their height as { mn: 'height', value } (postMessage); the frame follows it. */
-function listen_frames(frames: HTMLIFrameElement[]): { dispose(): void } {
+/**
+ * The frames' adapter. An instrument posts { mn: 'height', value } (the frame follows it) and Mathium's reports,
+ * { mn: 'answer' | 'done' | 'state', ... } (docs/REPORTS.md), which go to the runtime's hub as from
+ * 'frame:<page>#<n>'. Only a message from one of this page's own frames counts; anything else is ignored.
+ */
+function listen_frames(frames: HTMLIFrameElement[], ctx: PageContext): { dispose(): void } {
+  const name = (f: HTMLIFrameElement) => (f.getAttribute('src') ?? '').split(/[?#]/)[0].split('/').pop()!.replace(/\.html$/, '');
   const on = (e: MessageEvent) => {
-    const f = frames.find((x) => x.contentWindow === e.source);
+    const i = frames.findIndex((x) => x.contentWindow === e.source);
+    if (i < 0) return;
+    const f = frames[i];
     const d = e.data as { mn?: string; value?: number } | null;
-    if (f && d?.mn === 'height' && Number.isFinite(d.value)) f.style.height = `${Math.min(1400, Math.max(120, Math.ceil(d.value!)))}px`;
+    if (d?.mn === 'height') {
+      if (Number.isFinite(d.value)) f.style.height = `${Math.min(1400, Math.max(120, Math.ceil(d.value!)))}px`;
+      return;
+    }
+    const r = ReportHub.parse(d);
+    if (r) ctx.report?.({ id: `frame:${name(f)}#${i}`, label: f.title || undefined }, r);
   };
   window.addEventListener('message', on);
   return { dispose: () => window.removeEventListener('message', on) };
@@ -408,6 +423,11 @@ class VisualSlot {
     const canvas = this.fig.querySelector('canvas')!;
     const p = make_player(v.scene(), canvas, { audio: false });
     if (!is_figure_player(p)) this.ctx.on_player?.(p);
+    // the figures' adapter: an engine figure tells what the learner did with fig.tell(...) (an 'report' event)
+    else p.scene.listen((type, data) => {
+      const r = type === 'report' ? ReportHub.parse(data) : null;
+      if (r) this.ctx.report?.({ id: `figure:${this.b.name}#${this.fig.dataset.vis}`, label: tr(this.b.caption, this.ctx.lang) || this.b.name }, r);
+    });
     await p.load();
     if (this.disposed) return;
     this.player = p;

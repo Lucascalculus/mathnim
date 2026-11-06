@@ -18,6 +18,8 @@
 <div class="nums" id="nums"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the line in hand (slope, intercept), its SSE and r², and whether it is
+// the least-squares line.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var pts = P.pts, n = pts.length, W = 640, H = 380, L = 58, R = 18, T = 16, B = 44, svg = document.getElementById('svg');
@@ -71,6 +73,9 @@
     var ssr = sst - sse, r2 = ssr / sst, sseBest = sst * (1 - (sxy * sxy) / (sxx * sst));
     var c = function (k, v, cls) { return '<div class="' + (cls || '') + '"><span class="k">' + k + '</span><div class="v">' + v + '</div></div>'; };
     var u = P.unit || '';
+    var at_best = Math.abs(sse - sseBest) < sseBest * 1e-4 + 1e-6;
+    K.state(tx('Line: slope b₁ ', '直线：斜率 b₁ ') + fmt(ln.b1, 4) + tx(', intercept b₀ ', '，截距 b₀ ') + fmt(ln.b0, 2) + tx('. ', '。') + ['SSE ' + fmt(sse, 1), 'SST ' + fmt(sst, 1), 'SSR ' + fmt(ssr, 1), 'r² ' + fmt(r2, 4)].join(tx(', ', '，')) + tx('; ', '；') +
+      (at_best ? tx('this is the least-squares line', '这就是最小二乘直线') : revealed ? tx('the least SSE possible is ', '可能的最小 SSE 是 ') + fmt(sseBest, 1) : tx('not the least-squares line', '还不是最小二乘直线')) + tx('.', '。'));
     document.getElementById('nums').innerHTML = c(tx('Slope b₁', '斜率 b₁'), fmt(ln.b1, 4), 'hot') + c(tx('Intercept b₀', '截距 b₀'), fmt(ln.b0, 2), 'hot') + c('SSE', fmt(sse, 1), 'hot') + c('SST', fmt(sst, 1)) + c('SSR = SST − SSE', fmt(ssr, 1)) + c('r²', fmt(r2, 4), Math.abs(sse - sseBest) < sseBest * 1e-4 + 1e-6 ? 'good' : 'hot') + (revealed ? c(tx('Least SSE possible', '可能的最小 SSE'), fmt(sseBest, 1), 'good') : '');
     K.report();
   }

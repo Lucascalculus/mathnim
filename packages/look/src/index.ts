@@ -63,6 +63,9 @@ export const NOUNS: Record<string, Pigment> = {
   'i-hat': 'viridian', 'j-hat': 'vermilion', 'eigenvector': 'violet', 'determinant': 'ochre', 'flipped': 'violet', 'collapsed': 'vermilion', 'grid': 'cobalt',
   // operations research (MGMT90141): the profit line, the feasible set, and up to four limits (a wall of the plan plane)
   'profit': 'cobalt', 'feasible': 'viridian', 'limit-a': 'ochre', 'limit-b': 'teal', 'limit-c': 'violet', 'limit-d': 'ink',
+  // decision analysis and the normal table (MGMT90141): a value rolled back through a tree (an expected value), the cut
+  // on a rejected branch, the probability under the learner's hand, and standard units (z)
+  'expected-value': 'cobalt', 'cut': 'vermilion', 'chance': 'violet', 'z-score': 'violet',
   // a function and a value on it (formula steps beside a graph: the number put in is the point's colour)
   'function': 'cobalt', 'value': 'ochre',
   // fine-tuning

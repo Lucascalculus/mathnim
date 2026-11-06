@@ -30,6 +30,8 @@
 <div class="tw"><table id="tbl"></table></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (it shows the working, it does not judge): the question set (which area, which values) and the
+// answer the working reaches.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var fmt0 = fmt; fmt = function (v, d) { return d === 4 ? (Math.round(v * 1e4) / 1e4).toFixed(4) : fmt0(v, d); };
@@ -100,6 +102,14 @@
     document.getElementById('steps').innerHTML = out; mark(zs, ['hit', 'hit2']);
     var first = tbl.querySelector('td.hit'); if (first) { var tw = tbl.parentNode; tw.scrollTop = first.offsetTop - tw.clientHeight / 2; }
     inputs(); K.report();
+    // the question in hand and its answer, for the tutor
+    var st;
+    if (mode === 'left') st = 'P(X < ' + fx(A) + ') = ' + fmt(area, 4) + ' (z = ' + fmt(zr(A), 2) + ')';
+    else if (mode === 'right') st = 'P(X > ' + fx(A) + ') = 1 − ' + fmt(tab(zr(A)), 4) + ' = ' + fmt(area, 4) + ' (z = ' + fmt(zr(A), 2) + ')';
+    else if (mode === 'between') st = 'P(' + fx(Math.min(A, Bv)) + ' < X < ' + fx(Math.max(A, Bv)) + ') = ' + fmt(area, 4) + ' (z = ' + fmt(zr(Math.min(A, Bv)), 2) + tx(' and ', ' 和 ') + fmt(zr(Math.max(A, Bv)), 2) + ')';
+    else st = (tail === 'left' ? tx('Area ' + fmt(target, 4) + ' to the left of x', 'x 左边的面积 ' + fmt(target, 4)) : tail === 'right' ? tx('Area ' + fmt(target, 4) + ' to the right of x', 'x 右边的面积 ' + fmt(target, 4)) : tx('Area ' + fmt(target, 4) + ' between ' + fx(from) + ' and x', fx(from) + ' 与 x 之间的面积 ' + fmt(target, 4))) +
+      tx(': z = ', '：z = ') + fmt(zs[0], 2) + tx(', x = ', '，x = ') + fx(mu + zs[0] * sd);
+    K.state(tx('Normal, mean ', '正态分布，均值 ') + fx(mu) + tx(', std dev ', '，标准差 ') + fx(sd) + tx('. ', '。') + st + tx('.', '。'));
   }
   function line_(k, v) { return '<div class="l"><span class="k">' + k + '</span><span>' + v + '</span></div>'; }
   function tabtxt(z) { var m = Math.abs(Math.round(z * 100)), r = (z < 0 ? '−' : '') + Math.floor(m / 10) / 10, c = m % 10; return tx('row ', '行 ') + '<b>' + (z < 0 ? '−' : '') + (Math.floor(m / 10) / 10).toFixed(1) + '</b>' + tx(', column ', '，列 ') + '<b>.0' + c + '</b> → <b>' + fmt(tab(z), 4) + '</b>'; }

@@ -21,6 +21,8 @@
 <script src="../kit/lp.js"></script>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the plan in hand, whether it is allowed and what it earns, the limits
+// it fills or breaks; the best plan once it is shown; in walls mode, the limits as moved and the best plan they give.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var W = 640, H = 400, L = 58, R = 18, T = 28, B = 46;
@@ -223,6 +225,29 @@
     if (P.gauges === false) gauges.style.display = 'none';
     if (btn_sweep) btn_sweep.disabled = !!state.anim;
     K.report();
+    if (!state.anim) tell(cur, okp, zcur, best, ibest);
+  }
+  // the plan and the limits in words, for the tutor
+  function tell(cur, okp, zcur, best, ibest) {
+    var pt = function (p) { return '(' + fmt(p[0], 1) + ', ' + fmt(p[1], 1) + ')'; }, s = '';
+    var full = [], broken = [];
+    rows.forEach(function (r) {
+      var used = r.a[0] * cur[0] + r.a[1] * cur[1], lab = t(r.label) + ' ' + fmt(used, 1) + ' / ' + fmt(r.b, 1);
+      if ((r.op === '<=' && used > r.b + 1e-6) || (r.op === '>=' && used < r.b - 1e-6) || (r.op === '=' && Math.abs(used - r.b) > 1e-6)) broken.push(lab);
+      else if (Math.abs(used - r.b) < 1e-6) full.push(lab);
+    });
+    if (tools.indexOf('walls') >= 0) {
+      var moved = rows.filter(function (r) { return Math.abs(r.b - r.b0) > 1e-9; });
+      s += moved.length ? tx('Limits moved: ', '移动过的限制：') + moved.map(function (r) { return t(r.label) + ' ' + fmt(r.b, 1) + tx(' (was ', '（原来 ') + fmt(r.b0, 1) + tx(')', '）'); }).join(tx(', ', '，')) + tx('. ', '。') : tx('No limit moved. ', '没有移动限制。');
+      s += best ? tx('Best plan ', '最优方案 ') + pt(best.x) + tx(', ', '，') + measure + ' ' + money + fmt(best.obj, 1) + tx('. ', '。') : tx('No plan keeps every limit. ', '没有方案能守住所有限制。');
+    } else {
+      s += tx('Plan ', '方案 ') + pt(cur) + tx(', ', '，') + (okp ? tx('allowed', '可行') : tx('not allowed', '不可行')) + tx(', ', '，') + measure + ' ' + money + fmt(zcur, 1) + tx('. ', '。');
+      if (broken.length) s += tx('Breaks: ', '违反：') + broken.join(tx(', ', '，')) + tx('. ', '。');
+      if (full.length) s += tx('Uses up: ', '用满：') + full.join(tx(', ', '，')) + tx('. ', '。');
+      if (best && state.swept) s += tx('Best plan ', '最优方案 ') + pt(best.x) + tx(', ', '，') + money + fmt(best.obj, 1) + tx('. ', '。');
+    }
+    if (ibest && (state.swept || P.show_int)) s += tx('Best whole-number plan ', '最优整数方案 ') + '(' + ibest.p[0] + ', ' + ibest.p[1] + ')' + tx(', ', '，') + money + fmt(ibest.z, 0) + tx('.', '。');
+    K.state(s);
   }
 
   // ---- interaction

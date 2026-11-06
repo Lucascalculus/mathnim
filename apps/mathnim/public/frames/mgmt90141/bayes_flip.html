@@ -24,6 +24,7 @@
 <div class="say" id="say"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the report chosen, the prior and the likelihoods, and the posterior.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var SN = P.states.map(t), RN = P.reports.map(t), K_ = RN.length, N = 1000;
@@ -70,6 +71,9 @@
     var tot = counts.reduce(function (x, c) { return x + c[rep]; }, 0);
     document.getElementById('say').innerHTML = tx('Of ', '在 ') + '<b>' + tot + '</b>' + tx(' cases with report ' + RN[rep] + ': ', ' 个报告为 ' + RN[rep] + ' 的样本里：') + SN.map(function (name, s) { return '<b>' + counts[s][rep] + '</b> ' + name + ' (' + fmt(100 * counts[s][rep] / Math.max(1, tot), 1) + '%)'; }).join(' · ');
     K.report();
+    var each = function (f) { return SN.map(function (name, s) { return name + ' ' + f(s); }).join(tx(', ', '，')); };
+    K.state(tx('Report: ', '报告：') + RN[rep] + tx('. Prior: ', '。先验：') + each(function (s) { return fmt(prior[s], 3); }) + tx('. ', '。') + 'P(' + RN[rep] + ' | ·)' + tx(': ', '：') + each(function (s) { return fmt(Lk[s], 3); }) + tx('. ', '。') +
+      'P(' + RN[rep] + ') = ' + fmt(pr, 4) + tx('. Posterior: ', '。后验：') + each(function (s) { return fmt(J[s] / pr, 3); }) + tx('.', '。'));
   }
   draw(); K.ready();
 })();
