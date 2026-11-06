@@ -73,10 +73,20 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   canvas.style.width = `${canvas.width / dpr}px`;
   canvas.style.height = `${canvas.height / dpr}px`;
   el.classList.add('mn-parts-live');
+  // assembled, only the formula shows: the room above it for the cards opens as it comes apart (the text below steps down)
+  const H = canvas.height / dpr, cut = Math.min(H - 10, fig.formula.room_end());
+  stage.style.height = `${H - cut}px`;
+  canvas.style.marginTop = `${-cut}px`;
   canvas.setAttribute('role', 'button');
   canvas.setAttribute('aria-label', lang === 'zh' ? '拆开公式' : 'take the formula apart');
   canvas.tabIndex = 0;
-  const toggle = () => void p.act({ op: 'set', param: fig.formula.open.name, to: fig.formula.open.peek() > 0.5 ? 0 : 1 });
+  const toggle = () => {
+    const opening = fig.formula.open.peek() <= 0.5;
+    stage.classList.add('mn-parts-moving');
+    stage.style.height = `${opening ? H : H - cut}px`;
+    canvas.style.marginTop = opening ? '0px' : `${-cut}px`;
+    void p.act({ op: 'set', param: fig.formula.open.name, to: opening ? 1 : 0 });
+  };
   canvas.addEventListener('click', toggle);
   canvas.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
 }

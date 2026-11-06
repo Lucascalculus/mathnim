@@ -534,7 +534,7 @@ export class Steps extends Thing implements Block {
   /** Written lines kept: px from one line's baseline to the next. */
   private pitch(): number {
     const G = this.geometry();
-    return (G.asc + G.desc) * tex_scale(this.px()) + this.px() * 0.42 + (this.why_side === 'below' ? this.why_line_h() : 0);
+    return (G.asc + G.desc) * tex_scale(this.px()) + this.px() * 0.62 + (this.why_side === 'below' ? this.why_line_h() : 0);
   }
   /** Written lines kept: reasons beside the lines when the formula and the widest reason fit side by side in w. */
   private side_for(w: number): 'right' | 'below' | 'none' {

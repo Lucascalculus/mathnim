@@ -450,7 +450,8 @@ class VisualSlot {
         const key = (e as CustomEvent<{ key?: string }>).detail?.key;
         if (!key || (key === last && performance.now() - at < 1800)) return;
         // (the most particular thing of that noun: a point before the whole family of lines it sits on)
-        const t = p.scene.registry.all().filter((x) => x.role === `noun:${key}` && x.opacity.peek() > 0.05 && x.box.w > 0).sort((a, b) => a.box.w * a.box.h - b.box.w * b.box.h)[0];
+        // (a drawn thing, not its number or its name: a word points at what it names)
+        const t = p.scene.registry.all().filter((x) => x.role === `noun:${key}` && !/readout|label|text|caption/.test(x.kind) && x.opacity.peek() > 0.05 && x.box.w > 0).sort((a, b) => a.box.w * a.box.h - b.box.w * b.box.h)[0];
         if (!t) return;
         last = key;
         at = performance.now();

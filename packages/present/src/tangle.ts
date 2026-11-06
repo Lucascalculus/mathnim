@@ -137,7 +137,7 @@ export function wire_tangle(): void {
     const per = Math.max(3, 240 / Math.max(1, (max - min) / step));
     const root = scope_of(el);
     el.classList.add('mn-held');
-    el.setPointerCapture?.(e.pointerId);
+    try { el.setPointerCapture(e.pointerId); } catch { /* (a pointer the browser does not track: the listeners still see it) */ }
     const move = (ev: PointerEvent) => {
       const v = Math.max(min, Math.min(max, v0 + ((ev.clientX - x0) / per) * step));
       show(el, v);

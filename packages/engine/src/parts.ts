@@ -99,6 +99,13 @@ export class Parts extends Thing implements Block {
   }
   private x0 = 0;
   private y0 = 0;
+  /**
+   * Where the room for the cards ends (px from the figure's top): above it there is nothing while the formula is
+   * assembled, so a page may show only what is below it and open the room as the formula comes apart.
+   */
+  room_end(): number {
+    return Math.max(0, this.y0 + this.line.view[1] * tex_scale(this.px()) - this.px() * 0.3);
+  }
   things(): Thing[] {
     return [this];
   }

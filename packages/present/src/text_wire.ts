@@ -39,7 +39,7 @@ export function wire_text(root: Document | HTMLElement = document): void {
 // Open: the definition is set right after the term, on a faint ground, and the rest of the sentence keeps its x and
 // drops down by whole lines below it (a dotted leader carries the eye from the margin to where it resumes): no word
 // moves sideways. Closed: everything goes back exactly.
-const rests = new WeakMap<HTMLElement, { rest: HTMLElement; top: HTMLElement }>();
+const rests = new WeakMap<HTMLElement, { rest: HTMLElement; top: HTMLElement; space: boolean }>();
 /** The block a term's sentence flows in: the nearest ancestor that is not inline. */
 function flow_of(el: HTMLElement): HTMLElement {
   let p = el.parentElement!;
@@ -82,7 +82,7 @@ function toggle_def(term: HTMLElement): void {
   const frag = r.extractContents();
   // (its leading space is the leader's: the first word lands exactly where it was)
   const tw = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
-  const first = tw.nextNode() as Text | null;
+  const first = tw.nextNode() as Text | null, space = !!first && /^\s/.test(first.textContent ?? '');
   if (first) first.textContent = (first.textContent ?? '').replace(/^\s+/, '');
   const rest = document.createElement('span');
   rest.className = 'mn-def-rest';
@@ -92,7 +92,7 @@ function toggle_def(term: HTMLElement): void {
   lead.style.width = `${x}px`;
   rest.append(lead, frag);
   flow.append(rest);
-  rests.set(term, { rest, top });
+  rests.set(term, { rest, top, space });
   // the words that dropped come down from where they were
   const after = first_char_after(lead, rest)?.getBoundingClientRect();
   if (after) {
@@ -112,12 +112,14 @@ function close_def(term: HTMLElement): void {
   const kept = rests.get(term);
   if (!kept) return;
   rests.delete(term);
-  const { rest, top } = kept;
+  const { rest, top, space } = kept;
   rest.querySelector(':scope > .mn-def-lead')?.remove();
   const nodes = [...rest.childNodes];
-  // (the space the leader stood for)
-  if (nodes[0]?.nodeType === Node.TEXT_NODE && !/^\s/.test(nodes[0].textContent ?? '') && !/^[，。、；：！？）」』”’》〉】…—]/.test(nodes[0].textContent ?? '')) nodes[0].textContent = ' ' + nodes[0].textContent;
-  else if (nodes[0] && nodes[0].nodeType !== Node.TEXT_NODE) nodes.unshift(document.createTextNode(' '));
+  // (the space the leader stood for, where there was one: none in Chinese)
+  if (space) {
+    if (nodes[0]?.nodeType === Node.TEXT_NODE) nodes[0].textContent = ' ' + nodes[0].textContent;
+    else nodes.unshift(document.createTextNode(' '));
+  }
   top.after(...nodes);
   rest.remove();
   top.parentElement?.normalize();
@@ -162,8 +164,9 @@ export function draw_threads(chain: HTMLElement): void {
       if (!mark) return;
       const mr = mark.getBoundingClientRect(), x = mr.left + mr.width / 2 - cr.left, y = mr.top + mr.height / 2 - cr.top - (mark.classList.contains('mn-chain-ring') ? 5.5 : 4);
       if (y <= py + 0.5) return;
-      const m = Math.max(4, (y - py) * 0.5);
-      d += `M${px.toFixed(1)} ${py.toFixed(1)}C${px.toFixed(1)} ${(py + m).toFixed(1)} ${x.toFixed(1)} ${(y - m).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`;
+      // straight down the margin past everything above it, then a soft S into its own mark (it never crosses text)
+      const yb = Math.max(py, y - 22), m = (y - yb) * 0.5;
+      d += `M${px.toFixed(1)} ${py.toFixed(1)}L${px.toFixed(1)} ${yb.toFixed(1)}C${px.toFixed(1)} ${(yb + m).toFixed(1)} ${x.toFixed(1)} ${(y - m).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`;
     });
   });
   svg.innerHTML = d ? `<path d="${d}"/>` : '';

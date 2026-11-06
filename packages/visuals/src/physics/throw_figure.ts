@@ -89,7 +89,7 @@ export function throw_figure(p: Partial<ThrowParams> = {}): Figure {
     const range = () => (2 * vx.value * vy.value) / G, tol = Math.max(0.12, range0 * 0.04);
     const land = fig.param('land', Math.max(0.4, range0 * 0.3), { range: [0.2, X1 - 0.2], doc: 'the guess of where it lands (m)' });
     const g = guess(fig, stage, land, {
-      id: 'landing', role: 'noun:ball', at: (v) => [v, 0], to: (d) => Math.max(0.2, Math.min(X1 - 0.2, d[0])), truth: range, tolerance: tol,
+      id: 'landing', role: 'guess:ball', at: (v) => [v, 0], to: (d) => Math.max(0.2, Math.min(X1 - 0.2, d[0])), truth: range, tolerance: tol,
       says: t('your guess: where the ball lands (drag it, let go to throw)', '你的猜测：球落在哪里（拖动它，松手就抛）'),
     });
     g.on_commit(() => { sim.restart(); sim.play(); });
