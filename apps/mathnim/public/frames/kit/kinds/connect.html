@@ -18,10 +18,13 @@
 // CONNECT: tap one thing on the left, then the thing on the right it goes with. A right pair takes a colour and says why;
 // a wrong one says it is not a pair. Params: left[{id,label}], right[{id,label}], pairs[[leftId,rightId,why]], prompt,
 // done, reuse (a right card may take several partners), no (text shown for a wrong pair), no_by_left{leftId:text}.
+// Reports (kit.js): every pair tried is an answer (item: the left card's id, response: the right card); done when every left
+// card has its partner, scored by the cards paired right at the first try; the state says what is paired.
 (function () {
   'use strict';
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
   var L = P.left || [], R = P.right || [], pairs = P.pairs || [], got = {}, wrong = 0, sel = null, n_done = 0;
+  var first = {}, missed = null;   // first[leftId]: its first pair was right; missed: the pair just tried, when it was wrong
   function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
   if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
   var cols = h('div', 'cols', null, app), lc = h('div', 'col', null, cols), rc = h('div', 'col', null, cols);
@@ -38,6 +41,9 @@
   function choose(r) {
     if (!sel) { msg.className = 'msg'; msg.textContent = ''; return; }
     var pr = pairs.filter(function (p) { return p[0] === sel && p[1] === r; })[0], l = sel;
+    if (!(l in first)) first[l] = !!pr;
+    K.answer(l, !!pr, t(label_of(R, r)));
+    missed = pr ? null : { l: l, r: r };
     if (pr) {
       var k = n_done % 8; got[l] = r; n_done++;
       le[l].classList.add('m' + k, 'locked'); if (!re[r].dataset.k) re[r].dataset.k = k;
@@ -51,12 +57,25 @@
       sel = null;
     }
     paint(); status();
+    if (pr && Object.keys(got).length === L.length) K.done(L.filter(function (x) { return first[x.id]; }).length / L.length);
+  }
+  function label_of(list, id) { var x = list.filter(function (y) { return y.id === id; })[0]; return x ? x.label : id; }
+  // what is paired, for the tutor: the count, the miss just made, the pairs, the left cards still alone
+  function tell() {
+    var q = function (list, id) { return '“' + K.clip(label_of(list, id), 40) + '”'; }, n = Object.keys(got).length;
+    var s = tx(n + ' of ' + L.length + ' pairs made', '已配好 ' + n + ' / ' + L.length + ' 对') + (wrong ? tx(', ' + wrong + (wrong === 1 ? ' miss' : ' misses'), '，错 ' + wrong + ' 次') : '') + tx('. ', '。');
+    if (missed) s += tx('Just now: ' + q(L, missed.l) + ' does not go with ' + q(R, missed.r) + '. ', '刚才：' + q(L, missed.l) + '和' + q(R, missed.r) + '不是一对。');
+    var made = L.filter(function (x) { return got[x.id]; });
+    if (made.length) s += tx('Paired: ', '已配：') + made.map(function (x) { return q(L, x.id) + ' ↔ ' + q(R, got[x.id]); }).join(tx('; ', '；')) + tx('. ', '。');
+    var rest = L.filter(function (x) { return !got[x.id]; });
+    if (rest.length) s += tx('Not paired yet: ', '还没配：') + rest.map(function (x) { return q(L, x.id); }).join(tx(', ', '、')) + tx('.', '。');
+    K.state(s);
   }
   function status() {
     var need = L.length;
     cnt.textContent = Object.keys(got).length + ' / ' + need + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
     if (Object.keys(got).length === need && P.done) { done.style.display = ''; done.innerHTML = md(t(P.done)); msg.textContent = ''; }
-    K.report();
+    K.report(); tell();
   }
   status(); K.ready();
 })();

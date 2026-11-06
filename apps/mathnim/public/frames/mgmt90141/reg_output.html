@@ -23,9 +23,13 @@
 <div class="say" id="say"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): with questions, every cell touched for a question is an answer (item 'q1', 'q2', ... for the question,
+// response: the cell); done when every question is answered, scored by the questions answered at the first touch. Without
+// questions, a touch only explains. The state says the question in hand and the cell last touched.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var O = P.out, V = P.vars.map(t), tasks = P.tasks || [], cur = 0, done = 0;
+  var first = {}, touched = null;   // first[k]: question k answered at the first touch; touched: { k: cell, right } the cell last touched
   var D = {
     multR: [tx('Multiple R', 'Multiple R'), tx('the correlation between the actual y and the model’s predictions; the square root of R²', '真实的 y 和模型预测值之间的相关系数；R² 的平方根')],
     r2: ['R Square', tx('the share of the variation in y that the model explains: SSR / SST', 'y 的变化里被模型解释的份额：SSR / SST')],
@@ -64,18 +68,30 @@
   function say(k) { var d = D[kind(k)]; return '<b>' + label(k) + '</b>: ' + d[1].replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); }
   function show_q() {
     var q = document.getElementById('q');
-    if (!tasks.length) { q.style.display = 'none'; return; }
+    if (!tasks.length) { q.style.display = 'none'; tell(); return; }
     q.innerHTML = cur < tasks.length ? '<span class="n">' + (cur + 1) + ' / ' + tasks.length + '</span><div>' + t(tasks[cur].q) + '</div>' : '<span class="ok">' + tx('Every question answered from the table.', '每个问题都从表里找到了答案。') + '</span>';
-    K.report();
+    K.report(); tell();
+  }
+  // the question in hand and the cell last touched, for the tutor
+  function tell() {
+    var s = !tasks.length ? '' : cur < tasks.length ? tx('Question ' + (cur + 1) + ' of ' + tasks.length + ': ', '第 ' + (cur + 1) + ' / ' + tasks.length + ' 问：') + K.clip(tasks[cur].q, 160) + ' '
+      : tx('All ' + tasks.length + ' questions answered from the table. ', tasks.length + ' 个问题都从表里找到了答案。');
+    if (touched) s += tx('Last touched: ', '刚点的是：') + label(touched.k) + (touched.right === true ? tx(' (right)', '（对）') : touched.right === false ? tx(' (not this one)', '（不是这个）') : '') + tx('.', '。');
+    else if (!tasks.length) s += tx('No number touched yet.', '还没点任何数。');
+    K.state(s);
   }
   function click(bt) {
     var k = bt.dataset.k, say_ = document.getElementById('say');
     document.querySelectorAll('td button.sel').forEach(function (x) { x.classList.remove('sel'); });
-    if (!tasks.length || cur >= tasks.length) { bt.classList.add('sel'); say_.innerHTML = say(k); K.report(); return; }
-    var T = tasks[cur], okc = (T.cells || [T.cell]).indexOf(k) >= 0;
+    if (!tasks.length || cur >= tasks.length) { bt.classList.add('sel'); say_.innerHTML = say(k); K.report(); touched = { k: k }; tell(); return; }
+    var T = tasks[cur], okc = (T.cells || [T.cell]).indexOf(k) >= 0, item = 'q' + (cur + 1);
+    if (!(item in first)) first[item] = okc;
+    K.answer(item, okc, label(k));
+    touched = { k: k, right: okc };
+    if (okc && cur === tasks.length - 1) K.done(tasks.filter(function (_, j) { return first['q' + (j + 1)]; }).length / tasks.length);
     if (okc) { bt.classList.remove('no'); bt.classList.add('ok'); say_.innerHTML = say(k) + (T.explain ? '<br>' + t(T.explain) : ''); cur++; setTimeout(show_q, 0); }
     else { bt.classList.add('no'); setTimeout(function () { bt.classList.remove('no'); }, 900); say_.innerHTML = tx('Not this one. ', '不是这个。') + say(k); }
-    K.report();
+    K.report(); tell();
   }
   build(); show_q(); K.ready();
 })();

@@ -27,6 +27,8 @@
 <div class="qs" id="qs"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (a plan, not an answer): the questions answered and skipped with their minutes, and the three
+// checks the summary shows (choice count, time, no question starved).
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var TOTAL = P.minutes || 120, QS = P.questions, on = QS.map(function (q) { return q.required || q.on !== false; }), mins = QS.map(function (q) { return q.start || 30; });
@@ -56,6 +58,11 @@
     var left = TOTAL - used, fair = marks ? TOTAL / marks : 0;
     var okSel = nopt === (P.pick || 3), okTime = left >= 0, bal = QS.every(function (q, i) { return !on[i] || mins[i] / q.marks >= 0.9; });
     var segs = QS.map(function (q, i) { return on[i] ? '<i style="width:' + (mins[i] / TOTAL * 100).toFixed(1) + '%;background:' + COL[i % 5] + '"></i>' : ''; }).join('');
+    K.state(tx('Answering: ', '回答：') + QS.map(function (q, i) { return on[i] ? K.clip(q.label, 40) + tx(', ' + fmt(mins[i], 0) + ' min', '，' + fmt(mins[i], 0) + ' 分钟') : ''; }).filter(Boolean).join(tx('; ', '；')) + tx('. ', '。') +
+      (QS.some(function (_, i) { return !on[i]; }) ? tx('Skipping: ', '不答：') + QS.map(function (q, i) { return on[i] ? '' : K.clip(q.label, 40); }).filter(Boolean).join(tx('; ', '；')) + tx('. ', '。') : '') +
+      tx(nopt + ' of the ' + (P.of || 4) + ' choice questions (' + (P.pick || 3) + ' to answer); ', '选做题答了 ' + nopt + ' / ' + (P.of || 4) + ' 道（要答 ' + (P.pick || 3) + ' 道）；') +
+      (okTime ? tx(fmt(left, 0) + ' min left', '富余 ' + fmt(left, 0) + ' 分钟') : tx('over by ' + fmt(-left, 0) + ' min', '超时 ' + fmt(-left, 0) + ' 分钟')) + tx('; ', '；') +
+      (bal ? tx('no question under 0.9 min per mark', '没有哪道题每分不到 0.9 分钟') : tx('a question has under 0.9 min per mark', '有题每分不到 0.9 分钟')) + tx('.', '。'));
     sum.innerHTML = '<span class="pill ' + (okSel ? 'ok' : 'no') + '">' + tx(nopt + ' of the ' + (P.of || 4) + ' choice questions', '选做题答了 ' + nopt + ' / ' + (P.of || 4) + ' 道') + '</span><span class="pill ' + (okTime ? 'ok' : 'no') + '">' + (okTime ? fmt(left, 0) + ' ' + tx('min left', '分钟富余') : tx('over by ', '超时 ') + fmt(-left, 0) + ' ' + tx('min', '分钟')) + '</span><span class="pill ' + (bal ? 'ok' : 'no') + '">' + (bal ? tx('no question starved', '没有哪道题时间不够') : tx('a question has under 0.9 min per mark', '有题每分不到 0.9 分钟')) + '</span><span class="mk" style="font:12px var(--mono);color:var(--muted)">' + fmt(marks, 0) + ' ' + tx('marks answered · even pace', '分已答 · 平均速度') + ' ' + fmt(fair, 2) + ' ' + tx('min per mark', '分钟/分') + '</span><div class="tl" style="width:100%">' + segs + '</div>';
     K.report();
   }

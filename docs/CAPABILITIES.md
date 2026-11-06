@@ -205,6 +205,12 @@ export type Block =
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
+  /**
+   * An interactive instrument: a self-contained HTML page from the app's public folder (`src`, e.g. 'frames/mgmt90141/lp_plane.html'),
+   * shown in a sandboxed frame that gets the learner's language (?lang=) and `params` (?p=, JSON) and reports its own height. `alt` says what it is
+   * for text-only readers. Unlike `visual` it is not a manim-web scene: it can be any small interaction (chips, fields, sliders, tables).
+   */
+  | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
@@ -214,15 +220,12 @@ export type Block =
   /**
    * Text as it stands on an exam paper (a question as set, or a full-mark answer), in the paper's
    * own language `lang`; a learner reading another language sees the translation under it.
-   */
-  | { type: 'paper'; title: L10n; lang: Lang; paras: L10n[]; answer?: boolean }
-  /** A source reference shown as a footnote. */
-  | { type: 'cite'; key: string; text: L10n; url: string };
+ 
 ```
 
 ## Visuals
 
-64 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+67 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
 
 ### econ
 
@@ -430,6 +433,21 @@ export type Block =
   - topics: linear algebra, symmetric matrices, eigenvectors, spectral theorem, ellipse, pca
   - used in: `eigen-pca/lesson.ts`, `ft/c/c2_lora.ts`
 
+### mgmt
+
+- **`mgmt_lp_plane`** *(engine)*: The plan plane of a linear program with two decisions (Shader Electronics and its special cases): every point is a whole plan, each limit is a wall, the allowed plans are the region the walls leave, and the best plan is a corner. Hands: drag a plan (what it earns, what each limit says), drag the profit line (it dies at the best plan), drag a wall (the best plan and the profit follow).
+  - params: `problem: one of shader|alternative|infeasible|unbounded|redundant|consolidated ="shader" - 'shader': the lecturer's example (max 7x1+5x2, electronic 4x1+3x2<=240, assembly 2x1+x2<=100, best 30/40 = $410); 'alternative': the profit line parallel to a wall; 'infeasible'; 'unbounded'; 'redundant'; 'consolidated': the minimisation (min 10000x1+8000x2, consultant 3x1+2x2<=84, x1>=8, x2>=10, x1+x2>=25; best 8 and 17 = 216000)`; `tool: one of look|plan|sweep|walls ="look" - what the hand moves: 'look' nothing, 'plan' a plan, 'sweep' the profit line, 'walls' a limit's wall`; `story: one of build|shown ="build" - 'build': the axes, then the walls one by one, then the set; 'shown': everything at once`; `plan: 2 numbers in [0, 110] =[20,20] - the plan in hand to start with [x1, x2] (tool plan)`; `level: number in [0, 1000000] =0 - the objective line to start with (0: none; tool sweep starts there)`; `best: boolean =false - show the best plan (hidden while the learner is still predicting it)`; `corners: boolean =false - mark every corner of the feasible set with what it earns`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: linear programming, feasible region, corner, optimal solution, constraints, binding constraint, objective function
+  - used in: _(not yet used by a lesson)_
+- **`mgmt_normal`** *(engine)*: A probability under the normal curve read as the paper reads it: two axes under one curve, the question’s units and z. The script standardises as motion (a bar one σ long steps out from the mean, each step dropping onto the z axis), drops the question’s value onto z, then fills the area; a right tail is the table’s left area handed to the rest (1 − table), a between is one left area minus another, and backwards the area fills to the given one and its z rises to x. Modes left, right, between, find (given an area, find x; with `from`, P(from < X < x) = p). The readout is the paper’s four-place table with z rounded to two places.
+  - params: `mu: number in [-1000000000, 1000000000] =409000 - the mean, in the question’s units (the 2025 exam: 409,000 dollars; the tyre: 36,500 miles)`; `sd: number in [0.000001, 1000000000] =19500 - the standard deviation (19,500; the tyre 5,000)`; `unit: one of |$ ="$" - '$' writes answers in x as money`; `mode: one of left|right|between|find ="left" - 'left': P(X < a); 'right': P(X > a); 'between': P(a < X < b); 'find': the x with P(X < x) = p (or, with from, P(from < X < x) = p)`; `a: number in [-1000000000, 1000000000] =380000 - the edge (left, right) or the lower edge (between), in the question’s units`; `b: number in [-1000000000, 1000000000] =450000 - the upper edge (between)`; `p: number in [0.0001, 0.9999] =0.1 - the area given (find)`; `from: number in [-1000000000, 1000000000] =0 - find: a lower edge (P(from < X < x) = p); 0 for none`; `story: one of standardise|shown ="standardise" - 'standardise': the curve, then standardising as motion, then the value onto z, then the area; 'shown': everything at once`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: normal distribution, standard normal, z score, probability, area under the curve, statistics
+  - used in: _(not yet used by a lesson)_
+- **`mgmt_tree`** *(engine)*: A decision tree rolled back right to left (the exam's squares, circles and payoffs): at each circle the branch values times their probabilities travel in and add up to the expected value; at each square the better branch is kept and the others are cut. A hand on one probability recomputes every value and choice live, so a decision flips at its threshold. Trees: the 2025 exam's carpool (minutes, smaller is better) and PDC with the market study ($ millions).
+  - params: `tree: one of carpool|pdc ="carpool" - 'carpool': 2025 exam Q4, weather then route (QC 30 min; EW 25 open / 45 jammed) with the rounded posteriors, min, 26.6 minutes; 'pdc': the lecture's PDC with the market study (favourable 0.77; posteriors 0.94 / 0.35; no study prior 0.8), max, 15.93 ($ millions) against 14.2`; `story: one of roll|draw|shown ="roll" - 'roll': the tree drawn in time order, then rolled back from the payoffs (numbers travel into each node, squares cut their worse branches); 'draw': only the tree, drawn in time order (no values); 'shown': rolled back at once`; `hand: one of auto|none|qC|qO|qR|pF|qF|qU|q0 ="auto" - the probability the slider moves: 'auto' (carpool: qO = P(open | overcast), whose route flips at 0.75; pdc: qF = P(strong | favourable): the study stops paying below 0.87, large gives way to medium below 0.70), 'none', or a name of the tree's: carpool qC qO qR; pdc pF qF qU q0`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: decision analysis, decision tree, expected value, rollback, sample information, Bayes
+  - used in: _(not yet used by a lesson)_
+
 ### mpc
 
 - **`mpc_active_set`**: Be the active-set solver on M4's two-move cart QP, sample by sample along the MPC's own closed loop: choose which limits are held with equality (the working set W, chips in a table); the candidate plan z_W is the cheapest plan on all held lines; the table shows each held limit's multiplier λ (negative: it pulls, let it go) and whether z_W keeps or breaks each other limit. Optimal when nothing is broken and every λ ≥ 0. 'Next sample' moves one sample on and keeps W (warm start); counters compare the changes made with a from-scratch solve. Exact arithmetic on the toy cart.
@@ -468,7 +486,7 @@ export type Block =
   - params: `brakes: one of 1|0.5 ="1" - largest deceleration in m/s²: '1' shows three PD tunings, '0.5' only the tuned one (it was tuned for 1)`; `show_mpc: boolean =false - also draw the docking MPC (horizon 20 steps for brakes 1, 40 for brakes 0.5)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, pid, pd controller, saturation, control
   - used in: `mpc/m1_lookahead.ts`
-- **`mpc_qp_plane`** *(engine)*: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: the cost bowl and its ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line in its own colour, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
+- **`mpc_qp_plane`** *(engine)*: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: cost ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
   - params: `story: one of full|setup ="full" - 'full': the narrated build (cost ellipses, the limits one family at a time, the smallest ellipse touching the polygon, then the state moves); 'setup': everything shown at once at (p0, v0), for a world`; `p0: number in [4, 9.9] =8 - initial position of the cart [m] (its front bumper; the wall is at 10 m, the flag at 9.5 m)`; `v0: number in [0, 2] =0 - initial speed [m/s] (the limit is 2)`; `clip: boolean =true - show the clipped no-limits plan (□) and its cost ellipse, for comparison with the best plan`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, quadratic program, constraints, active set, kkt, feasible set, level sets, control
   - used in: `mpc/m4_constraints.ts`
@@ -560,6 +578,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 
 | module | what it is |
 |---|---|
+| `packages/ai/src/acts.ts` | The tutor acting in the figure on the learner's screen (docs/design/ENGINE.md §10), on the model's side: the figure's manifest (what is on screen, what the learner can move) goes into the prompt, the model may end its answer with a few ACT lines, and they are parsed out of the text and checked against the manifest here. The figure checks them again against itself before it moves (packages/engine/src/acts.ts): the tutor can only do what the learner can. (The types are the engine's, written out: this module also runs on the server, which does not load the engine.) |
 | `packages/ai/src/backend.ts` | Where the page sends the tutor's operations (ops_types.ts). In production: the site's server (/api/ai), which writes the prompts and calls the model. Offline: recorded answers for known questions (a demo without a model). In a development build a model called from the page can run them too (local_backend.ts, never in production pages). |
 | `packages/ai/src/generate.ts` | Syllabus entry -> complete lesson: plan the steps (predict, watch, practise), then generate and validate each scene with the same pipeline as questions. |
 | `packages/ai/src/grade_text.ts` | Free-text answers checked against a rubric's key points by the active model (JSON mode, thinking off): which key points the answer makes, and one sentence of feedback in the learner's language. The lesson view falls back to self-assessment when there is no model or the call fails. |
@@ -603,6 +622,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 | `npm run doctor` | npm run doctor -w mathnim |
 | `npm run narration` | npm run narration -w mathnim |
 | `npm run deploy` | npm run build && cd apps/mathnim && wrangler pages deploy dist --project-name mathnim --branch main --commit-dirty=true |
+| `npm run specimen` | rsync -a --delete --exclude shots/ --exclude .DS_Store docs/design/specimen/ apps/mathnim/public/p/0y7r2k8c6i/ |
 | `npm run catalog` | npm run catalog -w mathnim -- |
 | `npm run dev -w mathnim` | vite |
 | `npm run build -w mathnim` | vite build && node tools/fingerprints.mjs --expect dist |
