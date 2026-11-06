@@ -28,6 +28,7 @@ export * from './kernel/sim';
 export * from './lib/vectors';
 export * from './kernel/version';
 export * from './lib/steps';
+export * from './lib/steps_acts';
 export * from './lib/cases';
 export * from './lib/trail';
 export * from './lib/guess';

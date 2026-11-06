@@ -15,7 +15,7 @@ mistake shows as plain text, never as a broken page. Design: `docs/design/ENGINE
 | a number computed from the ones the learner drags | `{{= 2.5*n}}` or `{{= 2.5*n, 2}}` (2 decimals) | it follows as you drag, every digit a wheel | everyone, the tutor too |
 | a claim with its chain of reasons, each opened on demand | a ```` ```why ```` fence (below) | the claim with a hollow ring; tapped, its reasons drop on threads, down to a definition or an assumption | everyone, the tutor too |
 | a derivation written line by line, every line checked | a ```` ```steps ```` fence (below) | written line by line, each line coming down out of the one above, every line checked | everyone, the tutor too |
-| a formula that comes apart, each part with what it means | a ```` ```parts ```` fence (below) | the formula; tapped, each part lifts on a card with its meaning | everyone, the tutor too |
+| a formula read block by block, layer by layer: each block with what it means, and inside it the blocks it is made of | a ```` ```parts ```` fence (below) | the formula; tapped, its outer blocks each in a colour with a brace and what they mean; tap a block to see the blocks inside it | everyone, the tutor too |
 | more, folded under the sentence, for who wants it | a ```` ```details ```` fence (below) | a title; tapped, the rest unfolds like folded paper | course authors |
 | a source, on glass beside its mark | `[^key]` (and a `cite` block with that key) | a small number; tapped, the source is on glass beside it | course authors |
 
@@ -42,14 +42,13 @@ x = 4         % divide both sides by 2
 One complete TeX formula per line, 2 to 8 lines, one change per line; `%` and a few words for what was done. The optional first line `% nouns: x_0 = value, f = function` draws those symbols in their noun's colour.
 
 ```parts
-P(A\mid B) = \frac{P(B\mid A)\,P(A)}{P(B)}
-P(A\mid B): how likely A is, now that B is seen
-P(B\mid A): how likely B is if A is true
-P(A): how common A is before any evidence
-P(B): how common the evidence is
+L = \frac{1}{n}\sum_i (\hat y_i - y_i)^2
+\frac{1}{n}\sum_i: the average over all n points
+(\hat y_i - y_i)^2: point i's miss, squared: big misses count far more
+  \hat y_i - y_i: the miss: prediction minus truth
 ```
 
-The formula on the first line; then each part as it is written in the formula, a colon, and what it means. For a formula whose parts are the lesson.
+The formula on the first line; then each block as it is written in the formula, a colon, and what it means. A block is whatever means one thing: one symbol or several terms (the error, the average, the share of the whole). Indent a block two spaces under the block it is part of: the big picture first, the inside on demand. Write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything).
 
 ```details Why the gradient is held by the active constraint
 At the optimum the cost cannot fall along the wall.

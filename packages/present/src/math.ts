@@ -9,21 +9,37 @@ import { look, text_color_of } from '@mathnim/look';
 import { chain_html, parse_chain } from './chain';
 import { tangle_html, tangle_reset } from './tangle';
 import { fence_entry, fence_names, markup_entries, type MarkupCtx } from './markup';
-/** A ```parts fence: the formula on its first line, then `piece: what it means` lines. */
-export function parse_parts(body: string): { tex: string; parts: { tex: string; says: string }[] } | null {
-  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
+/** A block of a formula and what it means, with the blocks it is made of (its next layer). */
+export interface PartText { tex: string; says: string; html?: string; parts?: PartText[] }
+/**
+ * A ```parts fence: the formula on its first line, then `piece: what it means` lines; a piece indented under another
+ * (two spaces, or a tab, per layer) is one of the blocks that piece is made of.
+ */
+export function parse_parts(body: string): { tex: string; parts: PartText[] } | null {
+  const lines = body.split('\n').filter((l) => l.trim());
   if (lines.length < 2) return null;
-  const tex = lines[0].replace(/^\$+|\$+$/g, '');
-  const parts = lines.slice(1).map((l) => /^\$?(.+?)\$?\s*[:：]\s+(.+)$/.exec(l)).filter((m): m is RegExpExecArray => !!m).map((m) => ({ tex: m[1].trim(), says: m[2].trim() }));
-  return parts.length ? { tex, parts } : null;
+  const tex = lines[0].trim().replace(/^\$+|\$+$/g, '');
+  const roots: PartText[] = [], stack: { depth: number; part: PartText }[] = [];
+  for (const raw of lines.slice(1)) {
+    const m = /^(\s*)[-*]?\s*\$?(.+?)\$?\s*[:：]\s+(.+)$/.exec(raw.replace(/\t/g, '  '));
+    if (!m) continue;
+    const depth = Math.floor(m[1].length / 2), part: PartText = { tex: m[2].trim(), says: m[3].trim() };
+    while (stack.length && stack[stack.length - 1].depth >= depth) stack.pop();
+    const parent = stack[stack.length - 1]?.part;
+    if (parent) (parent.parts ??= []).push(part);
+    else roots.push(part);
+    stack.push({ depth, part });
+  }
+  return roots.length ? { tex, parts: roots } : null;
 }
 /**
- * An exploded formula as the page shows it before it can play: the formula, and each piece with what it means
- * (mount_parts turns it into the engine's: tap it and it comes apart).
+ * A formula read block by block as the page shows it before it can play: the formula, and each block with what it
+ * means, its own blocks under it (mount_parts turns it into the engine's: tap it, and tap a block to open it).
  */
-export function parts_html(tex: string, parts: { tex: string; says: string; html?: string }[]): string {
-  const data = esc(JSON.stringify({ tex, parts: parts.map((p) => ({ tex: p.tex, says: p.says })) }));
-  return `<div class="mn-parts" data-parts="${data}"><div class="mn-parts-tex">${tex_html(tex, true)}</div><dl class="mn-parts-list">${parts.map((p) => `<div><dt>${tex_html(p.tex, false)}</dt><dd>${p.html ?? esc(p.says)}</dd></div>`).join('')}</dl></div>`;
+export function parts_html(tex: string, parts: PartText[]): string {
+  const strip = (ps: PartText[]): unknown[] => ps.map((p) => ({ tex: p.tex, says: p.says, ...(p.parts?.length ? { parts: strip(p.parts) } : {}) }));
+  const list = (ps: PartText[]): string => `<dl class="mn-parts-list">${ps.map((p) => `<div><dt>${tex_html(p.tex, false)}</dt><dd>${p.html ?? esc(p.says)}${p.parts?.length ? list(p.parts) : ''}</dd></div>`).join('')}</dl>`;
+  return `<div class="mn-parts" data-parts="${esc(JSON.stringify({ tex, parts: strip(parts) }))}"><div class="mn-parts-tex">${tex_html(tex, true)}</div>${list(parts)}</div>`;
 }
 /** Details folded under the sentence, unfolded like paper (text_wire.ts): a head, and each leaf a sheet. */
 export function fold_html(head: string, leaves: string[]): string {
@@ -198,7 +214,8 @@ function fenced_html(text: string, o: MarkupOptions): string {
     else if (!BUILT_IN.has(m[1])) out.push(fence_entry(m[1])?.html?.(body, m[2].trim(), ctx_of(o, closed)) ?? prose_math_html(body, o));
     else if (m[1] === 'parts') {
       const p = parse_parts(body);
-      out.push(p ? parts_html(p.tex, p.parts.map((x) => ({ tex: x.tex, says: x.says, html: prose_math_html(x.says, o) }))) : prose_math_html(body, o));
+      const html_of = (ps: PartText[]): PartText[] => ps.map((x) => ({ ...x, html: prose_math_html(x.says, o), parts: x.parts && html_of(x.parts) }));
+      out.push(p ? parts_html(p.tex, html_of(p.parts)) : prose_math_html(body, o));
     } else if (m[1] === 'why') {
       const c = parse_chain(body, (s) => prose_math_html(s, o));
       out.push(c ? chain_html(c) : prose_math_html(body, o));

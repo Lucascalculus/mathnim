@@ -196,7 +196,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string; /** Named pieces of the formula and what each means: tapped, it comes apart (an exploded formula). */ parts?: { tex: string; says: L10n }[] }
+  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: tapped, it is read block by block (lib/parts.ts). */ parts?: FormulaBlock[] }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
@@ -216,7 +216,6 @@ export type Block =
    * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
    * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
    */
-  | { type:
 ```
 
 ## Visuals
@@ -578,11 +577,11 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `view3d` | preview | a small 3D view: points, lines, faces and solids lit by one light, turned by dragging | `const v = new View3D({ phi, theta }, { size, radius }); v.bar(from, to, { half }); orbit(fig, plot, v)` | — | `engine/src/lib/view3d.ts` |
 | `vector_field` | stable | a field as arrows: direction, and strength in length or ink | `P.add(new VectorField((x, y) => E(x, y), { role: 'noun:field', spacing: 36 }))` | rare/field | `engine/src/lib/vectors.ts` |
 | `streamline` | stable | a line that follows the field (a field line, a flow line) | `P.add(new Path(() => streamline(f, seed, { bounds }), { role: 'noun:field', heads: [0.5] }))` | rare/field | `engine/src/lib/vectors.ts` |
-| `steps` | stable | a derivation written line by line: each line comes down out of the one above, every line checked | `steps_figure('2x + 3 = 11\n2x = 8 % subtract 3\nx = 4 % divide by 2', { lang, nouns: { x: 'value' } })` | rare/algebra | `engine/src/lib/steps.ts` |
+| `steps` | stable | a derivation written line by line, each step shown being done: an act on both sides is first written on both sides, then worked out (what cancels struck through, what combines bracketed); every line checked | `steps_figure('2x + 3 = 11\n2x = 8 % subtract 3\nx = 4 % divide by 2', { lang, nouns: { x: 'value' } })` | rare/algebra | `engine/src/lib/steps.ts` |
 | `cases` (`development`) | stable | a family of cases in transparent ink: where they agree, the ink is deepest | `P.add(new Cases((i) => secant(i), { id, role, count: 12, upto }))` | develop/tangent | `engine/src/lib/cases.ts` |
 | `trail` | stable | time as matter: equal-time ghosts of the past (spacing is speed), the future dashed | `P.add(new Trail({ sim, xy: (s) => [s[0], s[1]] }, { every: 1 / 12, ahead: 1 }))` | int/time | `engine/src/lib/trail.ts` |
 | `gap` | stable | how far off, drawn as a distance with its size in words | `P.add(new Gap(a, b, { shown, text: () => '0.4 m short' }))` | — | `engine/src/lib/guess.ts` |
-| `parts` | stable | an exploded formula: tapped, each part lifts on a card with what it means | `parts_figure(tex, [{ tex: 'P(A)', says: 'the prior' }, …], { lang })` | int/explode | `engine/src/lib/parts.ts` |
+| `parts` | stable | a formula read block by block and layer by layer: each block (one symbol or several terms) in its colour with what it means; a block opens into the blocks it is made of | `parts_figure(tex, [{ tex: 'P(B\\mid A)\\,P(A)', says: 'how often A and B happen together', parts: [{ tex: 'P(A)', says: 'the prior' }] }, …], { lang })` | int/explode | `engine/src/lib/parts.ts` |
 | `plot` | stable | a plane with axes, where marks are drawn in the data's own coordinates | `fig.plot({ id, x: [x0, x1], y: [y0, y1], x_ticks, y_ticks, aspect })` | — | `engine/src/kernel/kinds.ts` |
 | `path` | stable | a curve or polyline; it can draw itself on (upto) and carry arrowheads along it | `P.add(new Path(() => pts, { id, role: 'noun:…', upto, heads }))` | — | `engine/src/kernel/kinds.ts` |
 | `region` | stable | a filled area: a set, a constraint, what is allowed | `P.add(new Region(() => pts, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
@@ -640,7 +639,7 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `computed` | stable | a number computed from the ones the learner drags | `{{= 2.5*n}}` | int/tangle | `present/src/markup/builtin.ts` |
 | `why` | stable | a claim with its chain of reasons, each opened on demand | ````why … ```` | int/why | `present/src/markup/builtin.ts` |
 | `steps` | stable | a derivation written line by line, every line checked | ````steps … ```` | rare/algebra | `present/src/markup/builtin.ts` |
-| `parts` | stable | a formula that comes apart, each part with what it means | ````parts … ```` | int/explode | `present/src/markup/builtin.ts` |
+| `parts` | stable | a formula read block by block, layer by layer: each block with what it means, and inside it the blocks it is made of | ````parts … ```` | int/explode | `present/src/markup/builtin.ts` |
 | `details` | stable | more, folded under the sentence, for who wants it | ````details Title … ```` | motion/fold | `present/src/markup/builtin.ts` |
 | `footnote` | stable | a source, on glass beside its mark | `[^key]` | motion/condense | `present/src/markup/builtin.ts` |
 | `prose` | stable | TeX, emphasis, code and links in any sentence | ``$inline TeX$`, `$$display TeX$$`, `**bold**` (the one key idea), `*italic*`, `` `code` ``, `[text](https://…)`` | — | `present/src/markup/builtin.ts` |

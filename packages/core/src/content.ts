@@ -31,6 +31,8 @@
 //   natural log; `log10` (or `lg`) is base 10.
 
 /** Text in both course languages. A plain string is the same in both (formulas, code, names). */
+/** A block of a formula (one symbol or several terms) and what it means; its own blocks are its next layer. */
+export interface FormulaBlock { tex: string; says: L10n; parts?: FormulaBlock[] }
 export type L10n = string | { en: string; zh: string };
 export type Lang = 'en' | 'zh';
 /** The languages a course can be written in, in display order. */
@@ -57,7 +59,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string; /** Named pieces of the formula and what each means: tapped, it comes apart (an exploded formula). */ parts?: { tex: string; says: L10n }[] }
+  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: tapped, it is read block by block (lib/parts.ts). */ parts?: FormulaBlock[] }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */

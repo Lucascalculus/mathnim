@@ -13,7 +13,7 @@ import { figure_zone, load_tex } from '@mathnim/engine';
 import { highlight_lines, lang_label } from './highlight';
 import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
-import { display_math_html, esc, fold_html, math_html, parts_html, steps_rows_html } from './math';
+import { display_math_html, esc, fold_html, math_html, parts_html, steps_rows_html, type PartText } from './math';
 import { chain_html, type ChainNode } from './chain';
 import { condense } from './glass';
 import { page_for } from './page_text';
@@ -140,7 +140,11 @@ export class BlockRenderer {
         return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })), b.nouns);
       case 'math':
         this.formulas++;
-        if (b.parts?.length) return parts_html(b.tex, b.parts.map((p) => ({ tex: p.tex, says: tr(p.says, this.lang), html: this.prose(p.says) })));
+        if (b.parts?.length) {
+          type P = NonNullable<typeof b.parts>[number];
+          const of = (ps: P[]): PartText[] => ps.map((p) => ({ tex: p.tex, says: tr(p.says, this.lang), html: this.prose(p.says), parts: p.parts && of(p.parts) }));
+          return parts_html(b.tex, of(b.parts));
+        }
         return `<div class="mn-dmath" role="math" aria-label="${esc(b.tex)}"><div class="mn-dmath-tex">${display_math_html(b.tex)}</div>${b.label ? `<span class="mn-eqlabel">(${esc(b.label)})</span>` : ''}</div>`;
       case 'code':
         return this.code_block(b);

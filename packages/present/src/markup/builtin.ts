@@ -91,12 +91,12 @@ define_markup({
 
 define_markup({
   name: 'parts', form: 'fence', fence: 'parts', order: 60, zones: ['text', 'figure'], maturity: 'stable', since: V, from: 'int/explode', source: SRC,
-  says: t('a formula that comes apart, each part with what it means', '能拆开的公式，每一部分带着它的意思'),
+  says: t('a formula read block by block, layer by layer: each block with what it means, and inside it the blocks it is made of', '一块一块、一层一层读的公式：每一块说清它的意思，点开看它由哪几块组成'),
   syntax: '```parts … ```',
-  example: '```parts\nP(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}\nP(A\\mid B): how likely A is, now that B is seen\nP(B\\mid A): how likely B is if A is true\nP(A): how common A is before any evidence\nP(B): how common the evidence is\n```',
-  shows: 'the formula; tapped, each part lifts on a card with its meaning',
-  rules: ['the formula on the first line; then each part as it is written in the formula, a colon, and what it means', 'for a formula whose parts are the lesson'],
-  tutor: 'What each part of a formula means: a parts block, the formula on the first line, then "piece: meaning" lines.\n```parts\nF = ma\nF: the net force\nm: the mass\na: the acceleration\n```',
+  example: '```parts\nL = \\frac{1}{n}\\sum_i (\\hat y_i - y_i)^2\n\\frac{1}{n}\\sum_i: the average over all n points\n(\\hat y_i - y_i)^2: point i\'s miss, squared: big misses count far more\n  \\hat y_i - y_i: the miss: prediction minus truth\n```',
+  shows: 'the formula; tapped, its outer blocks each in a colour with a brace and what they mean; tap a block to see the blocks inside it',
+  rules: ['the formula on the first line; then each block as it is written in the formula, a colon, and what it means', 'a block is whatever means one thing: one symbol or several terms (the error, the average, the share of the whole)', "indent a block two spaces under the block it is part of: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)'],
+  tutor: 'What the blocks of a formula mean: a parts block, the formula on the first line, then "block: meaning" lines; a block is one symbol or several terms that mean one thing, and a block indented two spaces is part of the block above it.\n```parts\n\\theta \\leftarrow \\theta - \\eta\\,\\nabla L(\\theta)\n\\theta - \\eta\\,\\nabla L(\\theta): one step downhill from where you are\n  \\eta: how big a step\n  \\nabla L(\\theta): the direction the loss rises fastest\n```',
   check: (body) => {
     const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
     const tex = (lines[0] ?? '').replace(/^\$+|\$+$/g, '');

@@ -5,6 +5,11 @@
 // does what the change says: it stays, travels (over the relation on an arc), flows together with others into what
 // they make (11 − 3 → 8), cancels out (+3 and −3), or appears. So whoever writes the steps - an author or the tutor -
 // writes only the lines; parse_steps() takes them as people and models actually write them.
+// With acts (the default; Lucas 2026-11-07, "可视化展示出公式推理的过程"), each step is shown being done rather than
+// flowing: when a line comes from the one before by doing the same to both sides (steps_acts.ts reads which), the
+// operation is first written on both sides in the vermilion of an action, then worked out - what cancels is struck
+// through and goes, what combines is bracketed and becomes its value - and in every step what changes is in that
+// vermilion while it changes. Nothing is liquid, and nothing is blurred while it moves.
 import { tex_glyphs, type TexGlyph } from 'manim-web/utils/tex/mathjax';
 import { look, text_color_of } from '@mathnim/look';
 import type { Box, XY } from '../kernel/geom';
@@ -17,6 +22,7 @@ import { tex_scale } from '../kernel/tex';
 import { break_lines, font_css, font_of, t, tex_as_text, text_width, type Lang } from '../kernel/text';
 import { Thing, type DrawEnv, type Style } from '../kernel/thing';
 import { define_thing } from '../kernel/registry';
+import { act_tex, infer_act, type StepAct } from './steps_acts';
 
 // ------------------------------------------------------------------ the lines, as people write them
 
@@ -423,9 +429,19 @@ export function match_lines(A: TexLine, B: TexLine): Transition {
 const smooth = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const ease = (u: number): number => smooth(0, 1, u);
 const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
+/** Through an act line: the act is done by ACT_DONE of the change, rests until ACT_REST, then is worked out. */
+const ACT_DONE = 0.4, ACT_REST = 0.52;
+/** A colour u of the way from a to b (hex; anything else stays a). */
+function mix(a: string, b: string, u: number): string {
+  const p = /^#([0-9a-f]{6})$/i.exec(a), q = /^#([0-9a-f]{6})$/i.exec(b);
+  if (!p || !q) return u < 0.5 ? a : b;
+  const x = parseInt(p[1], 16), y = parseInt(q[1], 16), ch = (v: number, sh: number) => (v >> sh) & 255;
+  const c = (sh: number) => Math.round(lerp(ch(x, sh), ch(y, sh), Math.max(0, Math.min(1, u))));
+  return `#${((c(16) << 16) | (c(8) << 8) | c(0)).toString(16).padStart(6, '0')}`;
+}
 
 /** A token's ink at a moment: where its glyphs are moved to (TeX units), how big, how present. */
-interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean; /** from the line it leaves (A) or the one it arrives in (B) */ src?: 'A' | 'B'; role?: Role; /** how far down to the next line it has come (written lines kept: 0..1) */ ty?: number; /** the noun its symbol names */ noun?: string }
+interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean; /** from the line it leaves (A) or the one it arrives in (B) */ src?: 'A' | 'B'; role?: Role; /** how far down to the next line it has come (written lines kept: 0..1) */ ty?: number; /** the noun its symbol names */ noun?: string; /** its colour wins over the glyph's own (a colour on its way: acts) */ force?: boolean }
 
 /**
  * A derivation as one formula that changes line by line. `at` is where it is: 2 is the third line at rest, 1.4 is
@@ -462,7 +478,21 @@ export class Steps extends Thing implements Block {
   private why_side: 'right' | 'below' | 'none' = 'none';
   /** Where the formulas start (px), written lines kept. */
   private fx = 0;
-  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean; nouns?: Record<string, string>; stack?: boolean } = {}) {
+  /**
+   * Show each step's act (steps_acts.ts): when a line comes from the one before by doing the same to both sides, the
+   * operation is first written on both sides, then worked out - what cancels is struck through, what combines is
+   * bracketed; every step shows what changes in the vermilion of an action, and nothing is liquid.
+   */
+  readonly acts: boolean;
+  /**
+   * The lines as drawn: each written line and, before a line that is an act on both sides, the line before it with the
+   * act done and not yet worked out (it is passed through, never written). Without acts, the written lines.
+   */
+  private seq: { tex: TexLine; act: StepAct | null; nouns: Map<Token, string> }[] = [];
+  private seq_moves: Transition[] = [];
+  /** Where each written line is in seq. */
+  private seq_of: number[] = [];
+  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean; nouns?: Record<string, string>; stack?: boolean; acts?: boolean } = {}) {
     super({ id: o.id ?? 'steps', role: o.role ?? 'text', z: 5, style: o.style });
     const p = typeof src === 'string' ? parse_steps(src) : { lines: src, issues: [], nouns: {} };
     this.lines = p.lines;
@@ -479,12 +509,32 @@ export class Steps extends Thing implements Block {
     this.doubtful = o.doubtful ?? [];
     this.fill = !!o.fill;
     this.stack = o.stack ?? true;
+    this.acts = o.acts ?? true;
+    // the lines as drawn: an act line goes before each written line that is an act on both sides of the one before
+    this.typeset.forEach((T, i) => {
+      if (i > 0 && this.acts && !T.error && !this.typeset[i - 1].error) {
+        const act = infer_act(this.lines[i - 1].tex, this.lines[i].tex);
+        const A2 = act ? typeset_line(act_tex(this.lines[i - 1].tex, act, look().palette.vermilion)) : null;
+        if (act && A2 && !A2.error && !match_lines(A2, T).jump) this.seq.push({ tex: A2, act, nouns: noun_tokens(A2, this.nouns) });
+      }
+      this.seq_of.push(this.seq.length);
+      this.seq.push({ tex: T, act: null, nouns: this.noun_of[i] });
+    });
+    this.seq_moves = this.seq.slice(1).map((b, i) => (this.seq_of.includes(i + 1) && this.seq_of.includes(i) ? this.moves[this.seq_of.indexOf(i)] : match_lines(this.seq[i].tex, b.tex)));
+  }
+  /** The act done to get line k (counting from 0), if it is shown as one. */
+  act_of(k: number): StepAct | null {
+    return k > 0 && this.seq_of[k] - this.seq_of[k - 1] === 2 ? this.seq[this.seq_of[k] - 1].act : null;
+  }
+  /** How long the change to line k takes, `per` being a plain change's (an act is done, rests a moment, then is worked out). */
+  dur_into(k: number, per: number): number {
+    return this.act_of(k) ? per * 2.1 : this.acts ? per * 1.25 : per;
   }
   // ---- geometry (TeX units): every line placed so that the relations line up (or the middles, where a line has none)
   private geo: { X: number; W: number; asc: number; desc: number; ox: number[] } | null = null;
   private geometry(): { X: number; W: number; asc: number; desc: number; ox: number[] } {
     if (this.geo) return this.geo;
-    const T = this.typeset, has = T.some((t) => t.anchor >= 0);
+    const T = this.seq.length ? this.seq.map((x) => x.tex) : this.typeset, has = T.some((t) => t.anchor >= 0);
     let left = 0, right = 0, asc = 0, desc = 0;
     for (const t of T) {
       const [x, y, w, h] = t.view;
@@ -612,7 +662,7 @@ export class Steps extends Thing implements Block {
         for (const [t, nn] of this.noun_of[j] ?? []) seen.set(nn, [...(seen.get(nn) ?? []), t]);
         for (const [nn, ts] of seen) {
           const tex = Object.keys(this.nouns).find((s) => this.nouns[s] === nn) ?? nn;
-          for (const t of ts) out.push({ text: `${tex} (${nn})`, tex: false, box: { x: x0 + (G.ox[j] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
+          for (const t of ts) out.push({ text: `${tex} (${nn})`, tex: false, box: { x: x0 + (G.ox[this.seq_of[j]] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
         }
       }
       return out;
@@ -621,7 +671,7 @@ export class Steps extends Thing implements Block {
     const out: { text: string; tex?: boolean; box: Box }[] = [{ text: l.tex, tex: true, box: { x: this.box.x, y: this.box.y, w: this.box.w, h: (G.asc + G.desc) * kk + this.px() * 0.5 } }];
     if (this.show_why && l.why) out.push({ text: l.why, box: { x: this.why_x, y: this.box.y + (G.asc + G.desc) * kk + this.px() * 0.5, w: this.why_w, h: this.why_h(this.why_w, _lang) } });
     // each noun's symbol in the line, where it is: what a mirror, a passage asked about or the tutor points at
-    const { x0, y0 } = this.frame_of(), ox = G.ox[k];
+    const { x0, y0 } = this.frame_of(), ox = G.ox[this.seq_of[k]];
     const seen = new Map<string, Token[]>();
     for (const [t, nn] of this.noun_of[k] ?? []) seen.set(nn, [...(seen.get(nn) ?? []), t]);
     for (const [nn, ts] of seen) {
@@ -645,7 +695,7 @@ export class Steps extends Thing implements Block {
   /** Where line k's TeX origin is drawn at rest (px) and px per TeX unit: draw_tex(g, tex, x + view.x·k, y, px) draws the same. */
   origin(line: number): { x: number; y: number; k: number; px: number } {
     const f = this.frame_of(), G = this.geometry();
-    return { x: f.x0 + G.ox[line] * f.k, y: f.y0 + (this.stack ? line * this.pitch() : 0), k: f.k, px: this.px() };
+    return { x: f.x0 + G.ox[this.seq_of[line] ?? line] * f.k, y: f.y0 + (this.stack ? line * this.pitch() : 0), k: f.k, px: this.px() };
   }
   private path(g: TexGlyph): Path2D {
     let p = this.paths.get(g);
@@ -656,19 +706,44 @@ export class Steps extends Thing implements Block {
     }
     return p;
   }
+  /** Where v (line k + u, written lines) is in the lines as drawn: through an act line, the act is done, rests, then is worked out. */
+  seq_at(v: number): [number, number] {
+    const n = this.lines.length, k = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = Math.min(1, Math.max(0, v - k));
+    const s = this.seq_of[k];
+    if (k >= n - 1 || u < 1e-6) return [s, 0];
+    if (this.seq_of[k + 1] - s < 2) return [s, u];
+    if (u < ACT_DONE) return [s, u / ACT_DONE];
+    if (u < ACT_REST) return [s + 1, 0];
+    return [s + 1, (u - ACT_REST) / (1 - ACT_REST)];
+  }
   /** The pieces of ink at a = line k + u (TeX units, before the line's offset is applied: dx includes it). */
   pieces(v: number): Piece[] {
-    const n = this.lines.length, G = this.geometry();
-    const k = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = Math.min(1, Math.max(0, v - k));
-    const A = this.typeset[k];
+    const [s, u] = this.seq_at(v);
+    return this.seq_pieces(s, u);
+  }
+  /** The pieces of ink on the way from line s of the lines as drawn to the next, u of the way. */
+  seq_pieces(s: number, u: number): Piece[] {
+    const n = this.seq.length, G = this.geometry(), acts = this.acts;
+    const A = this.seq[s].tex;
     // (a noun's symbol in its noun's colour, as text: the hue it has in the figure, deep enough to read)
-    const noun_color = (t: Token, line: number): string | null => { const nn = this.noun_of[line]?.get(t); return nn ? text_color_of(`noun:${nn}`, look()) : null; };
-    const B = k < n - 1 ? this.typeset[k + 1] : A;
-    const line_of = (t: Token) => (B.tokens.includes(t) && !A.tokens.includes(t) ? k + 1 : k);
-    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t, line_of(t)), noun: this.noun_of[line_of(t)]?.get(t), liquid: false, ...extra });
-    if (u < 1e-6 || k >= n - 1) return A.tokens.map((t) => piece(t, G.ox[k]));
-    const M = this.moves[k], oa = G.ox[k], ob = G.ox[k + 1];
+    const noun_of = (t: Token): string | undefined => this.seq[s].nouns.get(t) ?? this.seq[s + 1]?.nouns.get(t);
+    const noun_color = (t: Token): string | null => { const nn = noun_of(t); return nn ? text_color_of(`noun:${nn}`, look()) : null; };
+    const B = s < n - 1 ? this.seq[s + 1].tex : A;
+    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t), noun: noun_of(t), liquid: false, ...extra });
+    if (u < 1e-6 || s >= n - 1) return A.tokens.map((t) => piece(t, G.ox[s]));
+    const M = this.seq_moves[s], oa = G.ox[s], ob = G.ox[s + 1];
     if (M.jump) return [...A.tokens.map((t) => piece(t, oa, { w: 1 - smooth(0.15, 0.6, u), src: 'A', role: 'cancel' })), ...B.tokens.map((t) => piece(t, ob, { w: smooth(0.4, 0.85, u), src: 'B', role: 'appear', ty: 1 }))];
+    // acts: what changes is in the vermilion of an action while it changes, and comes to rest in its own ink; what
+    // cancels is struck through first and only then goes, what combines is bracketed first and only then flows together
+    const V = look().palette.vermilion, ink = (t: Token) => t.glyphs[0].fill ?? noun_color(t) ?? this.text_color;
+    const hue = (t: Token, k: number): Partial<Piece> => (acts && k > 0.001 ? { color: mix(ink(t), V, k), force: true } : {});
+    const into_act = acts && !!this.seq[s + 1]?.act;
+    const W = into_act
+      ? { go: [0.02, 0.6], merge: [0, 0.55], merge_w: [0.4, 0.66], cancel: [0, 0.55], cancel_w: [0.3, 0.62], born: [0.45, 0.76], appear: [0.55, 0.92] }
+      : acts
+      ? { go: [0.34, 0.95], merge: [0.4, 0.82], merge_w: [0.64, 0.82], cancel: [0.36, 0.78], cancel_w: [0.42, 0.7], born: [0.64, 0.88], appear: [0.2, 0.6] }
+      : { go: [0.05, 0.95], merge: [0, 0.55], merge_w: [0.4, 0.66], cancel: [0, 0.55], cancel_w: [0.3, 0.62], born: [0.45, 0.76], appear: [0.35, 0.8] };
+    const lit = smooth(0, 0.18, u) * (1 - smooth(0.78, 1, u)), settle = 1 - smooth(0.7, 1, u);
     const out: Piece[] = [];
     const lineh = G.asc + G.desc;
     // where a group that cancels gathers: the middle of its ink
@@ -676,40 +751,108 @@ export class Steps extends Thing implements Block {
     const cancels = M.from.map((f, i) => (f.role === 'cancel' ? i : -1)).filter((i) => i >= 0);
     for (const i of cancels) {
       const run = cancels.filter((x) => Math.abs(x - i) <= 3);
-      gather.set(i, run.reduce((s, x) => s + center(A.tokens[x]), 0) / run.length);
+      gather.set(i, run.reduce((sum, x) => sum + center(A.tokens[x]), 0) / run.length);
     }
     A.tokens.forEach((t, i) => {
       const f = M.from[i];
       if (f.role === 'keep' || f.role === 'move') {
-        const b = B.tokens[f.to], e = ease(smooth(0.05, 0.95, u));
+        const b = B.tokens[f.to], e = ease(smooth(W.go[0], W.go[1], u));
         const x0 = oa + center(t), x1 = ob + center(b);
         const crosses = A.anchor >= 0 && B.anchor >= 0 && f.role === 'move' && Math.sign(rel_x(A, i)) !== Math.sign(rel_x(B, f.to));
         const dy = crosses ? -Math.sin(Math.PI * e) * lineh * 0.75 : 0;
         const changes = b.key !== t.key;
         const dyb = ((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2;
-        if (!changes) out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, src: 'A', role: f.role, ty: e }));
+        // (a kept token whose colour changes - the act's operand at rest - comes to its new colour as it arrives)
+        const recolor = acts && f.role === 'keep' && (t.glyphs[0].fill ?? null) !== (b.glyphs[0].fill ?? null) ? { color: mix(ink(t), ink(b), smooth(0.4, 0.95, u)), force: true } : {};
+        const moving = f.role === 'move' ? hue(t, lit) : recolor;
+        if (!changes) out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, src: 'A', role: f.role, ty: e, ...moving }));
         else {
           // it changes on the way (+ → −): the old shape gives way to the new one as it arrives
-          const s = smooth(0.45, 0.8, u);
-          out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, w: 1 - s, src: 'A', role: f.role, ty: e }));
-          out.push(piece(b, lerp(x0, x1, e) - center(b), { dy: dy - dyb * (1 - e), w: s, src: 'B', role: f.role, ty: e }));
+          const sw = smooth(0.45, 0.8, u);
+          out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, w: 1 - sw, src: 'A', role: f.role, ty: e, ...moving }));
+          out.push(piece(b, lerp(x0, x1, e) - center(b), { dy: dy - dyb * (1 - e), w: sw, src: 'B', role: f.role, ty: e, ...hue(b, acts ? lit : 0) }));
         }
       } else if (f.role === 'merge') {
         // what flows into a new token travels to it, shrinking, and is gone as it arrives
-        const b = B.tokens[f.to], e = ease(smooth(0, 0.55, u));
+        const b = B.tokens[f.to], e = ease(smooth(W.merge[0], W.merge[1], u));
         const x1 = ob + center(b);
-        out.push(piece(t, lerp(oa + center(t), x1, e) - center(t), { dy: (((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2) * e, scale: 1 - 0.25 * e, w: 1 - smooth(0.4, 0.66, u), liquid: true, src: 'A', role: 'merge', ty: ease(smooth(0.05, 0.95, u)) }));
+        out.push(piece(t, lerp(oa + center(t), x1, e) - center(t), { dy: (((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2) * e, scale: 1 - 0.25 * e, w: 1 - smooth(W.merge_w[0], W.merge_w[1], u), liquid: !acts, src: 'A', role: 'merge', ty: ease(smooth(0.05, 0.95, u)) }));
       } else {
-        const c = gather.get(i) ?? center(t), e = ease(smooth(0, 0.55, u));
-        out.push(piece(t, oa + lerp(center(t), c, e) - center(t), { scale: 1 - 0.4 * e, w: 1 - smooth(0.3, 0.62, u), liquid: true, src: 'A', role: 'cancel' }));
+        const c = gather.get(i) ?? center(t), e = ease(smooth(W.cancel[0], W.cancel[1], u));
+        out.push(piece(t, oa + lerp(center(t), c, e) - center(t), { scale: 1 - 0.4 * e, w: 1 - smooth(W.cancel_w[0], W.cancel_w[1], u), liquid: !acts, src: 'A', role: 'cancel' }));
       }
     });
     B.tokens.forEach((t, j) => {
       const r = M.to[j].role;
-      if (r === 'merge') out.push(piece(t, ob, { w: smooth(0.45, 0.76, u), scale: lerp(0.8, 1, smooth(0.45, 0.95, u)), liquid: true, src: 'B', role: 'merge', ty: 1 }));
-      else if (r === 'appear') out.push(piece(t, ob, { w: smooth(0.35, 0.8, u), scale: lerp(0.85, 1, smooth(0.35, 1, u)), src: 'B', role: 'appear', ty: 1 }));
+      if (r === 'merge') out.push(piece(t, ob, { w: smooth(W.born[0], W.born[1], u), scale: lerp(0.8, 1, smooth(W.born[0], 0.95, u)), liquid: !acts, src: 'B', role: 'merge', ty: 1, ...hue(t, settle) }));
+      // (what an act writes is in its own vermilion already: it arrives as it is)
+      else if (r === 'appear') out.push(piece(t, ob, { w: smooth(W.appear[0], W.appear[1], u), scale: lerp(0.85, 1, smooth(W.appear[0], 1, u)), src: 'B', role: 'appear', ty: 1, ...(t.glyphs[0].fill ? {} : hue(t, settle)) }));
     });
     return out;
+  }
+  /**
+   * The marks of a change, on the way from line s of the lines as drawn (TeX units, the line's offset included): a
+   * stroke through each run of what cancels (drawn before it goes), a bracket under each group that combines (drawn
+   * before it flows together). Only with acts.
+   */
+  seq_marks(s: number, u: number): { kind: 'strike' | 'bracket'; x0: number; x1: number; y: number; grow: number; alpha: number }[] {
+    if (!this.acts || s >= this.seq.length - 1 || u < 1e-6) return [];
+    const M = this.seq_moves[s], A = this.seq[s].tex, ox = this.geometry().ox[s], out: ReturnType<Steps['seq_marks']> = [];
+    if (M.jump) return out;
+    const side = (i: number) => (A.anchor < 0 ? 0 : Math.sign(i - A.anchor));
+    // runs of what cancels: tokens next to each other, on one side of the relation
+    let run: number[] = [];
+    const flush = () => {
+      const ts = run.map((i) => A.tokens[i]).filter((t) => t.kind !== 'rule' || run.length === 1);
+      if (ts.length) {
+        const y0 = Math.min(...ts.map((t) => t.box[1])), y1 = Math.max(...ts.map((t) => t.box[3]));
+        out.push({ kind: 'strike', x0: ox + Math.min(...ts.map((t) => t.box[0])), x1: ox + Math.max(...ts.map((t) => t.box[2])), y: (y0 + y1) / 2, grow: smooth(0.02, 0.3, u), alpha: 1 - smooth(0.42, 0.72, u) });
+      }
+      run = [];
+    };
+    M.from.forEach((f, i) => {
+      if (f.role === 'cancel' && (!run.length || (run[run.length - 1] === i - 1 && side(i) === side(run[0])))) run.push(i);
+      else { flush(); if (f.role === 'cancel') run.push(i); }
+    });
+    flush();
+    // groups that combine into one token: a bracket under them
+    const groups = new Map<number, number[]>();
+    M.from.forEach((f, i) => { if (f.role === 'merge') groups.set(f.to, [...(groups.get(f.to) ?? []), i]); });
+    for (const is of groups.values()) {
+      if (is.length < 2) continue;
+      const ts = is.map((i) => A.tokens[i]);
+      out.push({ kind: 'bracket', x0: ox + Math.min(...ts.map((t) => t.box[0])), x1: ox + Math.max(...ts.map((t) => t.box[2])), y: Math.max(...ts.map((t) => t.box[3])) + 0.22, grow: smooth(0.02, 0.26, u), alpha: 1 - smooth(0.32, 0.46, u) });
+    }
+    return out;
+  }
+  /** Draw the marks of a change (seq_marks) with the line's origin at (x0, y0), k px per TeX unit. */
+  private draw_marks(g: CanvasRenderingContext2D, marks: ReturnType<Steps['seq_marks']>, x0: number, y0: number, k: number): void {
+    if (!marks.length) return;
+    g.save();
+    g.strokeStyle = look().palette.vermilion;
+    g.lineWidth = Math.max(1.4, this.px() * 0.055);
+    g.lineCap = 'round';
+    for (const m of marks) {
+      if (m.alpha < 0.01 || m.grow < 0.01) continue;
+      g.globalAlpha = m.alpha;
+      const a = x0 + m.x0 * k, b = x0 + m.x1 * k, y = y0 + m.y * k, pad = this.px() * 0.08;
+      g.beginPath();
+      if (m.kind === 'strike') {
+        // through it, from the left, a little rising (as a pen strikes out)
+        const x1 = a - pad + (b - a + 2 * pad) * m.grow;
+        g.moveTo(a - pad, y + this.px() * 0.06);
+        g.lineTo(x1, y + this.px() * 0.06 - (x1 - a + pad) * 0.08);
+      } else {
+        // under it, out from the middle, its ends turned up
+        const c = (a + b) / 2, h = (b - a) / 2 + pad, up = this.px() * 0.14;
+        g.moveTo(c - h * m.grow, y - up * m.grow);
+        g.lineTo(c - h * m.grow, y);
+        g.lineTo(c + h * m.grow, y);
+        g.lineTo(c + h * m.grow, y - up * m.grow);
+      }
+      g.stroke();
+    }
+    g.restore();
   }
   /**
    * Draw a piece; `swell` (CSS px) thickens every stroke by that much on each side (the liquid's ink, before its
@@ -724,7 +867,7 @@ export class Steps extends Thing implements Block {
     const lw = (2 * swell) / (k * p.scale);
     for (const gl of p.glyphs) {
       if (only && (only === 'rules') !== !!gl.rect) continue;
-      g.fillStyle = g.strokeStyle = gl.fill ?? p.color ?? color;
+      g.fillStyle = g.strokeStyle = (p.force ? p.color : null) ?? gl.fill ?? p.color ?? color;
       if (gl.text) {
         // a character the TeX fonts lack (Chinese): the page's serif, at MathJax's size and place
         g.font = `${gl.font_size}px ${look().fonts.serif}`;
@@ -756,7 +899,7 @@ export class Steps extends Thing implements Block {
     if (!this.lines[k] || this.box.w <= 0) return [];
     const G = this.geometry(), kk = tex_scale(this.px()), { x0, y0 } = this.frame_of(), P = this.stack ? this.pitch() : 0, out: { noun: string; box: Box }[] = [];
     for (let j = this.stack ? 0 : k; j <= k; j++)
-      for (const [t, nn] of this.noun_of[j] ?? []) out.push({ noun: nn, box: { x: x0 + (G.ox[j] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
+      for (const [t, nn] of this.noun_of[j] ?? []) out.push({ noun: nn, box: { x: x0 + (G.ox[this.seq_of[j]] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
     return out;
   }
   override noun_at(p: XY): string | null {
@@ -776,19 +919,27 @@ export class Steps extends Thing implements Block {
       for (const only of ['paths', 'rules'] as const) for (const p of this.pieces(j)) this.draw_piece(g, p, x0, y0 + j * P, k, color, a, 0, only);
     }
     if (live) {
-      // the next line comes down out of this one: copies of what stays and what combines travel down; what cancels stays
-      // behind (it is still in the line above); what is new appears in place
-      const jump = this.moves[kk].jump, pT = P / k;
-      // (a copy shows only as it leaves: on top of its original it would only thicken the ink)
-      const leave = smooth(0.02, 0.3, u);
-      const ps = this.pieces(v).filter((p) => !(p.src === 'A' && (jump || p.role === 'cancel'))).map((p) => ({ ...p, dy: p.dy + pT * (p.ty ?? 0), w: p.src === 'A' ? p.w * leave : p.w }));
-      const drop = Math.sin(Math.PI * smooth(0.3, 0.75, u)), liquid = ps.filter((p) => p.liquid && p.w > 0.05);
-      if (liquid.length > 1 && drop > 0.05) this.draw_liquid(g, liquid, x0, y0 + kk * P, k, color, drop, env.dpr);
-      for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0 + kk * P, k, color, p.w);
+      const [s, su] = this.seq_at(v), pT = P / k;
+      if (s !== this.seq_of[kk]) {
+        // an act, done: its line is where the next line will be, and it is worked out there (struck, bracketed, combined)
+        for (const p of this.seq_pieces(s, su)) if (p.w > 0.002) this.draw_piece(g, { ...p, dy: p.dy + pT }, x0, y0 + kk * P, k, color, p.w);
+        this.draw_marks(g, this.seq_marks(s, su), x0, y0 + (kk + 1) * P, k);
+      } else {
+        // the next line comes down out of this one: copies of what stays and what combines travel down; what cancels
+        // stays behind (it is still in the line above, struck through when acts are shown); what is new appears in place
+        const jump = this.seq_moves[s].jump;
+        // (a copy shows only as it leaves: on top of its original it would only thicken the ink)
+        const leave = this.acts && !this.seq[s + 1]?.act ? smooth(0.36, 0.6, su) : smooth(0.02, 0.3, su);
+        const ps = this.seq_pieces(s, su).filter((p) => !(p.src === 'A' && (jump || p.role === 'cancel'))).map((p) => ({ ...p, dy: p.dy + pT * (p.ty ?? 0), w: p.src === 'A' ? p.w * leave : p.w }));
+        const drop = Math.sin(Math.PI * smooth(0.3, 0.75, su)), liquid = ps.filter((p) => p.liquid && p.w > 0.05);
+        if (liquid.length > 1 && drop > 0.05) this.draw_liquid(g, liquid, x0, y0 + kk * P, k, color, drop, env.dpr);
+        for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0 + kk * P, k, color, p.w);
+        this.draw_marks(g, this.seq_marks(s, su), x0, y0 + kk * P, k);
+      }
     }
     // a line that does not follow from the one before: a hollow ring before it, while it is the last line, at rest
     if (!live && this.doubtful.includes(kk + 1)) {
-      const T = this.typeset[kk], left = x0 + (G.ox[kk] + T.view[0]) * k;
+      const T = this.typeset[kk], left = x0 + (G.ox[this.seq_of[kk]] + T.view[0]) * k;
       g.save();
       g.strokeStyle = env.look.palette.ink2;
       g.lineWidth = 1.6;
@@ -818,7 +969,8 @@ export class Steps extends Thing implements Block {
       g.restore();
     };
     for (let j = 1; j <= kk; j++) say(j, j < kk ? 0.85 : 1);
-    if (live) say(kk + 1, smooth(0.5, 1, u));
+    // (an act's words come with the act)
+    if (live) say(kk + 1, this.act_of(kk + 1) ? smooth(0.06, 0.3, u) : smooth(0.5, 1, u));
   }
   draw(env: DrawEnv): void {
     if (this.stack) return this.draw_stack(env);
@@ -836,10 +988,11 @@ export class Steps extends Thing implements Block {
     if (liquid.length > 1 && drop > 0.05) this.draw_liquid(g, liquid, x0, y0, k, color, drop, env.dpr);
     if (live === 0) { for (const only of ['paths', 'rules'] as const) for (const p of ps) this.draw_piece(g, p, x0, y0, k, color, 1, 0, only); }
     else for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0, k, color, p.w);
+    if (live) { const [s, su] = this.seq_at(v); this.draw_marks(g, this.seq_marks(s, su), x0, y0, k); }
     // a line that does not follow from the one before: a hollow ring before it (not established), while it rests
     const resting = u < 1e-6 || kk >= n - 1 ? kk : -1;
     if (resting >= 0 && this.doubtful.includes(resting + 1)) {
-      const G = this.geometry(), T = this.typeset[resting], left = x0 + (G.ox[resting] + T.view[0]) * k;
+      const G = this.geometry(), T = this.typeset[resting], left = x0 + (G.ox[this.seq_of[resting]] + T.view[0]) * k;
       g.save();
       g.strokeStyle = env.look.palette.ink2; // (vermilion is the one action; a doubt is hollow ink)
       g.lineWidth = 1.6;
@@ -862,7 +1015,8 @@ export class Steps extends Thing implements Block {
         ls.forEach((l, i) => g.fillText(l.spans.map((x) => x.s).join(''), this.why_x + (this.why_w - l.width) / 2, top + i * f.size * look().type.caption.line));
         g.restore();
       };
-      if (u > 1e-6 && kk < n - 1) { say(this.lines[kk].why, 1 - smooth(0, 0.5, u)); say(this.lines[kk + 1].why, smooth(0.5, 1, u)); }
+      const early = this.act_of(kk + 1) ? 0.3 : 1;
+      if (u > 1e-6 && kk < n - 1) { say(this.lines[kk].why, 1 - smooth(0, 0.5 * early, u)); say(this.lines[kk + 1].why, smooth(0.5 * early, early, u)); }
       else say(this.lines[kk].why, 1);
     }
   }
@@ -942,17 +1096,17 @@ function box1(a: Float32Array, o: number, s: number, n: number, r: number, tmp: 
  * A figure that walks through a derivation: each line held, then the change to the next (one beat of the script per
  * line, so a voice or a click can step through them). `per_step` is the change's length, `hold` the rest on each line.
  */
-export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean; nouns?: Record<string, string>; stack?: boolean } = {}): Figure & { derivation: Steps } {
+export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean; nouns?: Record<string, string>; stack?: boolean; acts?: boolean } = {}): Figure & { derivation: Steps } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { derivation: Steps };
   if (o.paper === false) fig.paper = 'clear';
   // (on a stage - paper behind it - it fills the stage; in a text it is the size of a displayed formula)
-  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false, nouns: o.nouns, stack: o.stack });
+  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false, nouns: o.nouns, stack: o.stack, acts: o.acts });
   fig.derivation = st;
   // (in a text it is part of the text: no margin of its own)
   fig.layout(column([st]), o.paper === false ? { pad: 2 } : {});
   const per = o.per_step ?? 1.3, hold = o.hold ?? 1.1;
   const script: Step[] = [wait(hold * 0.6)];
-  for (let k = 1; k < st.lines.length; k++) script.push(beat(), set(st.at, k, 'travel', per), wait(hold));
+  for (let k = 1; k < st.lines.length; k++) script.push(beat(), set(st.at, k, st.acts ? 'linear' : 'travel', st.dur_into(k, per)), wait(hold));
   fig.script(...script);
   fig.check('every line typesets', () => (st.typeset.find((t) => t.error) ? st.issues.find((s) => s.includes('typeset')) ?? 'a line does not typeset' : null));
   return fig;
@@ -963,11 +1117,11 @@ export const read_at = (st: Steps): number => read(st.at);
 
 // ---------------------------------------------------------------- entry
 define_thing({
-  name: 'steps', says: t('a derivation written line by line: each line comes down out of the one above, every line checked', '一行一行写出的推导：每一行从上一行里落下来，每一行都检查过'),
+  name: 'steps', says: t('a derivation written line by line, each step shown being done: an act on both sides is first written on both sides, then worked out (what cancels struck through, what combines bracketed); every line checked', '一行一行写出的推导，每一步都看得见是怎么做的：两边同做的操作先写在两边，再算出来（抵消的划掉，合并的括起来）；每一行都检查过'),
   zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'rare/algebra',
   syntax: "steps_figure('2x + 3 = 11\\n2x = 8   % subtract 3\\nx = 4   % divide by 2', { lang, nouns: { x: 'value' } })",
-  rules: ['one complete formula per line, one change per line', 'a few words after % for what was done'],
+  rules: ['one complete formula per line, one change per line', 'a few words after % for what was done', 'write the lines only: an act on both sides (−3, ÷2, ×n/2) is read from the two lines and shown being done'],
   accept: t('at rest every frame is exactly the typeset line; each line follows from the one before', '静止时每一帧都正好是排好的那一行；每一行都由上一行推出'),
-  demo: (lang) => steps_figure('2x + 3 = 11\n2x = 8   % subtract 3\nx = 4   % divide by 2', { lang, nouns: { x: 'value' } }),
+  demo: (lang) => steps_figure(lang === 'zh' ? '2x + 3 = 11\n2x = 8   % 两边减 3\nx = 4   % 两边除以 2' : '2x + 3 = 11\n2x = 8   % take 3 from both sides\nx = 4   % divide both sides by 2', { lang, nouns: { x: 'value' } }),
   source: 'packages/engine/src/lib/steps.ts',
 });

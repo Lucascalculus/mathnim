@@ -53,15 +53,34 @@ def lesson():
              p(T('The [derivative](def: the limit of the slopes of the secants as $h \\to 0$, when that limit exists; then $f$ is [differentiable](def: having a derivative there) at $x_0$) of $f$ at $x_0$ is the [slope](noun:value) the secants close onto[^cauchy]. In symbols it is the limit of one fraction:',
                  '$f$ 在 $x_0$ 处的[导数](def: 当 $h \\to 0$ 时割线斜率的极限（如果这个极限存在）；这时称 $f$ 在 $x_0$ [可导](def: 在那里导数存在))就是割线最后合拢到的那个[斜率](noun:value)[^cauchy]。写成符号，就是一个分式的极限：')),
              {'type': 'math', 'tex': r'\frac{f(x_0+h) - f(x_0)}{h}', 'parts': [
-                 {'tex': 'f(x_0+h)', 'says': T('the height at the second point', '第二个点的高度')},
-                 {'tex': 'f(x_0)', 'says': T('the height at P', 'P 点的高度')},
-                 {'tex': 'h', 'says': T('how far apart the two points are', '两点相距多远')}]},
+                 {'tex': r'\frac{f(x_0+h) - f(x_0)}{h}', 'says': T('the slope of the secant: how steep, between two points', '割线的斜率：两点之间有多陡'), 'parts': [
+                     {'tex': 'f(x_0+h) - f(x_0)', 'says': T('the rise: how much higher the second point is', '升高：第二个点高出多少'), 'parts': [
+                         {'tex': 'f(x_0+h)', 'says': T('the height at the second point', '第二个点的高度')},
+                         {'tex': 'f(x_0)', 'says': T('the height at P', 'P 点的高度')}]},
+                     {'tex': 'h', 'says': T('the run: how far apart the two points are', '水平距离：两点相距多远')}]}]},
              p(T('Take $f(x) = x^2$ at $x_0 = 1$. With the second point {{h = 1, 0.1..2, 0.1}} to the right, the secant rises {{= (1+h)^2 - 1, 2}} over that run: its slope is {{= ((1+h)^2 - 1)/h, 2}}. The closer the points, the closer that is to 2.',
                  '取 $f(x) = x^2$，$x_0 = 1$。第二个点在右边 {{h = 1, 0.1..2, 0.1}} 处时，割线在这段距离上升高 {{= (1+h)^2 - 1, 2}}，斜率是 {{= ((1+h)^2 - 1)/h, 2}}。两点越近，它就越接近 2。')),
              p(T('A matrix moves the plane. With $a$ = {{a = 1.5, -3..3, 0.1}}, $b$ = {{b = 1, -3..3, 0.1}}, $c$ = {{c = 0.5, -3..3, 0.1}} and $d$ = {{d = 2, -3..3, 0.1}}, the unit square becomes a [parallelogram](noun:determinant) whose area is $ad - bc$ = {{= a*d - b*c, 2}}. The numbers in the sentence and the numbers in the figure are the same numbers.',
                  '矩阵会移动整个平面。取 $a$ = {{a = 1.5, -3..3, 0.1}}，$b$ = {{b = 1, -3..3, 0.1}}，$c$ = {{c = 0.5, -3..3, 0.1}}，$d$ = {{d = 2, -3..3, 0.1}}，单位正方形变成一个[平行四边形](noun:determinant)，面积是 $ad - bc$ = {{= a*d - b*c, 2}}。句子里的数和图里的数是同一组数。')),
              {**visual('determinant_area', explore=True, caption=T('The [parallelogram](noun:determinant) of the columns of $A$.', '$A$ 的两列围成的[平行四边形](noun:determinant)。'), A=[[1.5, 1], [0.5, 2]], show_collapse=False), 'bind': {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd'}},
              steps((r'\lim_{h\to 0}\frac{(1+h)^2 - 1}{h}', ), (r'\lim_{h\to 0}\frac{2h + h^2}{h}', T('expand: the 1s cancel', '展开：两个 1 抵消')), (r'\lim_{h\to 0}\,(2 + h)', T('divide by $h$', '除以 $h$')), (r'2', T(r'let $h \to 0$', r'令 $h \to 0$'))),
+             p(T('Solving an equation: each step does the same to both sides, and you see it done before it is worked out.', '解方程：每一步都对两边做同样的事；先看见它怎么做，再看它算出来。')),
+             steps(('2x + 3 = 11',), ('2x = 8', T('take 3 from both sides', '两边减 3')), ('x = 4', T('divide both sides by 2', '两边除以 2')), nouns={'x': 'value'}),
+             p(T('The same moves find the best slope $w$ of a line through data. First what is being made small, block by block (tap it):', '同样的动作也能求出过一组数据的直线的最佳斜率 $w$。先一块一块看要变小的是什么（点一下）：')),
+             {'type': 'math', 'tex': r'L(w) = \frac{1}{n}\sum_i (w x_i - y_i)^2', 'parts': [
+                 {'tex': r'\frac{1}{n}\sum_i', 'says': T('the average over all n points', '对全部 n 个点取平均')},
+                 {'tex': '(w x_i - y_i)^2', 'says': T("point i's miss, squared: big misses count far more", '第 i 个点的偏差平方：大的偏差算得多得多'), 'parts': [
+                     {'tex': 'w x_i - y_i', 'says': T('the miss: where the line says, minus where the point is', '偏差：直线给的值减去点的实际位置'), 'parts': [
+                         {'tex': 'w x_i', 'says': T('the line at $x_i$', '直线在 $x_i$ 处的高度')},
+                         {'tex': 'y_i', 'says': T('the point itself', '点本身的高度')}]}]}]},
+             p(T('Then the derivation, from its mean squared error $L(w)$:', '然后是推导，从均方误差 $L(w)$ 出发：')),
+             steps((r'L(w) = \frac{1}{n}\sum_i (w x_i - y_i)^2',),
+                   (r"L'(w) = \frac{2}{n}\sum_i x_i\,(w x_i - y_i)", T("chain rule: the square's 2 comes down, the inside's slope $x_i$ comes out", '链式法则：平方的 2 落到前面，里面的斜率 $x_i$ 乘出来')),
+                   (r'\frac{2}{n}\sum_i x_i\,(w x_i - y_i) = 0', T('at the lowest point the slope is 0', '最低点处斜率为 0')),
+                   (r'\sum_i x_i\,(w x_i - y_i) = 0', T('multiply both sides by $n/2$', '两边乘以 $n/2$')),
+                   (r'w\sum_i x_i^2 - \sum_i x_i y_i = 0', T('multiply out', '乘开')),
+                   (r'w\sum_i x_i^2 = \sum_i x_i y_i', T(r'add $\sum_i x_i y_i$ to both sides', r'两边加上 $\sum_i x_i y_i$')),
+                   (r'w = \frac{\sum_i x_i y_i}{\sum_i x_i^2}', T(r'divide both sides by $\sum_i x_i^2$', r'两边除以 $\sum_i x_i^2$')), nouns={'w': 'value'}),
              why(T('A function differentiable at $x_0$ is continuous there.', '在 $x_0$ 可导的函数，在那里一定连续。'),
                  because(T('$f(x_0+h) - f(x_0)$ is the quotient times $h$, and the product tends to $f\'(x_0) \\cdot 0 = 0$.', '$f(x_0+h) - f(x_0)$ 等于差商乘以 $h$，而这个乘积趋于 $f\'(x_0) \\cdot 0 = 0$。'),
                          because(T('The quotient tends to $f\'(x_0)$.', '差商趋于 $f\'(x_0)$。'),

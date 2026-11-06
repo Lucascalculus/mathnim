@@ -150,8 +150,9 @@ const DERIVATIONS: Record<string, string> = {
   bayes: 'P(A \\mid B) = \\frac{P(B \\mid A)P(A)}{P(B)}\nP(A \\mid B) = \\frac{0.9 \\times 0.01}{0.05}\nP(A \\mid B) = 0.18',
   zh: '\\text{利润} = \\text{收入} - \\text{成本}\n\\text{利润} = 500 - 320 % 代入\n\\text{利润} = 180',
 };
-function figure_of(src: string, w = 560, stack = false) {
-  const st = new Steps(src, { id: 's', why: false, stack });
+/** (the plain change from line to line: one transition per pair of lines; acts are tested on their own below) */
+function figure_of(src: string, w = 560, stack = false, acts = false) {
+  const st = new Steps(src, { id: 's', why: false, stack, acts });
   const fig = new Figure({ lang: 'en' });
   fig.layout(column([st]));
   fig.build();
