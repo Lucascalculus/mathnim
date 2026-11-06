@@ -2,7 +2,7 @@
 // MathJax is large (about 0.5 MB compressed): the first page does not wait for it. It is loaded once
 // the shell is up, or by the first page that needs it (lessons, review); formulas written meanwhile
 // (course pages, the outline) are drawn when it arrives (present's set_tex_renderer).
-import { mount_steps, set_tex_renderer, ui_lang } from '@mathnim/present';
+import { mount_parts, mount_steps, set_tex_renderer, ui_lang } from '@mathnim/present';
 import { init_tex } from 'manim-web';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
 
@@ -29,7 +29,9 @@ export function watch_steps(): void {
   let queued = false;
   const run = () => {
     queued = false;
-    if (document.querySelector('.mn-steps[data-steps]:not([data-live])')) void enable_dom_tex().then(() => mount_steps(document, ui_lang() === 'zh' ? 'zh' : 'en'));
+    const lang = ui_lang() === 'zh' ? 'zh' : 'en';
+    if (document.querySelector('.mn-steps[data-steps]:not([data-live])')) void enable_dom_tex().then(() => mount_steps(document, lang));
+    if (document.querySelector('.mn-parts[data-parts]:not([data-live])')) void enable_dom_tex().then(() => mount_parts(document, lang));
   };
   new MutationObserver(() => {
     if (queued) return;

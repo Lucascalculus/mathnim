@@ -144,23 +144,82 @@ export const CSS = `
 .mn-dev{grid-column:1/-1;font:12px/1.5 ui-monospace,monospace;background:var(--mn-panel);border:1px dashed var(--mn-border);border-radius:10px;padding:10px;white-space:pre-wrap;max-height:260px;overflow:auto}
 .mn-dev .error{color:var(--mn-bad)}.mn-dev .warning{color:var(--mn-warn)}
 .mn-math svg{vertical-align:middle}
-/* the text zone: nouns in their colour; a definition unfolding in its sentence; a chain of why (rings fill as it opens) */
-.mn-noun{font-weight:500}
-.mn-def-term{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-decoration:underline dotted;text-decoration-color:color-mix(in srgb,currentColor 50%,transparent);text-underline-offset:3px;text-decoration-thickness:1.5px}
-.mn-def-term[aria-expanded="true"]{text-decoration-style:solid}
-.mn-def-body{display:block;margin:.3em 0 .45em;padding:.05em 0 .05em .85em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 22%,transparent);color:var(--mn-ink2,#5B5B62);font-size:.94em;animation:mn-unfold .28s ease-out}
+/* the text zone (docs/design/specimen gpu/int): paper, ink, glass for the hand; no boxes */
+/* a noun in its colour: touched, its thing in the figure answers */
+.mn-noun{font-weight:500;cursor:default}
+/* a definition in its sentence: a dotted term; opened, the definition follows it on a faint ground and the rest of the sentence drops by whole lines, keeping its x */
+.mn-def-term{font:inherit;color:inherit;background:none;border:0;padding:0 0 .12em;margin:0;cursor:pointer;position:relative;
+  background-image:radial-gradient(circle,rgba(68,70,77,.85) .95px,transparent 1.25px);background-size:5px 3px;background-repeat:repeat-x;background-position:0 100%}
+.mn-def-term::before{content:'';position:absolute;inset:-6px -2px}
+.mn-def-term[aria-expanded="true"]{background-image:linear-gradient(var(--mn-ink2,#5B5B62),var(--mn-ink2,#5B5B62));background-size:100% 1.25px;background-position:0 100%}
+.mn-def-body{color:var(--mn-ink2,#5B5B62);background:rgba(26,27,31,.05);border-radius:5px;padding:.1em .3em;margin-left:.25em;-webkit-box-decoration-break:clone;box-decoration-break:clone;cursor:pointer}
+.mn-def-body .mn-def-body{background:rgba(26,27,31,.085)}
 .mn-def-body[hidden]{display:none}
-@keyframes mn-unfold{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
-.mn-chain{margin:.9em 0}
-.mn-chain-line{display:flex;align-items:baseline;gap:.55em}
-.mn-chain-claim .mn-chain-text{font-weight:500}
-.mn-chain-ring{flex:none;width:.72em;height:.72em;border-radius:50%;border:1.5px solid currentColor;background:transparent;padding:0;cursor:pointer;transform:translateY(.06em);transition:background-color .25s,box-shadow .25s;color:var(--mn-ink,#111)}
-.mn-chain-ring[aria-expanded="true"]{background:currentColor}
-.mn-chain-dot{flex:none;width:.72em;height:.72em;display:inline-block}
-.mn-chain-kind{font-size:.72em;letter-spacing:.04em;color:var(--mn-ink2,#5B5B62);text-transform:lowercase}
-.mn-chain-because{margin:.35em 0 .2em .32em;padding-left:1.05em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 18%,transparent);animation:mn-unfold .28s ease-out}
-.mn-chain-because[hidden]{display:none}
-.mn-chain-node{margin:.3em 0}
+.mn-def-in{animation:mn-def-in .32s ease-out}
+@keyframes mn-def-in{from{opacity:0}to{opacity:1}}
+.mn-def-rest{display:block}
+.mn-def-drop{transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+.mn-def-lead{display:inline-block;height:1em;vertical-align:baseline}
+.mn-def-dots{background-image:radial-gradient(circle,rgba(98,102,109,.8) .95px,transparent 1.25px);background-size:5px 3px;background-repeat:repeat-x;background-position:4px 62%;background-clip:content-box;padding-right:8px;box-sizing:border-box}
+/* a chain of why: a hollow ring in the margin, a short thread hanging from it; opened, the reasons drop on threads, one step in; bedrock ends in a ground mark */
+.mn-chain{position:relative;margin:1.1em 0}
+.mn-chain-threads{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.mn-chain-threads path{fill:none;stroke:#44464d;stroke-width:1.25;stroke-linecap:round}
+.mn-chain-node{position:relative;padding-left:34px}
+.mn-chain-under .mn-chain-node{margin-top:.55em}
+.mn-chain-under{margin-left:26px}
+.mn-chain-under[hidden]{display:none}
+.mn-chain-text{font-size:1em;line-height:1.6}
+.mn-chain-claim>.mn-chain-text{font-weight:500}
+.mn-chain-under .mn-chain-text{color:var(--mn-ink2,#5B5B62);font-size:.97em;line-height:1.65}
+.mn-chain-ring{position:absolute;left:-5px;top:calc(.8em - 22px);width:44px;height:44px;border:0;padding:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mn-chain-ring::before{content:'';position:absolute;left:16.5px;top:16.5px;width:11px;height:11px;border-radius:50%;border:1.5px solid var(--mn-ink,#1a1b1f);background:var(--mn-bg,#fbfaf7);box-sizing:border-box;transition:background-color .2s}
+.mn-chain-ring::after{content:'';position:absolute;left:21.4px;top:27.5px;width:1.25px;height:7px;background:#44464d;opacity:.8;transition:opacity .15s}
+.mn-chain-ring[aria-expanded="true"]::before{background:var(--mn-ink,#1a1b1f)}
+.mn-chain-ring[aria-expanded="true"]::after{opacity:0}
+.mn-chain-ring:focus-visible{outline:2px solid var(--mn-ink2,#5B5B62);outline-offset:-8px;border-radius:50%}
+.mn-chain-ground{position:absolute;left:10px;top:calc(.8em - 4px);width:14px;height:10px;
+  background:linear-gradient(#1a1b1f,#1a1b1f) 0 0/14px 1.5px no-repeat,linear-gradient(#1a1b1f,#1a1b1f) 2.5px 4px/9px 1.5px no-repeat,linear-gradient(#1a1b1f,#1a1b1f) 5px 8px/4px 1.5px no-repeat}
+.mn-chain-leaf{position:absolute;left:14.5px;top:calc(.8em - 3px);width:6px;height:6px;border-radius:50%;background:#44464d}
+.mn-chain-kind{font-size:12.5px;color:var(--mn-ink2,#5B5B62);letter-spacing:.02em;margin-left:.6em;white-space:nowrap}
+.mn-chain-drop>.mn-chain-node{animation:mn-chain-drop .38s cubic-bezier(.2,.8,.2,1)}
+@keyframes mn-chain-drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+/* details folded under the sentence like paper: the head, then the leaves unfold (lit face up, shaded face down); flat, it is plain text */
+.mn-fold{margin:1em 0}
+.mn-fold-head{font:inherit;font-weight:600;color:var(--mn-ink,#1a1b1f);background:none;border:0;padding:4px 0;cursor:pointer;display:flex;gap:.5em;align-items:baseline;text-align:left}
+.mn-fold-head::before{content:'';flex:none;width:.5em;height:.5em;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-.12em) rotate(-45deg);transition:transform .25s;opacity:.7}
+.mn-fold-head[aria-expanded="true"]::before{transform:translateY(-.22em) rotate(45deg)}
+.mn-fold-body{padding:.3em 0 .2em}
+.mn-fold-body[hidden]{display:none}
+.mn-fold-leaf{position:relative;backface-visibility:hidden}
+.mn-folding .mn-fold-leaf{background:#fffefb;box-shadow:0 0 0 .5px rgba(26,27,31,.14),0 2px 6px -3px rgba(26,27,31,.18);padding:0 10px}
+.mn-folding .mn-fold-leaf::after{content:'';position:absolute;inset:0;background:var(--shade,transparent);pointer-events:none}
+/* numbers: one to drag is glass (your hand); the ones that follow are ink; every digit a wheel */
+.mn-num{display:inline-flex;align-items:baseline;font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.25}
+.mn-num-in{cursor:ew-resize;padding:0 .3em;margin:0 .05em;border-radius:7px;touch-action:none;user-select:none;-webkit-user-select:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));box-shadow:inset 0 .75px 0 #fff,0 0 0 .5px rgba(26,27,31,.2),0 6px 14px -9px rgba(26,27,31,.38);transition:box-shadow .15s,transform .15s}
+.mn-num-in:hover,.mn-num-in.mn-held{box-shadow:inset 0 .75px 0 #fff,0 0 0 .5px rgba(26,27,31,.28),0 9px 18px -9px rgba(26,27,31,.42)}
+.mn-num-in.mn-held{transform:translateY(-1px)}
+.mn-num-in:focus-visible{outline:2px solid var(--mn-ink2,#5B5B62);outline-offset:2px}
+.mn-num-out{font-weight:600}
+.mn-dg{display:inline-block;height:1.25em;overflow:hidden;vertical-align:bottom}
+.mn-dg-lead{width:0}
+.mn-reel{display:block}
+.mn-reel i{display:block;height:1.25em;line-height:1.25em;font-style:normal;text-align:center}
+/* an exploded formula: plain (the formula and its pieces), then live (tap to take it apart) */
+.mn-parts{margin:1.2em 0}
+.mn-parts-list{display:flex;flex-wrap:wrap;gap:.4em 1.4em;margin:.4em 0 0;font-size:.92em;color:var(--mn-ink2,#5B5B62)}
+.mn-parts-list>div{display:flex;gap:.5em;align-items:baseline}
+.mn-parts-list dd{margin:0}
+.mn-parts-live>.mn-parts-tex,.mn-parts-live>.mn-parts-list{display:none}
+.mn-parts-stage canvas{display:block;cursor:pointer}
+/* condensing glass: a pane formed from the droplets of your tap (clear, not frosted) */
+.mn-glass{position:absolute;z-index:80;box-sizing:border-box;padding:14px 16px;border-radius:16px;font-size:14.5px;line-height:1.55;color:var(--mn-ink,#1a1b1f);
+  background:rgba(255,255,255,.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.2),0 14px 30px -14px rgba(26,27,31,.35)}
+.mn-glass-in>*{animation:mn-def-in .18s ease-out}
+.mn-glass-out{transition:opacity .18s;opacity:0}
+.mn-glass-drops{position:absolute;z-index:79;pointer-events:none;image-rendering:auto}
+.mn-glass-src a{color:inherit}
 /* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
 .mn-steps{margin:10px 0}
 .mn-step{text-align:center;margin:2px 0}

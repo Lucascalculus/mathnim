@@ -13,7 +13,9 @@ import { load_tex } from '@mathnim/engine';
 import { highlight_lines, lang_label } from './highlight';
 import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
-import { display_math_html, esc, math_html, steps_rows_html } from './math';
+import { display_math_html, esc, fold_html, math_html, parts_html, steps_rows_html } from './math';
+import { chain_html, type ChainNode } from './chain';
+import { condense } from './glass';
 
 /** The notes a figure keeps beside itself (@mathnim/visuals' aside()), as one line. */
 export const asides = (p: StagePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
@@ -85,13 +87,10 @@ export class BlockRenderer {
   formulas = 0;
   constructor(readonly lang: Lang) {}
 
-  /** One step of a chain of why: its text, a hollow ring when it has reasons (filled when they are open), its reasons hidden under it; where the chain ends, what it ends on. */
-  why_node(n: WhyNode, claim = false): string {
-    const kids = n.because ?? [];
-    const ring = kids.length ? `<button type="button" class="mn-chain-ring" aria-expanded="false" aria-label="${esc(t('why_ask', undefined, this.lang))}"></button>` : '<span class="mn-chain-dot" aria-hidden="true"></span>';
-    const kind = n.kind ? `<span class="mn-chain-kind">${esc(t(`why_${n.kind}`, undefined, this.lang))}</span>` : '';
-    const under = kids.length ? `<div class="mn-chain-because" hidden>${kids.map((k) => `<div class="mn-chain-node">${this.why_node(k)}</div>`).join('')}</div>` : '';
-    return `<div class="mn-chain-line${claim ? ' mn-chain-claim' : ''}">${ring}<span class="mn-chain-text">${this.prose(n.text)}</span>${kind}</div>${under}`;
+  /** A chain of why (chain.ts): the claim, its reasons folded under it, down to a definition or an assumption. */
+  why_html(claim: L10n, because: WhyNode[]): string {
+    const conv = (n: WhyNode): ChainNode => ({ html: this.prose(n.text), ...(n.kind ? { kind: n.kind } : {}), ...(n.because?.length ? { because: n.because.map(conv) } : {}) });
+    return chain_html({ html: this.prose(claim), because: because.map(conv) }, this.lang);
   }
   /** Prose (L10n) as HTML: TeX, emphasis, `code`, links, footnote markers (in `lang`, the page's by default). */
   prose(s: L10n | undefined, lang: Lang = this.lang): string {
@@ -134,12 +133,13 @@ export class BlockRenderer {
         return `<${tag} class="mn-list">${b.items.map((x) => `<li>${this.prose(x)}</li>`).join('')}</${tag}>`;
       }
       case 'why':
-        return `<div class="mn-chain">${this.why_node({ text: b.claim, because: b.because }, true)}</div>`;
+        return this.why_html(b.claim, b.because);
       case 'steps':
         this.formulas++;
         return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })), b.nouns);
       case 'math':
         this.formulas++;
+        if (b.parts?.length) return parts_html(b.tex, b.parts.map((p) => ({ tex: p.tex, says: tr(p.says, this.lang), html: this.prose(p.says) })));
         return `<div class="mn-dmath" role="math" aria-label="${esc(b.tex)}"><div class="mn-dmath-tex">${display_math_html(b.tex)}</div>${b.label ? `<span class="mn-eqlabel">(${esc(b.label)})</span>` : ''}</div>`;
       case 'code':
         return this.code_block(b);
@@ -173,7 +173,8 @@ export class BlockRenderer {
         return `<aside class="mn-callout mn-callout-${b.kind}" role="note"><div class="mn-callout-title"><span class="mn-callout-icon" aria-hidden="true">${CALLOUT_ICON[b.kind]}</span><span>${title}</span></div><div class="mn-callout-body">${this.prose(b.body)}</div></aside>`;
       }
       case 'details':
-        return `<details class="mn-details"><summary><span>${this.prose(b.summary)}</span></summary><div class="mn-details-body">${b.blocks.map((x) => this.block(x)).join('')}</div></details>`;
+        // folded under the sentence like paper; each block of it a sheet
+        return fold_html(this.prose(b.summary), b.blocks.map((x) => this.block(x)));
       case 'table': {
         // three columns or more stack into one card per row on a phone, each value beside its column's name
         const stack = b.head.length >= 3;
@@ -302,14 +303,14 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): { dispo
   });
   const pref = saved_tab();
   if (pref) select(pref, false);
-  // footnotes scroll (the app's router owns the URL hash)
+  // a footnote marker: its source condenses as glass beside it (the page does not jump; tap elsewhere and it is gone)
   root.querySelectorAll<HTMLAnchorElement>('a[data-fn]').forEach((a) => {
     a.onclick = (e) => {
       e.preventDefault();
       const li = root.querySelector<HTMLElement>(`#${CSS.escape(`${r.id}-fn-${a.dataset.fn}`)}`);
-      li?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      li?.classList.add('mn-flash');
-      setTimeout(() => li?.classList.remove('mn-flash'), 1600);
+      if (!li) return;
+      const html = li.innerHTML.replace(/<a[^>]*class="mn-fnback"[^>]*>.*?<\/a>/g, '');
+      condense(`<div class="mn-glass-src"><b>${esc(a.textContent ?? '')}</b> ${html}</div>`, { x: e.clientX || a.getBoundingClientRect().left, y: e.clientY || a.getBoundingClientRect().top }, a.getBoundingClientRect(), { key: `${r.id}-${a.dataset.fn}` });
     };
   });
   // questions: a wrong pick says why and stays open; the right one closes the question and explains
@@ -394,6 +395,7 @@ async function copy_text(code: string, pre: HTMLElement, btn: HTMLButtonElement,
 /** An embedded visual: loads when scrolled into view, plays once, then (optionally) becomes explorable. */
 class VisualSlot {
   private player: StagePlayer | null = null;
+  private on_noun: ((e: Event) => void) | null = null;
   private ui: StageUI | null = null;
   private aff: AffordanceLayer | null = null;
   private cue: CueGuide | null = null;
@@ -441,6 +443,21 @@ class VisualSlot {
     await p.load();
     if (this.disposed) return;
     this.player = p;
+    // a noun touched in the text: its thing in this figure lights up ("this is that", text to figure)
+    if (is_figure_player(p)) {
+      let last = '', at = 0;
+      this.on_noun = (e: Event) => {
+        const key = (e as CustomEvent<{ key?: string }>).detail?.key;
+        if (!key || (key === last && performance.now() - at < 1800)) return;
+        // (the most particular thing of that noun: a point before the whole family of lines it sits on)
+        const t = p.scene.registry.all().filter((x) => x.role === `noun:${key}` && x.opacity.peek() > 0.05 && x.box.w > 0).sort((a, b) => a.box.w * a.box.h - b.box.w * b.box.h)[0];
+        if (!t) return;
+        last = key;
+        at = performance.now();
+        void p.act({ op: 'point', id: t.id });
+      };
+      (this.fig.closest('article') ?? document).addEventListener('mn-noun', this.on_noun);
+    }
     // what the figure is (a simulation, a toy model, real data): a faint line under it, never in it
     const notes = asides(p);
     if (notes) this.fig.querySelector('.mn-vis-stage')!.after(Object.assign(document.createElement('div'), { className: 'mn-aside', textContent: notes }));
@@ -482,6 +499,7 @@ class VisualSlot {
   }
   dispose(): void {
     this.disposed = true;
+    if (this.on_noun) (this.fig.closest('article') ?? document).removeEventListener('mn-noun', this.on_noun);
     this.io?.disconnect();
     this.cue?.dispose();
     this.aff?.dispose();

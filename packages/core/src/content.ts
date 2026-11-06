@@ -57,7 +57,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string }
+  | { type: 'math'; tex: string; label?: string; /** Named pieces of the formula and what each means: tapped, it comes apart (an exploded formula). */ parts?: { tex: string; says: L10n }[] }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */

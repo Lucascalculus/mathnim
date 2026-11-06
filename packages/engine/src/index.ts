@@ -25,4 +25,5 @@ export * from './steps';
 export * from './cases';
 export * from './trail';
 export * from './guess';
+export * from './parts';
 export * from './steps_check';

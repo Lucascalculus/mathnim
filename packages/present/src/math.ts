@@ -6,6 +6,28 @@
 // TeX, **bold**, *italic*, `code`, [text](https://link) and footnote
 // references [^key] (when the caller passes `footnote`).
 import { look, text_color_of } from '@mathnim/look';
+import { chain_html, parse_chain } from './chain';
+import { tangle_html, tangle_reset } from './tangle';
+/** A ```parts fence: the formula on its first line, then `piece: what it means` lines. */
+export function parse_parts(body: string): { tex: string; parts: { tex: string; says: string }[] } | null {
+  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const tex = lines[0].replace(/^\$+|\$+$/g, '');
+  const parts = lines.slice(1).map((l) => /^\$?(.+?)\$?\s*[:：]\s+(.+)$/.exec(l)).filter((m): m is RegExpExecArray => !!m).map((m) => ({ tex: m[1].trim(), says: m[2].trim() }));
+  return parts.length ? { tex, parts } : null;
+}
+/**
+ * An exploded formula as the page shows it before it can play: the formula, and each piece with what it means
+ * (mount_parts turns it into the engine's: tap it and it comes apart).
+ */
+export function parts_html(tex: string, parts: { tex: string; says: string; html?: string }[]): string {
+  const data = esc(JSON.stringify({ tex, parts: parts.map((p) => ({ tex: p.tex, says: p.says })) }));
+  return `<div class="mn-parts" data-parts="${data}"><div class="mn-parts-tex">${tex_html(tex, true)}</div><dl class="mn-parts-list">${parts.map((p) => `<div><dt>${tex_html(p.tex, false)}</dt><dd>${p.html ?? esc(p.says)}</dd></div>`).join('')}</dl></div>`;
+}
+/** Details folded under the sentence, unfolded like paper (text_wire.ts): a head, and each leaf a sheet. */
+export function fold_html(head: string, leaves: string[]): string {
+  return `<div class="mn-fold"><button type="button" class="mn-fold-head" aria-expanded="false"><span>${head}</span></button><div class="mn-fold-body" hidden>${leaves.map((l) => `<div class="mn-fold-leaf">${l}</div>`).join('')}</div></div>`;
+}
 export type TexRenderer = (tex: string, display: boolean) => string;
 let renderer: TexRenderer | null = null;
 export function set_tex_renderer(r: TexRenderer | null): void {
@@ -29,9 +51,9 @@ function safe_url(url: string): string | null {
   return u;
 }
 
-/** Prose without TeX: escaped, then nouns, links, footnotes, bold, italic, line breaks. */
+/** Prose without TeX: escaped, then numbers to drag, nouns, links, footnotes, bold, italic, line breaks. */
 function prose_html(text: string, o: MarkupOptions): string {
-  let s = esc(text);
+  let s = tangle_html(esc(text));
   // a noun: the word in its noun's colour, as the thing it names is drawn in the figure ([cost](noun:cost))
   s = s.replace(/\[([^\]]+)\]\(noun:([\w-]+)\)/g, (_m, label: string, key: string) => `<span class="mn-noun" data-noun="${key}" style="color:${text_color_of(`noun:${key}`, look())}">${label}</span>`);
   s = s.replace(/\[\^([\w.:-]+)\]/g, (_, key: string) => (o.footnote ? o.footnote(key) : ''));
@@ -74,7 +96,6 @@ const DOLLAR = '\u0004';
  * formulas with their reasons: readable as it is, and turned into the engine's formula steps by mount_steps() where
  * the page can play them. A block still arriving (an answer streaming in) shows nothing yet.
  */
-const STEPS_FENCE = /```[ \t]*steps[^\n]*\n([\s\S]*?)(```|$)/g;
 /** A derivation's lines as the column of formulas mount_steps() turns into the engine's (a steps block of a page). */
 export function steps_rows_html(rows: { tex: string; why?: string }[], nouns?: Record<string, string>): string {
   const named = nouns && Object.keys(nouns).length ? `% nouns: ${Object.entries(nouns).map(([k, v]) => `${k} = ${v}`).join(', ')}\n` : '';
@@ -122,7 +143,18 @@ function lift_definitions(text: string, o: MarkupOptions, out: string[]): string
   return res + text.slice(i);
 }
 
+let depth = 0;
 export function math_html(text: string, o: MarkupOptions = {}): string {
+  // (the numbers of one text share their names: a computed number shows its value from the ones written before it)
+  if (!depth) tangle_reset();
+  depth++;
+  try {
+    return math_html_in(text, o);
+  } finally {
+    depth--;
+  }
+}
+function math_html_in(text: string, o: MarkupOptions): string {
   if (text.includes('](def:')) {
     const defs: string[] = [];
     const lifted = lift_definitions(text, o, defs);
@@ -132,13 +164,27 @@ export function math_html(text: string, o: MarkupOptions = {}): string {
   return fenced_html(text, o);
 }
 
+/**
+ * The fences a text may hold, each turned into its own piece of the text zone: ```steps (a derivation written line by
+ * line), ```why (a claim and its chain of reasons), ```details Summary (more, folded under the sentence).
+ */
+const FENCE = /```[ \t]*(steps|why|details|parts)([^\n]*)\n([\s\S]*?)(```|$)/g;
 function fenced_html(text: string, o: MarkupOptions): string {
   if (!text.includes('```')) return prose_math_html(text, o);
   const out: string[] = [];
   let at = 0;
-  for (const m of text.matchAll(STEPS_FENCE)) {
+  for (const m of text.matchAll(FENCE)) {
     if (m.index! > at) out.push(prose_math_html(text.slice(at, m.index).replace(/\s+$/, ''), o));
-    out.push(steps_html(m[1], m[2] === '```'));
+    const closed = m[4] === '```', body = m[3];
+    if (m[1] === 'steps') out.push(steps_html(body, closed));
+    else if (!closed) out.push('<div class="mn-steps mn-steps-wait"></div>');
+    else if (m[1] === 'parts') {
+      const p = parse_parts(body);
+      out.push(p ? parts_html(p.tex, p.parts.map((x) => ({ tex: x.tex, says: x.says, html: prose_math_html(x.says, o) }))) : prose_math_html(body, o));
+    } else if (m[1] === 'why') {
+      const c = parse_chain(body, (s) => prose_math_html(s, o));
+      out.push(c ? chain_html(c) : prose_math_html(body, o));
+    } else out.push(fold_html(prose_math_html(m[2].trim() || '…', o), body.split(/\n\s*\n/).filter((x) => x.trim()).map((x) => math_html_in(x.trim(), o))));
     at = m.index! + m[0].length;
     if (!m[0].length) break;
   }

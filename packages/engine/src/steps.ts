@@ -262,6 +262,20 @@ function typeset_uncached(tex: string): TexLine {
 }
 
 /**
+ * The first run of tokens of a line that is the TeX `tex` (the same keys, at the same sizes relative to each other;
+ * the line's rules are passed over), none of them among `taken`: a named part of a formula. Null when there is none.
+ */
+export function match_symbol(L: TexLine, tex: string, taken: Set<Token> = new Set()): Token[] | null {
+  const pat = typeset_line(tex).tokens.filter((t) => t.kind !== 'rule'), ts = L.tokens.filter((t) => t.kind !== 'rule');
+  if (!pat.length || L.error) return null;
+  const size = (t: Token) => t.glyphs[0].size ?? 1;
+  for (let i = 0; i + pat.length <= ts.length; i++) {
+    if (pat.every((q, j) => { const t = ts[i + j]; return t.key === q.key && !taken.has(t) && Math.abs(size(t) / size(ts[i]) - size(q) / size(pat[0])) < 0.05; })) return ts.slice(i, i + pat.length);
+  }
+  return null;
+}
+
+/**
  * Where a line has a noun's symbol: its tokens in a row with the same keys, at the same sizes relative to each other
  * (x_0's 0 is a subscript in both), not already another noun's. Longer symbols first, so x_0 is taken before x.
  */

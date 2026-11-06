@@ -76,7 +76,7 @@ describe('blocks as HTML', () => {
     expect(html).toContain('>TRL</button>');
     expect(html).toContain('<span class="mn-t-n">1</span>');
     expect(html).toContain('<th scope="col">a</th>');
-    expect(html).toContain('<details class="mn-details"><summary><span>More</span></summary>');
+    expect(html).toContain('<div class="mn-fold"><button type="button" class="mn-fold-head" aria-expanded="false"><span>More</span></button>');
     expect(html).toContain('src="/ft/a.svg"');
     expect(html).toContain('出处：After X (2021)');
     expect(html).toMatch(/<li id="[^"]*-fn-hu" value="1">Hu et al\. \(2021\)/);

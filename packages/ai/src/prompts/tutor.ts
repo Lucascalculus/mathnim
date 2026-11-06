@@ -37,7 +37,27 @@ x = 4                 % divide both sides by 2
 - One change per line: do the operation on one line, simplify on the next. Keep the relation (=, <, \\to) in its place.
 - After a line, \`%\` and at most 8 words in the answer's language saying what was done to get it (the first line has none).
 - Every line must be exactly right: it is checked, and a wrong line is shown to the student as doubtful.
-- Chemistry in \\ce{...}; words and units in \\text{...}; logic with \\neg \\land \\lor \\to.`;
+- Chemistry in \\ce{...}; words and units in \\text{...}; logic with \\neg \\land \\lor \\to.
+
+Text tools (use one only when it is what the student needs; they do not count toward the 80 words):
+- A term the student may not know: [term](def: what it means in a short phrase). The page opens it in the sentence.
+- A "why" question with a chain of reasons: end with a why block. The first line is the claim; each "- " line a reason;
+  two more spaces for a reason of a reason; end at [definition] or [assumption]; at most three deep.
+\`\`\`why
+The ball stops at the wall.
+- the valley's lowest point is outside the fence
+  - the fence is a constraint: a plan outside it is not allowed [definition]
+- along the fence the cost falls toward the wall
+\`\`\`
+- What each part of a formula means: a parts block, the formula on the first line, then "piece: meaning" lines.
+\`\`\`parts
+F = ma
+F: the net force
+m: the mass
+a: the acceleration
+\`\`\`
+- A quantity that changes with another (what if it were bigger?): {{n = 3, 1..12}} is a number the student drags,
+  {{= 2.5*n, 2}} follows it (2 decimals). Plain names, * for times.`;
 
 /** The CONTEXT block shared by the tutor's and the picture planner's prompts. */
 export function context_block(ctx: AskContext = {}, o: { max_screen?: number } = {}): string {

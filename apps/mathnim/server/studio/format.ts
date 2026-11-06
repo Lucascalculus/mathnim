@@ -38,7 +38,9 @@ Block is one of:
   {"type": "h", "text": string, "level"?: 2 | 3}
   {"type": "p", "text": string}
   {"type": "list", "items": [string, ...], "ordered"?: boolean}
-  {"type": "math", "tex": string}                      // a displayed formula (TeX, no $ signs)
+  {"type": "math", "tex": string, "parts"?: [{"tex": string, "says": string}, ...]}
+     // a displayed formula (TeX, no $ signs); "parts": pieces of it as written in it, each with what it means
+     // (tapped, the formula comes apart and each piece shows its meaning): for a formula whose parts are the lesson
   {"type": "steps", "lines": [{"tex": string, "why"?: string}, ...]}
      // a derivation the page animates line by line and checks: 2-8 lines, each one complete TeX formula (no $),
      // one change per line (the operation, then the simplification), "why" in a few words from the second line on
@@ -46,6 +48,7 @@ Block is one of:
   {"type": "code", "lang": string, "code": string, "caption"?: string}
   {"type": "callout", "kind": "note" | "warning" | "misconception" | "open", "title"?: string, "body": string}
   {"type": "details", "summary": string, "blocks": [Block, ...]}   // collapsed: details on demand
+  {"type": "cite", "key": string, "text": string, "url": string}   // a source, marked in the text with [^key]
   {"type": "why", "claim": string, "because": [Why, ...]}
      // a claim and its reasons, each opened on demand; Why is {"text": string, "because"?: [Why, ...],
      // "kind"?: "definition" | "assumption"}: follow "why?" down (at most 3 deep) to where it ends
@@ -55,8 +58,10 @@ Block is one of:
      // no images, no foreignObject. Draw structures (packet headers, timelines, state machines,
      // topologies, trees) when a picture explains better than words.
 Text in strings: inline TeX between $...$ (escape a literal dollar as \\$), **bold**, *italic*, \`code\`,
-and a definition in its sentence: [term](def: what it means), opened in place when the learner taps the term
-(use it the first time a term appears, instead of a sentence of definition that interrupts the argument).
+a definition in its sentence: [term](def: what it means), opened in place when the learner taps the term
+(use it the first time a term appears, instead of a sentence of definition that interrupts the argument),
+and numbers the learner drags: {{n = 3, 1..12}} (value, range) with {{= 2.5*n, 2}} following it (2 decimals),
+where "what if it were bigger?" is the point of the paragraph.
 In JSON, every backslash in TeX is written twice ("$\\\\frac{a}{b}$").`;
 
 export interface Checked {
@@ -67,7 +72,7 @@ export interface Checked {
 }
 
 const ID = /^[a-z0-9][a-z0-9._-]{0,47}$/i;
-const BLOCKS = new Set(['h', 'p', 'list', 'math', 'steps', 'table', 'code', 'callout', 'details', 'svg', 'why']);
+const BLOCKS = new Set(['h', 'p', 'list', 'math', 'steps', 'table', 'code', 'callout', 'details', 'svg', 'why', 'cite']);
 const CALLOUTS = new Set(['note', 'warning', 'misconception', 'open']);
 const MAX_SVG = 24_000;
 const MAX_LESSON = 400_000;
@@ -144,6 +149,14 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
         case 'math':
           if (typeof b.tex !== 'string' || !b.tex.trim()) return err(at, 'tex is required');
           if (/^\s*\$|\$\s*$/.test(b.tex)) err(at, 'a math block has no $ signs');
+          if (b.parts !== undefined) {
+            if (!Array.isArray(b.parts) || !b.parts.length) err(at, 'parts: a non-empty array of {tex, says}');
+            else (b.parts as Record<string, unknown>[]).forEach((x, k) => {
+              if (!x || typeof x.tex !== 'string' || !x.tex.trim()) err(`${at}.parts[${k}]`, 'tex: a piece of the formula as written in it');
+              else if (!(b.tex as string).replace(/\s+/g, '').includes(x.tex.replace(/\s+/g, ''))) err(`${at}.parts[${k}]`, `"${x.tex}" is not in the formula as written`);
+              str(x.says, `${at}.parts[${k}].says`);
+            });
+          }
           return;
         case 'table':
           // (a cell may be empty: the corner of a table with row labels, a blank in a comparison)
@@ -166,6 +179,10 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
             x.tex = x.tex.trim().replace(/^\$+|\$+$/g, '');
             str(x.why, `${at}.lines[${k}].why`, false);
           });
+        case 'cite':
+          if (typeof b.key !== 'string' || !/^[\w.:-]+$/.test(b.key)) err(at, 'key: letters, digits, . : -');
+          if (typeof b.url !== 'string' || !/^https:\/\//.test(b.url)) err(at, 'url: an https link');
+          return void str(b.text, `${at}.text`);
         case 'why': {
           str(b.claim, `${at}.claim`);
           const reasons = (ns: unknown, w: string, d: number): void => {
@@ -289,6 +306,7 @@ export function lesson_digest(l: Lesson): string {
         case 'callout': out.push(`${pad}[${b.kind}] ${b.title ? `${b.title}: ` : ''}${b.body}`); break;
         case 'steps': out.push(b.lines.map((l) => `${pad}$$${l.tex}$$${l.why ? ` (${typeof l.why === 'string' ? l.why : l.why.en})` : ''}`).join('\n')); break;
         case 'details': out.push(`${pad}[details: ${b.summary}]`); blocks(b.blocks, pad + '  '); break;
+        case 'cite': out.push(`${pad}[^${b.key}]: ${typeof b.text === 'string' ? b.text : b.text.en}`); break;
         case 'why': {
           const en = (x: unknown) => (typeof x === 'string' ? x : (x as { en: string }).en);
           const walk = (ns: WhyNode[], d: string): void => ns.forEach((n) => { out.push(`${d}because: ${en(n.text)}${n.kind ? ` [${n.kind}]` : ''}`); if (n.because) walk(n.because, d + '  '); });
