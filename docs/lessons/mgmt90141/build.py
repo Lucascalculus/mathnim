@@ -64,7 +64,7 @@ def build():
         'outcomes': [T('Write a linear program from a story and know whether it is right, and read a sensitivity report without guessing', '能从一段文字写出线性规划并知道对不对，能不靠猜地读灵敏度报告'),
                      T('Decide with probabilities: expected value, perfect and sample information, Bayes and the decision tree', '用概率做决策：期望值、完全信息与样本信息、贝叶斯和决策树'),
                      T('Use the normal table and read regression output, by hand, in exam time', '在考试时间内手算正态分布表，读懂回归输出')],
-        'lang': 'en', 'mine': False, 'public': True, 'ready': True,
+        'lang': 'en', 'mine': False, 'public': True, 'ready': True, 'packs': ['mgmt'],
         'origin': {'decks': 12, 'exams': 2, 'note': T('Written by an AI (Claude) from the subject’s lecture decks, the 2025 exam paper and the worked answers of past papers · not edited by a person',
                                                          '由 AI（Claude）根据这门课的课件、2025 年试卷和历年试卷的参考答案编写 · 未经人工修改')},
         'units': units, 'lessons': entries, 'demo': True,

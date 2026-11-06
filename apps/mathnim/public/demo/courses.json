@@ -5968,756 +5968,6 @@
   "demo": true
  },
  {
-  "id": "mgmt90141",
-  "title": {
-   "en": "MGMT90141 Business Analysis and Decision Making, for the exam",
-   "zh": "MGMT90141 商业分析与决策，备考精讲"
-  },
-  "summary": {
-   "en": "Five questions a manager asks (what to make, what the chances are, what to do when you cannot know, how variable it is, what the data says), each learned by moving an instrument, then done as the exam asks it, with your own work checked.",
-   "zh": "经理要问的五个问题（做什么、可能性多大、不确定时怎么办、有多不稳定、数据说明什么）：每个问题先摆弄一个交互工具弄明白，再按考试的问法做一遍，你写的东西会被检查。"
-  },
-  "audience": {
-   "en": "Students sitting the MGMT90141 final exam, who may not have attended much. You need school algebra, a Casio fx-82 and no spreadsheet knowledge.",
-   "zh": "要参加 MGMT90141 期末考试的同学，上课不多也没关系。需要中学代数、一台 Casio fx-82，不需要会用电子表格。"
-  },
-  "outcomes": [
-   {
-    "en": "Write a linear program from a story and know whether it is right, and read a sensitivity report without guessing",
-    "zh": "能从一段文字写出线性规划并知道对不对，能不靠猜地读灵敏度报告"
-   },
-   {
-    "en": "Decide with probabilities: expected value, perfect and sample information, Bayes and the decision tree",
-    "zh": "用概率做决策：期望值、完全信息与样本信息、贝叶斯和决策树"
-   },
-   {
-    "en": "Use the normal table and read regression output, by hand, in exam time",
-    "zh": "在考试时间内手算正态分布表，读懂回归输出"
-   }
-  ],
-  "lang": "en",
-  "mine": false,
-  "public": true,
-  "ready": true,
-  "origin": {
-   "decks": 12,
-   "exams": 2,
-   "note": {
-    "en": "Written by an AI (Claude) from the subject’s lecture decks, the 2025 exam paper and the worked answers of past papers · not edited by a person",
-    "zh": "由 AI（Claude）根据这门课的课件、2025 年试卷和历年试卷的参考答案编写 · 未经人工修改"
-   }
-  },
-  "units": [
-   {
-    "title": {
-     "en": "What should we make?",
-     "zh": "我们该做什么？"
-    },
-    "lessons": [
-     "mgmt90141-lp-picture",
-     "mgmt90141-lp-formulate",
-     "mgmt90141-lp-report",
-     "mgmt90141-lp-patterns",
-     "mgmt90141-network",
-     "mgmt90141-integer"
-    ]
-   },
-   {
-    "title": {
-     "en": "What are the chances?",
-     "zh": "可能性有多大？"
-    },
-    "lessons": [
-     "mgmt90141-describe-data",
-     "mgmt90141-chances"
-    ]
-   },
-   {
-    "title": {
-     "en": "What do we do when we do not know?",
-     "zh": "不确定时该怎么办？"
-    },
-    "lessons": [
-     "mgmt90141-payoff",
-     "mgmt90141-expected-value",
-     "mgmt90141-sample-info"
-    ]
-   },
-   {
-    "title": {
-     "en": "How variable is it?",
-     "zh": "它有多不稳定？"
-    },
-    "lessons": [
-     "mgmt90141-random-variables",
-     "mgmt90141-normal"
-    ]
-   },
-   {
-    "title": {
-     "en": "What does the data say?",
-     "zh": "数据说明了什么？"
-    },
-    "lessons": [
-     "mgmt90141-regression",
-     "mgmt90141-multiple-regression"
-    ]
-   },
-   {
-    "title": {
-     "en": "The paper itself",
-     "zh": "考试本身"
-    },
-    "lessons": [
-     "mgmt90141-exam-method",
-     "mgmt90141-drill"
-    ]
-   }
-  ],
-  "lessons": [
-   {
-    "id": "mgmt90141-lp-picture",
-    "title": {
-     "en": "What a plan is, and why the best one sits in a corner",
-     "zh": "什么是“计划”，为什么最好的计划总在角上"
-    },
-    "summary": {
-     "en": "Shader Electronics has two products and two departments with limited hours. You hold plans in your hand, slide a profit line over them, and see why only corners need checking and which limits matter.",
-     "zh": "Shader Electronics 有两种产品、两个工时有限的车间。你亲手拿着各种“计划”，把利润线推过它们，看清为什么只需要检查角点、哪些限制真正起作用。"
-    },
-    "minutes": 35,
-    "meta": {
-     "title": {
-      "en": "What a plan is, and why the best one sits in a corner",
-      "zh": "什么是“计划”，为什么最好的计划总在角上"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.lp-picture",
-       "name": {
-        "en": "Reading a linear program as a picture",
-        "zh": "把线性规划当作一幅图来读"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-lp-formulate",
-    "title": {
-     "en": "Turning a story into a model you can trust",
-     "zh": "把一段文字变成可靠的模型"
-    },
-    "summary": {
-     "en": "You write the model of Consolidated Electronics, of the exam’s DCI question and of a four-product factory yourself, and a checker solves your model, compares it with the problem’s by meaning, and shows a plan that breaks any limit you missed.",
-     "zh": "你亲手写出 Consolidated Electronics、考试里 DCI 那道题和一家四种产品工厂的模型；检查器会解你的模型，按意思和题目的模型比较，并给出一个破坏了你漏掉的限制的计划。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "Turning a story into a model you can trust",
-      "zh": "把一段文字变成可靠的模型"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.lp-formulate",
-       "name": {
-        "en": "Formulating a linear program from a story",
-        "zh": "把一段文字写成线性规划"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-lp-report",
-    "title": {
-     "en": "What the answer report tells you besides the plan",
-     "zh": "答案报告除了计划，还告诉你什么"
-    },
-    "summary": {
-     "en": "A solver gives a plan and a table of numbers. Every number is the answer to a “what if”: touch it in Shader’s report, see what it does to the picture, then answer the exam’s own what-if questions about the DCI problem and a survey firm.",
-     "zh": "求解器给出一个计划和一张数字表。每个数都是某个“如果……会怎样”的答案：在 Shader 的报告里点一个数，看它在图上做了什么，再回答考试里关于 DCI 和一家调查公司的“如果”问题。"
-    },
-    "minutes": 50,
-    "meta": {
-     "title": {
-      "en": "What the answer report tells you besides the plan",
-      "zh": "答案报告除了计划，还告诉你什么"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.lp-report",
-       "name": {
-        "en": "Reading a sensitivity report",
-        "zh": "读灵敏度报告"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-lp-patterns",
-    "title": {
-     "en": "Which of six shapes is this problem?",
-     "zh": "这是六种形状里的哪一种？"
-    },
-    "summary": {
-     "en": "Almost every formulation question is one of six shapes: budget, share, make-or-buy, overtime, blend, schedule. Learn the shape from the sentence that signals it, write the model, and a checker lights up the sentence whose limit you missed.",
-     "zh": "几乎每道建模题都是六种形状之一：预算、占比、自制或外购、加班、配比、排班。从提示它的那句话认出形状，写出模型，检查器会把你漏掉的那条限制对应的句子标亮。"
-    },
-    "minutes": 60,
-    "meta": {
-     "title": {
-      "en": "Which of six shapes is this problem?",
-      "zh": "这是六种形状里的哪一种？"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.lp-patterns",
-       "name": {
-        "en": "Recognising the shape of a formulation",
-        "zh": "认出建模题的形状"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-network",
-    "title": {
-     "en": "How things flow, and what a dummy is",
-     "zh": "东西怎么流动，“虚拟”是什么"
-    },
-    "summary": {
-     "en": "Shipping, assigning and transshipping are one picture: a table of costs, supplies on the side, demands along the bottom. You ship by hand, add a dummy to balance a table, assign workers, and build the exam’s transshipment table cell by cell.",
-     "zh": "运输、指派和转运其实是同一幅图：一张成本表，旁边是供应，下面是需求。你亲手运货，用虚拟项把表补平，指派工人，再一格一格建出考试里的转运表。"
-    },
-    "minutes": 55,
-    "meta": {
-     "title": {
-      "en": "How things flow, and what a dummy is",
-      "zh": "东西怎么流动，“虚拟”是什么"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.network",
-       "name": {
-        "en": "Transportation, assignment and transshipment tables",
-        "zh": "运输、指派和转运表"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-integer",
-    "title": {
-     "en": "Why you cannot just round, and what a yes/no variable is",
-     "zh": "为什么不能直接四舍五入，以及“是/否”变量是什么"
-    },
-    "summary": {
-     "en": "Half an advertisement makes no sense. See why rounding an LP answer can lose, then turn yes/no decisions into 0-1 variables and write “only if”, “at most one” and “fixed cost” as lines a solver can use.",
-     "zh": "半条广告没有意义。看看为什么把 LP 的答案四舍五入可能吃亏，再把“做不做”的决策变成 0-1 变量，把“只有……才……”“至多一个”“固定成本”写成求解器能用的行。"
-    },
-    "minutes": 40,
-    "meta": {
-     "title": {
-      "en": "Why you cannot just round, and what a yes/no variable is",
-      "zh": "为什么不能直接四舍五入，以及“是/否”变量是什么"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.integer",
-       "name": {
-        "en": "Integer and binary models",
-        "zh": "整数规划与 0-1 模型"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-describe-data",
-    "title": {
-     "en": "How to say what a pile of numbers looks like",
-     "zh": "怎样说清一堆数字长什么样"
-    },
-    "summary": {
-     "en": "Two numbers for the middle, two for the spread: the ones that survive an outlier and the ones that do not. Drag dots to see which number moves, then compute them the way the exam expects, with a calculator and the sample formula.",
-     "zh": "描述中间的两个数、描述离散程度的两个数：哪些经得起极端值、哪些经不起。拖动圆点，看哪个数在动；然后按考试的要求，用计算器和样本公式算出来。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "How to say what a pile of numbers looks like",
-      "zh": "怎样说清一堆数字长什么样"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.describe",
-       "name": {
-        "en": "Describing data: location and spread",
-        "zh": "描述数据：位置与离散程度"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-chances",
-    "title": {
-     "en": "How to count and combine chances",
-     "zh": "怎样数清并组合可能性"
-    },
-    "summary": {
-     "en": "A probability is a share of an area. Slide over a table of counts to see “and”, “or”, “not” and “given” as pieces of one picture, and the one test for whether two things are independent.",
-     "zh": "概率就是一块面积所占的比例。在一张计数表上操作，把“并且”“或者”“不是”“已知”看成同一幅图的几块，以及判断两件事是否独立的那个唯一的检验。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "How to count and combine chances",
-      "zh": "怎样数清并组合可能性"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.chances",
-       "name": {
-        "en": "Probability: events, conditional probability, independence",
-        "zh": "概率：事件、条件概率、独立性"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-payoff",
-    "title": {
-     "en": "What to do when you cannot say how likely each future is",
-     "zh": "说不出每种未来有多大可能时怎么办"
-    },
-    "summary": {
-     "en": "A payoff table with no probabilities has three honest answers: the optimist’s, the pessimist’s and the one that minimises regret. Slide a dial from pessimist to optimist and watch the choice change, then do the same on two more tables.",
-     "zh": "没有概率的收益表有三个老实的答案：乐观者的、悲观者的、使后悔最小的。把拨盘从悲观拨向乐观，看选择怎么变，再在另外两张表上做一遍。"
-    },
-    "minutes": 40,
-    "meta": {
-     "title": {
-      "en": "What to do when you cannot say how likely each future is",
-      "zh": "说不出每种未来有多大可能时怎么办"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.payoff",
-       "name": {
-        "en": "Choosing without probabilities",
-        "zh": "没有概率时的选择"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-expected-value",
-    "title": {
-     "en": "What information is worth",
-     "zh": "信息值多少钱"
-    },
-    "summary": {
-     "en": "With probabilities, a payoff table gives an expected value per choice. Then ask the best question in decision analysis: what would a perfectly reliable crystal ball be worth? Move the probability and see it as a gap between two lines, then do the exam’s carpool question.",
-     "zh": "有了概率，收益表就给出每个选择的期望值。然后问决策分析里最好的问题：一个绝对可靠的水晶球值多少钱？移动概率，把它看成两条线之间的缝隙，再做考试里的拼车题。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "What information is worth",
-      "zh": "信息值多少钱"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.expected-value",
-       "name": {
-        "en": "Expected value and the value of perfect information",
-        "zh": "期望值与完全信息的价值"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-sample-info",
-    "title": {
-     "en": "How to change your mind when the test comes back",
-     "zh": "检测结果回来后，怎样改变看法"
-    },
-    "summary": {
-     "en": "A test result does not tell you the state; it moves the odds. Count 1000 cases to see why “90% reliable” does not mean “90% sure”, then do the exam’s weather question, draw its tree and roll it back to the best strategy.",
-     "zh": "检测结果不会告诉你状态，它只是移动了概率。数 1000 个样本，看清为什么“可靠率 90%”不等于“有 90% 把握”，再做考试里的天气题，画出它的树，倒推出最优策略。"
-    },
-    "minutes": 65,
-    "meta": {
-     "title": {
-      "en": "How to change your mind when the test comes back",
-      "zh": "检测结果回来后，怎样改变看法"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.sample-info",
-       "name": {
-        "en": "Bayes’ theorem, decision trees and the value of sample information",
-        "zh": "贝叶斯定理、决策树和样本信息的价值"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-random-variables",
-    "title": {
-     "en": "The average of an uncertain number, and how spread out it is",
-     "zh": "一个不确定的数的平均值，以及它有多分散"
-    },
-    "summary": {
-     "en": "A random variable puts numbers on what might happen. Balance a distribution on its mean, see why the mean can be a value that never occurs, and then use the binomial for “how many of n succeed”.",
-     "zh": "随机变量给可能发生的事配上数字。让一个分布在它的均值上保持平衡，看看为什么均值可以是一个永远不会出现的值，再用二项分布回答“n 次里成功几次”。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "The average of an uncertain number, and how spread out it is",
-      "zh": "一个不确定的数的平均值，以及它有多分散"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.random-variables",
-       "name": {
-        "en": "Random variables, expected value, variance and the binomial",
-        "zh": "随机变量、期望、方差与二项分布"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-normal",
-    "title": {
-     "en": "How likely is “between these two”?",
-     "zh": "“落在这两个值之间”的可能性有多大？"
-    },
-    "summary": {
-     "en": "The normal curve answers almost every “how likely” question about a measurement. Slide the edges, see the area, and read the same number off the table of the paper: forwards for a probability, backwards for a cut-off.",
-     "zh": "正态曲线几乎能回答所有关于测量值的“有多大可能”的问题。移动两条边，看面积，再从试卷上的那张表里读出同样的数：正着读得概率，倒着读得分界值。"
-    },
-    "minutes": 55,
-    "meta": {
-     "title": {
-      "en": "How likely is “between these two”?",
-      "zh": "“落在这两个值之间”的可能性有多大？"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.normal",
-       "name": {
-        "en": "The normal distribution and the z table",
-        "zh": "正态分布与 z 表"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-regression",
-    "title": {
-     "en": "How to draw the best line, and how good it is",
-     "zh": "怎样画出最佳直线，以及它有多好"
-    },
-    "summary": {
-     "en": "Drag a line through a cloud of points and watch the squared errors. The best line is the one with the smallest total, r² says how much better it is than a flat line at the mean, and the exam’s kangaroo question puts the whole method on one page.",
-     "zh": "在一团点里拖一条直线，看误差的平方。最佳直线是总和最小的那条，r² 说明它比水平的均值线好多少，而考试里的袋鼠题把整套方法放在一页纸上。"
-    },
-    "minutes": 55,
-    "meta": {
-     "title": {
-      "en": "How to draw the best line, and how good it is",
-      "zh": "怎样画出最佳直线，以及它有多好"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.regression",
-       "name": {
-        "en": "Simple linear regression by least squares",
-        "zh": "一元线性回归（最小二乘）"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-multiple-regression",
-    "title": {
-     "en": "What changes with several predictors, and how to read the output",
-     "zh": "预测变量变多以后有什么变化，以及怎么读输出"
-    },
-    "summary": {
-     "en": "Touch every cell of a real regression output and learn what question each answers. Then see why R² can only go up and adjusted R² can fall, and read the Subaru past paper’s output the way the examiner wants: significance, size and fit.",
-     "zh": "点一遍真实回归输出里的每个格子，弄清每个格子回答什么问题。再看为什么 R² 只会上升而调整后的 R² 会下降，并按阅卷人的要求读 Subaru 往年真题的输出：显著性、大小和拟合。"
-    },
-    "minutes": 60,
-    "meta": {
-     "title": {
-      "en": "What changes with several predictors, and how to read the output",
-      "zh": "预测变量变多以后有什么变化，以及怎么读输出"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "derive",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.multiple-regression",
-       "name": {
-        "en": "Multiple regression: reading the output",
-        "zh": "多元回归：读输出"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-exam-method",
-    "title": {
-     "en": "How to spend two hours and a hundred marks",
-     "zh": "怎样花掉两小时和一百分"
-    },
-    "summary": {
-     "en": "The exam is 100 marks in 120 minutes: 1.2 minutes a mark. Plan the minutes against the marks of a real paper, learn what each section rewards, what the formula sheet gives and does not give, and what to write when you are stuck.",
-     "zh": "考试是 120 分钟 100 分：每分 1.2 分钟。拿一份真实试卷的分数来规划分钟数，弄清每一部分奖励什么、公式表给了什么没给什么，以及卡住时该写什么。"
-    },
-    "minutes": 35,
-    "meta": {
-     "title": {
-      "en": "How to spend two hours and a hundred marks",
-      "zh": "怎样花掉两小时和一百分"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.exam-method",
-       "name": {
-        "en": "Exam technique for MGMT90141",
-        "zh": "MGMT90141 的考试技巧"
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": "mgmt90141-drill",
-    "title": {
-     "en": "Can you do it against the clock?",
-     "zh": "计时的话，你做得出来吗？"
-    },
-    "summary": {
-     "en": "Fifteen questions on new numbers, from every part of the subject, in mixed order on purpose. About 1.2 minutes a mark: give yourself 40 minutes for all of them, with the formula sheet and the table in mind and a Casio fx-82 in hand.",
-     "zh": "十五道换了数的题，来自这门课的每个部分，故意打乱顺序。大约每分 1.2 分钟：把全部做完给自己 40 分钟，想着公式表和那张表，手里拿一台 Casio fx-82。"
-    },
-    "minutes": 45,
-    "meta": {
-     "title": {
-      "en": "Can you do it against the clock?",
-      "zh": "计时的话，你做得出来吗？"
-     },
-     "mode": "essay",
-     "langs": [
-      "en",
-      "zh"
-     ],
-     "has_scene": false,
-     "kinds": [
-      "checkpoint",
-      "read"
-     ],
-     "skills": [
-      {
-       "id": "mg.drill",
-       "name": {
-        "en": "The whole exam, mixed",
-        "zh": "整张试卷，混合题"
-       }
-      }
-     ]
-    }
-   }
-  ],
-  "demo": true
- },
- {
   "id": "mktg90037",
   "title": {
    "en": "MKTG90037 Managing for Value Creation, for the exam",
@@ -7564,6 +6814,759 @@
        "name": {
         "en": "Writing a complete exam answer in the time allowed",
         "zh": "在规定时间里写出完整的考试答案"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
+ },
+ {
+  "id": "mgmt90141",
+  "title": {
+   "en": "MGMT90141 Business Analysis and Decision Making, for the exam",
+   "zh": "MGMT90141 商业分析与决策，备考精讲"
+  },
+  "summary": {
+   "en": "Five questions a manager asks (what to make, what the chances are, what to do when you cannot know, how variable it is, what the data says), each learned by moving an instrument, then done as the exam asks it, with your own work checked.",
+   "zh": "经理要问的五个问题（做什么、可能性多大、不确定时怎么办、有多不稳定、数据说明什么）：每个问题先摆弄一个交互工具弄明白，再按考试的问法做一遍，你写的东西会被检查。"
+  },
+  "audience": {
+   "en": "Students sitting the MGMT90141 final exam, who may not have attended much. You need school algebra, a Casio fx-82 and no spreadsheet knowledge.",
+   "zh": "要参加 MGMT90141 期末考试的同学，上课不多也没关系。需要中学代数、一台 Casio fx-82，不需要会用电子表格。"
+  },
+  "outcomes": [
+   {
+    "en": "Write a linear program from a story and know whether it is right, and read a sensitivity report without guessing",
+    "zh": "能从一段文字写出线性规划并知道对不对，能不靠猜地读灵敏度报告"
+   },
+   {
+    "en": "Decide with probabilities: expected value, perfect and sample information, Bayes and the decision tree",
+    "zh": "用概率做决策：期望值、完全信息与样本信息、贝叶斯和决策树"
+   },
+   {
+    "en": "Use the normal table and read regression output, by hand, in exam time",
+    "zh": "在考试时间内手算正态分布表，读懂回归输出"
+   }
+  ],
+  "lang": "en",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "packs": [
+   "mgmt"
+  ],
+  "origin": {
+   "decks": 12,
+   "exams": 2,
+   "note": {
+    "en": "Written by an AI (Claude) from the subject’s lecture decks, the 2025 exam paper and the worked answers of past papers · not edited by a person",
+    "zh": "由 AI（Claude）根据这门课的课件、2025 年试卷和历年试卷的参考答案编写 · 未经人工修改"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "What should we make?",
+     "zh": "我们该做什么？"
+    },
+    "lessons": [
+     "mgmt90141-lp-picture",
+     "mgmt90141-lp-formulate",
+     "mgmt90141-lp-report",
+     "mgmt90141-lp-patterns",
+     "mgmt90141-network",
+     "mgmt90141-integer"
+    ]
+   },
+   {
+    "title": {
+     "en": "What are the chances?",
+     "zh": "可能性有多大？"
+    },
+    "lessons": [
+     "mgmt90141-describe-data",
+     "mgmt90141-chances"
+    ]
+   },
+   {
+    "title": {
+     "en": "What do we do when we do not know?",
+     "zh": "不确定时该怎么办？"
+    },
+    "lessons": [
+     "mgmt90141-payoff",
+     "mgmt90141-expected-value",
+     "mgmt90141-sample-info"
+    ]
+   },
+   {
+    "title": {
+     "en": "How variable is it?",
+     "zh": "它有多不稳定？"
+    },
+    "lessons": [
+     "mgmt90141-random-variables",
+     "mgmt90141-normal"
+    ]
+   },
+   {
+    "title": {
+     "en": "What does the data say?",
+     "zh": "数据说明了什么？"
+    },
+    "lessons": [
+     "mgmt90141-regression",
+     "mgmt90141-multiple-regression"
+    ]
+   },
+   {
+    "title": {
+     "en": "The paper itself",
+     "zh": "考试本身"
+    },
+    "lessons": [
+     "mgmt90141-exam-method",
+     "mgmt90141-drill"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "mgmt90141-lp-picture",
+    "title": {
+     "en": "What a plan is, and why the best one sits in a corner",
+     "zh": "什么是“计划”，为什么最好的计划总在角上"
+    },
+    "summary": {
+     "en": "Shader Electronics has two products and two departments with limited hours. You hold plans in your hand, slide a profit line over them, and see why only corners need checking and which limits matter.",
+     "zh": "Shader Electronics 有两种产品、两个工时有限的车间。你亲手拿着各种“计划”，把利润线推过它们，看清为什么只需要检查角点、哪些限制真正起作用。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "What a plan is, and why the best one sits in a corner",
+      "zh": "什么是“计划”，为什么最好的计划总在角上"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.lp-picture",
+       "name": {
+        "en": "Reading a linear program as a picture",
+        "zh": "把线性规划当作一幅图来读"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-lp-formulate",
+    "title": {
+     "en": "Turning a story into a model you can trust",
+     "zh": "把一段文字变成可靠的模型"
+    },
+    "summary": {
+     "en": "You write the model of Consolidated Electronics, of the exam’s DCI question and of a four-product factory yourself, and a checker solves your model, compares it with the problem’s by meaning, and shows a plan that breaks any limit you missed.",
+     "zh": "你亲手写出 Consolidated Electronics、考试里 DCI 那道题和一家四种产品工厂的模型；检查器会解你的模型，按意思和题目的模型比较，并给出一个破坏了你漏掉的限制的计划。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Turning a story into a model you can trust",
+      "zh": "把一段文字变成可靠的模型"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.lp-formulate",
+       "name": {
+        "en": "Formulating a linear program from a story",
+        "zh": "把一段文字写成线性规划"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-lp-report",
+    "title": {
+     "en": "What the answer report tells you besides the plan",
+     "zh": "答案报告除了计划，还告诉你什么"
+    },
+    "summary": {
+     "en": "A solver gives a plan and a table of numbers. Every number is the answer to a “what if”: touch it in Shader’s report, see what it does to the picture, then answer the exam’s own what-if questions about the DCI problem and a survey firm.",
+     "zh": "求解器给出一个计划和一张数字表。每个数都是某个“如果……会怎样”的答案：在 Shader 的报告里点一个数，看它在图上做了什么，再回答考试里关于 DCI 和一家调查公司的“如果”问题。"
+    },
+    "minutes": 50,
+    "meta": {
+     "title": {
+      "en": "What the answer report tells you besides the plan",
+      "zh": "答案报告除了计划，还告诉你什么"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.lp-report",
+       "name": {
+        "en": "Reading a sensitivity report",
+        "zh": "读灵敏度报告"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-lp-patterns",
+    "title": {
+     "en": "Which of six shapes is this problem?",
+     "zh": "这是六种形状里的哪一种？"
+    },
+    "summary": {
+     "en": "Almost every formulation question is one of six shapes: budget, share, make-or-buy, overtime, blend, schedule. Learn the shape from the sentence that signals it, write the model, and a checker lights up the sentence whose limit you missed.",
+     "zh": "几乎每道建模题都是六种形状之一：预算、占比、自制或外购、加班、配比、排班。从提示它的那句话认出形状，写出模型，检查器会把你漏掉的那条限制对应的句子标亮。"
+    },
+    "minutes": 60,
+    "meta": {
+     "title": {
+      "en": "Which of six shapes is this problem?",
+      "zh": "这是六种形状里的哪一种？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.lp-patterns",
+       "name": {
+        "en": "Recognising the shape of a formulation",
+        "zh": "认出建模题的形状"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-network",
+    "title": {
+     "en": "How things flow, and what a dummy is",
+     "zh": "东西怎么流动，“虚拟”是什么"
+    },
+    "summary": {
+     "en": "Shipping, assigning and transshipping are one picture: a table of costs, supplies on the side, demands along the bottom. You ship by hand, add a dummy to balance a table, assign workers, and build the exam’s transshipment table cell by cell.",
+     "zh": "运输、指派和转运其实是同一幅图：一张成本表，旁边是供应，下面是需求。你亲手运货，用虚拟项把表补平，指派工人，再一格一格建出考试里的转运表。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "How things flow, and what a dummy is",
+      "zh": "东西怎么流动，“虚拟”是什么"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.network",
+       "name": {
+        "en": "Transportation, assignment and transshipment tables",
+        "zh": "运输、指派和转运表"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-integer",
+    "title": {
+     "en": "Why you cannot just round, and what a yes/no variable is",
+     "zh": "为什么不能直接四舍五入，以及“是/否”变量是什么"
+    },
+    "summary": {
+     "en": "Half an advertisement makes no sense. See why rounding an LP answer can lose, then turn yes/no decisions into 0-1 variables and write “only if”, “at most one” and “fixed cost” as lines a solver can use.",
+     "zh": "半条广告没有意义。看看为什么把 LP 的答案四舍五入可能吃亏，再把“做不做”的决策变成 0-1 变量，把“只有……才……”“至多一个”“固定成本”写成求解器能用的行。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "Why you cannot just round, and what a yes/no variable is",
+      "zh": "为什么不能直接四舍五入，以及“是/否”变量是什么"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.integer",
+       "name": {
+        "en": "Integer and binary models",
+        "zh": "整数规划与 0-1 模型"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-describe-data",
+    "title": {
+     "en": "How to say what a pile of numbers looks like",
+     "zh": "怎样说清一堆数字长什么样"
+    },
+    "summary": {
+     "en": "Two numbers for the middle, two for the spread: the ones that survive an outlier and the ones that do not. Drag dots to see which number moves, then compute them the way the exam expects, with a calculator and the sample formula.",
+     "zh": "描述中间的两个数、描述离散程度的两个数：哪些经得起极端值、哪些经不起。拖动圆点，看哪个数在动；然后按考试的要求，用计算器和样本公式算出来。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How to say what a pile of numbers looks like",
+      "zh": "怎样说清一堆数字长什么样"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.describe",
+       "name": {
+        "en": "Describing data: location and spread",
+        "zh": "描述数据：位置与离散程度"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-chances",
+    "title": {
+     "en": "How to count and combine chances",
+     "zh": "怎样数清并组合可能性"
+    },
+    "summary": {
+     "en": "A probability is a share of an area. Slide over a table of counts to see “and”, “or”, “not” and “given” as pieces of one picture, and the one test for whether two things are independent.",
+     "zh": "概率就是一块面积所占的比例。在一张计数表上操作，把“并且”“或者”“不是”“已知”看成同一幅图的几块，以及判断两件事是否独立的那个唯一的检验。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "How to count and combine chances",
+      "zh": "怎样数清并组合可能性"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.chances",
+       "name": {
+        "en": "Probability: events, conditional probability, independence",
+        "zh": "概率：事件、条件概率、独立性"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-payoff",
+    "title": {
+     "en": "What to do when you cannot say how likely each future is",
+     "zh": "说不出每种未来有多大可能时怎么办"
+    },
+    "summary": {
+     "en": "A payoff table with no probabilities has three honest answers: the optimist’s, the pessimist’s and the one that minimises regret. Slide a dial from pessimist to optimist and watch the choice change, then do the same on two more tables.",
+     "zh": "没有概率的收益表有三个老实的答案：乐观者的、悲观者的、使后悔最小的。把拨盘从悲观拨向乐观，看选择怎么变，再在另外两张表上做一遍。"
+    },
+    "minutes": 40,
+    "meta": {
+     "title": {
+      "en": "What to do when you cannot say how likely each future is",
+      "zh": "说不出每种未来有多大可能时怎么办"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.payoff",
+       "name": {
+        "en": "Choosing without probabilities",
+        "zh": "没有概率时的选择"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-expected-value",
+    "title": {
+     "en": "What information is worth",
+     "zh": "信息值多少钱"
+    },
+    "summary": {
+     "en": "With probabilities, a payoff table gives an expected value per choice. Then ask the best question in decision analysis: what would a perfectly reliable crystal ball be worth? Move the probability and see it as a gap between two lines, then do the exam’s carpool question.",
+     "zh": "有了概率，收益表就给出每个选择的期望值。然后问决策分析里最好的问题：一个绝对可靠的水晶球值多少钱？移动概率，把它看成两条线之间的缝隙，再做考试里的拼车题。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "What information is worth",
+      "zh": "信息值多少钱"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.expected-value",
+       "name": {
+        "en": "Expected value and the value of perfect information",
+        "zh": "期望值与完全信息的价值"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-sample-info",
+    "title": {
+     "en": "How to change your mind when the test comes back",
+     "zh": "检测结果回来后，怎样改变看法"
+    },
+    "summary": {
+     "en": "A test result does not tell you the state; it moves the odds. Count 1000 cases to see why “90% reliable” does not mean “90% sure”, then do the exam’s weather question, draw its tree and roll it back to the best strategy.",
+     "zh": "检测结果不会告诉你状态，它只是移动了概率。数 1000 个样本，看清为什么“可靠率 90%”不等于“有 90% 把握”，再做考试里的天气题，画出它的树，倒推出最优策略。"
+    },
+    "minutes": 65,
+    "meta": {
+     "title": {
+      "en": "How to change your mind when the test comes back",
+      "zh": "检测结果回来后，怎样改变看法"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.sample-info",
+       "name": {
+        "en": "Bayes’ theorem, decision trees and the value of sample information",
+        "zh": "贝叶斯定理、决策树和样本信息的价值"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-random-variables",
+    "title": {
+     "en": "The average of an uncertain number, and how spread out it is",
+     "zh": "一个不确定的数的平均值，以及它有多分散"
+    },
+    "summary": {
+     "en": "A random variable puts numbers on what might happen. Balance a distribution on its mean, see why the mean can be a value that never occurs, and then use the binomial for “how many of n succeed”.",
+     "zh": "随机变量给可能发生的事配上数字。让一个分布在它的均值上保持平衡，看看为什么均值可以是一个永远不会出现的值，再用二项分布回答“n 次里成功几次”。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "The average of an uncertain number, and how spread out it is",
+      "zh": "一个不确定的数的平均值，以及它有多分散"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.random-variables",
+       "name": {
+        "en": "Random variables, expected value, variance and the binomial",
+        "zh": "随机变量、期望、方差与二项分布"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-normal",
+    "title": {
+     "en": "How likely is “between these two”?",
+     "zh": "“落在这两个值之间”的可能性有多大？"
+    },
+    "summary": {
+     "en": "The normal curve answers almost every “how likely” question about a measurement. Slide the edges, see the area, and read the same number off the table of the paper: forwards for a probability, backwards for a cut-off.",
+     "zh": "正态曲线几乎能回答所有关于测量值的“有多大可能”的问题。移动两条边，看面积，再从试卷上的那张表里读出同样的数：正着读得概率，倒着读得分界值。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "How likely is “between these two”?",
+      "zh": "“落在这两个值之间”的可能性有多大？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.normal",
+       "name": {
+        "en": "The normal distribution and the z table",
+        "zh": "正态分布与 z 表"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-regression",
+    "title": {
+     "en": "How to draw the best line, and how good it is",
+     "zh": "怎样画出最佳直线，以及它有多好"
+    },
+    "summary": {
+     "en": "Drag a line through a cloud of points and watch the squared errors. The best line is the one with the smallest total, r² says how much better it is than a flat line at the mean, and the exam’s kangaroo question puts the whole method on one page.",
+     "zh": "在一团点里拖一条直线，看误差的平方。最佳直线是总和最小的那条，r² 说明它比水平的均值线好多少，而考试里的袋鼠题把整套方法放在一页纸上。"
+    },
+    "minutes": 55,
+    "meta": {
+     "title": {
+      "en": "How to draw the best line, and how good it is",
+      "zh": "怎样画出最佳直线，以及它有多好"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.regression",
+       "name": {
+        "en": "Simple linear regression by least squares",
+        "zh": "一元线性回归（最小二乘）"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-multiple-regression",
+    "title": {
+     "en": "What changes with several predictors, and how to read the output",
+     "zh": "预测变量变多以后有什么变化，以及怎么读输出"
+    },
+    "summary": {
+     "en": "Touch every cell of a real regression output and learn what question each answers. Then see why R² can only go up and adjusted R² can fall, and read the Subaru past paper’s output the way the examiner wants: significance, size and fit.",
+     "zh": "点一遍真实回归输出里的每个格子，弄清每个格子回答什么问题。再看为什么 R² 只会上升而调整后的 R² 会下降，并按阅卷人的要求读 Subaru 往年真题的输出：显著性、大小和拟合。"
+    },
+    "minutes": 60,
+    "meta": {
+     "title": {
+      "en": "What changes with several predictors, and how to read the output",
+      "zh": "预测变量变多以后有什么变化，以及怎么读输出"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "derive",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.multiple-regression",
+       "name": {
+        "en": "Multiple regression: reading the output",
+        "zh": "多元回归：读输出"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-exam-method",
+    "title": {
+     "en": "How to spend two hours and a hundred marks",
+     "zh": "怎样花掉两小时和一百分"
+    },
+    "summary": {
+     "en": "The exam is 100 marks in 120 minutes: 1.2 minutes a mark. Plan the minutes against the marks of a real paper, learn what each section rewards, what the formula sheet gives and does not give, and what to write when you are stuck.",
+     "zh": "考试是 120 分钟 100 分：每分 1.2 分钟。拿一份真实试卷的分数来规划分钟数，弄清每一部分奖励什么、公式表给了什么没给什么，以及卡住时该写什么。"
+    },
+    "minutes": 35,
+    "meta": {
+     "title": {
+      "en": "How to spend two hours and a hundred marks",
+      "zh": "怎样花掉两小时和一百分"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.exam-method",
+       "name": {
+        "en": "Exam technique for MGMT90141",
+        "zh": "MGMT90141 的考试技巧"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": "mgmt90141-drill",
+    "title": {
+     "en": "Can you do it against the clock?",
+     "zh": "计时的话，你做得出来吗？"
+    },
+    "summary": {
+     "en": "Fifteen questions on new numbers, from every part of the subject, in mixed order on purpose. About 1.2 minutes a mark: give yourself 40 minutes for all of them, with the formula sheet and the table in mind and a Casio fx-82 in hand.",
+     "zh": "十五道换了数的题，来自这门课的每个部分，故意打乱顺序。大约每分 1.2 分钟：把全部做完给自己 40 分钟，想着公式表和那张表，手里拿一台 Casio fx-82。"
+    },
+    "minutes": 45,
+    "meta": {
+     "title": {
+      "en": "Can you do it against the clock?",
+      "zh": "计时的话，你做得出来吗？"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "checkpoint",
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "mg.drill",
+       "name": {
+        "en": "The whole exam, mixed",
+        "zh": "整张试卷，混合题"
        }
       }
      ]
