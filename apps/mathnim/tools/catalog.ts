@@ -14,6 +14,7 @@ import { catalog_text } from '../../../packages/ai/src/visual_plan';
 import '@mathnim/visuals/linalg';
 import '@mathnim/visuals/mpc';
 import '@mathnim/visuals/econ';
+import '@mathnim/visuals/mgmt';
 import '@mathnim/visuals/it';
 import '../../../packages/visuals/src/ft/a/index';
 import '../../../packages/visuals/src/ft/b/index';

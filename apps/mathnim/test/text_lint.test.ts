@@ -35,6 +35,10 @@ describe('text lint', () => {
     expect(m).toContain('error: steps.r.blocks[2]: TeX does not render: Missing argument for \\frac');
     expect(m).toContain('unclosed $');
   });
+  it('reads an escaped dollar sign as money, not as the start of TeX', () => {
+    const l = base([{ id: 'r', kind: 'read', blocks: [{ type: 'p', text: { en: 'It earns \\$350, and $x_1$ is the first.', zh: '它赚 \\$350，$x_1$ 是第一个。' } }] }]);
+    expect(msgs(l)).toEqual([]);
+  });
   it('checks figures, visuals, code and footnotes', () => {
     const l = base([{ id: 'r', kind: 'read', blocks: [
       { type: 'figure', src: 'ft/missing.svg', alt: 'x' },

@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { check_params, get_visual } from '@mathnim/visuals';
 import '@mathnim/visuals/econ';
+import '@mathnim/visuals/mgmt';
 import '@mathnim/visuals/it';
 import { check_lesson } from '../server/studio/format';
 import { lint_lesson_text } from './text_lint';

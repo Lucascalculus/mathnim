@@ -723,6 +723,32 @@ export class Path extends Mark {
     const all = this.px.flat();
     this.box = all.length ? bounds(all) : { x: 0, y: 0, w: 0, h: 0 };
   }
+  /**
+   * The point a share `u` (0..1) of the way along its longest polyline, in figure px, from the data as it is now (not
+   * from the last frame): where a label that slides along the path (`along`) may stand.
+   */
+  along(u: number): XY | null {
+    const raw = read(this.pts);
+    const polys = (raw.length && Array.isArray(raw[0]) && Array.isArray((raw[0] as XY[])[0]) ? raw : [raw]) as XY[][];
+    let best: XY[] | null = null, len = 0;
+    for (const pl of polys) {
+      const px = pl.map((p) => this.plot.P(p));
+      let l = 0;
+      for (let i = 1; i < px.length; i++) l += Math.hypot(px[i][0] - px[i - 1][0], px[i][1] - px[i - 1][1]);
+      if (l > len) [best, len] = [px, l];
+    }
+    if (!best || len < 1) return null;
+    let want = Math.max(0, Math.min(1, u)) * len;
+    for (let i = 1; i < best.length; i++) {
+      const seg = Math.hypot(best[i][0] - best[i - 1][0], best[i][1] - best[i - 1][1]);
+      if (want <= seg || i === best.length - 1) {
+        const k = seg > 0 ? Math.min(1, want / seg) : 0;
+        return [best[i - 1][0] + k * (best[i][0] - best[i - 1][0]), best[i - 1][1] + k * (best[i][1] - best[i - 1][1])];
+      }
+      want -= seg;
+    }
+    return best[0];
+  }
   override obstacles(): Obstacle[] {
     const out: Obstacle[] = [];
     for (const pl of this.px) {
@@ -951,7 +977,12 @@ export class Dots extends Mark {
  * anchor (px); `offset` moves it after it is placed (px); `side: 'center'` with `avoid: false` puts its centre exactly
  * on the anchor (an exact position).
  */
-export interface LabelOpts { id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing; kind?: TextKind; style?: Style; avoid?: boolean; gap?: number; offset?: Val<[number, number]> }
+/**
+ * `along`: a label that names a Path stands where it hides least *along* it: the shares of its length tried (true:
+ * the middle first, then outward), each with every side; the path itself is an obstacle to it (a line labelled in
+ * the middle of a crossing is the usual fault this ends).
+ */
+export interface LabelOpts { along?: boolean | number[]; id?: string; role?: string; sides?: Side[]; tex?: boolean; says?: L10n; z?: number; weight?: number; to?: Thing; kind?: TextKind; style?: Style; avoid?: boolean; gap?: number; offset?: Val<[number, number]> }
 /** A label attached to a thing or a point; the renderer chooses its side so it hides as little as possible. */
 export class Label extends Thing {
   kind = 'label';

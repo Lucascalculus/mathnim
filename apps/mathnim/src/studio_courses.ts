@@ -33,6 +33,7 @@ export interface StudioEntry {
 const PACKS: Record<string, () => Promise<unknown>> = {
   econ: () => import('@mathnim/visuals/econ'),
   it: () => import('@mathnim/visuals/it'),
+  mgmt: () => import('@mathnim/visuals/mgmt'),
 };
 
 export const studio_slug = (id: string) => `course-${id}`;

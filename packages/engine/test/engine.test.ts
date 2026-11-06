@@ -118,6 +118,31 @@ describe('figure', () => {
     f.script(reveal(curve, dot), set(a, 2));
     return { f, a };
   };
+  it('slides a label along the path it names, to where it hides least', () => {
+    const build = (along: boolean) => {
+      const f = new Figure();
+      const P = f.plot({ id: 'p', x: [0, 10], y: [0, 10], x_ticks: [0, 5, 10], y_ticks: [0, 5, 10], priority: 2 });
+      const a = P.add(new Path(() => [[0, 10], [10, 0]], { id: 'a', role: 'noun:plan' }));
+      const b = P.add(new Path(() => [[0, 0], [10, 10]], { id: 'b', role: 'noun:cost' })); // crosses a in the middle
+      const w = f.label('a label about this line', a, { id: 'a_word', along, sides: ['above-right', 'below-left'] });
+      f.layout(row([P]));
+      f.script(reveal(a, b));
+      f.build();
+      f.layout_for(640, 400);
+      f.at(f.duration);
+      const g = createCanvas(640, 400).getContext('2d') as unknown as CanvasRenderingContext2D;
+      f.draw(g, 1, { force: true });
+      return { f, P, w };
+    };
+    const slid = build(true), still = build(false);
+    // the middle of the line is where the other line crosses it: the label does not stand there, and says where it does
+    const cross = slid.P.P([5, 5]);
+    const hits = (w: typeof slid.w) => cross[0] >= w.box.x - 6 && cross[0] <= w.box.x + w.box.w + 6 && cross[1] >= w.box.y - 6 && cross[1] <= w.box.y + w.box.h + 6;
+    expect(hits(slid.w)).toBe(false);
+    expect(slid.w.why[0]).toContain('along its path at');
+    expect(slid.f.lint().filter((i) => i.rule === 'label')).toEqual([]);
+    expect(still.w.why[0]).not.toContain('along');
+  });
   it('draws only when something changed', () => {
     const { f, a } = small_figure();
     f.build();

@@ -61,6 +61,8 @@ export const NOUNS: Record<string, Pigment> = {
   'data': 'ink', 'mean': 'cobalt', 'density': 'cobalt', 'sample': 'ink',
   // linear algebra
   'i-hat': 'viridian', 'j-hat': 'vermilion', 'eigenvector': 'violet', 'determinant': 'ochre', 'flipped': 'violet', 'collapsed': 'vermilion', 'grid': 'cobalt',
+  // operations research (MGMT90141): the profit line, the feasible set, and up to four limits (a wall of the plan plane)
+  'profit': 'cobalt', 'feasible': 'viridian', 'limit-a': 'ochre', 'limit-b': 'teal', 'limit-c': 'violet', 'limit-d': 'ink',
   // fine-tuning
   'base-model': 'ink', 'adapter': 'violet', 'reward': 'viridian', 'loss': 'vermilion', 'attention': 'cobalt',
   'train-loss': 'cobalt', 'val-loss': 'vermilion', 'metric': 'viridian',

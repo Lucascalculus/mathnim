@@ -19,6 +19,22 @@ import { tr, type L10n, type Lang, type TextKind } from './text';
 import { Registry, contrast, type DrawEnv, type Obstacle, type Style, type Thing } from './thing';
 
 export type Listener = (type: string, data: Record<string, unknown>) => void;
+
+/** The shares of a path's length a label that slides along it tries, the middle first (each a little dearer than the last). */
+const ALONG = [0.5, 0.38, 0.62, 0.26, 0.74, 0.15, 0.85, 0.07, 0.93];
+function best_along(at: (u: number) => XY | null, stands: number[], sz: { w: number; h: number }, o: Parameters<typeof place_label>[3]): ReturnType<typeof place_label> {
+  let best: (ReturnType<typeof place_label> & { k: number }) | null = null;
+  stands.forEach((u, k) => {
+    const a = at(u);
+    if (!a) return;
+    const c = place_label(a, sz.w, sz.h, o);
+    const cost = c.cost + k * 0.4;
+    if (!best || cost < best.cost) best = { ...c, cost, k };
+  });
+  if (!best) return place_label([0, 0], sz.w, sz.h, o);
+  const b = best as ReturnType<typeof place_label> & { k: number };
+  return { ...b, why: `along its path at ${Math.round(stands[b.k] * 100)}%: ${b.why}` };
+}
 export interface Issue { severity: 'error' | 'warning'; rule: string; thing?: string; message: string; fix?: string }
 
 export class Figure {
@@ -241,10 +257,16 @@ export class Figure {
       }
       const bounds = (l as Label & { within?: () => Box }).within?.() ?? inflate(this.frame, -4);
       const own = l.o.to?.id;
+      // (a label that slides along a path: the path is in its way, and every stand along it is tried)
+      const path = l.o.along ? (l.o.to as (Thing & { along?: (u: number) => XY | null }) | undefined) : undefined;
+      const along = path?.along;
+      const stands = Array.isArray(l.o.along) ? l.o.along : ALONG;
       // (the figure may place it itself: no search, its first side as it is)
-      const p = l.o.avoid === false
-        ? { box: place_at(a, l.o.sides?.[0] ?? 'right', sz.w, sz.h, gap), side: l.o.sides?.[0] ?? 'right', why: `${l.o.sides?.[0] ?? 'right'} (placed by the figure, no avoidance)` }
-        : place_label(a, sz.w, sz.h, { sides: l.o.sides, gap, bounds, obstacles: obstacles.filter((x) => !l.own.includes(x.owner)) });
+      const p = along
+        ? best_along((u) => along.call(path, u), stands, sz, { sides: l.o.sides, gap, bounds, obstacles: obstacles.filter((x) => !l.own.filter((id) => id !== own).includes(x.owner)) })
+        : l.o.avoid === false
+          ? { box: place_at(a, l.o.sides?.[0] ?? 'right', sz.w, sz.h, gap), side: l.o.sides?.[0] ?? 'right', why: `${l.o.sides?.[0] ?? 'right'} (placed by the figure, no avoidance)` }
+          : place_label(a, sz.w, sz.h, { sides: l.o.sides, gap, bounds, obstacles: obstacles.filter((x) => !l.own.includes(x.owner)) });
       const off = l.o.offset ? untracked(() => read(l.o.offset!)) : undefined;
       l.box = off ? { ...p.box, x: p.box.x + off[0], y: p.box.y + off[1] } : p.box;
       l.side = p.side;
