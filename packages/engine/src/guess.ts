@@ -137,14 +137,22 @@ export class Gap extends Mark {
     const words = read(this.o.text);
     this.words = words;
     const f = font_of('caption', { weight: 600 }), w = text_width(words, f);
-    const mx = (ax + bx) / 2 + nx * side * (f.size * 0.9), my = (ay + by) / 2 + ny * side * (f.size * 0.9);
+    // the words beside the middle: under (or over) a gap that runs across, starting just right (or left) of one that
+    // runs up, on a little paper so the lines under them do not cross them
+    const across = Math.abs(ny) >= Math.abs(nx), off = across ? f.size * 0.9 : 10;
+    const ox = (ax + bx) / 2 + nx * side * off, oy = (ay + by) / 2 + ny * side * off;
+    const left = across ? ox - w / 2 : nx * side > 0 ? ox : ox - w, top = oy - f.size * 0.6;
+    g.globalAlpha = s * 0.88;
+    g.fillStyle = env.look.palette.bg;
+    g.fillRect(left - 4, top - 2, w + 8, f.size * 1.2 + 4);
+    g.globalAlpha = s;
     g.font = font_css(f);
     g.fillStyle = this.text_color;
-    g.textAlign = 'center';
+    g.textAlign = 'left';
     g.textBaseline = 'middle';
-    g.fillText(words, mx, my);
+    g.fillText(words, left, oy);
     g.restore();
-    const x0 = Math.min(ax, bx, mx - w / 2) - 6, x1 = Math.max(ax, bx, mx + w / 2) + 6, y0 = Math.min(ay, by, my - f.size / 2) - 6, y1 = Math.max(ay, by, my + f.size / 2) + 6;
+    const x0 = Math.min(ax, bx, left) - 6, x1 = Math.max(ax, bx, left + w) + 6, y0 = Math.min(ay, by, top) - 6, y1 = Math.max(ay, by, top + f.size * 1.2) + 6;
     this.box = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   }
 }

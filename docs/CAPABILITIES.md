@@ -229,7 +229,7 @@ export type Block =
 ### calculus
 
 - **`tangent_develop`** *(engine)*: The tangent as the limit of secants: Q comes in to P by halving h, each secant passed stays in transparent ink, and the tangent develops where they all agree, then turns solid; the readout goes from Δy/Δx to f′(x₀).
-  - params: `fn: text (max 120) ="0.15x^3 - 0.9x + 0.6" - the function of x in TeX, without y = (e.g. x^2, \sin x, 0.15x^3 - 0.9x + 0.6)`; `x0: number in [-6, 6] =-2 - where the tangent is taken`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - params: `fn: text (max 120) ="0.15x^3 - 0.9x + 0.6" - the function of x in TeX, without y = (e.g. x^2, \sin x, 0.15x^3 - 0.9x + 0.6)`; `x0: number in [-6, 6] =-2 - where the tangent is taken`; `predict: boolean =false - predict first: the learner tilts a hollow line through P to the slope they expect and lets go; then the fan develops, the tangent turns solid and the gap in slope is said (and reported to the lesson)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: derivative, tangent, secant, limit, slope, calculus
   - used in: _(not yet used by a lesson)_
 

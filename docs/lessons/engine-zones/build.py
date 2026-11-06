@@ -35,7 +35,7 @@ def lesson():
         read('figure', T('Figure: the tangent develops', '图 · 切线显影'),
              p(T('Nobody draws the tangent here. The [secant](noun:value) through $P$ and a second point $Q$ is drawn again and again as $Q$ comes in, each one left behind in transparent ink. Where they all agree the ink is deepest, and that is the tangent; then it turns from a guess (dashed, hollow) into a fact (solid).',
                  '这里没有人画切线。过 $P$ 和另一点 $Q$ 的[割线](noun:value)随着 $Q$ 靠近一遍遍画出来，每一条都用透明墨水留在纸上。它们都同意的地方墨最深，那就是切线；最后它从猜测（虚线、空心）变成事实（实线）。')),
-             visual('tangent_develop', explore=False, caption=T('The [curve](noun:function) $f$, the point $P$, and the secants as $h$ is halved.', '[曲线](noun:function) $f$、点 $P$，以及 $h$ 不断减半时的割线。')),
+             visual('tangent_develop', explore=True, caption=T('First your guess: tilt the hollow line through $P$ and let go. Then the secants come in as $h$ is halved, on the [curve](noun:function) $f$.', '先猜：转动过 $P$ 的空心直线，松手。然后 $h$ 不断减半，割线一条条进来，落在[曲线](noun:function) $f$ 上。'), predict=True),
              p(T('Here $f(x) = 0.15x^3 - 0.9x + 0.6$ and $x_0 = -2$. The same slope worked out by hand, with $f\'$ in the colour of the slope, in the formula as in the figure:', '这里 $f(x) = 0.15x^3 - 0.9x + 0.6$，$x_0 = -2$。同一个斜率用手算出来，$f\'$ 用的是斜率的颜色，公式里和图里一样：')),
              steps((r"f'(x) = 0.45x^2 - 0.9", ), (r"f'(-2) = 0.45(-2)^2 - 0.9", T('put in $x_0 = -2$', '代入 $x_0 = -2$')), (r"f'(-2) = 0.45 \cdot 4 - 0.9", T('square $-2$', '$-2$ 平方')), (r"f'(-2) = 1.8 - 0.9", T('multiply', '相乘')), (r"f'(-2) = 0.9", T('subtract', '相减')), nouns={"f'": 'value'}),
              p(T('Try another function: the same picture works for any curve smooth at $P$.', '换一个函数：只要曲线在 $P$ 处光滑，同样的画面都成立。')),

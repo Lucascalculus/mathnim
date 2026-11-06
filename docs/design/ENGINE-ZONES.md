@@ -50,8 +50,9 @@ listed last under Test: one lesson, three pages (figure, world, text). On the wa
 answer, and the research NEXT.md leans on says that is where predicting pays (the surprise, drawn as a gap). A guess
 is a hollow ring the hand drags; letting go commits it (no button) and reports it to the lesson; the figure says what
 showing the answer is; a Gap draws and says how far off. First use: `phys_throw` with `predict: true` ("where will it
-land?"), on the demo's world page. Next uses it is made for: the tangent's slope guessed before the fan develops, a
-sketch of a curve before the true one converges (a guess of many numbers).
+land?"), on the demo's world page; and `tangent_develop` with `predict: true` (tilt a hollow line through P to the slope
+you expect; letting go develops the fan; the gap in slope is said), first on the figure page. Next: a sketch of a curve
+before the true one converges (a guess of many numbers).
 
 ## What waits, and why
 
