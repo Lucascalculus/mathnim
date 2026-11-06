@@ -57,6 +57,20 @@ the file. Secrets are separate and are never in the file.
 * **No prompts.** The tutor's prompts and the engine's API digest are only in
   the Pages Functions bundle (server side), never in `dist/`.
 
+### Versions
+
+Mathium has one version number, `MATHIUM_VERSION` in `packages/engine/src/version.ts` (and the same in
+`packages/engine/package.json`; a test keeps them equal). Bump it before a deploy that changes what learners see:
+the last number for fixes and new lessons, the middle one for a new feature or a new course format, the first only
+when Lucas says so. Every build adds the commit and the day (`__MATHIUM_BUILD__`, from `apps/mathnim/vite.config.ts`;
+a `+` after the commit means the tree had uncommitted changes in `apps/` or `packages/`). Both are in each page as
+`<meta name="generator" content="Mathium 0.2.0 (abc1234 2026-11-06)">` and at the foot of Settings, so the live
+site says which build it is:
+
+```bash
+curl -s https://lab.penghaolun.com/ | grep -o 'Mathium [^"]*'
+```
+
 ## Secrets and variables
 
 | Name | Kind | Needed | Purpose |
