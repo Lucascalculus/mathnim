@@ -38,6 +38,14 @@ straight down (NEXT.md): an abstraction is the world seen from above.
 
 Each lands with tests and a contact sheet; a hidden demo lesson (`/course-engine-zones`) shows them in place.
 
+**Where it stands (2026-11-06, branch `mathium-algebra`).** 1 certainty (fc943a8), 2 development with
+`tangent_develop` (6a3572c), 3 and 4 definitions in the sentence, the why block and nouns in prose (a9a19b8), 5 time as
+matter with `phys_throw` (a32cd9f), 6 nouns in formulas (79f7809): done, each with its tests. 7 was measured and
+dropped: after the batched seek a plot is drawn only while it is revealed (27 to 53 frames of 100 to 660; 0.1 to
+14 ms over a whole animation, mpc_qp_plane the most), so a cache would save nothing. The demo is `/course-engine-zones`,
+listed last under Test: one lesson, three pages (figure, world, text). On the way: a formula step's reason shows its
+`$…$` as the characters it means (`tex_as_text`), and the chain of why's classes are `mn-chain-*`.
+
 ## What waits, and why
 
 | What | Why it waits |

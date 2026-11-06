@@ -216,11 +216,10 @@ export type Block =
    * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
    * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
    */
-  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n }
-  /** Collapsed "details on demand". */
-  | { type: 'details'; summary: L10n; blocks: Block[] }
-  | { type: 'table'; head: L10n[]; rows: L10n[][] }
-  /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `exp
+  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n; /** Symbols and the nouns they name ({ x_0: 'value' }): drawn in the noun's colour, as in the figure. */ nouns?: Record<string, string> }
+  /**
+   * A claim and its reasons, each opened on demand under it, down to a definition or an assumption (where the chain of
+   * "why?" en
 ```
 
 ## Visuals
@@ -260,7 +259,7 @@ export type Block =
 ### formula
 
 - **`formula_steps`** *(engine)*: A derivation as one formula that changes line by line (solving, simplifying, expanding, differentiating, putting numbers in, converting units, balancing a reaction, rewriting a logic formula): each token stays, travels over the = sign, flows together or cancels; the reason for each line is written under it. Every line is checked. One narration beat (§) per change.
-  - params: `steps: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % subtract 3 from both sides\n2x = 8\nx = 4 % divide both sides by 2" - the derivation in English: one complete TeX formula per line (no $), and after a line `%` with a few words for what was done to get it; 2-8 lines, one change per line`; `steps_zh: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % 两边同时减 3\n2x = 8\nx = 4 % 两边同时除以 2" - the same lines with their reasons in Chinese (empty: the English lines are used)`; `per_step: number in [0.6, 3] =1.3 - seconds each change takes`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - params: `steps: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % subtract 3 from both sides\n2x = 8\nx = 4 % divide both sides by 2" - the derivation in English: one complete TeX formula per line (no $), and after a line `%` with a few words for what was done to get it; 2-8 lines, one change per line. A first line `% nouns: x_0 = value, f = function` draws those symbols in the colour of the noun they name, as the figure beside it does`; `steps_zh: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % 两边同时减 3\n2x = 8\nx = 4 % 两边同时除以 2" - the same lines with their reasons in Chinese (empty: the English lines are used)`; `per_step: number in [0.6, 3] =1.3 - seconds each change takes`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: derivation, algebra, equation, simplify, calculus, derivative, units, chemistry, logic, expected value, substitution, formula
   - used in: _(not yet used by a lesson)_
 - **`substitute_point`** *(engine)*: Putting a number into a function: the graph of y = f(x) beside the formula steps y = f(x) → the number put in → the value; as the steps put x in, the point stands on the axis at x, and as they work it out it rises onto the curve. The number put in and the point share a colour.
@@ -589,6 +588,7 @@ How lessons are shown: the essay and game views, text pages, narration, cues and
 | `packages/present/src/steps_mount.ts` | The formula steps in a text (a tutor's answer, a page): each column of formulas math_html made from a ```steps block becomes the engine's derivation, one formula that changes line by line, played once when it is first seen; a click plays it again. Before it is drawn it is read, typeset and checked (review_steps): a block that does not read or typeset keeps its column; a line that does not follow from the one before is marked while it rests. |
 | `packages/present/src/styles.ts` | Styles for the lesson UI. Colours are CSS variables so a theme (or the host page) can restyle everything; the defaults are the quiet white theme. |
 | `packages/present/src/text_pages.ts` | Text pages: read (prose, formulas, code, figures, embedded visuals), derive (a derivation revealed line by line, with "why" notes and a fill-in line) and code (code next to its notes). The HTML is built as strings (blocks_html is pure, so it is tested without a DOM), then hydrate() binds the behaviour: copy buttons, code tabs, footnote links, embedded visuals. LessonView puts the article in its reading column and the outline or progress in the side panel. |
+| `packages/present/src/text_wire.ts` | The text's own interactions, for every page at once (one delegated listener): a definition opens in its sentence, a claim's reasons open under it. Nothing runs at rest. |
 | `packages/present/src/view.ts` | The lesson player UI (plain DOM, no framework): stage + side panel + timeline + mastery. Everything it shows comes from LessonRuntime events. Text steps (read, derive, code) replace the stage with a reading column (text_pages.ts). Every L10n text is shown in the learner's language (ViewOptions.lang, default the interface language of i18n.ts); the UI's own strings come from the i18n dictionary. |
 
 ## AI (`packages/ai`)
