@@ -137,7 +137,7 @@ export class BlockRenderer {
         return `<div class="mn-chain">${this.why_node({ text: b.claim, because: b.because }, true)}</div>`;
       case 'steps':
         this.formulas++;
-        return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })));
+        return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })), b.nouns);
       case 'math':
         this.formulas++;
         return `<div class="mn-dmath" role="math" aria-label="${esc(b.tex)}"><div class="mn-dmath-tex">${display_math_html(b.tex)}</div>${b.label ? `<span class="mn-eqlabel">(${esc(b.label)})</span>` : ''}</div>`;

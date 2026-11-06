@@ -20,7 +20,7 @@ async function mount_one(el: HTMLElement, lang: Lang): Promise<void> {
   el.dataset.check = r.ok ? 'ok' : 'doubt';
   if (r.issues.length) el.dataset.issues = r.issues.join(' | ');
   if (r.lines.length < 2 || r.issues.some((s) => s.includes('does not typeset'))) return;
-  const fig = steps_figure(r.lines, { lang, paper: false });
+  const fig = steps_figure(r.lines, { lang, paper: false, nouns: r.nouns });
   fig.derivation.doubtful = r.doubtful;
   const stage = document.createElement('div');
   stage.className = 'mn-steps-stage';

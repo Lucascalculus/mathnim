@@ -77,7 +77,7 @@ export type Block =
    * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
    * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
    */
-  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n }
+  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n; /** Symbols and the nouns they name ({ x_0: 'value' }): drawn in the noun's colour, as in the figure. */ nouns?: Record<string, string> }
   /**
    * A claim and its reasons, each opened on demand under it, down to a definition or an assumption (where the chain of
    * "why?" ends): the claim's hollow ring fills when its reasons are open.

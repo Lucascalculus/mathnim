@@ -619,6 +619,8 @@ export function check_steps(lines: StepLine[]): { domain: Domain; verdicts: Verd
 
 /** Everything known about a block of steps before a learner sees it: the lines, what is wrong, and the checks. */
 export interface Review {
+  /** Symbols and the nouns they name (the block's `% nouns:` line). */
+  nouns: Record<string, string>;
   lines: StepLine[];
   domain: Domain;
   verdicts: Verdict[];
@@ -645,5 +647,5 @@ export function review_steps(src: string): Review {
   const { domain, verdicts } = check_steps(p.lines);
   for (const v of verdicts) if (v.status === 'error') issues.push(v.message);
   const doubtful = verdicts.filter((v) => v.status === 'error').map((v) => v.line);
-  return { lines: p.lines, domain, verdicts, issues, doubtful, ok: !doubtful.length && !T.some((t) => t.error) && p.lines.length >= 2 };
+  return { lines: p.lines, nouns: p.nouns, domain, verdicts, issues, doubtful, ok: !doubtful.length && !T.some((t) => t.error) && p.lines.length >= 2 };
 }

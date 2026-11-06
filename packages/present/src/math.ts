@@ -76,8 +76,9 @@ const DOLLAR = '\u0004';
  */
 const STEPS_FENCE = /```[ \t]*steps[^\n]*\n([\s\S]*?)(```|$)/g;
 /** A derivation's lines as the column of formulas mount_steps() turns into the engine's (a steps block of a page). */
-export function steps_rows_html(rows: { tex: string; why?: string }[]): string {
-  const body = rows.map((r) => `${r.tex}${r.why ? ` % ${r.why}` : ''}`).join('\n');
+export function steps_rows_html(rows: { tex: string; why?: string }[], nouns?: Record<string, string>): string {
+  const named = nouns && Object.keys(nouns).length ? `% nouns: ${Object.entries(nouns).map(([k, v]) => `${k} = ${v}`).join(', ')}\n` : '';
+  const body = named + rows.map((r) => `${r.tex}${r.why ? ` % ${r.why}` : ''}`).join('\n');
   const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${prose_math_html(r.why)}</div>` : ''}</div>`).join('');
   return `<div class="mn-steps" data-steps="${esc(body)}">${html}</div>`;
 }
@@ -86,6 +87,7 @@ function steps_html(body: string, closed: boolean): string {
   const rows: { tex: string; why: string }[] = [];
   for (const raw of body.split('\n')) {
     let l = raw.trim(), why = '';
+    if (/^%\s*(?:nouns?|名词)\s*[:：]/i.test(l)) continue; // (the symbols it names by noun: for the engine's drawing)
     const c = /(^|[^\\])%(.*)$/.exec(l);
     if (c) { why = c[2].trim(); l = l.slice(0, c.index + c[1].length).trim(); }
     l = l.replace(/^\$+|\$+$/g, '').replace(/^\\\[|\\\]$/g, '').trim();

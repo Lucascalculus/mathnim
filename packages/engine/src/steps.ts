@@ -6,7 +6,7 @@
 // they make (11 − 3 → 8), cancels out (+3 and −3), or appears. So whoever writes the steps - an author or the tutor -
 // writes only the lines; parse_steps() takes them as people and models actually write them.
 import { tex_glyphs, type TexGlyph } from 'manim-web/utils/tex/mathjax';
-import { look } from '@mathnim/look';
+import { look, text_color_of } from '@mathnim/look';
 import type { Box } from './geom';
 import { Figure } from './figure';
 import { column, type Block, type LayoutEnv, type Size } from './layout';
@@ -27,6 +27,8 @@ export interface StepLine {
 }
 export interface ParsedSteps {
   lines: StepLine[];
+  /** Symbols and the nouns they name (a `% nouns: x_0 = value, f = function` line): drawn in the noun's colour. */
+  nouns: Record<string, string>;
   /** What was wrong with the text (empty: nothing). */
   issues: string[];
 }
@@ -103,8 +105,21 @@ export function split_relation(tex: string): [string, string, string] | null {
  * alignment marks, a trailing \quad\text{...} reason, a line starting with `=` (the same left side again), a leading
  * ⇒, and a final full stop.
  */
+/** "x_0 = value, f = function" (or with colons) as { x_0: 'value', f: 'function' }: the symbols a formula names by noun. */
+export function parse_nouns(s: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const part of s.split(/[,，;；](?![^{]*\})/)) {
+    const m = /^\s*(.+?)\s*[=:：→]\s*([a-z][\w-]*)\s*$/i.exec(part);
+    if (m) out[m[1].replace(/^\$+|\$+$/g, '').trim()] = m[2].toLowerCase();
+  }
+  return out;
+}
+/** The line of a block that names its nouns: `% nouns: x_0 = value, f = function` (also `% 名词：…`). */
+export const NOUNS_LINE = /^%\s*(?:nouns?|名词)\s*[:：]\s*(.*)$/i;
+
 export function parse_steps(src: string): ParsedSteps {
   const issues: string[] = [];
+  let nouns: Record<string, string> = {};
   let s = src.replace(/\r/g, '');
   const blocks = steps_blocks(s);
   if (blocks.length) s = blocks[0].body;
@@ -115,6 +130,8 @@ export function parse_steps(src: string): ParsedSteps {
   for (const raw of s.split('\n')) {
     let l = raw.trim();
     if (!l || /^```/.test(l)) continue;
+    const nl = NOUNS_LINE.exec(l);
+    if (nl) { nouns = { ...nouns, ...parse_nouns(nl[1]) }; continue; }
     // a reason given on its own line after a line (`% ...`): it belongs to the line before
     const pc0 = comment_at(l);
     if (pc0 === 0) {
@@ -174,7 +191,7 @@ export function parse_steps(src: string): ParsedSteps {
   if (lines.length < 2) issues.push(lines.length ? 'only one line: a derivation needs two or more' : 'no lines');
   if (lines.length > 10) { issues.push(`${lines.length} lines: at most 10 are shown`); lines.length = 10; }
   for (let i = 1; i < lines.length; i++) if (lines[i].tex === lines[i - 1].tex) issues.push(`line ${i + 1} is the same as line ${i}`);
-  return { lines, issues };
+  return { lines, issues, nouns };
 }
 
 // ------------------------------------------------------------------ tokens
@@ -242,6 +259,30 @@ function typeset_uncached(tex: string): TexLine {
     if (t.relation && d < depth) { anchor = i; depth = d; }
   });
   return { tex, tokens, view: r.view, anchor, error: null };
+}
+
+/**
+ * Where a line has a noun's symbol: its tokens in a row with the same keys, at the same sizes relative to each other
+ * (x_0's 0 is a subscript in both), not already another noun's. Longer symbols first, so x_0 is taken before x.
+ */
+function noun_tokens(L: TexLine, nouns: Record<string, string>): Map<Token, string> {
+  const out = new Map<Token, string>();
+  if (L.error) return out;
+  const size = (t: Token) => t.glyphs[0].size ?? 1;
+  const pats = Object.entries(nouns).map(([tex, noun]) => ({ noun, ts: typeset_line(tex).tokens.filter((t) => t.kind !== 'rule') })).filter((p) => p.ts.length).sort((a, b) => b.ts.length - a.ts.length);
+  const ts = L.tokens;
+  for (const p of pats) {
+    for (let i = 0; i + p.ts.length <= ts.length; i++) {
+      const ok = p.ts.every((q, j) => {
+        const t = ts[i + j];
+        return t.key === q.key && !out.has(t) && Math.abs(size(t) / size(ts[i]) - size(q) / size(p.ts[0])) < 0.05;
+      });
+      if (!ok) continue;
+      for (let j = 0; j < p.ts.length; j++) out.set(ts[i + j], p.noun);
+      i += p.ts.length - 1;
+    }
+  }
+  return out;
 }
 
 // ------------------------------------------------------------------ matching one line to the next
@@ -383,6 +424,10 @@ export class Steps extends Thing implements Block {
   readonly moves: Transition[];
   readonly at: Param<number>;
   readonly issues: string[];
+  /** Symbols and the nouns they name (TeX → noun key): each is drawn in its noun's colour, in every line it is in. */
+  readonly nouns: Record<string, string>;
+  /** Per line, the tokens that are a noun's symbol, and which noun. */
+  private noun_of: Map<Token, string>[];
   /** Show each line's reason under the formula. */
   show_why: boolean;
   private paths = new Map<TexGlyph, Path2D>();
@@ -392,14 +437,17 @@ export class Steps extends Thing implements Block {
   doubtful: number[] = [];
   /** Fill a stage (the lesson's video frame): as large as the stage allows, in its middle; else the size of a displayed formula in a text. */
   fill: boolean;
-  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean } = {}) {
+  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean; nouns?: Record<string, string> } = {}) {
     super({ id: o.id ?? 'steps', role: o.role ?? 'text', z: 5, style: o.style });
-    const p = typeof src === 'string' ? parse_steps(src) : { lines: src, issues: [] };
+    const p = typeof src === 'string' ? parse_steps(src) : { lines: src, issues: [], nouns: {} };
     this.lines = p.lines;
+    this.nouns = { ...p.nouns, ...(o.nouns ?? {}) };
     this.issues = [...p.issues];
     this.typeset = this.lines.map((l) => typeset_line(l.tex));
     this.typeset.forEach((t, i) => { if (t.error) this.issues.push(`line ${i + 1} does not typeset: ${t.error}`); });
     this.moves = this.typeset.slice(1).map((b, i) => match_lines(this.typeset[i], b));
+    this.noun_of = this.typeset.map((t) => noun_tokens(t, this.nouns));
+    for (const [tex, noun] of Object.entries(this.nouns)) if (!this.noun_of.some((m) => [...m.values()].includes(noun))) this.issues.push(`the noun symbol ${tex} (${noun}) is in no line`);
     this.at = param(0, { name: (o.id ?? 'steps') + '.at', range: [0, Math.max(0, this.lines.length - 1)] });
     this.show_why = o.why ?? this.lines.some((l) => l.why);
     this.px_set = o.size ?? null;
@@ -491,6 +539,14 @@ export class Steps extends Thing implements Block {
     const G = this.geometry(), kk = tex_scale(this.px());
     const out: { text: string; tex?: boolean; box: Box }[] = [{ text: l.tex, tex: true, box: { x: this.box.x, y: this.box.y, w: this.box.w, h: (G.asc + G.desc) * kk + this.px() * 0.5 } }];
     if (this.show_why && l.why) out.push({ text: l.why, box: { x: this.why_x, y: this.box.y + (G.asc + G.desc) * kk + this.px() * 0.5, w: this.why_w, h: this.why_h(this.why_w, _lang) } });
+    // each noun's symbol in the line, where it is: what a mirror, a passage asked about or the tutor points at
+    const { x0, y0 } = this.frame_of(), ox = G.ox[k];
+    const seen = new Map<string, Token[]>();
+    for (const [t, nn] of this.noun_of[k] ?? []) seen.set(nn, [...(seen.get(nn) ?? []), t]);
+    for (const [nn, ts] of seen) {
+      const tex = Object.keys(this.nouns).find((s) => this.nouns[s] === nn) ?? nn;
+      for (const t of ts) out.push({ text: `${tex} (${nn})`, tex: false, box: { x: x0 + (ox + t.box[0]) * kk, y: y0 + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
+    }
     return out;
   };
   /** Where the formula's TeX origin is (px) and px per TeX unit. */
@@ -524,9 +580,12 @@ export class Steps extends Thing implements Block {
     const n = this.lines.length, G = this.geometry();
     const k = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = Math.min(1, Math.max(0, v - k));
     const A = this.typeset[k];
-    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill, liquid: false, ...extra });
+    // (a noun's symbol in its noun's colour, as text: the hue it has in the figure, deep enough to read)
+    const noun_color = (t: Token, line: number): string | null => { const nn = this.noun_of[line]?.get(t); return nn ? text_color_of(`noun:${nn}`, look()) : null; };
+    const B = k < n - 1 ? this.typeset[k + 1] : A;
+    const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t, B.tokens.includes(t) && !A.tokens.includes(t) ? k + 1 : k), liquid: false, ...extra });
     if (u < 1e-6 || k >= n - 1) return A.tokens.map((t) => piece(t, G.ox[k]));
-    const B = this.typeset[k + 1], M = this.moves[k], oa = G.ox[k], ob = G.ox[k + 1];
+    const M = this.moves[k], oa = G.ox[k], ob = G.ox[k + 1];
     if (M.jump) return [...A.tokens.map((t) => piece(t, oa, { w: 1 - smooth(0.15, 0.6, u) })), ...B.tokens.map((t) => piece(t, ob, { w: smooth(0.4, 0.85, u) }))];
     const out: Piece[] = [];
     const lineh = G.asc + G.desc;
@@ -719,11 +778,11 @@ function box1(a: Float32Array, o: number, s: number, n: number, r: number, tmp: 
  * A figure that walks through a derivation: each line held, then the change to the next (one beat of the script per
  * line, so a voice or a click can step through them). `per_step` is the change's length, `hold` the rest on each line.
  */
-export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean } = {}): Figure & { derivation: Steps } {
+export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean; nouns?: Record<string, string> } = {}): Figure & { derivation: Steps } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { derivation: Steps };
   if (o.paper === false) fig.paper = 'clear';
   // (on a stage - paper behind it - it fills the stage; in a text it is the size of a displayed formula)
-  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false });
+  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false, nouns: o.nouns });
   fig.derivation = st;
   // (in a text it is part of the text: no margin of its own)
   fig.layout(column([st]), o.paper === false ? { pad: 2 } : {});
