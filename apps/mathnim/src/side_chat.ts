@@ -32,6 +32,8 @@ import { lesson_context } from './student';
 
 const SERIF = `"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Noto Serif SC","Source Han Serif SC",serif`;
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5"/></svg>';
+/** What the tutor writes is read as a model writes it: a letter in bold (**x**) is a symbol (math.ts). */
+const ANSWER = { bold_symbols: true };
 /** Highlighter inks: one per question, in turn. */
 const INKS = ['#ffe27a', '#ffbfd2', '#b9ecc8', '#bcd9ff', '#d8c7ff', '#ffd2a3'];
 
@@ -351,6 +353,15 @@ function echo(p: HTMLElement, phrase: string, ink: number, draw: boolean): HTMLE
   return marks;
 }
 
+/** A passage as a question quotes it: its start, on one line, never cut inside a formula (and a displayed one inline). */
+function quoted(passage: string, n = 40): string {
+  const flat = passage.replace(/\$\$/g, '$').replace(/\s+/g, ' ').trim();
+  if (flat.length <= n) return flat;
+  let cut = n;
+  for (const m of flat.matchAll(/\$[^$]+\$/g)) if (m.index < cut && m.index + m[0].length > cut) cut = m.index || m[0].length;
+  return `${flat.slice(0, cut).trimEnd()}…`;
+}
+
 /**
  * One conversation: a question asked on the line (beside the paragraph being read), or a note on a selected passage.
  * The note holds only the conversation, its head the first question: the passage itself is marked in the text.
@@ -504,7 +515,7 @@ class Note {
     const c = document.createElement('div');
     c.className = 'mn-card';
     c.dataset.q = turn.q;
-    c.innerHTML = `<div class="mn-q">${math_html(turn.q)}</div><div class="mn-body"><div class="mn-answer-text">${math_html(turn.a)}</div></div>`;
+    c.innerHTML = `<div class="mn-q">${math_html(turn.q)}</div><div class="mn-body"><div class="mn-answer-text" data-askable>${math_html(turn.a, ANSWER)}</div></div>`;
     ink_question(c.querySelector('.mn-q')!, this.ink_of(i), false);
     if (turn.pic) this.pics.set(c, turn.pic);
     if (turn.a) this.actions(c, turn);
@@ -528,7 +539,7 @@ class Note {
       const turn = [...turns].reverse().find((x) => x.q === q);
       const body = card.querySelector<HTMLElement>('.mn-body')!;
       if (turn?.a) {
-        body.querySelector('.mn-answer-text')!.innerHTML = math_html(turn.a);
+        body.querySelector('.mn-answer-text')!.innerHTML = math_html(turn.a, ANSWER);
         if (!card.querySelector('.note-acts')) this.actions(card, turn);
       }
       if (turn?.pic || !still.has(q)) {
@@ -631,6 +642,15 @@ class Note {
   }
   focus(): void {
     this.panel.focus();
+  }
+  /**
+   * "问这句" on a passage of one of this conversation's answers: asked here, as the next question. The question quotes
+   * the passage's start (it stays with the conversation, as asked); the whole passage goes to the tutor, as a passage
+   * of its own answer.
+   */
+  ask_about(passage: string): void {
+    if (this.folded) this.fold(false);
+    void this.panel.ask(t('explain_quote', { q: quoted(passage) }), { selected: passage, selected_in: 'answer' });
   }
   fold(folded: boolean, focus = false): void {
     this.el.classList.toggle('folded', folded);
@@ -740,6 +760,9 @@ export class AskRail {
   open(ask: { selected?: string; at?: Element }): void {
     const phrase = (ask.selected ?? '').trim();
     if (!phrase || !this.view) return;
+    // a passage of one of the tutor's answers: asked about in that conversation
+    const talk = ask.at ? [...this.notes.values()].find((n) => n.el.contains(ask.at!)) : undefined;
+    if (talk) return talk.ask_about(phrase);
     const head = phrase.slice(0, 16);
     const block = this.anchor_of(ask.at) ?? this.paras().find((p) => read_of(p).includes(head)) ?? null;
     block?.classList.add('mn-para');
@@ -850,7 +873,7 @@ export class AskRail {
     box.style.setProperty('--ink', INKS[a.ink % INKS.length]);
     // (an edit kept before edits were written for the text held the whole answer: shown as it was)
     const legacy = a as AddedAnswer & { a?: string };
-    box.innerHTML = `<button type="button" class="note-x" aria-label="${esc(t('remove_from_page'))}" title="${esc(t('remove_from_page'))}">×</button><p>${math_html(a.text ?? legacy.a ?? '')}</p>`;
+    box.innerHTML = `<button type="button" class="note-x" aria-label="${esc(t('remove_from_page'))}" title="${esc(t('remove_from_page'))}">×</button><p>${math_html(a.text ?? legacy.a ?? '', ANSWER)}</p>`;
     box.querySelector<HTMLButtonElement>('.note-x')!.onclick = () => {
       this.unplace(a.id);
       this.refresh_acts(); // (the note's button offers it again)
@@ -895,7 +918,7 @@ export class AskRail {
     if (!offer || !card.isConnected || this.view?.runtime.step !== s) return;
     const row = document.createElement('div');
     row.className = 'page-offer';
-    row.innerHTML = `<div class="page-offer-why">${math_html(offer.why || offer.title)}</div><div class="page-offer-acts"><button type="button" class="note-act yes">${esc(t('add_page'))}</button><button type="button" class="note-act">${esc(t('no_page'))}</button></div>`;
+    row.innerHTML = `<div class="page-offer-why">${math_html(offer.why || offer.title, ANSWER)}</div><div class="page-offer-acts"><button type="button" class="note-act yes">${esc(t('add_page'))}</button><button type="button" class="note-act">${esc(t('no_page'))}</button></div>`;
     const [yes, no] = row.querySelectorAll<HTMLButtonElement>('button');
     no.onclick = (e) => {
       e.stopPropagation();
@@ -1010,7 +1033,7 @@ export class AskRail {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'rail-q';
-        b.innerHTML = math_html(q);
+        b.innerHTML = math_html(q, ANSWER);
         b.onclick = () => this.ask_here(q);
         return b;
       }));

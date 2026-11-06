@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { highlight_lines, tokenize } from '../src/highlight';
 import { define_ui, drag_hint, set_ui_lang, t, ui_entries } from '../src/i18n';
-import { math_html } from '../src/math';
+import { math_html, partial_math_html } from '../src/math';
 import { blocks_html } from '../src/text_pages';
 
 /** A formula before the TeX renderer is set: its source, drawn once it is (math.ts). */
@@ -52,6 +52,29 @@ describe('light markup', () => {
     expect(math_html('costs \\$5 and \\$7, or $x$')).toBe('costs $5 and $7, or ' + tex('x'));
     expect(math_html('$a + \\$b$')).toBe(tex('a + \\$b'));
     expect(math_html('冻结 $W_0$，只学（$r$）。')).toBe('冻结 <span class="mn-nowrap">' + tex('W_0') + '，</span>只学<span class="mn-nowrap">（' + tex('r') + '）。</span>');
+  });
+  // what the tutor writes (a model's habits): the answer reads as it was meant
+  it('reads a tutor answer as it was meant: a star in a formula, TeX in \\( \\), a symbol in bold', () => {
+    // a star inside a formula is TeX's, not the start of bold or italic
+    expect(math_html('**$x^*$ 是最优解**，而 $u^*$ 是')).toBe('<b>' + tex('x^*') + ' 是最优解</b>，而 ' + tex('u^*') + ' 是');
+    expect(math_html('$J^*$ and *this*')).toBe(tex('J^*') + ' and <i>this</i>');
+    // \( \) and \[ \] are TeX as $ $ and $$ $$ (outside formulas: TeX's own \\[2pt] stays in one)
+    expect(math_html('\\(Q/R\\) 越大')).toBe(tex('Q/R') + ' 越大');
+    expect(math_html('so \\[J = x^2\\]')).toBe('so <span class="mn-tex-wait" data-tex="J = x^2" data-display="" style="opacity:.5">J = x^2</span>');
+    expect(math_html('$$a \\\\[2pt] b$$')).toContain('data-tex="a \\\\[2pt] b"');
+    // in the tutor's words a letter in bold is a vector, set as math; in a lesson's text it stays bold (an acronym)
+    const answer = { bold_symbols: true };
+    expect(math_html('状态 **x** 和 **u**', answer)).toBe('状态 ' + tex('\\mathbf{x}') + ' 和 ' + tex('\\mathbf{u}'));
+    expect(math_html('**key** idea', answer)).toBe('<b>key</b> idea');
+    expect(math_html('**D**ialogue, **A**ccess', answer)).toBe('<b>D</b>ialogue, <b>A</b>ccess');
+    expect(math_html('选 **B**')).toBe('选 <b>B</b>');
+  });
+  it('shows an answer still streaming in without the halves of what has not closed', () => {
+    expect(partial_math_html('这是 **最优')).toBe('这是 最优');
+    expect(partial_math_html('这是 **最优**')).toBe('这是 <b>最优</b>');
+    expect(partial_math_html('这是 **最优*')).toBe('这是 最优');
+    for (const s of ['比值 $Q/', '比值 $$J=', '比值 \\(Q', '比值 \\[J', '比值 \\']) expect(partial_math_html(s)).toBe('比值 ');
+    expect(partial_math_html('**$x^*$ 是')).toBe(tex('x^*') + ' 是');
   });
 });
 

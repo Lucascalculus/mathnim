@@ -49,7 +49,7 @@ export function user_prompt(question: string, ctx: AskContext = {}, extra: Scene
   if (ctx.learner) parts.push(`Learner mastery: ${ctx.learner}`);
   if (ctx.misconceptions?.length) parts.push(`Mistakes shown: ${ctx.misconceptions.join(' | ')}`);
   if (ctx.on_screen) parts.push(`On screen now:\n${ctx.on_screen}`);
-  if (ctx.selected) parts.push(`The student selected this passage and asks about it: "${ctx.selected}"`);
+  if (ctx.selected) parts.push(`The student selected this passage ${ctx.selected_in === 'answer' ? 'of the tutor\'s earlier answer ' : ''}and asks about it: "${ctx.selected}"`);
   if (ctx.unanswered) parts.push(UNANSWERED);
   if (ctx.language) parts.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) parts.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);
