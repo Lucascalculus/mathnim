@@ -24,3 +24,29 @@ kept the lesson short.
 - Keep one right-hand panel of numbers per figure, two-line rows, and never name a side in a caption.
 - A quiz *before* the picture worked; do it again (what does the minimum requirement do to the region?).
 - Put money as `\$` from the start.
+
+
+## After lesson 2 (`lp-formulate`), 2026-11-06
+
+**What went well.** The formulation checker answers the question a book cannot ("is *my* model right?") with a plan, not a verdict: "your model allows
+x1 = 16, x2 = 9, which reaches only 9 under the minimum of 10". It accepts a differently written but equivalent model, and the same
+instrument serves Consolidated Electronics and the exam's DCI question. Writing first and drawing after (the picture is the learner's own
+model) kept the picture from giving the model away.
+
+**What the tests found.**
+1. A figure with four limits does not fit the right column on a 16:9 stage (the checker's wide stage is 640 x 360, smaller than the page). Rows had to
+   become one line each, with the colour saying over / used up / room; the checker found it, as it did in lesson 1.
+2. A corner that a moved wall pushed out of the picture was still labelled, above the figure. Only what is in the window is drawn.
+3. Labels near a plot's corner need a fallback inside the plot (`below-left`) and a bound (`within`).
+4. The pane of the Claude desktop app blocks a sandboxed frame (`sandbox="allow-scripts"`, opaque origin) with `net::ERR_BLOCKED_BY_CLIENT` on
+   this port, while the same page loads without the sandbox or with `allow-same-origin`. The instrument itself was verified standalone and with
+   `allow-same-origin`; the opaque sandbox is untested in a real browser in this session. (Before the course work it loaded on port 5190.)
+5. An error inside a sandboxed instrument is invisible to the page; `kit.js` now posts it to the page as `{ mn: 'error' }`.
+
+**Apply to lesson 3 (`lp-report`).**
+- The Solver report is a table: it is a DOM instrument (a frame), but every cell must be tied to the picture. Build the report reader as a frame
+  that draws its own small plane (SVG) so a touched cell moves the picture, or place the engine figure beside it and make the cell *say* the
+  plane's state in words. Decide with Lucas whether frame <-> figure talk is worth building (platform ask R2); until then keep the picture
+  in the engine figure and the numbers in a table beside it, with questions that ask for both.
+- Reuse `PROBLEMS`: shadow price 1.5 on Shader's 240, the allowable stretch 200 to 300 (the walls tool already shows the corner changing).
+- One quiz before the picture again; keep checkpoint numbers whose answer is read off the picture (410, 216,000, -8,000 worked).

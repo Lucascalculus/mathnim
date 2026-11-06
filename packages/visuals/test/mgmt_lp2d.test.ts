@@ -52,3 +52,22 @@ describe('the special cases', () => {
     expect(PROBLEMS.redundant.limits.map((l) => binds(l, [30, 40]))).toEqual([true, true, false]);
   });
 });
+
+describe('Consolidated Electronics (a minimisation)', () => {
+  const P = PROBLEMS.consolidated;
+  it('the cheapest plan is 8 teaming and 17 problem-solving programs, $216 000', () => {
+    const s = solve(P);
+    expect(s.status).toBe('optimal');
+    near(s.best, [8, 17]);
+    expect(s.z).toBeCloseTo(216000, 6);
+  });
+  it('the region is closed by the consultant\'s days, and the cost line first touches it at the best corner', () => {
+    expect(polygon(P)).toHaveLength(4);
+    expect(level_in_feasible(P, 216000)).not.toBeNull();
+    expect(level_in_feasible(P, 215000)).toBeNull(); // cheaper than the best: no allowed plan
+    expect(level_in_feasible(P, 300000)).not.toBeNull();
+  });
+  it('the limits that hold the best plan are the manager\'s teaming minimum and the senior-level total', () => {
+    expect(P.limits.map((l) => binds(l, [8, 17]))).toEqual([false, true, false, true]);
+  });
+});

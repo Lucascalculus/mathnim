@@ -28,7 +28,9 @@ export interface LpPlaneParams extends Record<string, unknown> {
 const NOUN = ['limit-a', 'limit-b', 'limit-c', 'limit-d'];
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
 const snap = (x: number, step: number) => Math.round(x / step) * step;
-const num = (v: number) => (Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : v.toFixed(1));
+// (a thousand separator in TeX: 216{,}000)
+const group = (s: string) => s.replace(/\B(?=(\d{3})+(?!\d))/g, '{,}');
+const num = (v: number) => (Math.abs(v - Math.round(v)) < 1e-9 ? (Math.abs(v) >= 10000 ? group(String(Math.round(v))) : String(Math.round(v))) : v.toFixed(1));
 const money = (v: number) => `\\$${num(v)}`;
 const coef = (a: number, v: string) => (a === 1 ? v : a === 0 ? '' : `${num(a)}${v}`);
 /** "4x_1 + 3x_2 \le 240" */
@@ -61,7 +63,7 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
   const x2 = (fig.x2 = fig.param('x2', clamp(p.plan[1], view.y[0], view.y[1]), { range: view.y, step: 1, doc: 'plan: second decision', says: prob.decisions[1] }));
   const c = prob.c, cc = c[0] * c[0] + c[1] * c[1];
   // the objective's level: its handle moves a free point, the level is that point's value, snapped
-  const zstep = 10;
+  const zstep = prob.zstep ?? 10;
   const zmax = Math.floor(Math.min(view.x[1] * cc / Math.max(c[0], 1e-9), view.y[1] * cc / Math.max(c[1], 1e-9)) / zstep) * zstep;
   const sx = fig.param('sx', (p.level * c[0]) / cc, { range: view.x, doc: 'the profit line: handle x' });
   const sy = fig.param('sy', (p.level * c[1]) / cc, { range: view.y, doc: 'the profit line: handle y' });
@@ -79,7 +81,8 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
   const PR = derive((): LP.Problem => ({ ...prob, limits: prob.limits.map((l, i) => ({ ...l, b: rhs[i].value })) }), 'the problem');
   const SOL = derive(() => LP.solve(PR.value), 'the solution');
   const POLY = derive(() => LP.polygon(PR.value), 'the feasible set');
-  const COR = derive(() => LP.corners(PR.value), 'the corners');
+  // (the corners the picture shows: a corner out of the window, which a wall pushed far out can make, is not drawn)
+  const COR = derive(() => LP.corners(PR.value).filter((q) => q[0] <= view.x[1] + 1e-9 && q[1] <= view.y[1] + 1e-9), 'the corners');
   const plan = (): LP.XY => [x1.value, x2.value];
   // what the picture talks about: the learner's plan, or the best plan
   // (the best plan is the answer a lesson asks the learner to predict: it is only shown when the lesson says so)
@@ -137,7 +140,7 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
     fig.label(() => {
       const q = COR.value[k];
       return q ? money(LP.value(PR.value, q as LP.XY)) : '';
-    }, () => (p.corners && POLY.value.length ? ((COR.value[k] as XY) ?? null) : null), { id: `corner_value_${k + 1}`, own: [corner_marks[k]], tex: true, role: 'text', sides: ['above-right', 'above-left', 'below-right', 'right', 'above', 'below', 'left'], on: plane, gap: 6, style: { size: 14 } });
+    }, () => (p.corners && POLY.value.length ? ((COR.value[k] as XY) ?? null) : null), { id: `corner_value_${k + 1}`, own: [corner_marks[k]], tex: true, role: 'text', sides: ['above-right', 'above-left', 'below-right', 'below-left', 'right', 'above', 'below', 'left'], on: plane, within: () => plane.data, gap: 6, style: { size: 14 } });
   }
 
   // the best plan (a truth, solid) and the plan in hand (a guess, hollow)
@@ -186,35 +189,38 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
     const f = focus();
     return !!f && LP.binds({ ...l, b: rhs[i].value }, f);
   };
-  const limit_names = prob.limits.map((l, i) => fig.readout([{ text: () => l.name[lang] }], {
-    id: `limit_name_${i + 1}`, role: () => (bound(l, i) ? `active:${NOUN[i]}` : `noun:${NOUN[i]}`), style: { size: 16 }, says: l.name,
-  }));
-  const limit_nums = prob.limits.map((l, i) => fig.readout([
-    { tex: () => {
-      const f = focus();
-      return f ? `${num(LP.used(l, f))}\\,/\\,${num(rhs[i].value)}` : '';
-    } },
-    { gap: 0.5 },
-    { text: () => {
-      const f = focus();
-      if (!f) return '';
-      const room = LP.left({ ...l, b: rhs[i].value }, f);
-      if (room < -1e-7) return L(`over by ${num(-room)}`, `超出 ${num(-room)}`);
-      return Math.abs(room) < 1e-7 ? L('all used', '用完') : L(`${num(room)} to spare`, `剩 ${num(room)}`);
-    }, size: 15, color: 'ink2' },
-  // (a limit the plan breaks goes vermilion, the wall's colour: the broken limit is the one to look at)
-  ], { id: `limit_row_${i + 1}`, role: () => {
+  // a limit's colour follows what the plan does to it: its own, thick when the plan uses it up, vermilion (the wall's) when broken
+  const limit_role = (l: LP.Limit, i: number) => () => {
     const f = focus();
     if (f && !LP.holds({ ...l, b: rhs[i].value }, f, 1e-7)) return 'noun:wall';
     return bound(l, i) ? `active:${NOUN[i]}` : `noun:${NOUN[i]}`;
-  }, style: { size: 18 } }));
-  const limit_rows = limit_names.flatMap((n, i) => [n, limit_nums[i]]);
-  const limit_blocks = limit_names.map((n, i) => column([n, limit_nums[i]], { gap: 2 }));
+  };
+  const used_tex = (l: LP.Limit, i: number) => () => {
+    const f = focus();
+    return f ? `${num(LP.used(l, f))}\\,/\\,${num(rhs[i].value)}` : '';
+  };
+  const status = (l: LP.Limit, i: number) => () => {
+    const f = focus();
+    if (!f) return '';
+    const room = LP.left({ ...l, b: rhs[i].value }, f);
+    if (room < -1e-7) return L(`over by ${num(-room)}`, `超出 ${num(-room)}`);
+    return Math.abs(room) < 1e-7 ? L('all used', '用完') : L(`${num(room)} to spare`, `剩 ${num(room)}`);
+  };
+  // (two limits: a name over its numbers and what is left; more do not fit a column of a 16:9 stage, so one line each,
+  // the colour saying over / used up / room)
+  const one_line = prob.limits.length > 2;
+  const limit_things: ReturnType<typeof fig.readout>[][] = prob.limits.map((l, i) => one_line
+    ? [fig.readout([{ text: () => (l.short ?? l.name)[lang], size: 15 }, { gap: 0.5 }, { tex: used_tex(l, i) }], { id: `limit_row_${i + 1}`, role: limit_role(l, i), style: { size: 16 }, says: l.name })]
+    : [
+        fig.readout([{ text: () => (l.short ?? l.name)[lang] }], { id: `limit_name_${i + 1}`, role: limit_role(l, i), style: { size: 16 }, says: l.name }),
+        fig.readout([{ tex: used_tex(l, i) }, { gap: 0.5 }, { text: status(l, i), size: 15, color: 'ink2' }], { id: `limit_row_${i + 1}`, role: limit_role(l, i), style: { size: 18 } }),
+      ]);
+  const limit_blocks = limit_things.map((ts) => (ts.length === 1 ? ts[0] : column(ts, { gap: 2 })));
   const verdict = fig.readout([
     { text: () => {
       if (tool === 'plan') return LP.feasible(PR.value, plan()) ? L('allowed: keeps every limit', '允许：守住所有限制') : L('not allowed: breaks a limit', '不允许：破坏了某条限制');
       const s = SOL.value;
-      if (tool === 'sweep' && level.value > 0) return LP.level_in_feasible(PR.value, level.value) ? L('allowed plans earn this', '有允许的计划赚到这么多') : L('no allowed plan earns this', '没有允许的计划赚这么多');
+      if (tool === 'sweep' && level.value > 0) return LP.level_in_feasible(PR.value, level.value) ? L('allowed plans reach it', '有允许的计划能达到') : L('no allowed plan reaches it', '没有允许的计划能达到');
       if (!shows_best) return '';
       if (s.status === 'infeasible') return L('no plan keeps every limit', '没有任何计划能守住所有限制');
       if (s.status === 'unbounded') return L('the profit has no top', '利润没有上限');
@@ -229,7 +235,8 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
 
   // (while the learner is still predicting the best plan, the sweep and the picture have no use for the plan's numbers)
   const numbers_on = tool === 'plan' || shows_best;
-  const side = [earns, ...(numbers_on ? [where, ...limit_blocks] : []), verdict];
+  const limits_block = column(limit_blocks, { gap: one_line ? 6 : 14 });
+  const side = [earns, ...(numbers_on ? [where, limits_block] : []), verdict];
   fig.layout(row([plane, column(side, { gap: 14 })], { weights: [1.7, 1], gap: 24 }), {
     phone: column([plane, ...side], { gap: 10 }),
   });
@@ -253,11 +260,11 @@ export function lp_plane_figure(p: LpPlaneParams): LpFigure {
   const steps: Step[] = build
     ? [
         over(0.8, reveal(plane)),
-        ...prob.limits.flatMap((_, i): Step[] => [over(0.9, set(draw[i], 1, 'draw')), over(0.4, reveal(words[i], holds[i], ...(numbers_on ? [limit_names[i], limit_nums[i]] : []))), beat()]),
+        ...prob.limits.flatMap((_, i): Step[] => [over(0.9, set(draw[i], 1, 'draw')), over(0.4, reveal(words[i], holds[i], ...(numbers_on ? limit_things[i] : []))), beat()]),
         over(0.8, reveal(region, earns, ...(numbers_on ? [where] : []), verdict, mine, best, profit_line, profit_ok, ...corner_marks)),
         wait(0.4),
       ]
-    : [over(0.6, reveal(plane, region, ...walls, ...holds, ...words, earns, ...(numbers_on ? [where, ...limit_rows] : []), verdict, mine, best, profit_line, profit_ok, ...corner_marks)), wait(0.2)];
+    : [over(0.6, reveal(plane, region, ...walls, ...holds, ...words, earns, ...(numbers_on ? [where, ...limit_things.flat()] : []), verdict, mine, best, profit_line, profit_ok, ...corner_marks)), wait(0.2)];
   fig.script(...steps);
   return fig;
 }
@@ -267,11 +274,11 @@ export const mgmt_lp_plane = define_figure<LpPlaneParams>({
   summary: 'The plan plane of a linear program with two decisions (Shader Electronics and its special cases): every point is a whole plan, each limit is a wall, the allowed plans are the region the walls leave, and the best plan is a corner. Hands: drag a plan (what it earns, what each limit says), drag the profit line (it dies at the best plan), drag a wall (the best plan and the profit follow).',
   topics: ['linear programming', 'feasible region', 'corner', 'optimal solution', 'constraints', 'binding constraint', 'objective function'],
   params: {
-    problem: { type: 'enum', values: Object.keys(LP.PROBLEMS), default: 'shader', doc: "'shader': the lecturer's example (max 7x1+5x2, electronic 4x1+3x2<=240, assembly 2x1+x2<=100, best 30/40 = $410); 'alternative': the profit line parallel to a wall; 'infeasible'; 'unbounded'; 'redundant'" },
+    problem: { type: 'enum', values: Object.keys(LP.PROBLEMS), default: 'shader', doc: "'shader': the lecturer's example (max 7x1+5x2, electronic 4x1+3x2<=240, assembly 2x1+x2<=100, best 30/40 = $410); 'alternative': the profit line parallel to a wall; 'infeasible'; 'unbounded'; 'redundant'; 'consolidated': the minimisation (min 10000x1+8000x2, consultant 3x1+2x2<=84, x1>=8, x2>=10, x1+x2>=25; best 8 and 17 = 216000)" },
     tool: { type: 'enum', values: ['look', 'plan', 'sweep', 'walls'], default: 'look', doc: "what the hand moves: 'look' nothing, 'plan' a plan, 'sweep' the profit line, 'walls' a limit's wall" },
     story: { type: 'enum', values: ['build', 'shown'], default: 'build', doc: "'build': the axes, then the walls one by one, then the set; 'shown': everything at once" },
     plan: { type: 'vector', length: 2, min: 0, max: 110, default: [20, 20], doc: 'the plan in hand to start with [x1, x2] (tool plan)' },
-    level: { type: 'number', min: 0, max: 700, default: 0, doc: 'the profit line to start with (0: none; tool sweep starts there)' },
+    level: { type: 'number', min: 0, max: 1000000, default: 0, doc: 'the objective line to start with (0: none; tool sweep starts there)' },
     best: { type: 'boolean', default: false, doc: 'show the best plan (hidden while the learner is still predicting it)' },
     corners: { type: 'boolean', default: false, doc: 'mark every corner of the feasible set with what it earns' },
     lang: LANG_SPEC,
@@ -282,6 +289,7 @@ export const mgmt_lp_plane = define_figure<LpPlaneParams>({
     { story: 'shown', tool: 'sweep', level: 300, best: true }, { story: 'shown', tool: 'walls', best: true, corners: true },
     { story: 'shown', problem: 'alternative', level: 240, best: true }, { story: 'shown', problem: 'infeasible' },
     { story: 'shown', problem: 'unbounded' }, { story: 'shown', problem: 'redundant', best: true, tool: 'walls' },
+    { story: 'shown', problem: 'consolidated', tool: 'sweep', level: 300000 }, { story: 'shown', problem: 'consolidated', tool: 'plan', plan: [10, 20], lang: 'zh' }, { story: 'shown', problem: 'consolidated', tool: 'walls', best: true, corners: true },
   ],
   ids: ['plane', 'feasible', 'limit_1', 'limit_2', 'profit_line', 'best', 'plan', 'goal', 'verdict'],
   figure: lp_plane_figure,

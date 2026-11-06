@@ -7,7 +7,7 @@ import { t, type L10n } from '@mathnim/engine';
 
 export type XY = [number, number];
 export type Op = '<=' | '>=';
-export interface Limit { a: XY; op: Op; b: number; /** "Electronic hours" */ name: L10n; /** "electronic" in a sentence */ unit: L10n }
+export interface Limit { a: XY; op: Op; b: number; /** "Electronic hours" */ name: L10n; /** the name where room is short (a figure's number panel); defaults to name */ short?: L10n; /** "electronic" in a sentence */ unit: L10n }
 export interface Problem {
   id: string;
   sense: 'max' | 'min';
@@ -17,6 +17,8 @@ export interface Problem {
   decisions: [L10n, L10n];
   /** What the objective is called ("profit"). */
   goal: L10n;
+  /** The step the objective's level moves in (default 10). */
+  zstep?: number;
   /** The picture's window (the decisions' ranges) and its ticks. */
   view: { x: XY; y: XY; x_ticks: number[]; y_ticks: number[] };
 }
@@ -137,6 +139,7 @@ export function level_in_feasible(P: Problem, z: number): [XY, XY] | null {
 }
 
 // ------------------------------------------------------------------ the problems the lessons use
+const CE_VIEW = { x: [0, 40] as XY, y: [0, 45] as XY, x_ticks: [0, 10, 20, 30, 40], y_ticks: [0, 10, 20, 30, 40] };
 const SHADER_VIEW = { x: [0, 65] as XY, y: [0, 105] as XY, x_ticks: [0, 10, 20, 30, 40, 50, 60], y_ticks: [0, 20, 40, 60, 80, 100] };
 const ELECTRONIC: Limit = { a: [4, 3], op: '<=', b: 240, name: t('Electronic hours', '电子工时'), unit: t('electronic hours', '电子工时') };
 const ASSEMBLY: Limit = { a: [2, 1], op: '<=', b: 100, name: t('Assembly hours', '装配工时'), unit: t('assembly hours', '装配工时') };
@@ -166,5 +169,16 @@ export const PROBLEMS: Record<string, Problem> = {
   redundant: {
     id: 'redundant', sense: 'max', c: [7, 5], decisions: [XPOD, BLUEBERRY], goal: PROFIT, view: SHADER_VIEW,
     limits: [ELECTRONIC, ASSEMBLY, { a: [1, 1], op: '<=', b: 120, name: t('Packing capacity', '包装能力'), unit: t('units packed', '包装件数') }],
+  },
+  // Consolidated Electronics (Week 1, the minimisation): training programs for the least cost. Best plan 8 and 17, $216 000.
+  consolidated: {
+    id: 'consolidated', sense: 'min', c: [10000, 8000], zstep: 1000, view: CE_VIEW, goal: t('cost', '成本'),
+    decisions: [t('teaming programs', '团队协作培训场数'), t('problem-solving programs', '问题解决培训场数')],
+    limits: [
+      { a: [3, 2], op: '<=', b: 84, name: t('Consultant days', '顾问天数'), short: t('Consultant', '顾问'), unit: t('consultant days', '顾问天数') },
+      { a: [1, 0], op: '>=', b: 8, name: t('Teaming (Manager 1)', '团队协作（经理 1）'), short: t('Teaming', '团队协作'), unit: t('teaming programs', '团队协作场数') },
+      { a: [0, 1], op: '>=', b: 10, name: t('Problem solving (Manager 2)', '问题解决（经理 2）'), short: t('Problem solving', '问题解决'), unit: t('problem-solving programs', '问题解决场数') },
+      { a: [1, 1], op: '>=', b: 25, name: t('All programs (senior level)', '培训总场数（高层）'), short: t('All programs', '总场数'), unit: t('programs', '场') },
+    ],
   },
 };
