@@ -1,7 +1,7 @@
 // Print a lesson's learner-facing text in one language as Markdown, step by
 // step, to review the writing as a student would read it.
 //   node tools/lesson_text.mjs <lesson-id> [en|zh]
-import { tr, type Block, type Lang, type Lesson, type Step } from '@mathnim/core';
+import { tr, type Block, type Lang, type Lesson, type Step, type WhyNode } from '@mathnim/core';
 import { all_lessons, load_all_lessons } from '../src/course';
 
 // the fine-tuning lessons are loaded on demand in the app; the tools check them all
@@ -33,6 +33,12 @@ function blocks(bs: Block[], depth = 0): void {
       case 'callout': out.push(`${pad}> **${b.kind}${b.title ? ': ' + L(b.title) : ''}** ${L(b.body)}`); break;
       case 'steps': b.lines.forEach((l, i) => out.push(`${pad}${i ? '⇒' : '  '} $$ ${l.tex} $$${l.why ? `  (${L(l.why)})` : ''}`)); break;
       case 'details': out.push(`${pad}<details> ${L(b.summary)}`); blocks(b.blocks, depth + 1); break;
+      case 'why': {
+        out.push(`${pad}○ ${L(b.claim)}`);
+        const walk = (ns: WhyNode[], d: number): void => ns.forEach((n) => { out.push(`${pad}${'  '.repeat(d)}← ${L(n.text)}${n.kind ? `  [${n.kind}]` : ''}`); if (n.because) walk(n.because, d + 1); });
+        walk(b.because, 1);
+        break;
+      }
       case 'table': out.push(`${pad}| ${b.head.map(L).join(' | ')} |`); for (const r of b.rows) out.push(`${pad}| ${r.map(L).join(' | ')} |`); break;
       case 'cite': out.push(`${pad}[^${b.key}]: ${L(b.text)}`); break;
       case 'paper': out.push(`${pad}[paper: ${L(b.title)}]`); b.paras.forEach((x) => out.push(`${pad}  | ${L(x)}`)); break;

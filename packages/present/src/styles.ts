@@ -144,6 +144,23 @@ export const CSS = `
 .mn-dev{grid-column:1/-1;font:12px/1.5 ui-monospace,monospace;background:var(--mn-panel);border:1px dashed var(--mn-border);border-radius:10px;padding:10px;white-space:pre-wrap;max-height:260px;overflow:auto}
 .mn-dev .error{color:var(--mn-bad)}.mn-dev .warning{color:var(--mn-warn)}
 .mn-math svg{vertical-align:middle}
+/* the text zone: nouns in their colour; a definition unfolding in its sentence; a chain of why (rings fill as it opens) */
+.mn-noun{font-weight:500}
+.mn-def-term{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-decoration:underline dotted;text-decoration-color:color-mix(in srgb,currentColor 50%,transparent);text-underline-offset:3px;text-decoration-thickness:1.5px}
+.mn-def-term[aria-expanded="true"]{text-decoration-style:solid}
+.mn-def-body{display:block;margin:.3em 0 .45em;padding:.05em 0 .05em .85em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 22%,transparent);color:var(--mn-ink2,#5B5B62);font-size:.94em;animation:mn-unfold .28s ease-out}
+.mn-def-body[hidden]{display:none}
+@keyframes mn-unfold{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.mn-why{margin:.9em 0}
+.mn-why-line{display:flex;align-items:baseline;gap:.55em}
+.mn-why-claim .mn-why-text{font-weight:500}
+.mn-why-ring{flex:none;width:.72em;height:.72em;border-radius:50%;border:1.5px solid currentColor;background:transparent;padding:0;cursor:pointer;transform:translateY(.06em);transition:background-color .25s,box-shadow .25s;color:var(--mn-ink,#111)}
+.mn-why-ring[aria-expanded="true"]{background:currentColor}
+.mn-why-dot{flex:none;width:.72em;height:.72em;display:inline-block}
+.mn-why-kind{font-size:.72em;letter-spacing:.04em;color:var(--mn-ink2,#5B5B62);text-transform:lowercase}
+.mn-why-because{margin:.35em 0 .2em .32em;padding-left:1.05em;border-left:1px solid color-mix(in srgb,var(--mn-ink,#111) 18%,transparent);animation:mn-unfold .28s ease-out}
+.mn-why-because[hidden]{display:none}
+.mn-why-node{margin:.3em 0}
 /* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
 .mn-steps{margin:10px 0}
 .mn-step{text-align:center;margin:2px 0}

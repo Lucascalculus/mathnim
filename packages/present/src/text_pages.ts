@@ -5,7 +5,7 @@
 // the behaviour: copy buttons, code tabs, footnote links, embedded visuals.
 // LessonView puts the article in its reading column and the outline or
 // progress in the side panel.
-import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, ReportHub, type Report, type ReportSource, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type TextStep, expr } from '@mathnim/core';
+import { tr, code_line_count, is_engine_ui, is_figure_player, make_player, make_ui, ReportHub, type Report, type ReportSource, type Stage, type StagePlayer, type StageUI, type Block, type CodeStep, type DeriveStep, type Grade, type L10n, type Lang, type ReadStep, type WhyNode, type TextStep, expr } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { AffordanceLayer } from 'manim-web/ext/affordance';
 import { preload, type ScenePlayer } from 'manim-web/ext/player';
@@ -85,6 +85,14 @@ export class BlockRenderer {
   formulas = 0;
   constructor(readonly lang: Lang) {}
 
+  /** One step of a chain of why: its text, a hollow ring when it has reasons (filled when they are open), its reasons hidden under it; where the chain ends, what it ends on. */
+  why_node(n: WhyNode, claim = false): string {
+    const kids = n.because ?? [];
+    const ring = kids.length ? `<button type="button" class="mn-why-ring" aria-expanded="false" aria-label="${esc(t('why_ask', undefined, this.lang))}"></button>` : '<span class="mn-why-dot" aria-hidden="true"></span>';
+    const kind = n.kind ? `<span class="mn-why-kind">${esc(t(`why_${n.kind}`, undefined, this.lang))}</span>` : '';
+    const under = kids.length ? `<div class="mn-why-because" hidden>${kids.map((k) => `<div class="mn-why-node">${this.why_node(k)}</div>`).join('')}</div>` : '';
+    return `<div class="mn-why-line${claim ? ' mn-why-claim' : ''}">${ring}<span class="mn-why-text">${this.prose(n.text)}</span>${kind}</div>${under}`;
+  }
   /** Prose (L10n) as HTML: TeX, emphasis, `code`, links, footnote markers (in `lang`, the page's by default). */
   prose(s: L10n | undefined, lang: Lang = this.lang): string {
     const text = tr(s, lang);
@@ -125,6 +133,8 @@ export class BlockRenderer {
         const tag = b.ordered ? 'ol' : 'ul';
         return `<${tag} class="mn-list">${b.items.map((x) => `<li>${this.prose(x)}</li>`).join('')}</${tag}>`;
       }
+      case 'why':
+        return `<div class="mn-why">${this.why_node({ text: b.claim, because: b.because }, true)}</div>`;
       case 'steps':
         this.formulas++;
         return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })));

@@ -46,6 +46,12 @@ export function is_bilingual(s: unknown): s is { en: string; zh: string } {
 }
 
 /** One block of a text page. Prose fields support inline $TeX$, **bold**, *italic*, `code`, [text](url) and [^cite-key]. */
+/** A reason in a chain of why: its own reasons, or where the chain ends (a definition, an assumption). */
+export interface WhyNode {
+  text: L10n;
+  kind?: 'definition' | 'assumption';
+  because?: WhyNode[];
+}
 export type Block =
   | { type: 'h'; text: L10n; level?: 2 | 3 }
   | { type: 'p'; text: L10n }
@@ -72,6 +78,11 @@ export type Block =
    * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
    */
   | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n }
+  /**
+   * A claim and its reasons, each opened on demand under it, down to a definition or an assumption (where the chain of
+   * "why?" ends): the claim's hollow ring fills when its reasons are open.
+   */
+  | { type: 'why'; claim: L10n; because: WhyNode[] }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
   | { type: 'table'; head: L10n[]; rows: L10n[][] }

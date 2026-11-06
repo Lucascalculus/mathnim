@@ -5,6 +5,7 @@
 // Light markup (the prose of lessons and AI answers): $inline$ and $$display$$
 // TeX, **bold**, *italic*, `code`, [text](https://link) and footnote
 // references [^key] (when the caller passes `footnote`).
+import { look, text_color_of } from '@mathnim/look';
 export type TexRenderer = (tex: string, display: boolean) => string;
 let renderer: TexRenderer | null = null;
 export function set_tex_renderer(r: TexRenderer | null): void {
@@ -28,9 +29,11 @@ function safe_url(url: string): string | null {
   return u;
 }
 
-/** Prose without TeX: escaped, then links, footnotes, bold, italic, line breaks. */
+/** Prose without TeX: escaped, then nouns, links, footnotes, bold, italic, line breaks. */
 function prose_html(text: string, o: MarkupOptions): string {
   let s = esc(text);
+  // a noun: the word in its noun's colour, as the thing it names is drawn in the figure ([cost](noun:cost))
+  s = s.replace(/\[([^\]]+)\]\(noun:([\w-]+)\)/g, (_m, label: string, key: string) => `<span class="mn-noun" data-noun="${key}" style="color:${text_color_of(`noun:${key}`, look())}">${label}</span>`);
   s = s.replace(/\[\^([\w.:-]+)\]/g, (_, key: string) => (o.footnote ? o.footnote(key) : ''));
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, url: string) => {
     const u = safe_url(url.replace(/&amp;/g, '&').replace(/&#39;/g, "'"));
@@ -93,7 +96,41 @@ function steps_html(body: string, closed: boolean): string {
   return `<div class="mn-steps" data-steps="${esc(body)}">${html}</div>`;
 }
 
+/**
+ * A definition in its sentence: [term](def: what it means). The term is shown with a dotted underline; opened, the
+ * definition unfolds in place under its line (the rest of the text moves down, never sideways), and it may hold
+ * definitions of its own. The parentheses of the definition are matched, so it may contain (a, b) or $f(x)$.
+ */
+const DEF_MARK = '\u0005', DEF_END = '\u0006';
+function lift_definitions(text: string, o: MarkupOptions, out: string[]): string {
+  let res = '', i = 0;
+  for (;;) {
+    const at = text.indexOf('](def:', i);
+    if (at < 0) break;
+    const open = text.lastIndexOf('[', at);
+    if (open < i) { res += text.slice(i, at + 6); i = at + 6; continue; }
+    let depth = 1, j = at + 2;
+    for (; j < text.length && depth > 0; j++) { if (text[j] === '(') depth++; else if (text[j] === ')') depth--; }
+    if (depth) break;
+    const term = text.slice(open + 1, at), body = text.slice(at + 6, j - 1).trim();
+    out.push(`<span class="mn-def"><button type="button" class="mn-def-term" aria-expanded="false">${math_html(term, o)}</button><span class="mn-def-body" hidden>${math_html(body, o)}</span></span>`);
+    res += text.slice(i, open) + DEF_MARK + (out.length - 1) + DEF_END;
+    i = j;
+  }
+  return res + text.slice(i);
+}
+
 export function math_html(text: string, o: MarkupOptions = {}): string {
+  if (text.includes('](def:')) {
+    const defs: string[] = [];
+    const lifted = lift_definitions(text, o, defs);
+    // (what is left is text without definitions: one written unclosed stays as written)
+    return fenced_html(lifted, o).replace(new RegExp(`${DEF_MARK}(\\d+)${DEF_END}`, 'g'), (_m, k: string) => defs[+k]);
+  }
+  return fenced_html(text, o);
+}
+
+function fenced_html(text: string, o: MarkupOptions): string {
   if (!text.includes('```')) return prose_math_html(text, o);
   const out: string[] = [];
   let at = 0;

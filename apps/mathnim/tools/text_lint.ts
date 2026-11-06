@@ -14,7 +14,7 @@
 // code languages.
 import {
   code_line_count, expr, grade_blank, has_cjk, is_bilingual, is_voiced, lesson_langs, lesson_strings, step_strings, tr,
-  type Block, type CheckpointStep, type L10n, type Lesson, type Step,
+  type Block, type CheckpointStep, type L10n, type Lesson, type Step, type WhyNode,
 } from '@mathnim/core';
 
 export interface LintIssue {
@@ -194,6 +194,13 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
           if (b.lines.length < 2) err(where, 'a steps block needs two lines or more');
           b.lines.forEach((l, k) => k > 0 && !l.why && warn(`${where}.lines[${k}]`, 'a line without why: say what was done to get it'));
           break;
+        case 'why': {
+          if (!b.because.length) err(where, 'a why block with no reasons');
+          // (a chain of why ends somewhere: at a definition, an assumption, or a reason with nothing under it)
+          const depth = (ns: WhyNode[]): number => Math.max(0, ...ns.map((n) => 1 + (n.because ? depth(n.because) : 0)));
+          if (depth(b.because) > 4) warn(where, 'a chain of why more than four deep: the learner loses the claim');
+          break;
+        }
         case 'callout':
         case 'p':
           break;

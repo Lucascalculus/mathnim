@@ -1,7 +1,7 @@
 // Text pages and bilingual lessons without a DOM: grading a derivation's
 // fill-in line, and walking every learner-facing string of a lesson (for the
 // lesson doctor, the narration tool and the presenters).
-import { is_bilingual, tr, type Block, type DeriveContent, type L10n, type Lang } from './content';
+import { is_bilingual, tr, type Block, type DeriveContent, type L10n, type Lang, WhyNode } from './content';
 import { grade } from './grading';
 import type { CaseGroup, CheckpointStep, Grade, Lesson, Step } from './schema';
 
@@ -35,6 +35,11 @@ function block_strings(b: Block, at: string, out: LessonString[]): void {
     case 'frame': add('alt', b.alt, 'label'); return void add('caption', b.caption);
     case 'callout': add('title', b.title, 'label'); return void add('body', b.body);
     case 'steps': b.lines.forEach((l, i) => add(`lines[${i}].why`, l.why, 'label')); return void add('caption', b.caption);
+    case 'why': {
+      add('claim', b.claim);
+      const walk = (ns: WhyNode[], at2: string): void => ns.forEach((n, i) => { add(`${at2}[${i}].text`, n.text); if (n.because) walk(n.because, `${at2}[${i}].because`); });
+      return walk(b.because, 'because');
+    }
     case 'details': add('summary', b.summary, 'label'); return b.blocks.forEach((c, i) => block_strings(c, `${at}.blocks[${i}]`, out));
     case 'table': b.head.forEach((x, i) => add(`head[${i}]`, x, 'label')); return b.rows.forEach((r, i) => r.forEach((x, j) => add(`rows[${i}][${j}]`, x, 'label')));
     case 'cite': return void add('text', b.text, 'label');
@@ -197,6 +202,11 @@ export function describe_step(s: Step, lang: Lang): string {
         case 'frame': out.push(`[instrument ${b.src}: ${tr(b.alt, lang)}]${b.caption ? ` ${tr(b.caption, lang)}` : ''}`); break;
         case 'callout': out.push(`[${b.kind}] ${b.title ? `${tr(b.title, lang)}: ` : ''}${tr(b.body, lang)}`); break;
         case 'steps': out.push(b.lines.map((l) => `$$${l.tex}$$${l.why ? ` (${tr(l.why, lang)})` : ''}`).join('\n')); break;
+        case 'why': {
+          const walk = (ns: WhyNode[], d: number): string[] => ns.flatMap((n) => [`${'  '.repeat(d)}because: ${tr(n.text, lang)}${n.kind ? ` [${n.kind}]` : ''}`, ...(n.because ? walk(n.because, d + 1) : [])]);
+          out.push([tr(b.claim, lang), ...walk(b.because, 1)].join('\n'));
+          break;
+        }
         case 'details': out.push(`[details: ${tr(b.summary, lang)}]`); blocks(b.blocks); break;
         case 'table': out.push([b.head, ...b.rows].map((r) => r.map((x) => tr(x, lang)).join(' | ')).join('\n')); break;
         case 'cite': out.push(`[source ${b.key}] ${tr(b.text, lang)}`); break;

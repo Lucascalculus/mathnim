@@ -1,4 +1,4 @@
-import { on_ui_lang, set_ui_lang } from '@mathnim/present';
+import { on_ui_lang, set_ui_lang, wire_text } from '@mathnim/present';
 import type { Lang } from '@mathnim/core';
 import { set_ft_lang } from '@mathnim/visuals/ft/f/kit';
 import { cjk_ready } from './cjk_font';
@@ -28,6 +28,7 @@ const start_lang = load_settings().lang;
 const account = Promise.all([load_me().catch(() => null), load_studio_courses()]);
 // formula steps anywhere in the page become the engine's derivation (needs only the page, not the account)
 watch_steps();
+wire_text();
 // (MathJax is not waited for: the pages with formulas wait for it themselves, see tex_dom.ts)
 Promise.allSettled([detect_server_providers(), account]).finally(() => {
   visual_lang(start_lang);

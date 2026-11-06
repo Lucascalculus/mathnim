@@ -3,7 +3,7 @@
 // (scenes, worlds, visuals) or project files (figures). It is told to the
 // model (LESSON_FORMAT) and every reply is checked against it (check_lesson)
 // before it is stored; the errors go back to the model for one repair.
-import type { Block, CheckpointStep, Lesson, Step } from '@mathnim/core';
+import type { Block, CheckpointStep, Lesson, Step, WhyNode } from '@mathnim/core';
 
 export const LESSON_FORMAT = `A lesson is ONE JSON object (no comments, no trailing commas):
 {
@@ -46,12 +46,17 @@ Block is one of:
   {"type": "code", "lang": string, "code": string, "caption"?: string}
   {"type": "callout", "kind": "note" | "warning" | "misconception" | "open", "title"?: string, "body": string}
   {"type": "details", "summary": string, "blocks": [Block, ...]}   // collapsed: details on demand
+  {"type": "why", "claim": string, "because": [Why, ...]}
+     // a claim and its reasons, each opened on demand; Why is {"text": string, "because"?: [Why, ...],
+     // "kind"?: "definition" | "assumption"}: follow "why?" down (at most 3 deep) to where it ends
   {"type": "svg", "svg": string, "alt": string, "caption"?: string}
      // a diagram you draw: complete <svg viewBox="..."> markup, at most ~12 KB, light background,
      // dark strokes, font-family="sans-serif", text at least 14 units high; no scripts, no links,
      // no images, no foreignObject. Draw structures (packet headers, timelines, state machines,
      // topologies, trees) when a picture explains better than words.
-Text in strings: inline TeX between $...$ (escape a literal dollar as \\$), **bold**, *italic*, \`code\`.
+Text in strings: inline TeX between $...$ (escape a literal dollar as \\$), **bold**, *italic*, \`code\`,
+and a definition in its sentence: [term](def: what it means), opened in place when the learner taps the term
+(use it the first time a term appears, instead of a sentence of definition that interrupts the argument).
 In JSON, every backslash in TeX is written twice ("$\\\\frac{a}{b}$").`;
 
 export interface Checked {
@@ -62,7 +67,7 @@ export interface Checked {
 }
 
 const ID = /^[a-z0-9][a-z0-9._-]{0,47}$/i;
-const BLOCKS = new Set(['h', 'p', 'list', 'math', 'steps', 'table', 'code', 'callout', 'details', 'svg']);
+const BLOCKS = new Set(['h', 'p', 'list', 'math', 'steps', 'table', 'code', 'callout', 'details', 'svg', 'why']);
 const CALLOUTS = new Set(['note', 'warning', 'misconception', 'open']);
 const MAX_SVG = 24_000;
 const MAX_LESSON = 400_000;
@@ -161,6 +166,20 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
             x.tex = x.tex.trim().replace(/^\$+|\$+$/g, '');
             str(x.why, `${at}.lines[${k}].why`, false);
           });
+        case 'why': {
+          str(b.claim, `${at}.claim`);
+          const reasons = (ns: unknown, w: string, d: number): void => {
+            if (!Array.isArray(ns) || !ns.length) return void err(w, 'because: a non-empty array of {text, because?, kind?}');
+            if (d > 3) return void err(w, 'a chain of why at most 3 deep');
+            (ns as Record<string, unknown>[]).forEach((n, k) => {
+              if (!n || typeof n !== 'object') return err(`${w}[${k}]`, '{text, because?, kind?}');
+              str(n.text, `${w}[${k}].text`);
+              if (n.kind !== undefined && n.kind !== 'definition' && n.kind !== 'assumption') err(`${w}[${k}].kind`, 'definition or assumption');
+              if (n.because !== undefined) reasons(n.because, `${w}[${k}].because`, d + 1);
+            });
+          };
+          return reasons(b.because, `${at}.because`, 1);
+        }
         case 'callout':
           if (typeof b.kind !== 'string' || !CALLOUTS.has(b.kind)) err(at, `kind: one of ${[...CALLOUTS].join(', ')}`);
           str(b.title, `${at}.title`, false);
@@ -270,6 +289,13 @@ export function lesson_digest(l: Lesson): string {
         case 'callout': out.push(`${pad}[${b.kind}] ${b.title ? `${b.title}: ` : ''}${b.body}`); break;
         case 'steps': out.push(b.lines.map((l) => `${pad}$$${l.tex}$$${l.why ? ` (${typeof l.why === 'string' ? l.why : l.why.en})` : ''}`).join('\n')); break;
         case 'details': out.push(`${pad}[details: ${b.summary}]`); blocks(b.blocks, pad + '  '); break;
+        case 'why': {
+          const en = (x: unknown) => (typeof x === 'string' ? x : (x as { en: string }).en);
+          const walk = (ns: WhyNode[], d: string): void => ns.forEach((n) => { out.push(`${d}because: ${en(n.text)}${n.kind ? ` [${n.kind}]` : ''}`); if (n.because) walk(n.because, d + '  '); });
+          out.push(`${pad}${en(b.claim)}`);
+          walk(b.because, pad + '  ');
+          break;
+        }
         case 'svg': out.push(`${pad}[diagram: ${b.alt}]${b.caption ? ` ${b.caption}` : ''}`); break;
         default: break;
       }
