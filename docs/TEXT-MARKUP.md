@@ -17,7 +17,7 @@ mistake shows as plain text, never as a broken page. Design: `docs/design/ENGINE
 | a derivation written line by line, every line checked | a ```` ```steps ```` fence (below) | written line by line, each line coming down out of the one above, every line checked | everyone, the tutor too |
 | a formula that comes apart, each part with what it means | a ```` ```parts ```` fence (below) | the formula; tapped, each part lifts on a card with its meaning | everyone, the tutor too |
 | more, folded under the sentence, for who wants it | a ```` ```details ```` fence (below) | a title; tapped, the rest unfolds like folded paper | course authors |
-| a source, condensed as glass beside its mark | `[^key]` (and a `cite` block with that key) | a small number; tapped, the source condenses as glass beside it | course authors |
+| a source, on glass beside its mark | `[^key]` (and a `cite` block with that key) | a small number; tapped, the source is on glass beside it | course authors |
 
 Also: `$inline TeX$`, `$$display TeX$$`, `**bold**` (the one key idea), `*italic*`, `` `code` ``, `[text](https://…)`.
 

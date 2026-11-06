@@ -642,7 +642,7 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `steps` | stable | a derivation written line by line, every line checked | ````steps … ```` | rare/algebra | `present/src/markup/builtin.ts` |
 | `parts` | stable | a formula that comes apart, each part with what it means | ````parts … ```` | int/explode | `present/src/markup/builtin.ts` |
 | `details` | stable | more, folded under the sentence, for who wants it | ````details Title … ```` | motion/fold | `present/src/markup/builtin.ts` |
-| `footnote` | stable | a source, condensed as glass beside its mark | `[^key]` | motion/condense | `present/src/markup/builtin.ts` |
+| `footnote` | stable | a source, on glass beside its mark | `[^key]` | motion/condense | `present/src/markup/builtin.ts` |
 | `prose` | stable | TeX, emphasis, code and links in any sentence | ``$inline TeX$`, `$$display TeX$$`, `**bold**` (the one key idea), `*italic*`, `` `code` ``, `[text](https://…)`` | — | `present/src/markup/builtin.ts` |
 
 ### Interface effects (the shell)
@@ -652,7 +652,7 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `stretch` | stable | a definition opens in its sentence: the rest steps down, never sideways | `[term](def: …)` | int/stretch | `present/src/text_wire.ts` |
 | `chain_drop` | stable | reasons drop on threads from a hollow ring | ````why … ```` | int/why | `present/src/text_wire.ts` |
 | `fold` | stable | details unfold like folded paper | ````details Title … ```` | motion/fold | `present/src/text_wire.ts` |
-| `condense` | stable | a pane condenses as glass from where the finger is | `[^key]` | motion/condense | `present/src/glass.ts` |
+| `condense` | stable | a pane of clear glass, simply there beside what was tapped | `[^key]` | motion/condense | `present/src/glass.ts` |
 
 ## manim-web extensions (the interaction toolkit)
 
@@ -685,7 +685,7 @@ How lessons are shown: the essay and game views, text pages, narration, cues and
 |---|---|
 | `packages/present/src/chain.ts` | A chain of why, as HTML (the text zone; docs/design/specimen gpu/int/why.js). Every claim carries a hollow ring in its margin with a short thread hanging from it: something is folded there. Tapped, its reasons drop out on threads, one step in, and the ring fills; a reason has its own ring, down to bedrock: a definition or an assumption ends in a ground mark instead of a ring. The threads are drawn by text_wire.ts once the chain is on the page. |
 | `packages/present/src/cue.ts` | One cue at a time. manim-web's AffordanceLayer gives every unused handle a pulsing halo and every kind of item its own lead pulse, so a world with three sliders and a card opens with four rings at once: noisy, and it hides the order of the task. A CueGuide keeps exactly one control "unused" for the layer - the first control of the cue order that the learner has not used yet - and marks the others as used, so they show their plain static ring (handles) or nothing (items), without pulse or label. When the cued control has been used, the cue moves to the next one. The coach demonstration is pointed at the cued control. |
-| `packages/present/src/glass.ts` | Condensing glass (凝结玻璃; specimen fx 'condense'): a pane that answers a tap does not pop up. A string of glass droplets flies from where you touched, gathers and melts into one pane of clear glass, and what it says is written on it as it forms (≤ 0.6 s). It is glass because it is held by your hand: tap anywhere else, or Esc, and it is gone. Clear, not frosted. Used for a source behind a footnote marker; open to any short answer to a tap. |
+| `packages/present/src/glass.ts` | Glass (凝结玻璃; specimen fx 'condense'): a pane that answers a tap. It is simply there, a pane of clear glass beside what was tapped, with what it says on it: no animation in, nothing computed while it is open (no droplets, no blur: Lucas, 2026-11-07, "直接浮现…不要实时算高斯模糊"). It is glass because it is held by your hand: tap anywhere else, or Esc, and it is gone. Clear, not frosted. Used for a source behind a footnote marker; open to any short answer to a tap. |
 | `packages/present/src/highlight.ts` | A small syntax highlighter for the code in lessons: python, bash, json, yaml and plain text. It tokenizes with ordered sticky regexes (first match wins, unknown characters are plain) and returns one HTML string per line, so a code page can number lines and highlight ranges. Classes: mn-t-c comment, mn-t-s string, mn-t-n number, mn-t-k keyword, mn-t-l literal (True, null), mn-t-b builtin, mn-t-f function / command, mn-t-d decorator, mn-t-a key or flag, mn-t-v variable. |
 | `packages/present/src/i18n.ts` | The learner's interface language and the one dictionary of UI strings. Lesson content is L10n data resolved with tr(); the chrome around it (buttons, labels, help) is looked up here by key. The app adds its own entries with define_ui() so the shell, its pages and the lesson view share one table. |
 | `packages/present/src/icons.ts` | Line icons for the controls (play, sound, menus, close, arrows): one family, Tabler's outline set (MIT, https://tabler.io/icons), only the ones used, drawn 1.5 px wide at 18 px with round ends, in the colour of the text. The site's own marks (the logo, the account, the crown, the outline's stations, the drawing-sheet corners) are drawn where they are used. |

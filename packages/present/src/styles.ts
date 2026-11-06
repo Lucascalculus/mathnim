@@ -220,12 +220,10 @@ export const CSS = `
 .mn-parts-stage canvas{display:block;cursor:pointer}
 .mn-parts-moving{transition:height .6s cubic-bezier(.3,.7,.2,1)}
 .mn-parts-moving canvas{transition:margin-top .6s cubic-bezier(.3,.7,.2,1)}
-/* condensing glass: a pane formed from the droplets of your tap (clear, not frosted) */
+/* glass: a pane simply there beside what was tapped (clear, not frosted; nothing animates in) */
 .mn-glass{position:absolute;z-index:80;box-sizing:border-box;padding:14px 16px;border-radius:16px;font-size:14.5px;line-height:1.55;color:var(--mn-ink,#1a1b1f);
   background:rgba(255,255,255,.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.2),0 14px 30px -14px rgba(26,27,31,.35)}
-.mn-glass-in>*{animation:mn-def-in .18s ease-out}
 .mn-glass-out{transition:opacity .18s;opacity:0}
-.mn-glass-drops{position:absolute;z-index:79;pointer-events:none;image-rendering:auto}
 .mn-glass-src a{color:inherit}
 /* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
 .mn-steps{margin:10px 0}

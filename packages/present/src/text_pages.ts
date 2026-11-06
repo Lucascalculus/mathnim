@@ -304,7 +304,7 @@ function hydrate(root: HTMLElement, r: BlockRenderer, ctx: PageContext): { dispo
   });
   const pref = saved_tab();
   if (pref) select(pref, false);
-  // a footnote marker: its source condenses as glass beside it (the page does not jump; tap elsewhere and it is gone)
+  // a footnote marker: its source is on glass beside it (the page does not jump; tap elsewhere and it is gone)
   root.querySelectorAll<HTMLAnchorElement>('a[data-fn]').forEach((a) => {
     a.onclick = (e) => {
       e.preventDefault();

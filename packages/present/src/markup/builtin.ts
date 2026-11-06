@@ -121,9 +121,9 @@ define_markup({
 
 define_markup({
   name: 'footnote', form: 'inline', order: 80, zones: ['text'], maturity: 'stable', since: V, from: 'motion/condense', source: SRC,
-  says: t('a source, condensed as glass beside its mark', '一个出处，在标记旁凝结成玻璃'),
+  says: t('a source, on glass beside its mark', '一个出处，显示在标记旁的玻璃上'),
   syntax: '[^key]', note: 'and a `cite` block with that key',
-  shows: 'a small number; tapped, the source condenses as glass beside it',
+  shows: 'a small number; tapped, the source is on glass beside it',
   audience: ['author', 'gallery'],
 });
 
