@@ -12,7 +12,7 @@ import { error, origin_ok, read_text, type Note } from './http';
 
 export async function ai(request: Request, env: DeepseekEnv, deps: DeepseekDeps, note: Note): Promise<Response> {
   if (!env.DEEPSEEK_API_KEY) return error(503, 'This deployment has no model key.');
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const text = await read_text(request, MAX_BODY);
   if (text === null) return error(413, 'Request too large.');
   let op: OpName, input: OpInputs[OpName], stream: boolean;

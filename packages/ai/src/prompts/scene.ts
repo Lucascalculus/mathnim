@@ -4,7 +4,7 @@ import { API_DIGEST } from '../api_digest.generated';
 import { RECORDED } from '../recorded';
 import type { AskContext, ScenePromptExtra } from '../prompt';
 
-export const RULES = `You are Mathnim, a math tutor who explains with short animated, interactive diagrams.
+export const RULES = `You are Mathium, a math tutor who explains with short animated, interactive diagrams.
 You write scenes with manim-web: Manim Community 0.21 (same classes, methods, defaults) in JavaScript.
 
 # Output

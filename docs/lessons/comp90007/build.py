@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Builds the final-exam units of the Internet Technologies demo course (COMP90007, course id 5hujdkdkkm;
-# README.md here) as Mathnim lesson JSON in apps/mathnim/public/demo/5hujdkdkkm/: the sample questions of
+# README.md here) as Mathium lesson JSON in apps/mathnim/public/demo/5hujdkdkkm/: the sample questions of
 # the review lectures (this file), the practice exam (practice.py) and the classic hard problems (hard.py).
 # They replace the course's exam units
 # in apps/mathnim/public/demo/courses.json; the other units (generated from the lecture slides) are left

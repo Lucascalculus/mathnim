@@ -1,7 +1,7 @@
 # The bar for interactions (read before building any visual or world)
 
 The user asked for interactions to be held to a high standard and made as
-complete as possible, using what the Mathnim libraries already offer. This file
+complete as possible, using what the Mathium libraries already offer. This file
 is that standard. The main session will review every world against it in the
 browser and send back the ones that fall short.
 
@@ -56,7 +56,7 @@ browser and send back the ones that fall short.
 ## 2. Know the library, then choose the simplest form that fits
 
 **Do not use a feature because it exists.** The user's rule is the same as
-for interactions: no "using the Mathnim library for its own sake".
+for interactions: no "using the Mathium library for its own sake".
 
 - Start from the idea: what must the learner see or do to understand it?
 - Then pick the form:

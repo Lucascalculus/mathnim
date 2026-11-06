@@ -83,7 +83,7 @@ If something does not serve that, cut it or move it into a `details` block.
 
 ## Product-manager pass (required before reporting)
 
-Re-read your lessons as the product manager of Mathnim and as a student who
+Re-read your lessons as the product manager of Mathium and as a student who
 knows neural networks but not this topic. Check:
 - Would they understand (the criterion above)? Does each section give the
   purpose and intuition before the details?

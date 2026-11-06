@@ -1,6 +1,6 @@
 # Deployment
 
-Mathnim is a static web app plus a few server routes. In production it runs on
+Mathium is a static web app plus a few server routes. In production it runs on
 **Cloudflare Pages** (project `mathnim`, https://mathnim.pages.dev, custom
 domain lab.penghaolun.com); the server routes are **Pages Functions**. In
 development the **Vite dev server** serves the same routes with the same code.
@@ -136,7 +136,7 @@ npx wrangler pages secret put RESEND_API_KEY --project-name mathnim
 ```
 
 and two variables in `wrangler.toml`: `MAIL_FROM` (an address on a domain
-verified in Resend, e.g. `Mathnim <login@penghaolun.com>`) and `ADMIN_EMAILS`
+verified in Resend, e.g. `Mathium <login@penghaolun.com>`) and `ADMIN_EMAILS`
 (who may publish an uploaded course to everyone). The tables are created on
 first use (`server/db.ts`). Until these exist the routes answer 503 and the
 site hides the sign-in entry.

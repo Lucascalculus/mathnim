@@ -16,7 +16,7 @@ import { covariance_ellipse } from './linalg/covariance_ellipse';
 import { pca_projection } from './linalg/pca_projection';
 import { pca_3d } from './linalg/pca_3d';
 
-// Words in a figure are Mathnim's, not manim's: Inter (bundled with manim-web) for every family a visual asks for by
+// Words in a figure are Mathium's, not manim's: Inter (bundled with manim-web) for every family a visual asks for by
 // default, at the font's own spacing (manim's Pango rounds each letter to a whole pixel at a few pixels' size).
 set_generic_family('sans', 'Inter');
 set_generic_family('serif', 'Inter');

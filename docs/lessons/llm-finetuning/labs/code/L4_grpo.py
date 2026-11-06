@@ -1,4 +1,4 @@
-"""L4: GRPO on GSM8K with a grader you write and test yourself (Mathnim fine-tuning course).
+"""L4: GRPO on GSM8K with a grader you write and test yourself (Mathium fine-tuning course).
 
   python L4_grpo.py --grader-only            # step 1: adversarial tests + 50 samples for your own audit
   python L4_grpo.py --baseline               # step 2: before training, 16 samples per question -> p-hat, pass@k, predicted zero-variance share

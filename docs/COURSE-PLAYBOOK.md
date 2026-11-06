@@ -1,6 +1,6 @@
 # Course playbook
 
-How a Mathnim course gets made, from "teach X" to a published course. It is a
+How a Mathium course gets made, from "teach X" to a published course. It is a
 map, not a script: the phases are what every good course so far went through
 (the LLM fine-tuning course, 20 lessons; the MPC course, 8), but how long each
 takes, what order the lessons are built in and how the work is split are your
@@ -189,7 +189,7 @@ the bar is the brief and the review, not the effort setting.
 ## A brief for one lesson (template)
 
 ```
-You write lesson <N> of the course "<title>" in the Mathnim repo.
+You write lesson <N> of the course "<title>" in the Mathium repo.
 Read first: docs/TASTE.md, docs/COURSE-PLAYBOOK.md, docs/CAPABILITIES.md,
 docs/lessons/<course>/README.md (plan, notation, running example), the kit
 (<paths>), and the reference lessons. Check the lessons already on disk so

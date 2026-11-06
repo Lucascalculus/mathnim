@@ -72,7 +72,7 @@ export async function feedback(request: Request, env: FeedbackEnv, deps: Feedbac
 
 async function submit(request: Request, env: FeedbackEnv, deps: FeedbackDeps, note: Note): Promise<Response> {
   if (!env.FEEDBACK) return error(503, 'Feedback storage is not configured.');
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const text = await read_text(request, 16 * 1024);
   if (text === null) return error(413, 'Request too large.');
   const p = parse_feedback(text);

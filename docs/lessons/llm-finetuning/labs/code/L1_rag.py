@@ -1,4 +1,4 @@
-"""L1: a RAG pipeline, evaluated retrieval-first (Mathnim fine-tuning course).
+"""L1: a RAG pipeline, evaluated retrieval-first (Mathium fine-tuning course).
 
   python L1_rag.py --corpus planets --lang zh --chunk 256   # part 1: A2's eight planet articles, 12 questions
   python L1_rag.py                    # part 2: SQuAD at scale (CPU is fine for retrieval; a GPU helps generation)

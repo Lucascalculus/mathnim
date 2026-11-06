@@ -25,7 +25,7 @@ export async function tts(request: Request, env: TtsHandlerEnv, deps: TtsHandler
   const provider = choose_provider(env, deps);
   if (!provider) return error(503, 'Live narration is off on this deployment.');
   note.provider = provider.name;
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const body = await read_text(request, 8 * 1024);
   if (body === null) return error(413, 'Request too large.');
   const parsed = parse_tts_request(body);

@@ -1,4 +1,4 @@
-// "The best angle to shoot" - a complete Mathnim lesson.
+// "The best angle to shoot" - a complete Mathium lesson.
 // Engage (predict) -> explore (drag) -> explain (circles) -> generalise
 // (formula, new numbers), with remediation for the common wrong ideas.
 import {

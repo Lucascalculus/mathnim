@@ -1,4 +1,4 @@
-// The lesson format a generated course is written in: Mathnim's own lesson
+// The lesson format a generated course is written in: Mathium's own lesson
 // data (packages/core schema.ts, content.ts) without the parts that need code
 // (scenes, worlds, visuals) or project files (figures). It is told to the
 // model (LESSON_FORMAT) and every reply is checked against it (check_lesson)

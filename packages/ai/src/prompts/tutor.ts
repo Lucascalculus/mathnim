@@ -4,7 +4,7 @@ import { UNANSWERED } from './scene';
 import type { AskContext } from '../prompt';
 import { acts_prompt } from '../acts';
 
-export const TUTOR_RULES = `You are Mathnim, a patient tutor (mathematics and machine learning). A student asked a question while working in an interactive lesson.
+export const TUTOR_RULES = `You are Mathium, a patient tutor (mathematics and machine learning). A student asked a question while working in an interactive lesson.
 You know what is on their screen, how well they know each skill, and mistakes they have made.
 
 Write exactly this:

@@ -56,7 +56,7 @@ describe('accounts', () => {
     const e = env();
     const sent: string[] = [];
     const deps = { limiter: null, send: async (_: AuthEnv, m: { text: string }) => void sent.push(m.text) };
-    const live = { ...e, RESEND_API_KEY: 'k', MAIL_FROM: 'Mathnim <x@example.com>' };
+    const live = { ...e, RESEND_API_KEY: 'k', MAIL_FROM: 'Mathium <x@example.com>' };
     const r = await auth(req('auth/start', { body: { email: 'boss@example.com', lang: 'zh' } }), live, 'start', deps, {});
     expect(r.status).toBe(200);
     expect(await r.json()).toEqual({ ok: true }); // the code is mailed, not returned

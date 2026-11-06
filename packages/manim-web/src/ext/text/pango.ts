@@ -27,7 +27,7 @@ const fixed = (v: number): number => Math.round(v * 256) / 256;
 /**
  * Pango's hinting: every glyph width and offset rounded to a whole pixel at the size Pango draws (font_size / 4.8 pt,
  * a few pixels), so letters sit unevenly once the text is scaled up. On by default: manim's text, glyph for glyph (the
- * regression tests). Off: the font's own advances and kerning, unrounded (what Mathnim shows).
+ * regression tests). Off: the font's own advances and kerning, unrounded (what Mathium shows).
  */
 let pango_hinting = true;
 export function set_text_hinting(on: boolean): void {

@@ -1,4 +1,4 @@
-"""L2: LoRA SFT on GSM8K - loss mask, rank and learning rate (Mathnim fine-tuning course).
+"""L2: LoRA SFT on GSM8K - loss mask, rank and learning rate (Mathium fine-tuning course).
 
   python L2_sft_lora.py --run R0          # the base configuration
   python L2_sft_lora.py --run R1          # R1..R6: one change each (see RUNS)

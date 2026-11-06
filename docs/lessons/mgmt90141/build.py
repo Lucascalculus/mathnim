@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Builds the MGMT90141 demo course (README.md here): 17 lessons as Mathnim lesson JSON in
+# Builds the MGMT90141 demo course (README.md here): 17 lessons as Mathium lesson JSON in
 # apps/mathnim/public/demo/mgmt90141/, and its entry in apps/mathnim/public/demo/courses.json.
 #   python3 docs/lessons/mgmt90141/build.py && node apps/mathnim/tools/demo_check.mjs mgmt90141
 import importlib

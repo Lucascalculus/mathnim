@@ -1,6 +1,6 @@
 # Taste
 
-How Mathnim should feel, in the owner's (Lucas's) words where possible. Read
+How Mathium should feel, in the owner's (Lucas's) words where possible. Read
 this before designing a lesson, a page or a piece of UI. These are judgments,
 not rules to tick: when two pull against each other, ask which one serves the
 learner understanding, and when unsure, show Lucas two options rather than

@@ -28,7 +28,7 @@ export async function state(request: Request, env: AuthEnv): Promise<Response> {
     return json(200, { items: Object.fromEntries(results.map((r) => [r.key, { value: r.value, t: r.t }])) });
   }
   if (request.method !== 'PUT') return error(405, 'Use GET or PUT.', { allow: 'GET, PUT' });
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const text = await read_text(request, MAX_STATE_BODY);
   if (text === null) return error(413, 'Request too large.');
   let items: unknown;

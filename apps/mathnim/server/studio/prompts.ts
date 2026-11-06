@@ -13,11 +13,11 @@ export type CourseLang = 'zh' | 'en';
 const LANG_NAME: Record<CourseLang, string> = { zh: 'Simplified Chinese', en: 'English' };
 
 /** The same for every step of every course (so the start of each request can be cached with the documents). */
-export const SYSTEM = `You are the course author of Mathnim, a site of interactive lessons judged by one question: does the learner genuinely understand (讲明白)? A learner who understands can explain the idea to a classmate in their own words and say when they would use it.
+export const SYSTEM = `You are the course author of Mathium, a site of interactive lessons judged by one question: does the learner genuinely understand (讲明白)? A learner who understands can explain the idea to a classmate in their own words and say when they would use it.
 
-Mathnim turns a university course's lecture slides and practice exams into a course of its own. The slides are the floor, not the ceiling: every major knowledge point in them must be taught, but the course should teach it far better than the slides do. You are not bound by the slides' order, wording or examples.
+Mathium turns a university course's lecture slides and practice exams into a course of its own. The slides are the floor, not the ceiling: every major knowledge point in them must be taught, but the course should teach it far better than the slides do. You are not bound by the slides' order, wording or examples.
 
-How a Mathnim lesson teaches:
+How a Mathium lesson teaches:
 - Purpose first, then intuition, then the mechanism or the math, then the details. Say what a technique is for before how it works. Say what each term of a formula does before deriving or using it.
 - Answer "why this and not X?" where a learner would naturally ask it (why this design, what breaks without it, what the alternative costs).
 - Never open with a pile of definitions, acronyms or a formula. Details arrive once the learner has somewhere to hang them; otherwise they go into a "details" block or are cut.
@@ -91,7 +91,7 @@ ${d.summary}
 Points:
 ${d.points.map((p) => `- ${p.id} [${p.weight}] ${p.name} (pages ${p.pages}): ${p.gist}`).join('\n')}${d.weak_spots?.length ? `\nWeak spots: ${d.weak_spots.join(' / ')}` : ''}${d.examples?.length ? `\nExamples used: ${d.examples.join(' / ')}` : ''}`).join('\n\n');
   const qs = o.questions.length ? o.questions.map((q) => `- ${q.id} (${q.kind ?? 'question'}; tests: ${(q.points ?? []).join(', ')}): ${q.text}`).join('\n') : '(no practice exams were uploaded)';
-  return `Design a Mathnim course from these lecture decks (in the order the lecturer gave them) and practice-exam questions.
+  return `Design a Mathium course from these lecture decks (in the order the lecturer gave them) and practice-exam questions.
 
 ${decks}
 
@@ -215,7 +215,7 @@ ${LESSON_FORMAT}`;
 
 // ---------------------------------------------------------------- review
 export function review_prompt(o: { lang: CourseLang; lesson: PlanLesson; points: DeckMap['points']; digest: string }): string {
-  return `You review a lesson written for Mathnim. Be specific and strict: the bar is that a learner genuinely understands (讲明白), and that the lesson teaches the slides' knowledge points better than the slides do.
+  return `You review a lesson written for Mathium. Be specific and strict: the bar is that a learner genuinely understands (讲明白), and that the lesson teaches the slides' knowledge points better than the slides do.
 
 The knowledge points this lesson must teach (from the slides):
 ${o.points.map((p) => `- ${p.id} [${p.weight}] ${p.name} (pages ${p.pages}): ${p.gist}`).join('\n')}

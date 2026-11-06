@@ -95,7 +95,7 @@ export async function hit(request: Request, env: StatsEnv, deps: { limiter: Rate
   const none = () => new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } });
   if (!env.DB) return none();
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const ua = request.headers.get('user-agent') ?? '';
   if (is_robot(ua)) return none();
   const text = await read_text(request, 2048);

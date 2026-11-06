@@ -1,4 +1,4 @@
-"""L5 (optional): sequence-level distillation - train a small model on a teacher's reasoning traces (Mathnim course, E3).
+"""L5 (optional): sequence-level distillation - train a small model on a teacher's reasoning traces (Mathium course, E3).
 
   python L5_distill.py --stage gen --vllm       # 1. teacher writes 4 traces per question (L4/A100 + vLLM recommended)
   python L5_distill.py --stage filter           # 2. rejection sampling with L4's grader; acceptance rate by difficulty

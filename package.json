@@ -1,7 +1,7 @@
 {
   "name": "mathnim-monorepo",
   "private": true,
-  "description": "Mathnim: an AI math tutor that explains with live, interactive Manim scenes in the browser.",
+  "description": "Mathium: an AI math tutor that explains with live, interactive Manim scenes in the browser.",
   "type": "module",
   "workspaces": [
     "packages/manim-web",

@@ -1,5 +1,5 @@
 // A figure's note about itself - what is a simulation, a toy model, exact, real data and where it comes from, or a
-// short remark on how to read it - stays out of the picture: Mathnim draws no sentences in a figure (docs/TASTE.md).
+// short remark on how to read it - stays out of the picture: Mathium draws no sentences in a figure (docs/TASTE.md).
 // aside() keeps the note's words on the scene (asides_of) for the lesson to show in a faint line under the figure,
 // and gives back an empty group in its place, so the visual's own code (its name, FadeIn, groups) stays as it was.
 import { VGroup, type Mobject, type Scene } from 'manim-web';

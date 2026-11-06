@@ -36,7 +36,7 @@ RATE_LIMITS = "deepseek=40/300,tts=80/600,feedback=20/100"
 # Seconds an opted-in answer stays in the edge cache (0 = off).
 ANSWER_CACHE_TTL = "86400"
 # Sign-in mail (with the secret RESEND_API_KEY): a sender on a domain verified in Resend.
-MAIL_FROM = "Mathnim <login@penghaolun.com>"
+MAIL_FROM = "Mathium <login@penghaolun.com>"
 # Who may publish an uploaded course to everyone (comma-separated addresses).
 ADMIN_EMAILS = "haolun.lucas@gmail.com"
 # the data centre (/data): "public" opens its summaries to everyone for now; anything else keeps it to teachers and admins

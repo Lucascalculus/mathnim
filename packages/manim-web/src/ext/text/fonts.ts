@@ -263,7 +263,7 @@ const BUNDLED: Bundled[] = [
   }),
   { file: 'dejavu-sans-mono-latin-400-normal.woff', family: 'DejaVu Sans Mono', weight: 400, style: 'normal' },
   { file: 'dejavu-sans-mono-latin-700-normal.woff', family: 'DejaVu Sans Mono', weight: 700, style: 'normal' },
-  // Inter (OFL): Mathnim's face for words in a figure (set_generic_family in @mathnim/visuals), not a manim default.
+  // Inter (OFL): Mathium's face for words in a figure (set_generic_family in @mathnim/visuals), not a manim default.
   // Sized so its capitals and figures stand as tall as a formula's at the same font_size (MathTex: Text set at full
   // size stood a third taller), so words and formulas in a figure read as one size
   ...['latin-400-normal', 'latin-400-italic', 'latin-700-normal', 'latin-700-italic', 'greek-400-normal', 'greek-700-normal'].map((v): Bundled => {

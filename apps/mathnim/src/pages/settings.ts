@@ -44,6 +44,7 @@ const CSS = `
 .set-panel input.mn-input{font:inherit;font-size:14px}
 .set-clear{border:0;background:none;padding:0;font:inherit;font-size:14px;font-weight:600;color:var(--mn-bad);cursor:pointer;text-align:left}
 .set-clear:hover{text-decoration:underline}
+.set-panel>.set-version{border-top:0;padding:4px 0 0;font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mn-muted);letter-spacing:.02em}
 `;
 let injected = false;
 
@@ -90,7 +91,8 @@ export function settings_panel(): HTMLElement {
         <small class="set-keynote" data-for="openai anthropic custom">${esc(t('key_local'))}</small>
       </div>
     </details>
-    <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>`;
+    <div class="set-foot"><div class="set-what"><button type="button" class="set-clear" id="set-clear">${esc(t('clear_data'))}</button><small>${esc(t('clear_help'))}</small></div></div>
+    <small class="set-version">Mathium ${esc(__MATHIUM_VERSION__)} · ${esc(__MATHIUM_BUILD__)}</small>`;
   el.querySelector('.set-lang')!.replaceWith(lang_switch());
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => el.querySelector<T>('#set-' + id)!;
   const read = (): Settings => ({

@@ -1,7 +1,7 @@
 {
   "name": "@mathnim/present",
   "version": "0.1.0",
-  "description": "Mathnim presenters: the lesson views (essay now, game next) and shared UI pieces.",
+  "description": "Mathium presenters: the lesson views (essay now, game next) and shared UI pieces.",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {

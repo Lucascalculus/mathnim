@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Builds the MKTG90037 demo course (README.md here) as Mathnim lesson JSON in apps/mathnim/public/demo/mktg90037/ and its
+# Builds the MKTG90037 demo course (README.md here) as Mathium lesson JSON in apps/mathnim/public/demo/mktg90037/ and its
 # entry in apps/mathnim/public/demo/courses.json (only this course's own entry is replaced). One file per lesson (l_*.py)
 # exposes a function that returns the lesson dict; the instruments are frames (public/frames/kit/kinds/).
 #   python3 docs/lessons/mktg90037/build.py && node apps/mathnim/tools/demo_check.mjs mktg90037

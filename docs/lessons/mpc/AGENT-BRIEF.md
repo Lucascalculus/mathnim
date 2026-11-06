@@ -1,7 +1,7 @@
 # Brief for every MPC lesson agent (one lesson per agent)
 
 You write one lesson of the course "模型预测控制（MPC）/ Model Predictive
-Control" in the Mathnim repo `/Users/lucas/Documents/Mathnim`. Several agents
+Control" in the Mathium repo `/Users/lucas/Documents/Mathnim`. Several agents
 work in parallel, one per lesson.
 
 ## Read first

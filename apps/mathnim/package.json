@@ -1,8 +1,8 @@
 {
   "name": "mathnim",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "The Mathnim app: course map, lessons, ask, review, dashboard, settings.",
+  "description": "The Mathium app: course map, lessons, ask, review, dashboard, settings.",
   "type": "module",
   "scripts": {
     "dev": "vite",

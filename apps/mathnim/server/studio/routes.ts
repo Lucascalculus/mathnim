@@ -11,7 +11,7 @@
 //   POST   courses/<id>/steps/<step>    run one step; answers NDJSON lines while it works:
 //          {t:'progress', chars} ... then {t:'done'} | {t:'pending', prompt} | {t:'error', message}
 //   GET    catalog                      the courses this visitor may take (own, and public finished ones)
-//   GET    lessons/<course>/<lesson>    one finished lesson (Mathnim lesson data)
+//   GET    lessons/<course>/<lesson>    one finished lesson (Mathium lesson data)
 import { session_user, type AuthEnv, type User } from '../auth';
 import { new_id, with_schema, type SqlDb } from '../db';
 import { error, json, origin_ok, type Note } from '../http';
@@ -33,7 +33,7 @@ const can_edit = (s: State, u: User | null) => !!u && s.course.owner === u.id;
 
 export async function studio(request: Request, env: AuthEnv, path: string, deps: StudioDeps, note: Note): Promise<Response> {
   if (!env.DB || !env.FILES) return error(503, 'Course uploads are not configured on this server.');
-  if (request.method !== 'GET' && !origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (request.method !== 'GET' && !origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const db = await with_schema(env.DB);
   const user = await session_user(request, env);
   const parts = path.split('/').filter(Boolean).map(decodeURIComponent);

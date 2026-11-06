@@ -12,7 +12,7 @@ import { client_ip, error, json, list, origin_ok, read_text, sha256_hex, too_man
 
 export interface AuthEnv extends DataEnv {
   RESEND_API_KEY?: string;
-  /** e.g. "Mathnim <login@penghaolun.com>" (a domain verified in Resend). */
+  /** e.g. "Mathium <login@penghaolun.com>" (a domain verified in Resend). */
   MAIL_FROM?: string;
   /** Admins (comma-separated): they publish uploaded courses to everyone, see everything in the data centre and name teachers. */
   ADMIN_EMAILS?: string;
@@ -110,7 +110,7 @@ async function body_json(request: Request): Promise<Record<string, unknown> | nu
 }
 
 export async function auth(request: Request, env: AuthEnv, path: string, deps: AuthDeps, note: Note): Promise<Response> {
-  if (request.method !== 'GET' && !origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (request.method !== 'GET' && !origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');
   const db = await with_schema(env.DB);
   // `mail`: whether codes can be sent (the dev server prints them instead), so the site offers sign-in only then
@@ -183,7 +183,7 @@ async function verify(request: Request, env: AuthEnv, db: SqlDb, email: string, 
 
 export function code_mail(to: string, code: string, lang: 'en' | 'zh'): Mail {
   const zh = lang === 'zh';
-  const subject = zh ? `Mathnim 登录验证码 ${code}` : `Your Mathnim sign-in code: ${code}`;
+  const subject = zh ? `Mathium 登录验证码 ${code}` : `Your Mathium sign-in code: ${code}`;
   const line = zh ? '你的登录验证码是' : 'Your sign-in code is';
   const after = zh ? '10 分钟内有效。如果不是你本人操作，忽略这封邮件即可。' : 'It works for 10 minutes. If you did not ask for it, you can ignore this mail.';
   return {

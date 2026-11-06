@@ -1,6 +1,6 @@
-# Mathnim - product brainstorm and ranking
+# Mathium - product brainstorm and ranking
 
-Mathnim is an AI math tutor whose explanations are live, interactive Manim
+Mathium is an AI math tutor whose explanations are live, interactive Manim
 scenes (rendered in the browser by `manim-web`). This document lists every
 feature idea from the brainstorm, scores them, and fixes what is built now.
 

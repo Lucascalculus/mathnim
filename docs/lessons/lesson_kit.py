@@ -1,4 +1,4 @@
-# Shared by the build scripts of the exam courses (docs/lessons/<course>/build.py): Mathnim lesson JSON written
+# Shared by the build scripts of the exam courses (docs/lessons/<course>/build.py): Mathium lesson JSON written
 # from Python. T() is a two-language string; the block and step helpers follow packages/core (content.ts,
 # schema.ts); Plot draws a data diagram as SVG.
 #   import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..')); from lesson_kit import *

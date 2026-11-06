@@ -1,4 +1,4 @@
-// The Mathnim look: the design system as data. A lesson says what a thing *is* (its role: a noun, the truth, a
+// The Mathium look: the design system as data. A lesson says what a thing *is* (its role: a noun, the truth, a
 // guess, the one action) and how things *relate* (beside, below, attached to); everything about how that looks and
 // moves lives here. Changing the look - a colour, the gap between a label and its line, how a guess converges - is an
 // edit to this file, reviewed on the doctor's change sheet; no lesson changes (docs/design/ENGINE.md §9).

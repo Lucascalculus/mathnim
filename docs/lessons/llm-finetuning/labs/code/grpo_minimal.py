@@ -1,4 +1,4 @@
-"""GRPO from scratch, about 120 lines, for L4's R6: what does the group baseline buy? (Mathnim course, E1)
+"""GRPO from scratch, about 120 lines, for L4's R6: what does the group baseline buy? (Mathium course, E1)
 
   python grpo_minimal.py --adv grpo        # (r - mean) / std : the GRPO advantage
   python grpo_minimal.py --adv mean        # r - mean          : baseline, no scaling (Dr. GRPO)

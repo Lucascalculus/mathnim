@@ -1,4 +1,4 @@
-"""Shared helpers for the fine-tuning labs L1-L5 (Mathnim course, part E).
+"""Shared helpers for the fine-tuning labs L1-L5 (Mathium course, part E).
 
 Every lab script imports this file, so keep it next to them (or upload it to
 Colab with them). Nothing here needs a GPU.

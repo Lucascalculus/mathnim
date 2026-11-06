@@ -1,11 +1,11 @@
 ---
 name: new-course
-description: Plan and build a new Mathnim course (or extend one) from a topic to a reviewed preview, following docs/COURSE-PLAYBOOK.md and docs/TASTE.md. Use when Lucas asks for a new course ("做一门课讲…", "publish一门课…"), new lessons for a course, or to restart a paused course.
+description: Plan and build a new Mathium course (or extend one) from a topic to a reviewed preview, following docs/COURSE-PLAYBOOK.md and docs/TASTE.md. Use when Lucas asks for a new course ("做一门课讲…", "publish一门课…"), new lessons for a course, or to restart a paused course.
 ---
 
 # New course
 
-You are making a Mathnim course. The playbook (`docs/COURSE-PLAYBOOK.md`) is
+You are making a Mathium course. The playbook (`docs/COURSE-PLAYBOOK.md`) is
 the map; this skill is how to walk it with Lucas. Adapt the pace and the order
 to the topic: the playbook's "Always" list is fixed, the rest is judgment.
 

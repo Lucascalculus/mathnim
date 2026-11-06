@@ -110,7 +110,7 @@ const h = (s: string) => out.push('', s, '');
 out.push(
   '# Capabilities',
   '',
-  'What the Mathnim libraries offer a lesson author. **Generated from the code** by `apps/mathnim/tools/catalog.ts`:',
+  'What the Mathium libraries offer a lesson author. **Generated from the code** by `apps/mathnim/tools/catalog.ts`:',
   'run `npm run catalog` after adding a step field, a visual or a module (and `npm run catalog -- --check` to see whether it is current).',
   'Read it to know what exists; read the source (paths given) for details, and `docs/COURSE-PLAYBOOK.md` / `docs/TASTE.md` for when to use what.',
 );

@@ -27,7 +27,7 @@ const int = (v: unknown): number | null => (typeof v === 'number' && Number.isFi
 export async function events(request: Request, env: AuthEnv): Promise<Response> {
   if (!env.DB) return error(503, 'Accounts are not configured on this server.');
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   const user = await session_user(request, env);
   if (!user) return error(401, 'Sign in first.');
   const text = await read_text(request, MAX_EVENTS_BODY);

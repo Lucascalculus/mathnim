@@ -1,6 +1,6 @@
 ---
 name: course-review
-description: Review a Mathnim lesson or course the way Lucas would (讲明白, taste, interaction bar, the real page on desktop) and list what to fix by severity. Use after writing or changing lessons, before a preview, or when Lucas asks to check / 过一遍 / 测试 a course. Pass a lesson id (e.g. mpc-m4-constraints) or a course slug (e.g. mpc).
+description: Review a Mathium lesson or course the way Lucas would (讲明白, taste, interaction bar, the real page on desktop) and list what to fix by severity. Use after writing or changing lessons, before a preview, or when Lucas asks to check / 过一遍 / 测试 a course. Pass a lesson id (e.g. mpc-m4-constraints) or a course slug (e.g. mpc).
 ---
 
 # Course review

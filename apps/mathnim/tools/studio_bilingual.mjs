@@ -1,6 +1,6 @@
 // Make a demo course bilingual: each lesson exported by tools/studio_export.mjs (in the course's
 // language) is merged with its translation (<lesson-id>.en.json, the same JSON with the words in
-// English) into Mathnim's { en, zh } strings, so the site's language switch switches the lesson.
+// English) into Mathium's { en, zh } strings, so the site's language switch switches the lesson.
 // The course entry in public/demo/courses.json is merged with course.en.json the same way.
 // Ids, TeX, code and numbers are taken from the original; a lesson without a translation is left as it is.
 // Usage: node tools/studio_bilingual.mjs <course-id> <folder with the .en.json files>

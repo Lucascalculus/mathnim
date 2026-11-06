@@ -1,4 +1,4 @@
-# Mathnim
+# Mathium
 
 Try it on [www.lab.penghaolun.com](https://lab.penghaolun.com/llm-finetuning)
 
@@ -36,7 +36,7 @@ a picture follows.
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173 - the Mathnim app
+npm run dev            # http://localhost:5173 - the Mathium app
 ```
 
 Without an API key the app runs in **offline demo mode** (suggested questions

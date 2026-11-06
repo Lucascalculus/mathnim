@@ -1,7 +1,7 @@
 {
   "name": "@mathnim/ai",
   "version": "0.1.0",
-  "description": "AI answers for Mathnim: question -> explanation + validated manim-web scene.",
+  "description": "AI answers for Mathium: question -> explanation + validated manim-web scene.",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {

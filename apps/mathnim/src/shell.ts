@@ -431,7 +431,7 @@ export function mount_shell(pages: Record<Route['page'], Page>): void {
     const data = data_available()
       ? `<a class="nav-ic nav-txt" href="/data" title="${esc(t('ad_title'))}"${current.page === 'admin' ? ' aria-current="page"' : ''}>${CORNERS}${esc(t('nav_data'))}</a>`
       : '';
-    nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathnim</span></a>
+    nav.innerHTML = `<a class="brand" href="/">${LOGO}<span class="name">Mathium</span></a>
       <span class="nav-tools">${data}${acct}<button type="button" class="nav-ic gear" aria-label="${t('nav_settings')}" title="${t('nav_settings')}" aria-expanded="false">${CORNERS}${GEAR}</button></span>`;
     nav.append(pop, acct_pop);
     const acct_btn = nav.querySelector<HTMLButtonElement>('.acct');

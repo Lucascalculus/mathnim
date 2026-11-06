@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Builds the ECON90015 demo course (README.md here): the mock's eight lessons and the predicted questions'
-# nine (predict.py) as Mathnim lesson JSON in
+# nine (predict.py) as Mathium lesson JSON in
 # apps/mathnim/public/demo/econ90015/, and its entry in apps/mathnim/public/demo/courses.json.
 #   python3 docs/lessons/econ90015/build.py && node apps/mathnim/tools/demo_check.mjs econ90015
 # The diagrams are drawn from the same functions the questions use, so every point is where the

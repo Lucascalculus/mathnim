@@ -458,7 +458,7 @@ export async function admin_page(root: HTMLElement): Promise<() => void> {
   const tab_label: Record<Tab, string> = { overview: t('ad_tab_overview'), traffic: t('ad_tab_traffic'), learning: t('ad_tab_learning'), ai: t('ad_tab_ai'), users: t('ad_tab_users') };
   wrap.innerHTML = `
     <div class="ad-head">
-      <div><span class="ad-label">Mathnim · data · <span class="ad-tz"></span></span><h1>${esc(t('ad_title'))}</h1></div>
+      <div><span class="ad-label">Mathium · data · <span class="ad-tz"></span></span><h1>${esc(t('ad_title'))}</h1></div>
       <nav class="ad-range">${RANGES.map((d) => `<a href="${esc(href({ days: d, lesson: v.lesson, user: v.user, q: v.q }, v))}"${d === v.days ? ' class="on" aria-current="true"' : ''}>${esc(range_label(d))}</a>`).join('')}</nav>
       ${
         level() >= 3

@@ -338,7 +338,7 @@ async function users(db: SqlDb, env: AdminEnv, text: string, offset: number) {
 /** An admin names a teacher, or makes one a learner again. */
 async function name_role(request: Request, env: AdminEnv, db: SqlDb): Promise<Response> {
   if (request.method !== 'POST') return error(405, 'Use POST.', { allow: 'POST' });
-  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathnim site.');
+  if (!origin_ok(request, env.ALLOWED_ORIGINS)) return error(403, 'Requests must come from the Mathium site.');
   let d: { id?: unknown; role?: unknown } = {};
   try {
     d = JSON.parse((await read_text(request, 1024)) ?? '');

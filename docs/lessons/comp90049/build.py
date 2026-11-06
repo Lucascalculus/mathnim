@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Builds the COMP90049 course (README.md here): every lesson of the l_*.py files as Mathnim lesson JSON in
+# Builds the COMP90049 course (README.md here): every lesson of the l_*.py files as Mathium lesson JSON in
 # apps/mathnim/public/demo/comp90049/, and its entry in apps/mathnim/public/demo/courses.json.
 #   python3 docs/lessons/comp90049/build.py && node apps/mathnim/tools/demo_check.mjs comp90049
 # Several writers run this at once while the course is made, so a lesson file that fails to import is skipped

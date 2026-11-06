@@ -1,6 +1,6 @@
 # AGENTS.md
 
-You are working on **Mathnim** (https://lab.penghaolun.com): interactive
+You are working on **Mathium** (https://lab.penghaolun.com): interactive
 courses in maths and technology, built on our own TypeScript port of Manim,
 with an AI tutor in the margin of every lesson. The owner is Lucas; he writes
 mostly in Chinese and judges everything by one question: does it make the
@@ -10,7 +10,7 @@ learner genuinely understand (讲明白)?
 
 | You are about to… | Read |
 |---|---|
-| do anything | this file, then `docs/TASTE.md` (how Mathnim should feel) |
+| do anything | this file, then `docs/TASTE.md` (how Mathium should feel) |
 | make or change a course or lesson | `docs/COURSE-PLAYBOOK.md`, then `docs/CAPABILITIES.md` (everything the libraries offer) |
 | build an interactive world | `docs/lessons/llm-finetuning/INTERACTION-BAR.md`, `packages/manim-web/docs/EXTENSIONS.md` |
 | write a visual | `packages/engine/README.md` (new visuals are engine figures), `packages/visuals/README.md`, and a kit such as `docs/lessons/mpc/KIT.md` |
@@ -28,7 +28,7 @@ the playbook) and `/course-review` (review a lesson or course and list fixes).
 apps/mathnim/          the site: pages, course registry (src/course.ts), lessons (src/lessons/<course>/),
                        the margin tutor (src/side_chat.ts), tools (tools/: doctor, catalog, thumbs, narration, page_shots)
 packages/manim-web/    Manim in TypeScript (canvas rendering) + ext/: the interaction toolkit
-packages/engine/       Mathnim's own kernel: figures as state, rule-based layout, scripts, a renderer that draws only what changed
+packages/engine/       Mathium's own kernel: figures as state, rule-based layout, scripts, a renderer that draws only what changed
 packages/look/         the design system as data (nouns, roles, type, spacing, motion, taste rules)
 packages/core/         lesson format (schema.ts, content.ts), runtime, worlds, grading, learner model
 packages/present/      the lesson view (essay and game), text pages, narration, cues
@@ -56,7 +56,7 @@ npm run catalog                   # after adding a visual, field or module: docs
   (`docs/TASTE.md` §1).
 - **Our own, not Manim's** (from 2026-10-29): "尽可能地 develop 我们自己的亮点，
   而且尽量和 manim 不一样." We are past learning from others: in what learners
-  see (typography, composition, motion, interaction) prefer Mathnim's own
+  see (typography, composition, motion, interaction) prefer Mathium's own
   identity over matching Manim or 3b1b. Manim parity only serves manim-web's
   regression tests (`docs/TASTE.md` §5).
 - **Bilingual**: every learner-facing string is `{ en, zh }`; write the

@@ -1,4 +1,4 @@
-"""L3: DPO, watching the likelihood shift (Mathnim fine-tuning course).
+"""L3: DPO, watching the likelihood shift (Mathium fine-tuning course).
 
   python L3_dpo.py --run R0       # beta = 0.1 on all pairs
   python L3_dpo.py --run R1       # R1..R5: one change each (see RUNS)
