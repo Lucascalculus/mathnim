@@ -27,6 +27,8 @@ export interface StudioEntry {
   lessons: { id: string; title: L10n; summary: L10n; minutes: number; meta: LessonMeta }[];
   /** Visual packs its lessons embed (a demo written with interactive figures), loaded before a lesson. */
   packs?: string[];
+  /** Not listed on the home page (a demo for a reviewer, opened by its address). */
+  hidden?: boolean;
 }
 
 /** The packs a course entry may name: each registers its visuals when imported. */
@@ -34,6 +36,7 @@ const PACKS: Record<string, () => Promise<unknown>> = {
   econ: () => import('@mathnim/visuals/econ'),
   it: () => import('@mathnim/visuals/it'),
   mgmt: () => import('@mathnim/visuals/mgmt'),
+  physics: () => import('@mathnim/visuals/physics'),
 };
 
 export const studio_slug = (id: string) => `course-${id}`;
@@ -54,6 +57,7 @@ export function course_of_entry(e: StudioEntry): Course {
     outcomes: e.outcomes.length ? e.outcomes : undefined,
     category: e.mine ? MINE : e.demo ? DEMO : SHARED,
     accent: '#0F766E',
+    hidden: e.hidden || undefined,
     generated: { decks: e.origin?.decks ?? 0, exams: e.origin?.exams ?? 0, lessons: e.lessons.length, note: e.origin?.note },
     units: e.units.map((u, i) => ({
       id: `u${i + 1}`,

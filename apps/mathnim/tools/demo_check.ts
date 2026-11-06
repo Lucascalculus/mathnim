@@ -13,6 +13,7 @@ import { check_params, get_visual } from '@mathnim/visuals';
 import '@mathnim/visuals/econ';
 import '@mathnim/visuals/mgmt';
 import '@mathnim/visuals/it';
+import '@mathnim/visuals/physics';
 import { check_lesson } from '../server/studio/format';
 import { lint_lesson_text } from './text_lint';
 
