@@ -14,7 +14,7 @@ import { make_canvas } from './render';
 import { beat, set, wait, type Step } from './script';
 import { param, read, untracked, type Param } from './state';
 import { tex_scale } from './tex';
-import { break_lines, font_css, font_of, tex_as_text, type Lang } from './text';
+import { break_lines, font_css, font_of, tex_as_text, text_width, type Lang } from './text';
 import { Thing, type DrawEnv, type Style } from './thing';
 
 // ------------------------------------------------------------------ the lines, as people write them
@@ -410,7 +410,7 @@ const ease = (u: number): number => smooth(0, 1, u);
 const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
 
 /** A token's ink at a moment: where its glyphs are moved to (TeX units), how big, how present. */
-interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean }
+interface Piece { glyphs: TexGlyph[]; dx: number; dy: number; scale: number; cx: number; cy: number; w: number; color: string | null; liquid: boolean; /** from the line it leaves (A) or the one it arrives in (B) */ src?: 'A' | 'B'; role?: Role; /** how far down to the next line it has come (written lines kept: 0..1) */ ty?: number }
 
 /**
  * A derivation as one formula that changes line by line. `at` is where it is: 2 is the third line at rest, 1.4 is
@@ -437,7 +437,17 @@ export class Steps extends Thing implements Block {
   doubtful: number[] = [];
   /** Fill a stage (the lesson's video frame): as large as the stage allows, in its middle; else the size of a displayed formula in a text. */
   fill: boolean;
-  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean; nouns?: Record<string, string> } = {}) {
+  /**
+   * The lines written so far stay, one under another, as a derivation is written by hand: the new line comes down out
+   * of the one above (what stays slides down, what combines flows together on the way, what is new appears), and the
+   * line it came from steps back to the second ink. Each line's reason beside it (under it when there is no room).
+   * false: one formula that changes in place.
+   */
+  stack: boolean;
+  private why_side: 'right' | 'below' | 'none' = 'none';
+  /** Where the formulas start (px), written lines kept. */
+  private fx = 0;
+  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean; nouns?: Record<string, string>; stack?: boolean } = {}) {
     super({ id: o.id ?? 'steps', role: o.role ?? 'text', z: 5, style: o.style });
     const p = typeof src === 'string' ? parse_steps(src) : { lines: src, issues: [], nouns: {} };
     this.lines = p.lines;
@@ -453,6 +463,7 @@ export class Steps extends Thing implements Block {
     this.px_set = o.size ?? null;
     this.doubtful = o.doubtful ?? [];
     this.fill = !!o.fill;
+    this.stack = o.stack ?? true;
   }
   // ---- geometry (TeX units): every line placed so that the relations line up (or the middles, where a line has none)
   private geo: { X: number; W: number; asc: number; desc: number; ox: number[] } | null = null;
@@ -493,7 +504,29 @@ export class Steps extends Thing implements Block {
   /** Height of the formula and its reasons at the size it is set (px). */
   private content_h(w: number, lang: Lang): number {
     const G = this.geometry();
+    if (this.stack) return this.px() * 0.5 + (G.asc + G.desc) * tex_scale(this.px()) + (this.lines.length - 1) * this.pitch() + (this.why_side === 'below' ? this.why_line_h() : 0);
     return (G.asc + G.desc) * tex_scale(this.px()) + this.px() * 0.5 + this.why_h(w, lang);
+  }
+  /** Written lines kept: the widest reason (px), set beside its line. */
+  private why_wide(): number {
+    const f = this.why_font();
+    return Math.max(0, ...this.lines.map((l) => (l.why ? text_width(l.why, f) : 0)));
+  }
+  /** Written lines kept: the height a reason under its line takes (the most lines any reason breaks into). */
+  private why_line_h(): number {
+    const f = this.why_font(), lines = Math.max(1, ...this.lines.map((l) => (l.why ? break_lines(l.why, f, this.why_w || 320).length : 1)));
+    return lines * f.size * look().type.caption.line + this.px() * 0.15;
+  }
+  /** Written lines kept: px from one line's baseline to the next. */
+  private pitch(): number {
+    const G = this.geometry();
+    return (G.asc + G.desc) * tex_scale(this.px()) + this.px() * 0.42 + (this.why_side === 'below' ? this.why_line_h() : 0);
+  }
+  /** Written lines kept: reasons beside the lines when the formula and the widest reason fit side by side in w. */
+  private side_for(w: number): 'right' | 'below' | 'none' {
+    if (!this.show_why || !this.lines.some((l) => l.why)) return 'none';
+    const G = this.geometry();
+    return G.W * tex_scale(this.px()) + this.px() * 0.9 + this.why_wide() <= w ? 'right' : 'below';
   }
   measure(w: number, env: LayoutEnv): Size {
     const G = this.geometry();
@@ -501,6 +534,7 @@ export class Steps extends Thing implements Block {
     const own = this.px_set ?? (this.fill ? look().type.display.size * 1.6 : look().type.display.size * 0.82);
     const fit = Math.max(look().type.label.size, Math.min(own, ((this.fill ? 0.86 : 1) * w - 8) / (G.W * tex_scale(1))));
     this.px_fit = this.px_set ? 0 : fit;
+    if (this.stack) { this.why_w = w; this.why_side = this.side_for(w); }
     const h = this.content_h(w, env.lang);
     return this.fill ? { h, min: Math.min(h, this.px() * 2), grow: true } : { h, min: h };
   }
@@ -511,10 +545,27 @@ export class Steps extends Thing implements Block {
       const G = this.geometry(), per_px = (G.asc + G.desc) * tex_scale(1) + 0.5, room = b.h * 0.8 - this.why_h(b.w, env.lang);
       if (room > 0 && per_px * this.px_fit > room) this.px_fit = Math.max(look().type.label.size, room / per_px);
     }
+    if (this.stack) return this.arrange_stack(b, env);
     const G = this.geometry(), k = tex_scale(this.px()), h = this.content_h(b.w, env.lang);
     const w = Math.min(b.w, G.W * k);
     this.box = { x: b.x + (b.w - w) / 2, y: this.fill ? b.y + Math.max(0, (b.h - h) / 2) : b.y, w, h };
     this.why_w = b.w;
+    this.why_x = b.x;
+  }
+  /** Written lines kept: all the lines fit (on a stage, smaller until they do); the formulas and their reasons centred as one column. */
+  private arrange_stack(b: Box, env: LayoutEnv): void {
+    this.why_w = b.w;
+    this.why_side = this.side_for(b.w);
+    if (this.fill && !this.px_set) {
+      for (let i = 0; i < 40 && this.content_h(b.w, env.lang) > b.h * 0.86 && this.px_fit > look().type.label.size; i++) {
+        this.px_fit = Math.max(look().type.label.size, this.px_fit * 0.93);
+        this.why_side = this.side_for(b.w);
+      }
+    }
+    const G = this.geometry(), k = tex_scale(this.px()), h = this.content_h(b.w, env.lang);
+    const group = G.W * k + (this.why_side === 'right' ? this.px() * 0.9 + this.why_wide() : 0);
+    this.fx = b.x + Math.max(0, (b.w - group) / 2);
+    this.box = { x: b.x, y: this.fill ? b.y + Math.max(0, (b.h - h) / 2) : b.y, w: b.w, h };
     this.why_x = b.x;
   }
   private why_w = 0;
@@ -536,6 +587,21 @@ export class Steps extends Thing implements Block {
   override parts_of = (_lang: Lang) => {
     const k = Math.round(untracked(() => this.at.value)), l = this.lines[k];
     if (!l) return [];
+    if (this.stack) {
+      // every line written so far, where it is, and its reason
+      const G = this.geometry(), kk = tex_scale(this.px()), { x0, y0 } = this.frame_of(), P = this.pitch(), out: { text: string; tex?: boolean; box: Box }[] = [];
+      for (let j = 0; j <= k; j++) {
+        out.push({ text: this.lines[j].tex, tex: true, box: { x: x0, y: y0 + j * P - G.asc * kk, w: G.W * kk, h: (G.asc + G.desc) * kk } });
+        if (this.show_why && this.lines[j].why) out.push({ text: this.lines[j].why!, box: { x: x0 + G.W * kk, y: y0 + j * P - G.asc * kk, w: Math.max(1, this.box.w - G.W * kk), h: (G.asc + G.desc) * kk } });
+        const seen = new Map<string, Token[]>();
+        for (const [t, nn] of this.noun_of[j] ?? []) seen.set(nn, [...(seen.get(nn) ?? []), t]);
+        for (const [nn, ts] of seen) {
+          const tex = Object.keys(this.nouns).find((s) => this.nouns[s] === nn) ?? nn;
+          for (const t of ts) out.push({ text: `${tex} (${nn})`, tex: false, box: { x: x0 + (G.ox[j] + t.box[0]) * kk, y: y0 + j * P + t.box[1] * kk, w: (t.box[2] - t.box[0]) * kk, h: (t.box[3] - t.box[1]) * kk } });
+        }
+      }
+      return out;
+    }
     const G = this.geometry(), kk = tex_scale(this.px());
     const out: { text: string; tex?: boolean; box: Box }[] = [{ text: l.tex, tex: true, box: { x: this.box.x, y: this.box.y, w: this.box.w, h: (G.asc + G.desc) * kk + this.px() * 0.5 } }];
     if (this.show_why && l.why) out.push({ text: l.why, box: { x: this.why_x, y: this.box.y + (G.asc + G.desc) * kk + this.px() * 0.5, w: this.why_w, h: this.why_h(this.why_w, _lang) } });
@@ -552,7 +618,7 @@ export class Steps extends Thing implements Block {
   /** Where the formula's TeX origin is (px) and px per TeX unit. */
   private frame_of(): { x0: number; y0: number; k: number } {
     const G = this.geometry(), k = tex_scale(this.px());
-    return { x0: this.box.x + (this.box.w - G.W * k) / 2, y0: this.box.y + this.px() * 0.25 + G.asc * k, k };
+    return { x0: this.stack ? this.fx : this.box.x + (this.box.w - G.W * k) / 2, y0: this.box.y + this.px() * 0.25 + G.asc * k, k };
   }
   /**
    * The script's step that takes the formula to line k (counting from 0) in `dur` seconds: put it beside other changes
@@ -564,7 +630,7 @@ export class Steps extends Thing implements Block {
   /** Where line k's TeX origin is drawn at rest (px) and px per TeX unit: draw_tex(g, tex, x + view.x·k, y, px) draws the same. */
   origin(line: number): { x: number; y: number; k: number; px: number } {
     const f = this.frame_of(), G = this.geometry();
-    return { x: f.x0 + G.ox[line] * f.k, y: f.y0, k: f.k, px: this.px() };
+    return { x: f.x0 + G.ox[line] * f.k, y: f.y0 + (this.stack ? line * this.pitch() : 0), k: f.k, px: this.px() };
   }
   private path(g: TexGlyph): Path2D {
     let p = this.paths.get(g);
@@ -586,7 +652,7 @@ export class Steps extends Thing implements Block {
     const piece = (t: Token, ox: number, extra: Partial<Piece> = {}): Piece => ({ glyphs: t.glyphs, dx: ox, dy: 0, scale: 1, cx: center(t), cy: (t.box[1] + t.box[3]) / 2, w: 1, color: t.glyphs[0].fill ?? noun_color(t, B.tokens.includes(t) && !A.tokens.includes(t) ? k + 1 : k), liquid: false, ...extra });
     if (u < 1e-6 || k >= n - 1) return A.tokens.map((t) => piece(t, G.ox[k]));
     const M = this.moves[k], oa = G.ox[k], ob = G.ox[k + 1];
-    if (M.jump) return [...A.tokens.map((t) => piece(t, oa, { w: 1 - smooth(0.15, 0.6, u) })), ...B.tokens.map((t) => piece(t, ob, { w: smooth(0.4, 0.85, u) }))];
+    if (M.jump) return [...A.tokens.map((t) => piece(t, oa, { w: 1 - smooth(0.15, 0.6, u), src: 'A', role: 'cancel' })), ...B.tokens.map((t) => piece(t, ob, { w: smooth(0.4, 0.85, u), src: 'B', role: 'appear', ty: 1 }))];
     const out: Piece[] = [];
     const lineh = G.asc + G.desc;
     // where a group that cancels gathers: the middle of its ink
@@ -605,27 +671,27 @@ export class Steps extends Thing implements Block {
         const dy = crosses ? -Math.sin(Math.PI * e) * lineh * 0.75 : 0;
         const changes = b.key !== t.key;
         const dyb = ((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2;
-        if (!changes) out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e }));
+        if (!changes) out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, src: 'A', role: f.role, ty: e }));
         else {
           // it changes on the way (+ → −): the old shape gives way to the new one as it arrives
           const s = smooth(0.45, 0.8, u);
-          out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, w: 1 - s }));
-          out.push(piece(b, lerp(x0, x1, e) - center(b), { dy: dy - dyb * (1 - e), w: s }));
+          out.push(piece(t, lerp(x0, x1, e) - center(t), { dy: dy + dyb * e, w: 1 - s, src: 'A', role: f.role, ty: e }));
+          out.push(piece(b, lerp(x0, x1, e) - center(b), { dy: dy - dyb * (1 - e), w: s, src: 'B', role: f.role, ty: e }));
         }
       } else if (f.role === 'merge') {
         // what flows into a new token travels to it, shrinking, and is gone as it arrives
         const b = B.tokens[f.to], e = ease(smooth(0, 0.55, u));
         const x1 = ob + center(b);
-        out.push(piece(t, lerp(oa + center(t), x1, e) - center(t), { dy: (((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2) * e, scale: 1 - 0.25 * e, w: 1 - smooth(0.4, 0.66, u), liquid: true }));
+        out.push(piece(t, lerp(oa + center(t), x1, e) - center(t), { dy: (((b.box[1] + b.box[3]) - (t.box[1] + t.box[3])) / 2) * e, scale: 1 - 0.25 * e, w: 1 - smooth(0.4, 0.66, u), liquid: true, src: 'A', role: 'merge', ty: ease(smooth(0.05, 0.95, u)) }));
       } else {
         const c = gather.get(i) ?? center(t), e = ease(smooth(0, 0.55, u));
-        out.push(piece(t, oa + lerp(center(t), c, e) - center(t), { scale: 1 - 0.4 * e, w: 1 - smooth(0.3, 0.62, u), liquid: true }));
+        out.push(piece(t, oa + lerp(center(t), c, e) - center(t), { scale: 1 - 0.4 * e, w: 1 - smooth(0.3, 0.62, u), liquid: true, src: 'A', role: 'cancel' }));
       }
     });
     B.tokens.forEach((t, j) => {
       const r = M.to[j].role;
-      if (r === 'merge') out.push(piece(t, ob, { w: smooth(0.45, 0.76, u), scale: lerp(0.8, 1, smooth(0.45, 0.95, u)), liquid: true }));
-      else if (r === 'appear') out.push(piece(t, ob, { w: smooth(0.35, 0.8, u), scale: lerp(0.85, 1, smooth(0.35, 1, u)) }));
+      if (r === 'merge') out.push(piece(t, ob, { w: smooth(0.45, 0.76, u), scale: lerp(0.8, 1, smooth(0.45, 0.95, u)), liquid: true, src: 'B', role: 'merge', ty: 1 }));
+      else if (r === 'appear') out.push(piece(t, ob, { w: smooth(0.35, 0.8, u), scale: lerp(0.85, 1, smooth(0.35, 1, u)), src: 'B', role: 'appear', ty: 1 }));
     });
     return out;
   }
@@ -658,7 +724,64 @@ export class Steps extends Thing implements Block {
     }
     g.restore();
   }
+  /** Written lines kept: the lines so far at rest, the next one coming down out of the last, each with its reason. */
+  private draw_stack(env: DrawEnv): void {
+    const g = env.g as CanvasRenderingContext2D, v = this.at.value, n = this.lines.length;
+    const { x0, y0, k } = this.frame_of(), color = this.text_color, P = this.pitch(), G = this.geometry();
+    const kk = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = v - kk, live = u > 1e-6 && kk < n - 1;
+    // (the second ink: a line written before the one you are reading)
+    const BACK = 0.58;
+    for (let j = 0; j <= kk; j++) {
+      const a = j < kk ? BACK : live ? 1 - (1 - BACK) * smooth(0.1, 0.7, u) : 1;
+      for (const only of ['paths', 'rules'] as const) for (const p of this.pieces(j)) this.draw_piece(g, p, x0, y0 + j * P, k, color, a, 0, only);
+    }
+    if (live) {
+      // the next line comes down out of this one: copies of what stays and what combines travel down; what cancels stays
+      // behind (it is still in the line above); what is new appears in place
+      const jump = this.moves[kk].jump, pT = P / k;
+      // (a copy shows only as it leaves: on top of its original it would only thicken the ink)
+      const leave = smooth(0.02, 0.3, u);
+      const ps = this.pieces(v).filter((p) => !(p.src === 'A' && (jump || p.role === 'cancel'))).map((p) => ({ ...p, dy: p.dy + pT * (p.ty ?? 0), w: p.src === 'A' ? p.w * leave : p.w }));
+      const drop = Math.sin(Math.PI * smooth(0.3, 0.75, u)), liquid = ps.filter((p) => p.liquid && p.w > 0.05);
+      if (liquid.length > 1 && drop > 0.05) this.draw_liquid(g, liquid, x0, y0 + kk * P, k, color, drop, env.dpr);
+      for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0 + kk * P, k, color, p.w);
+    }
+    // a line that does not follow from the one before: a hollow ring before it, while it is the last line, at rest
+    if (!live && this.doubtful.includes(kk + 1)) {
+      const T = this.typeset[kk], left = x0 + (G.ox[kk] + T.view[0]) * k;
+      g.save();
+      g.strokeStyle = env.look.palette.ink2;
+      g.lineWidth = 1.6;
+      g.beginPath();
+      g.arc(left - this.px() * 0.55, y0 + kk * P - this.px() * 0.3, this.px() * 0.16, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+    if (this.why_side === 'none') return;
+    const f = this.why_font(), right = x0 + G.W * k + this.px() * 0.9;
+    const say = (j: number, a: number) => {
+      const s = this.lines[j]?.why;
+      if (!s || a < 0.01) return;
+      g.save();
+      g.globalAlpha = a;
+      g.font = font_css(f);
+      g.fillStyle = env.look.palette.ink2;
+      if (this.why_side === 'right') {
+        // beside its line, on the line's middle
+        g.textBaseline = 'middle';
+        g.fillText(s, right, y0 + j * P - this.px() * 0.28);
+      } else {
+        g.textBaseline = 'top';
+        const top = y0 + j * P + G.desc * k + this.px() * 0.12;
+        break_lines(s, f, this.why_w).forEach((l, i) => g.fillText(l.spans.map((x) => x.s).join(''), this.why_x + (this.why_w - l.width) / 2, top + i * f.size * look().type.caption.line));
+      }
+      g.restore();
+    };
+    for (let j = 1; j <= kk; j++) say(j, j < kk ? 0.85 : 1);
+    if (live) say(kk + 1, smooth(0.5, 1, u));
+  }
   draw(env: DrawEnv): void {
+    if (this.stack) return this.draw_stack(env);
     const g = env.g as CanvasRenderingContext2D, v = this.at.value;
     const { x0, y0, k } = this.frame_of(), color = this.text_color;
     const ps = this.pieces(v), n = this.lines.length, kk = Math.max(0, Math.min(n - 1, Math.floor(v + 1e-9))), u = v - kk;
@@ -778,11 +901,11 @@ function box1(a: Float32Array, o: number, s: number, n: number, r: number, tmp: 
  * A figure that walks through a derivation: each line held, then the change to the next (one beat of the script per
  * line, so a voice or a click can step through them). `per_step` is the change's length, `hold` the rest on each line.
  */
-export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean; nouns?: Record<string, string> } = {}): Figure & { derivation: Steps } {
+export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean; nouns?: Record<string, string>; stack?: boolean } = {}): Figure & { derivation: Steps } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { derivation: Steps };
   if (o.paper === false) fig.paper = 'clear';
   // (on a stage - paper behind it - it fills the stage; in a text it is the size of a displayed formula)
-  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false, nouns: o.nouns });
+  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false, nouns: o.nouns, stack: o.stack });
   fig.derivation = st;
   // (in a text it is part of the text: no margin of its own)
   fig.layout(column([st]), o.paper === false ? { pad: 2 } : {});

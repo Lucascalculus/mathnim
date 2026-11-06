@@ -150,14 +150,67 @@ const DERIVATIONS: Record<string, string> = {
   bayes: 'P(A \\mid B) = \\frac{P(B \\mid A)P(A)}{P(B)}\nP(A \\mid B) = \\frac{0.9 \\times 0.01}{0.05}\nP(A \\mid B) = 0.18',
   zh: '\\text{利润} = \\text{收入} - \\text{成本}\n\\text{利润} = 500 - 320 % 代入\n\\text{利润} = 180',
 };
-function figure_of(src: string, w = 560) {
-  const st = new Steps(src, { id: 's', why: false });
+function figure_of(src: string, w = 560, stack = false) {
+  const st = new Steps(src, { id: 's', why: false, stack });
   const fig = new Figure({ lang: 'en' });
   fig.layout(column([st]));
   fig.build();
   const size = fig.layout_for(w, undefined);
   return { st, fig, W: w, H: Math.ceil(size.h) };
 }
+describe('Steps: written lines kept (stack)', () => {
+  it('at rest on line k, the lines before it are still there, lighter, and line k is exactly its typeset line', () => {
+    const { st, fig, W, H } = figure_of(DERIVATIONS.solve, 560, true);
+    const k = 2;
+    st.at.set(k, true);
+    const a = createCanvas(W * 2, H * 2);
+    fig.draw(a.getContext('2d') as never, 2, { force: true });
+    const da = a.getContext('2d').getImageData(0, 0, W * 2, H * 2).data;
+    // line k alone, drawn by draw_tex where Steps says it is
+    const b = createCanvas(W * 2, H * 2), gb = b.getContext('2d') as unknown as CanvasRenderingContext2D;
+    st.opacity.set(0); fig.draw(gb, 2, { force: true }); st.opacity.set(1);
+    gb.setTransform(2, 0, 0, 2, 0, 0);
+    const o = st.origin(k), T = typeset_line(st.lines[k].tex);
+    draw_tex(gb, st.lines[k].tex, o.x + T.view[0] * o.k, o.y, o.px, st.text_color);
+    const db = gb.getImageData(0, 0, W * 2, H * 2).data;
+    // compare the band of line k: the same pixels
+    const P = st.origin(1).y - st.origin(0).y, top = Math.floor((o.y - P * 0.5) * 2), bot = Math.ceil((o.y + P * 0.45) * 2);
+    // (each token is placed with its own transform: a handful of edge pixels round differently, by little)
+    let visible = 0, worst = 0;
+    for (let y = Math.max(0, top); y < Math.min(H * 2, bot); y++) for (let x = 0; x < W * 2; x++) { const i = (y * W * 2 + x) * 4, d = Math.abs(da[i] - db[i]); if (d > 9) visible++; worst = Math.max(worst, d); }
+    expect(visible).toBeLessThanOrEqual(4);
+    expect(worst).toBeLessThanOrEqual(30);
+    // the first line is still written, in the second ink (lighter than line k, but there)
+    const band = (yc: number) => { let s = 0, m = 0; for (let y = Math.floor((yc - P * 0.4) * 2); y < (yc + P * 0.3) * 2; y++) for (let x = 0; x < W * 2; x++) { const i = (y * W * 2 + x) * 4, v = 255 - da[i]; s += v; m = Math.max(m, v); } return { s, m }; };
+    const first = band(st.origin(0).y), last = band(o.y);
+    expect(first.s).toBeGreaterThan(0);
+    expect(first.m).toBeLessThan(last.m);
+  });
+  it('the block is as tall as all its lines, and each line is one pitch under the one before', () => {
+    const { st } = figure_of(DERIVATIONS.solve, 560, true);
+    const P = st.origin(1).y - st.origin(0).y;
+    expect(P).toBeGreaterThan(10);
+    expect(st.origin(3).y - st.origin(2).y).toBeCloseTo(P, 6);
+    expect(st.box.h).toBeGreaterThan(P * (st.lines.length - 1));
+  });
+  it('the mirror reads every line written so far, with its reason', () => {
+    const st = new Steps(DERIVATIONS.solve, { id: 'm' });
+    const fig = new Figure({ lang: 'en' }); fig.layout(column([st])); fig.build(); fig.layout_for(560, undefined);
+    st.at.set(1, true);
+    const texts = st.parts_of!('en').map((p) => p.text);
+    expect(texts).toContain('2x + 3 = 11');
+    expect(texts).toContain('2x + 3 - 3 = 11 - 3');
+    expect(texts).toContain('subtract 3');
+  });
+  it('reasons sit beside their lines when there is room, under them when there is not', () => {
+    const wide = new Steps(DERIVATIONS.solve, { id: 'w' }), narrow = new Steps(DERIVATIONS.solve, { id: 'n' });
+    for (const [st, w] of [[wide, 720], [narrow, 220]] as const) { const f = new Figure({ lang: 'en' }); f.layout(column([st])); f.build(); f.layout_for(w, undefined); }
+    const pw = wide.origin(1).y - wide.origin(0).y, pn = narrow.origin(1).y - narrow.origin(0).y;
+    // (under: the pitch holds a reason's line too, relative to the formula size)
+    expect(pn / narrow.origin(0).px).toBeGreaterThan(pw / wide.origin(0).px);
+  });
+});
+
 describe('Steps: the picture', () => {
   it('at rest, every line of every derivation is exactly the typeset line (pixel for pixel)', () => {
     let lines = 0;
@@ -308,7 +361,7 @@ describe('Steps: the picture', () => {
     expect(ink([2])).toBeGreaterThan(ink([]));
   });
   it('the mirror reads the line at rest as TeX, and its reason', () => {
-    const st = new Steps(DERIVATIONS.solve, { id: 'm' });
+    const st = new Steps(DERIVATIONS.solve, { id: 'm', stack: false });
     const fig = new Figure({ lang: 'en' }); fig.layout(column([st])); fig.build(); fig.layout_for(560, undefined);
     st.at.set(1, true);
     const parts = st.parts_of!('en');
