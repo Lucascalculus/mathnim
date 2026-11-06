@@ -13,6 +13,7 @@ learner genuinely understand (讲明白)?
 | do anything | this file, then `docs/TASTE.md` (how Mathium should feel) |
 | make or change a course or lesson | `docs/COURSE-PLAYBOOK.md`, then `docs/CAPABILITIES.md` (everything the libraries offer) |
 | build an interactive world | `docs/lessons/llm-finetuning/INTERACTION-BAR.md`, `packages/manim-web/docs/EXTENSIONS.md` |
+| make anything the learner works with (an instrument, a figure, a widget) | `docs/REPORTS.md`: how it tells the lesson what the learner did |
 | write a visual | `packages/engine/README.md` (new visuals are engine figures), `packages/visuals/README.md`, and a kit such as `docs/lessons/mpc/KIT.md` |
 | change the site (pages, margin, settings) | `docs/SITE-STRUCTURE.md`, `docs/ARCHITECTURE.md` |
 | set up, add a lesson, conventions | `docs/DEVELOPMENT.md` |

@@ -162,6 +162,14 @@ export class Figure {
   emit(type: string, data: Record<string, unknown> = {}): void {
     for (const f of this.listeners) f(type, data);
   }
+  /**
+   * Tell the lesson what the learner did with the figure (Mathium's reports, docs/REPORTS.md): one attempt at one
+   * thing ({ kind: 'answer', item, correct }), a finished task ({ kind: 'done', score }), or what it shows now in a
+   * sentence ({ kind: 'state', text }). The page counts answers as practice and gives the state to the tutor.
+   */
+  tell(r: { kind: 'answer'; item: string; correct: boolean; response?: string } | { kind: 'done'; score?: number } | { kind: 'state'; text: string }): void {
+    this.emit('report', r);
+  }
 
   // ---------------------------------------------------------------- building
   /** Register the things and compile the script (once). */

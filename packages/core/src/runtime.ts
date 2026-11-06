@@ -9,6 +9,7 @@ import { tr, type L10n, type Lang } from './content';
 import { EventLog } from './events';
 import { expected_answer, grade } from './grading';
 import { LearnerModel } from './learner/model';
+import { ReportHub } from './reports';
 import { grade_blank } from './pages';
 import {
   fill, is_text_step, type CheckpointStep, type DeriveStep, type ExploreStep, type Grade, type Lesson, type LessonContext, type Misconception, type Response,
@@ -114,6 +115,8 @@ export class LessonRuntime {
   private asked_at = 0;
   private listeners: ((e: RuntimeEvent) => void)[] = [];
   private token = 0;
+  /** What the things on the page report (instruments, figures, questions in the text): reports.ts. */
+  reports: ReportHub;
 
   constructor(lesson: Lesson, opts: RuntimeOptions) {
     this.lesson = lesson;
@@ -125,6 +128,13 @@ export class LessonRuntime {
     this.rng = mulberry(opts.seed ?? Math.floor(Math.random() * 2 ** 31));
     this.lesson_vars = lesson.params?.(this.rng) ?? {};
     this.vars = { ...this.lesson_vars };
+    this.reports = new ReportHub({
+      lesson: lesson.id, log: this.log, learner: this.learner, skills: lesson.skills.map((k) => k.id),
+      step: () => {
+        const st = this.step;
+        return st ? { id: st.id, skill: 'skill' in st ? (st.skill as string | undefined) : undefined } : undefined;
+      },
+    });
   }
 
   on(f: (e: RuntimeEvent) => void): () => void {

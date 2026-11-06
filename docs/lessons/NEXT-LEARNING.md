@@ -54,7 +54,8 @@ ones carry the mathematics:
   existing `visual` block is a manim-web scene (an explanation that plays, then handles), the wrong shape for
   instruments with chips, text fields and tables. A `frame` can use the site's own type and the Next-UI
   materials. Authors need no build step.
-- **R2 the figure speaks back.** A frame can report an event (`done`, an answer, a state) to the page, so the
+- **R2 the figure speaks back** (built 2026-11-06, for every kind of source, not only frames: `docs/REPORTS.md`).
+  A frame can report an event (`done`, an answer, a state) to the page, so the
   lesson can count it as practice and the margin tutor can be asked about "this state". (Second step.)
 - **R3 a small LP engine** (dense two-phase simplex, in plain JS, shared by instruments): solves the learner's
   model, finds *witness* plans where it disagrees with the reference, and returns sensitivity ranges. No
