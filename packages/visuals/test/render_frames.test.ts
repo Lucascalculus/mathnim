@@ -53,6 +53,7 @@ function play(name: string, params: Record<string, unknown> = {}, k = 3) {
 describe('the renderer draws only what changed', () => {
   const cases: [string, Record<string, unknown>][] = [
     ['substitute_point', {}],
+    ['tangent_develop', {}],
     ['formula_steps', {}],
     ['determinant_area', {}],
     ['mpc_qp_plane', {}],

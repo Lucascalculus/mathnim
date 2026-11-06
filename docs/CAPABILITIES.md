@@ -225,7 +225,14 @@ export type Block =
 
 ## Visuals
 
-69 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+70 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+
+### calculus
+
+- **`tangent_develop`** *(engine)*: The tangent as the limit of secants: Q comes in to P by halving h, each secant passed stays in transparent ink, and the tangent develops where they all agree, then turns solid; the readout goes from Δy/Δx to f′(x₀).
+  - params: `fn: text (max 120) ="0.15x^3 - 0.9x + 0.6" - the function of x in TeX, without y = (e.g. x^2, \sin x, 0.15x^3 - 0.9x + 0.6)`; `x0: number in [-6, 6] =-2 - where the tangent is taken`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: derivative, tangent, secant, limit, slope, calculus
+  - used in: _(not yet used by a lesson)_
 
 ### econ
 

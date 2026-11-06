@@ -3,7 +3,7 @@
 // move); only the moving ones are drawn each frame. When nothing changed, nothing is drawn at all.
 import { look } from '@mathnim/look';
 import type { Box } from './geom';
-import { now_version, track, type Readable } from './state';
+import { Derived, now_version, track, type Readable } from './state';
 import type { DrawEnv, Thing } from './thing';
 
 type Canvas = HTMLCanvasElement | OffscreenCanvas;
@@ -27,7 +27,9 @@ interface Tracked {
   /** Frames since it last changed (a thing that changed in the last few frames is "live"). */
   quiet: number;
 }
-const sig_of = (deps: Readable<unknown>[]): number => deps.reduce((a, d) => Math.max(a, d.version), 0);
+// (a derived value's version moves only when it is computed again: one whose inputs changed is brought up to date
+// first, or a thing that reads only it - a readout of h, where h is derived from n - would look unchanged)
+const sig_of = (deps: Readable<unknown>[]): number => deps.reduce((a, d) => Math.max(a, d instanceof Derived ? (d.peek(), d.version) : d.version), 0);
 
 export interface FrameStats {
   /** Frames drawn, frames skipped because nothing changed, and things drawn in total. */

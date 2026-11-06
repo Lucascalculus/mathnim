@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 describe('engine figures', () => {
-  const names = ['mpc_qp_plane', 'mpc_shift_tail', 'determinant_area', 'training_curves', 'formula_steps', 'substitute_point'];
+  const names = ['mpc_qp_plane', 'mpc_shift_tail', 'determinant_area', 'training_curves', 'formula_steps', 'substitute_point', 'tangent_develop'];
   it('are registered as engine visuals', () => {
     for (const n of names) expect(get_visual(n)?.engine, n).toBe(true);
     expect(list_visuals().filter((v) => v.engine).map((v) => v.name).sort()).toEqual([...names].sort());

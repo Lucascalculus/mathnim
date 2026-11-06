@@ -22,4 +22,5 @@ export * from './sim';
 export * from './vectors';
 export * from './version';
 export * from './steps';
+export * from './cases';
 export * from './steps_check';

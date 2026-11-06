@@ -12,11 +12,12 @@ beforeAll(async () => {
 });
 
 /** A figure with one mark in a plain plot, drawn at 400 × 300; returns the pixels and the plot (for coordinates). */
-function draw_one(make: (fig: Figure) => { add: (P: ReturnType<Figure['plot']>) => void }, k: number | null) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function draw_one(make: (fig: Figure) => { add: (P: any, k: any) => void }, k: number | null) {
   const fig = new Figure();
   const P = fig.plot({ id: 'p', x: [0, 10], y: [0, 10], aspect: 'equal', axes: 'none', grid: false });
   const kp = fig.param('k', k ?? 1, { range: [0, 1] });
-  (make(fig) as unknown as { add: (P: unknown, k: unknown) => void }).add(P, k === null ? undefined : kp);
+  make(fig).add(P, k === null ? undefined : kp);
   fig.layout(column([P]));
   fig.build();
   fig.layout_for(400, 300);

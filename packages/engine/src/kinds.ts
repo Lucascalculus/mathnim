@@ -712,7 +712,7 @@ export abstract class Mark extends Thing {
 export class Path extends Mark {
   kind = 'path';
   private px: XY[][] = [];
-  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; heads?: Val<number[]>; style?: Style } = {}) {
+  constructor(public pts: Val<XY[] | XY[][]>, o: { id?: string; role?: string; says?: L10n; z?: number; closed?: boolean; width?: number; alpha?: number; upto?: Val<number>; heads?: Val<number[]>; style?: Style; certain?: Val<number> } = {}) {
     super(o);
     this.o = o;
   }
