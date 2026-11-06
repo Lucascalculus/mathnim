@@ -25,6 +25,7 @@
 <div id="tbl"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the probabilities and what they give (sum, mean, variance, std dev).
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var mode = P.mode || 'free', W = 640, H = 300, L = 46, R = 16, T = 20, B = 40, svg = document.getElementById('svg');
@@ -75,6 +76,11 @@
       document.getElementById('tbl').innerHTML = '<table>' + tb + '<tr><th>' + tx('Total', '合计') + '</th><th>' + fmt(s, 3) + '</th><th>' + fmt(mu, 3) + '</th><th>' + fmt(va, 3) + '</th></tr></table>';
     }
     K.report();
+    var fx = 'f(x)' + tx(' for x = ', '，x = ') + xs.map(function (x) { return fmt(x, 0); }).join(', ') + tx(': ', '：') + f.map(function (v) { return fmt(v, 3); }).join(', ');
+    var tail = tx((mode === 'binomial' ? 'Mean ' : 'mean ') + fmt(mu, 3) + ', variance ' + fmt(va, 3) + ', std dev ' + fmt(sd, 3), '期望 ' + fmt(mu, 3) + '，方差 ' + fmt(va, 3) + '，标准差 ' + fmt(sd, 3));
+    K.state(mode === 'binomial'
+      ? tx('Binomial, n = ' + n + ', p = ' + fmt(pp, 2) + '. ', '二项分布，n = ' + n + '，p = ' + fmt(pp, 2) + '。') + fx + tx('. ', '。') + tail + (P.atleast ? tx(', P(at least one) = ', '，P(至少一次) = ') + fmt(1 - f[0], 4) : '') + tx('.', '。')
+      : fx + tx('. Sum ', '。总和 ') + fmt(s, 3) + (Math.abs(s - 1) < 1e-3 ? tx(' (adds to 1)', '（正好为 1）') : tx(' (does not add to 1)', '（不等于 1）')) + tx('; ', '；') + tail + tx('.', '。'));
   }
   svg.addEventListener('pointermove', function (e) { if (drag == null) return; var q = K.pt(svg, e), v = (H - B - q.y) / (H - T - B) * ymax; f[drag] = Math.min(ymax * 1.4, Math.max(0, Math.round(v * 100) / 100)); draw(); });
   svg.addEventListener('pointerup', function () { drag = null; }); svg.addEventListener('pointercancel', function () { drag = null; });

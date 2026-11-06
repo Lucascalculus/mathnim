@@ -16,6 +16,7 @@
 <div id="root"></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): each set's data as it now stands and the statistics shown.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var lo = P.lo, hi = P.hi, snap = P.snap || 1, unit = P.unit || '', W = 640, H = P.height || 118, L = 22, R = 22;
@@ -69,7 +70,19 @@
     S.stats.innerHTML = cell(tx('Mean', '平均数'), u + fmt(st.mean, 2), show.indexOf('mean') >= 0) + cell(tx('Median', '中位数'), u + fmt(st.median, 2), show.indexOf('median') >= 0) + (st.mode != null ? cell(tx('Mode', '众数'), u + fmt(st.mode, 2)) : '') +
       (show.indexOf('quartiles') >= 0 ? cell('Q1', u + fmt(st.q1, 2), true) + cell('Q3', u + fmt(st.q3, 2), true) + cell('IQR', u + fmt(st.q3 - st.q1, 2), true) : '') + cell(tx('Range', '极差'), u + fmt(st.max - st.min, 2)) + (show.indexOf('sd') >= 0 ? cell(tx('Std dev s', '标准差 s'), u + fmt(st.sd, 2), true) : '');
   }
-  function render() { sets.forEach(draw); K.report(); }
+  function render() { sets.forEach(draw); K.report(); tell(); }
+  // the data as dragged and the statistics on show, for the tutor
+  function tell() {
+    var u = unit;
+    K.state(sets.map(function (S) {
+      var st = stats(S.data), o = [tx('mean ', '平均数 ') + u + fmt(st.mean, 2), tx('median ', '中位数 ') + u + fmt(st.median, 2)];
+      if (st.mode != null) o.push(tx('mode ', '众数 ') + u + fmt(st.mode, 2));
+      if (show.indexOf('quartiles') >= 0) o.push('Q1 ' + u + fmt(st.q1, 2), 'Q3 ' + u + fmt(st.q3, 2), 'IQR ' + u + fmt(st.q3 - st.q1, 2));
+      o.push(tx('range ', '极差 ') + u + fmt(st.max - st.min, 2));
+      if (show.indexOf('sd') >= 0) o.push(tx('std dev s ', '标准差 s ') + u + fmt(st.sd, 2));
+      return S.name + tx(': ', '：') + st.sorted.map(function (v) { return fmt(v, 2); }).join(', ') + tx('; ', '；') + o.join(tx(', ', '，'));
+    }).join(tx('. ', '。')) + tx('.', '。'));
+  }
   render(); K.ready();
 })();
 </script>

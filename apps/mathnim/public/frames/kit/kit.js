@@ -60,11 +60,16 @@
       if (s && s !== state_last) { state_last = s; post({ mn: 'state', text: s }); }
     }, 350);
   }
+  /** A lesson's text cut short for a state: the **bold** mark dropped, at most n characters (a long chip label in a list). */
+  function clip(s, n) {
+    s = t(s).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); n = n || 48;
+    return s.length > n ? s.slice(0, n - 1).replace(/\s+$/, '') + '…' : s;
+  }
   /** Pointer position in the SVG's own coordinates. */
   function pt(svg, e) {
     var p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
     var m = svg.getScreenCTM().inverse(), r = p.matrixTransform(m);
     return { x: r.x, y: r.y };
   }
-  root.Kit = { lang: lang, P: P, t: t, tx: tx, el: el, h: h, fmt: fmt, pt: pt, ready: ready, report: report, answer: answer, done: done, state: state };
+  root.Kit = { lang: lang, P: P, t: t, tx: tx, el: el, h: h, fmt: fmt, pt: pt, ready: ready, report: report, answer: answer, done: done, state: state, clip: clip };
 })(window);

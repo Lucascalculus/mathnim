@@ -29,6 +29,8 @@
 <div class="ctl" id="ctl"></div>
 <script src="../kit/lp.js"></script><script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): a state only (nothing here is judged): the number touched, where it has been moved, and what the best plan
+// and value become; before a touch, the best plan of the problem as given.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, el = K.el, h = K.h, fmt = K.fmt;
   var money = P.money || '', sense = P.sense || 'max', nv = P.obj.length;
@@ -161,10 +163,14 @@
     slider.oninput = function () { val = +slider.value; typed.value = val; draw(); };
     typed.oninput = function () { if (typed.value === '' || isNaN(+typed.value)) return; val = +typed.value; slider.value = Math.min(hi, Math.max(lo, val)); draw(); };
   }
+  function plan_of(x) { return '(' + x.map(function (v, i) { return names[i] + ' = ' + fmt(v, 2); }).join(', ') + ')'; }
   function draw() {
     var m = model_with(), s = LP.solve(m);
     if (plane) draw_plane(m, sol0);
-    if (!out) return;
+    if (!out) {
+      K.state(tx('No number touched. ', '还没点报告里的数。') + (sol0.status === 'optimal' ? tx('Best plan ', '最优计划 ') + plan_of(sol0.x) + tx(', best value ', '，最优值 ') + money + fmt(sol0.obj, 3) + tx('.', '。') : ''));
+      return;
+    }
     var isvar = sel.kind === 'var', cur = isvar ? base.c[sel.i] : base.rows[sel.i].b, e = isvar ? sens.vars[sel.i] : sens.rows[sel.i];
     var inside = val >= cur - (e.dec >= INF ? Infinity : e.dec) - 1e-9 && val <= cur + (e.inc >= INF ? Infinity : e.inc) + 1e-9;
     var html = '<div><span class="kicker">' + (isvar ? tx('Objective coefficient', '目标系数') : tx('Right-hand side', '右端')) + '</span> <b class="num" style="font-size:18px">' + fmt(val, 4) + '</b> <span class="pill ' + (inside ? 'ok' : 'mid') + '">' + (inside ? tx('inside the stretch', '在允许范围内') : tx('past the stretch', '超出允许范围')) + '</span></div>';
@@ -180,6 +186,15 @@
       html += '</div>';
     }
     out.innerHTML = html; K.report();
+    // the touched number, where it is now, and what the best plan and value became
+    var st = (isvar ? tx('Objective coefficient of ' + names[sel.i], names[sel.i] + ' 的目标系数') : tx('Right-hand side of ' + base.rows[sel.i].label, base.rows[sel.i].label + '的右端')) +
+      tx(': ', '：') + fmt(val, 4) + tx(' (was ', '（原来 ') + fmt(cur, 4) + tx(', ', '，') + (inside ? tx('inside the allowable range', '在允许范围内') : tx('past the allowable range', '超出允许范围')) + tx('). ', '）。');
+    if (s.status !== 'optimal') st += s.status === 'infeasible' ? tx('No plan keeps every limit.', '没有任何计划能守住所有限制。') : tx('No best value.', '没有最优值。');
+    else {
+      var same_plan = s.x.every(function (v, i) { return Math.abs(v - sol0.x[i]) < 1e-6; });
+      st += tx('Best value ', '最优值 ') + money + fmt(s.obj, 3) + tx(' (was ', '（原来 ') + money + fmt(sol0.obj, 3) + tx('); best plan ', '）；最优计划 ') + plan_of(s.x) + (same_plan ? tx(', the same plan', '，计划没变') : tx(', a different plan', '，换了计划')) + tx('.', '。');
+    }
+    K.state(st);
   }
   build_table(); init_ctl(); draw();
   K.ready();

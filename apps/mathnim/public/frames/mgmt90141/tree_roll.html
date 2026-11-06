@@ -27,9 +27,13 @@
 <div class="bar"><button class="verb" id="chk" type="button"></button><span id="res"></span></div>
 <script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): on Check, each node's value and each square's branch that is new since it was last checked is an answer
+// (items 'n1', 'n1:branch', ... in the order the tree is drawn); done when every node is right, scored by the items right at
+// their first check; the state says what is filled in and what the last check found.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, fmt = K.fmt;
   var sense = P.sense || 'max', unit = P.unit || '', tol = P.tol != null ? P.tol : 0.006;
+  var first = {}, told = {}, finished = false, last = '';   // first[item]: right at its first check; told[item]: the response last reported
   var better = function (a, b) { return sense === 'max' ? a > b : a < b; };
   var nodes = [];
   function truth(n) {
@@ -40,23 +44,25 @@
     return n.v;
   }
   truth(P.tree);
-  function build(n, parent, edge) {
+  function build(n, parent, edge, path) {
     var li = h('li', 'nd' + (n.k === 'leaf' ? ' leaf' : ''), '', parent), hd = h('div', 'head', '', li);
     if (edge) h('span', 'edge', edge, hd);
-    var rec = { n: n, inp: null, brs: [], sel: null };
+    var rec = { n: n, inp: null, brs: [], sel: null, name: t(n.l) || path || '#' + (nodes.length + 1) };
     if (n.k === 'leaf') h('span', 'lab', unit + fmt(n.value, 2), hd);
     else {
       h('span', 'sym' + (n.k === 'chance' ? ' ch' : ''), '', hd); h('span', 'lab', t(n.l), hd);
       rec.inp = h('input', 'v', null, hd); rec.inp.type = 'text'; rec.inp.setAttribute('inputmode', 'decimal'); rec.inp.placeholder = 'EV';
       rec.inp.setAttribute('aria-label', 'EV ' + t(n.l));
-      nodes.push(rec);
+      rec.inp.addEventListener('input', tell);
+      nodes.push(rec); rec.id = 'n' + nodes.length;
       var ul = h('ul', 'tr', '', li);
       n.c.forEach(function (c, i) {
         var e = (c.e ? t(c.e) : '') + (n.k === 'chance' && c.p != null ? ' (' + fmt(c.p, 3) + ')' : '');
-        var sub = build(c, ul, n.k === 'decision' ? '' : e);
+        var pre = t(n.l) || path, step = t(c.e) || '#' + (i + 1);
+        var sub = build(c, ul, n.k === 'decision' ? '' : e, pre ? pre + ' › ' + step : step);
         if (n.k === 'decision') {
           var bt = h('button', 'br', e || ('#' + (i + 1)), sub.head); bt.type = 'button'; sub.head.insertBefore(bt, sub.head.firstChild);
-          bt.onclick = function () { rec.sel = i; rec.brs.forEach(function (b2, j) { b2.setAttribute('aria-pressed', j === i); b2.classList.remove('ok', 'no'); }); };
+          bt.onclick = function () { rec.sel = i; rec.brs.forEach(function (b2, j) { b2.setAttribute('aria-pressed', j === i); b2.classList.remove('ok', 'no'); }); tell(); };
           rec.brs.push(bt);
         }
       });
@@ -64,7 +70,7 @@
     return { head: hd, rec: rec };
   }
   var root = h('ul', 'tr root', '', document.getElementById('root'));
-  build(P.tree, root, '');
+  build(P.tree, root, '', '');
   document.getElementById('chk').textContent = tx('Check', '检查');
   document.getElementById('chk').onclick = function () {
     var bad = 0, blank = 0, good = 0;
@@ -72,16 +78,39 @@
       var raw = r.inp.value.trim().replace(/,/g, '').replace('−', '-'), v = parseFloat(raw);
       r.inp.classList.remove('ok', 'no');
       if (raw === '' || isNaN(v)) blank++;
-      else if (Math.abs(v - r.n.v) <= Math.max(tol, Math.abs(r.n.v) * 0.002)) { r.inp.classList.add('ok'); good++; } else { r.inp.classList.add('no'); bad++; }
+      else if (Math.abs(v - r.n.v) <= Math.max(tol, Math.abs(r.n.v) * 0.002)) { r.inp.classList.add('ok'); good++; tried(r.id, true, raw); } else { r.inp.classList.add('no'); bad++; tried(r.id, false, raw); }
       if (r.n.k === 'decision') {
         if (r.sel == null) blank++;
-        else r.brs.forEach(function (b, j) { b.classList.remove('ok', 'no'); if (j === r.sel) { var okb = j === r.n.best; b.classList.add(okb ? 'ok' : 'no'); if (okb) good++; else bad++; } });
+        else r.brs.forEach(function (b, j) { b.classList.remove('ok', 'no'); if (j === r.sel) { var okb = j === r.n.best; b.classList.add(okb ? 'ok' : 'no'); if (okb) good++; else bad++; tried(r.id + ':branch', okb, b.textContent); } });
       }
     });
+    last = !bad && !blank ? tx('every node is right', '每个节点都对') : tx(good + ' right, ' + bad + ' wrong, ' + blank + ' to do', '对 ' + good + '，错 ' + bad + '，待填 ' + blank);
+    if (!bad && !blank && !finished) {
+      finished = true;
+      var items = 0, firsts = 0;
+      nodes.forEach(function (r) { items += r.n.k === 'decision' ? 2 : 1; if (first[r.id]) firsts++; if (first[r.id + ':branch']) firsts++; });
+      K.done(firsts / items);
+    }
+    tell();
     document.getElementById('res').innerHTML = !bad && !blank ? '<span class="pill ok">' + tx('Every node is right', '每个节点都对') + '</span>' : '<span class="pill no">' + tx(good + ' right, ' + bad + ' wrong, ' + blank + ' to do', '对 ' + good + '，错 ' + bad + '，待填 ' + blank) + '</span>';
     K.report();
   };
-  K.ready();
+  // one attempt at an item: only a value (or branch) that differs from the one last checked
+  function tried(item, right, response) {
+    if (told[item] === response) return;
+    told[item] = response;
+    if (!(item in first)) first[item] = right;
+    K.answer(item, right, response);
+  }
+  // what is filled in and the last check, for the tutor
+  function tell() {
+    var s = nodes.map(function (r) {
+      var v = r.inp.value.trim(), b = r.n.k === 'decision' && r.sel != null ? r.brs[r.sel].textContent : '';
+      return K.clip(r.name, 40) + ' ' + (v || '—') + (b ? tx(' (takes ' + b + ')', '（选' + b + '）') : '');
+    }).join(tx('; ', '；'));
+    K.state(tx('Expected values: ', '期望值：') + s + tx('.', '。') + (last ? tx(' Last check: ', '上次检查：') + last + tx('.', '。') : ''));
+  }
+  tell(); K.ready();
 })();
 </script>
 </body></html>

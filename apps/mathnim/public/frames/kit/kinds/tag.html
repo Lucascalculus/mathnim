@@ -15,18 +15,22 @@
 </style></head><body><div id="app"></div>
 <script src="../kit.js"></script><script src="md.js"></script>
 <script>
-// TAG: read each line and say what it is. Params: cats[{id,label}], items[{text,cat,why,no}], prompt, done.
-// A miss can be tried again; a right tag locks the line and says why.
+// TAG: read each line and say what it is. Params: cats[{id,label}], items[{id,text,cat,why,no}] (id optional: the line's
+// number otherwise), prompt, done. A miss can be tried again; a right tag locks the line and says why.
+// Reports (kit.js): every tag is an answer (item: the line's id, response: the tag); done when every line is tagged, scored by
+// the lines right at the first try; the state says which lines carry which tag.
 (function () {
   'use strict';
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h, app = document.getElementById('app');
   var cats = P.cats || [], items = P.items || [], got = 0, wrong = 0;
+  var tagged = {}, first = {}, missed = null;   // tagged[k]: the right cat of line k once found; first[k]: its first tag was right
   function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
   if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
   var list = h('div', '', null, app);
   var cnt = h('div', 'sub', '', app); cnt.style.marginTop = '8px';
   var done = h('div', 'done', null, app); done.style.display = 'none';
-  items.forEach(function (it) {
+  items.forEach(function (it, k) {
+    var item = it.id || 'i' + (k + 1);
     var row = h('div', 'it', null, list);
     h('div', 'tx', esc(t(it.text)), row);
     var bt = h('div', 'bt', null, row), fb = h('div', 'fb', '', row);
@@ -35,15 +39,33 @@
       b.onclick = function () {
         if (row.classList.contains('locked')) return;
         var right = Array.isArray(it.cat) ? it.cat.indexOf(c.id) >= 0 : it.cat === c.id;
-        if (right) { b.classList.add('right'); row.classList.add('locked'); got++; fb.className = 'fb ok'; fb.innerHTML = '✓ ' + md(t(it.why || '')); }
+        if (!(k in first)) first[k] = right;
+        K.answer(item, right, t(c.label));
+        missed = right ? null : { k: k, c: c };
+        if (right) { tagged[k] = c; b.classList.add('right'); row.classList.add('locked'); got++; fb.className = 'fb ok'; fb.innerHTML = '✓ ' + md(t(it.why || '')); }
         else { wrong++; b.classList.add('wrong'); fb.className = 'fb no'; fb.innerHTML = md(t(it.no || tx('Not this one. Read the line again.', '不是这个，再读一遍这一行。'))); }
         cnt.textContent = got + ' / ' + items.length + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
         if (got === items.length && P.done) { done.style.display = ''; done.innerHTML = md(t(P.done)); }
-        K.report();
+        K.report(); tell();
+        if (right && got === items.length) K.done(items.filter(function (_, j) { return first[j]; }).length / items.length);
       };
     });
   });
+  // which lines carry which tag, for the tutor: the count, the miss just made, the lines under each tag, the lines left
+  function tell() {
+    var q = function (k) { return '“' + K.clip(items[k].text, 44) + '”'; };
+    var s = tx(got + ' of ' + items.length + ' lines tagged', '已判断 ' + got + ' / ' + items.length + ' 行') + (wrong ? tx(', ' + wrong + (wrong === 1 ? ' miss' : ' misses'), '，错 ' + wrong + ' 次') : '') + tx('. ', '。');
+    if (missed) s += tx('Just now: ' + q(missed.k) + ' is not ' + K.clip(missed.c.label, 32) + '. ', '刚才：' + q(missed.k) + '不是' + K.clip(missed.c.label, 32) + '。');
+    var by = cats.map(function (c) {
+      var ks = items.map(function (_, k) { return k; }).filter(function (k) { return tagged[k] === c; });
+      return ks.length ? K.clip(c.label, 32) + tx(': ', '：') + ks.map(q).join(tx(', ', '、')) : '';
+    }).filter(Boolean);
+    if (by.length) s += by.join(tx('; ', '；')) + tx('. ', '。');
+    var rest = items.map(function (_, k) { return k; }).filter(function (k) { return !tagged[k]; });
+    if (rest.length) s += tx('Not yet: ', '还没判断：') + rest.map(q).join(tx(', ', '、')) + tx('.', '。');
+    K.state(s);
+  }
   cnt.textContent = '0 / ' + items.length;
-  K.ready();
+  tell(); K.ready();
 })();
 </script></body></html>

@@ -28,9 +28,13 @@
 <div class="msg" id="msg"></div>
 <script src="../kit/lp.js"></script><script src="../kit/lpcheck.js"></script><script src="../kit/kit.js"></script>
 <script>
+// Reports (kit.js): every line checked against a statement is an answer (item 's1', 's2', ... for the statement, response: the
+// line; a line that cannot be read is not); done when every statement has its line, scored by the statements right at the
+// first check; the state says the statement in hand and what the last line keeps and rules out.
 (function () {
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h;
   var vars = P.vars, n = vars.length, S = P.statements, cur = 0, done = {};
+  var first = {}, finished = false, last = '';   // first[i]: statement i right at its first check; last: the verdict on screen
   var combos = []; for (var m = 0; m < (1 << n); m++) { combos.push(vars.map(function (_, i) { return (m >> (n - 1 - i)) & 1; })); }
   var chips = document.getElementById('chips'), grid = document.getElementById('grid'), msg = document.getElementById('msg'), ln = document.getElementById('ln');
   document.getElementById('go').textContent = tx('Check', '检查');
@@ -39,7 +43,7 @@
     chips.innerHTML = '';
     S.forEach(function (s, i) {
       var b = h('button', done[i] ? 'done' : '', t(s.label), chips); b.type = 'button'; b.setAttribute('aria-pressed', i === cur);
-      b.onclick = function () { cur = i; ln.value = ''; msg.innerHTML = ''; chip_row(); draw(null); };
+      b.onclick = function () { cur = i; ln.value = ''; msg.innerHTML = ''; last = ''; chip_row(); draw(null); tell(); };
     });
   }
   function want_set() { var w = {}; S[cur].allowed.forEach(function (c) { w[key(c)] = 1; }); return w; }
@@ -61,7 +65,7 @@
   }
   function check() {
     var row;
-    try { row = LPCheck.parse_row(ln.value, vars); } catch (e) { msg.innerHTML = '<span class="pill no">' + e.message + '</span>'; return; }
+    try { row = LPCheck.parse_row(ln.value, vars); } catch (e) { msg.innerHTML = '<span class="pill no">' + e.message + '</span>'; last = ln.value.trim() + tx(' cannot be read (' + e.message + ')', ' 读不懂（' + e.message + '）'); tell(); return; }
     var kept = {};
     combos.forEach(function (c) {
       var v = 0; for (var i = 0; i < n; i++) v += row.a[i] * c[i];
@@ -73,10 +77,26 @@
     if (same) { done[cur] = 1; chip_row(); msg.innerHTML = '<span class="pill ok">' + tx('Exactly the right combinations stay', '留下的正好是该留的组合') + '</span>'; }
     else msg.innerHTML = '<span class="pill no">' + tx('Not yet', '还不对') + '</span> ' + tx('Green: your line keeps it. Grey: your line removes it. Orange: kept but should be out. Red: removed but should stay.', '绿：你的这行保留它。灰：被你的这行排除。橙：保留了但该排除。红：排除了但该保留。');
     K.report();
+    var item = 's' + (cur + 1);
+    if (!(item in first)) first[item] = same;
+    K.answer(item, same, ln.value.trim());
+    var ck = function (c) { return '(' + c.join(',') + ')'; };
+    var extra = combos.filter(function (c) { return kept[key(c)] && !w[key(c)]; }).map(ck), lost = combos.filter(function (c) { return !kept[key(c)] && w[key(c)]; }).map(ck);
+    last = ln.value.trim() + tx(': ', '：') + (same ? tx('keeps exactly the right combinations', '留下的正好是该留的组合')
+      : [extra.length ? tx('keeps ' + extra.join(' ') + ', which should be out', '保留了该排除的 ' + extra.join(' ')) : '', lost.length ? tx('rules out ' + lost.join(' ') + ', which should stay', '排除了该保留的 ' + lost.join(' ')) : ''].filter(Boolean).join(tx('; ', '；')));
+    if (same && !finished && S.every(function (_, i) { return done[i]; })) { finished = true; K.done(S.filter(function (_, i) { return first['s' + (i + 1)]; }).length / S.length); }
+    tell();
+  }
+  // the statement in hand and the last line's verdict, for the tutor
+  function tell() {
+    var nd = S.filter(function (_, i) { return done[i]; }).length;
+    K.state(tx('Statement ' + (cur + 1) + ' of ' + S.length + ': “', '第 ' + (cur + 1) + ' / ' + S.length + ' 条：“') + K.clip(S[cur].label, 80) + tx('”. ', '”。') +
+      (last ? tx('Line ', '这一行 ') + last + tx('. ', '。') : tx('No line checked yet. ', '还没检查过这一条的式子。')) +
+      tx(nd + ' of ' + S.length + ' statements done (combinations are ' + vars.join(',') + ').', '已完成 ' + nd + ' / ' + S.length + ' 条（组合按 ' + vars.join(',') + ' 排列）。'));
   }
   document.getElementById('go').onclick = check;
   ln.addEventListener('keydown', function (e) { if (e.key === 'Enter') check(); });
-  chip_row(); draw(null); K.ready();
+  chip_row(); draw(null); tell(); K.ready();
 })();
 </script>
 </body></html>

@@ -8,12 +8,15 @@
 // PLACE: drag (or tap, then tap a zone) each chip into the zone it belongs to. A wrong zone sends the chip back and says why
 // not; a right one keeps it and says why. Params: zones[{id,label,hint}], cols, chips[{id,label,zone (id or [ids]),why,no}],
 // prompt, done, counted (false hides the count). Strict: nothing is ticked on its own.
+// Reports (kit.js): every drop is an answer (item: the chip's id, response: the zone); done when every chip is in, scored by
+// the chips right at the first drop; the state says what is where.
 (function () {
   'use strict';
   var K = Kit, P = K.P, t = K.t, tx = K.tx, h = K.h;
   var app = document.getElementById('app');
   var zones = P.zones || [], chips = P.chips || [];
   var placed = {}, wrong = 0, sel = null;
+  var first = {}, missed = null;   // first[id]: the chip's first drop was right; missed: the drop just made, when it was wrong
   function esc(s) { return String(s).replace(/[&<>]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]; }); }
   if (P.prompt) h('div', 'kn-prompt', esc(t(P.prompt)), app);
   var tray = h('div', 'tray', null, app);
@@ -62,10 +65,14 @@
     for (var k in zel) zel[k].classList.toggle('target', !!sel);
   }
   function ok_zone(c, z) { return Array.isArray(c.zone) ? c.zone.indexOf(z) >= 0 : c.zone === z; }
+  function zone_label(z) { var q = zones.filter(function (x) { return x.id === z; })[0]; return q ? t(q.label) : z; }
   function drop(id, z) {
     var c = chips.filter(function (x) { return x.id === id; })[0]; if (!c || placed[id]) return;
-    var e = cel[id];
-    if (ok_zone(c, z)) {
+    var e = cel[id], right = ok_zone(c, z);
+    if (!(id in first)) first[id] = right;
+    K.answer(id, right, zone_label(z));
+    missed = right ? null : { c: c, z: z };
+    if (right) {
       placed[id] = z; zel[z].querySelector('.in').appendChild(e); e.classList.add('ok'); e.classList.remove('sel', 'shake');
       sel = null; msg.className = 'msg'; msg.textContent = '';
       var zl = zones.filter(function (q) { return q.id === z; })[0];
@@ -76,15 +83,30 @@
       msg.innerHTML = c.no ? esc(t(c.no)) : tx('Not there.', '不在这里。');
     }
     paint(); status();
+    if (right && Object.keys(placed).length === chips.length) K.done(chips.filter(function (x) { return first[x.id]; }).length / chips.length);
+  }
+  // what is where, for the tutor: the count, the miss just made, each zone's chips, the chips still waiting
+  function tell() {
+    var n = Object.keys(placed).length, N = chips.length, q = function (c) { return '“' + K.clip(c.label, 40) + '”'; };
+    var s = tx(n + ' of ' + N + ' placed', '已放 ' + n + ' / ' + N) + (wrong ? tx(', ' + wrong + (wrong === 1 ? ' miss' : ' misses'), '，错 ' + wrong + ' 次') : '') + tx('. ', '。');
+    if (missed) s += tx('Just now: ' + q(missed.c) + ' is not in ' + zone_label(missed.z) + '. ', '刚才：' + q(missed.c) + '不属于' + zone_label(missed.z) + '。');
+    var by = zones.map(function (z) {
+      var in_z = chips.filter(function (c) { return placed[c.id] === z.id; });
+      return in_z.length ? K.clip(z.label, 32) + tx(': ', '：') + in_z.map(q).join(tx(', ', '、')) : '';
+    }).filter(Boolean);
+    if (by.length) s += by.join(tx('; ', '；')) + tx('. ', '。');
+    var rest = chips.filter(function (c) { return !placed[c.id]; });
+    if (rest.length) s += tx('Still to place: ', '还没放：') + rest.map(q).join(tx(', ', '、')) + tx('.', '。');
+    K.state(s);
   }
   function status() {
     var n = Object.keys(placed).length;
     cnt.textContent = P.counted === false ? '' : n + ' / ' + chips.length + (wrong ? ' · ' + tx(wrong + (wrong === 1 ? ' miss' : ' misses'), '错 ' + wrong + ' 次') : '');
     if (n === chips.length && P.done) { doneBox.style.display = ''; doneBox.innerHTML = md(t(P.done)); msg.textContent = ''; }
-    K.report();
+    K.report(); tell();
   }
   reset.onclick = function () {
-    placed = {}; wrong = 0; sel = null; log.innerHTML = ''; msg.textContent = ''; doneBox.style.display = 'none';
+    placed = {}; wrong = 0; sel = null; first = {}; missed = null; log.innerHTML = ''; msg.textContent = ''; doneBox.style.display = 'none';
     chips.forEach(function (c) { cel[c.id].classList.remove('ok', 'shake'); tray.appendChild(cel[c.id]); });
     paint(); status();
   };
