@@ -3,7 +3,7 @@
 // checks catch, generated derivations with one line broken, and a corpus of answers written the way the tutor writes.
 import { describe, expect, it, beforeAll } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
-import { Figure, column, draw_tex, load_tex, match_lines, parse_expr, parse_steps, review_steps, check_steps, split_relation, steps_blocks, steps_figure, substituted, typeset_line, Steps } from '../src/index';
+import { Figure, Marker, Path, beat, column, draw_tex, load_tex, match_lines, parse_expr, parse_steps, review_steps, reveal, row, set, check_steps, split_relation, steps_blocks, steps_figure, substituted, together, typeset_line, wait, Steps } from '../src/index';
 import { use_node_canvas, lint_figure } from '../node';
 
 beforeAll(async () => {
@@ -272,6 +272,35 @@ describe('Steps: the picture', () => {
     expect(fig.derivation.at.value).toBe(3);
     const issues = lint_figure(fig).filter((i) => i.severity === 'error');
     expect(issues).toEqual([]);
+  });
+  it('inside an animation: one part of a figure beside a graph, moved by the same script (beats line up)', () => {
+    const fig = new Figure({ lang: 'en' });
+    const rise = fig.param('rise', 0, { range: [0, 1] });
+    const P = fig.plot({ id: 'graph', x: [-1, 6], y: [-2, 6], axes: 'origin', priority: 2 });
+    const f = (x: number) => x * x - 2 * x;
+    const curve = P.add(new Path(() => Array.from({ length: 50 }, (_, i): [number, number] => { const x = -1 + (7 * i) / 49; return [x, f(x)]; }), { id: 'curve', role: 'noun:function' }));
+    const dot = P.add(new Marker(() => [3, 3 * rise.value], { id: 'point', role: 'noun:value' }));
+    const st = new Steps('y = x^2 - 2x\ny = (3)^2 - 2(3) % put in x = 3\ny = 3 % work it out', { id: 'steps' });
+    fig.layout(row([P, column([st])], { weights: [3, 2], align: 'center' }), { phone: column([st, P]) });
+    fig.script(reveal(P, curve), wait(0.5), beat(), together(st.go(1), reveal(dot)), wait(1), beat(), together(st.go(2), set(rise, 1, 'travel', 1.3)), wait(1));
+    fig.build();
+    // at the end of each section, the formula is on its line and the point where that line puts it
+    const ends = [...fig.section_starts(), fig.duration];
+    const lines: number[] = [], heights: number[] = [];
+    for (const t of ends) { fig.at(t - 0.01); lines.push(Math.round(st.at.value)); heights.push(rise.value); }
+    expect(lines).toEqual([0, 1, 2]);
+    expect(heights[0]).toBe(0);
+    expect(heights[1]).toBe(0);
+    expect(heights[2]).toBeGreaterThan(0.99);
+    // it sits beside the graph on a desktop, above it on a phone, and nothing overlaps at either
+    const wide = fig.layout_for(960, 540);
+    expect(st.box.x).toBeGreaterThan(P.box.x + P.box.w - 1);
+    expect(wide.w).toBe(960);
+    fig.layout_for(360, undefined);
+    expect(st.box.y + st.box.h).toBeLessThanOrEqual(P.box.y + 1);
+    expect(lint_figure(fig).filter((i) => i.severity === 'error')).toEqual([]);
+    // go() keeps to the lines there are
+    expect((st.go(9) as { to: number }).to).toBe(2);
   });
   it('a line that does not follow is marked while it rests', () => {
     const { st, fig, W, H } = figure_of('2x + 3 = 11\n2x = 14\nx = 7');

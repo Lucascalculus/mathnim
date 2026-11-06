@@ -379,7 +379,9 @@ export class Steps extends Thing implements Block {
   private px_fit = 0;
   /** Lines (1-based) that do not follow from the one before (review_steps): marked, while they rest, with a hollow ring. */
   doubtful: number[] = [];
-  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[] } = {}) {
+  /** Fill a stage (the lesson's video frame): as large as the stage allows, in its middle; else the size of a displayed formula in a text. */
+  fill: boolean;
+  constructor(src: string | StepLine[], o: { id?: string; size?: number; why?: boolean; role?: string; style?: Style; doubtful?: number[]; fill?: boolean } = {}) {
     super({ id: o.id ?? 'steps', role: o.role ?? 'text', z: 5, style: o.style });
     const p = typeof src === 'string' ? parse_steps(src) : { lines: src, issues: [] };
     this.lines = p.lines;
@@ -391,6 +393,7 @@ export class Steps extends Thing implements Block {
     this.show_why = o.why ?? this.lines.some((l) => l.why);
     this.px_set = o.size ?? null;
     this.doubtful = o.doubtful ?? [];
+    this.fill = !!o.fill;
   }
   // ---- geometry (TeX units): every line placed so that the relations line up (or the middles, where a line has none)
   private geo: { X: number; W: number; asc: number; desc: number; ox: number[] } | null = null;
@@ -415,27 +418,43 @@ export class Steps extends Thing implements Block {
   private px(): number {
     return this.px_set ?? (this.px_fit || look().type.display.size * 0.82);
   }
-  private why_px(): number {
-    return look().type.caption.size;
+  /** The reasons' type: the caption's, larger on a stage with a large formula (it stays about half the formula's size). */
+  private why_font() {
+    const c = look().type.caption.size;
+    return font_of('caption', this.fill ? { size: Math.round(Math.max(c, Math.min(c * 1.5, this.px() * 0.48))) } : {});
   }
-  private why_h(w: number, lang: Lang): number {
+  private why_px(): number {
+    return this.why_font().size;
+  }
+  private why_h(w: number, _lang: Lang): number {
     if (!this.show_why) return 0;
-    const f = font_of('caption'), lines = Math.max(1, ...this.lines.map((l) => (l.why ? break_lines(l.why, f, w).length : 1)));
+    const f = this.why_font(), lines = Math.max(1, ...this.lines.map((l) => (l.why ? break_lines(l.why, f, w).length : 1)));
     return lines * f.size * look().type.caption.line + this.why_px() * 0.5;
   }
+  /** Height of the formula and its reasons at the size it is set (px). */
+  private content_h(w: number, lang: Lang): number {
+    const G = this.geometry();
+    return (G.asc + G.desc) * tex_scale(this.px()) + this.px() * 0.5 + this.why_h(w, lang);
+  }
   measure(w: number, env: LayoutEnv): Size {
-    const G = this.geometry(), own = this.px_set ?? look().type.display.size * 0.82;
-    const fit = Math.max(look().type.label.size, Math.min(own, (w - 8) / (G.W * tex_scale(1))));
+    const G = this.geometry();
+    // in a text: a displayed formula's size, smaller when the column is narrow; on a stage: as large as the width allows
+    const own = this.px_set ?? (this.fill ? look().type.display.size * 1.6 : look().type.display.size * 0.82);
+    const fit = Math.max(look().type.label.size, Math.min(own, ((this.fill ? 0.86 : 1) * w - 8) / (G.W * tex_scale(1))));
     this.px_fit = this.px_set ? 0 : fit;
-    const k = tex_scale(this.px());
-    const h = (G.asc + G.desc) * k + this.px() * 0.5 + this.why_h(w, env.lang);
-    return { h, min: h };
+    const h = this.content_h(w, env.lang);
+    return this.fill ? { h, min: Math.min(h, this.px() * 2), grow: true } : { h, min: h };
   }
   arrange(b: Box, env: LayoutEnv): void {
     this.measure(b.w, env);
-    const G = this.geometry(), k = tex_scale(this.px());
+    if (this.fill && !this.px_set) {
+      // as large as the stage's height allows too (the formula and its reasons in four fifths of it), in its middle
+      const G = this.geometry(), per_px = (G.asc + G.desc) * tex_scale(1) + 0.5, room = b.h * 0.8 - this.why_h(b.w, env.lang);
+      if (room > 0 && per_px * this.px_fit > room) this.px_fit = Math.max(look().type.label.size, room / per_px);
+    }
+    const G = this.geometry(), k = tex_scale(this.px()), h = this.content_h(b.w, env.lang);
     const w = Math.min(b.w, G.W * k);
-    this.box = { x: b.x + (b.w - w) / 2, y: b.y, w, h: (G.asc + G.desc) * k + this.px() * 0.5 + this.why_h(b.w, env.lang) };
+    this.box = { x: b.x + (b.w - w) / 2, y: this.fill ? b.y + Math.max(0, (b.h - h) / 2) : b.y, w, h };
     this.why_w = b.w;
     this.why_x = b.x;
   }
@@ -467,6 +486,13 @@ export class Steps extends Thing implements Block {
   private frame_of(): { x0: number; y0: number; k: number } {
     const G = this.geometry(), k = tex_scale(this.px());
     return { x0: this.box.x + (this.box.w - G.W * k) / 2, y0: this.box.y + this.px() * 0.25 + G.asc * k, k };
+  }
+  /**
+   * The script's step that takes the formula to line k (counting from 0) in `dur` seconds: put it beside other changes
+   * of the figure in together(...), and a beat() before it, so the narration's § reaches the line as the picture does.
+   */
+  go(k: number, dur = 1.3): Step {
+    return set(this.at, Math.max(0, Math.min(this.lines.length - 1, k)), 'travel', dur);
   }
   /** Where line k's TeX origin is drawn at rest (px) and px per TeX unit: draw_tex(g, tex, x + view.x·k, y, px) draws the same. */
   origin(line: number): { x: number; y: number; k: number; px: number } {
@@ -589,7 +615,7 @@ export class Steps extends Thing implements Block {
     }
     // the reason under the formula: the line's own at rest, the next one's taking over on the way
     if (this.show_why) {
-      const f = font_of('caption'), G = this.geometry(), top = this.box.y + (G.asc + G.desc) * k + this.px() * 0.5 + this.why_px() * 0.2;
+      const f = this.why_font(), G = this.geometry(), top = this.box.y + (G.asc + G.desc) * k + this.px() * 0.5 + this.why_px() * 0.2;
       const say = (s: string | null, a: number) => {
         if (!s || a < 0.01) return;
         g.save();
@@ -667,10 +693,11 @@ function box1(a: Float32Array, o: number, s: number, n: number, r: number, tmp: 
  * A figure that walks through a derivation: each line held, then the change to the next (one beat of the script per
  * line, so a voice or a click can step through them). `per_step` is the change's length, `hold` the rest on each line.
  */
-export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean } = {}): Figure & { derivation: Steps } {
+export function steps_figure(src: string | StepLine[], o: { lang?: Lang; per_step?: number; hold?: number; size?: number; why?: boolean; paper?: boolean; fill?: boolean } = {}): Figure & { derivation: Steps } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { derivation: Steps };
   if (o.paper === false) fig.paper = 'clear';
-  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why });
+  // (on a stage - paper behind it - it fills the stage; in a text it is the size of a displayed formula)
+  const st = new Steps(src, { id: 'steps', size: o.size, why: o.why, fill: o.fill ?? o.paper !== false });
   fig.derivation = st;
   // (in a text it is part of the text: no margin of its own)
   fig.layout(column([st]), o.paper === false ? { pad: 2 } : {});

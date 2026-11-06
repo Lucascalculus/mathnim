@@ -39,6 +39,9 @@ Block is one of:
   {"type": "p", "text": string}
   {"type": "list", "items": [string, ...], "ordered"?: boolean}
   {"type": "math", "tex": string}                      // a displayed formula (TeX, no $ signs)
+  {"type": "steps", "lines": [{"tex": string, "why"?: string}, ...]}
+     // a derivation the page animates line by line and checks: 2-8 lines, each one complete TeX formula (no $),
+     // one change per line (the operation, then the simplification), "why" in a few words from the second line on
   {"type": "table", "head": [string, ...], "rows": [[string, ...], ...]}
   {"type": "code", "lang": string, "code": string, "caption"?: string}
   {"type": "callout", "kind": "note" | "warning" | "misconception" | "open", "title"?: string, "body": string}
@@ -59,7 +62,7 @@ export interface Checked {
 }
 
 const ID = /^[a-z0-9][a-z0-9._-]{0,47}$/i;
-const BLOCKS = new Set(['h', 'p', 'list', 'math', 'table', 'code', 'callout', 'details', 'svg']);
+const BLOCKS = new Set(['h', 'p', 'list', 'math', 'steps', 'table', 'code', 'callout', 'details', 'svg']);
 const CALLOUTS = new Set(['note', 'warning', 'misconception', 'open']);
 const MAX_SVG = 24_000;
 const MAX_LESSON = 400_000;
@@ -150,6 +153,14 @@ export function check_lesson(data: unknown, o: { id: string; skills?: string[] }
           if (typeof b.code !== 'string' || !b.code.trim()) err(at, 'code is required');
           if (typeof b.lang !== 'string') b.lang = 'text';
           return void str(b.caption, `${at}.caption`, false);
+        case 'steps':
+          if (!Array.isArray(b.lines) || (b.lines as unknown[]).length < 2) return err(at, 'lines: two or more {tex, why?}');
+          return (b.lines as unknown[]).forEach((l, k) => {
+            const x = l as Record<string, unknown>;
+            if (!x || typeof x.tex !== 'string' || !x.tex.trim()) return err(`${at}.lines[${k}]`, 'tex: one TeX formula');
+            x.tex = x.tex.trim().replace(/^\$+|\$+$/g, '');
+            str(x.why, `${at}.lines[${k}].why`, false);
+          });
         case 'callout':
           if (typeof b.kind !== 'string' || !CALLOUTS.has(b.kind)) err(at, `kind: one of ${[...CALLOUTS].join(', ')}`);
           str(b.title, `${at}.title`, false);
@@ -257,6 +268,7 @@ export function lesson_digest(l: Lesson): string {
         case 'table': out.push([b.head, ...b.rows].map((r) => pad + r.join(' | ')).join('\n')); break;
         case 'code': out.push(`${pad}[code ${b.lang}]\n${b.code}`); break;
         case 'callout': out.push(`${pad}[${b.kind}] ${b.title ? `${b.title}: ` : ''}${b.body}`); break;
+        case 'steps': out.push(b.lines.map((l) => `${pad}$$${l.tex}$$${l.why ? ` (${typeof l.why === 'string' ? l.why : l.why.en})` : ''}`).join('\n')); break;
         case 'details': out.push(`${pad}[details: ${b.summary}]`); blocks(b.blocks, pad + '  '); break;
         case 'svg': out.push(`${pad}[diagram: ${b.alt}]${b.caption ? ` ${b.caption}` : ''}`); break;
         default: break;

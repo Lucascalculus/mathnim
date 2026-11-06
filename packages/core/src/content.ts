@@ -67,6 +67,11 @@ export type Block =
    */
   | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
+  /**
+   * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
+   * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
+   */
+  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
   | { type: 'table'; head: L10n[]; rows: L10n[][] }

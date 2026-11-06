@@ -190,6 +190,10 @@ export function lint_lesson_text(lesson: Lesson, deps: LintDeps = {}): LintIssue
         case 'paper':
           if (!b.paras.length) err(where, 'a paper block with no text');
           break;
+        case 'steps':
+          if (b.lines.length < 2) err(where, 'a steps block needs two lines or more');
+          b.lines.forEach((l, k) => k > 0 && !l.why && warn(`${where}.lines[${k}]`, 'a line without why: say what was done to get it'));
+          break;
         case 'callout':
         case 'p':
           break;

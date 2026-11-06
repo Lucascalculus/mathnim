@@ -67,6 +67,11 @@ export function check_page(data: unknown): WrittenPage {
       case 'math':
         if (typeof b.tex === 'string' && b.tex.trim()) blocks.push({ type: 'math', tex: b.tex.trim().replace(/^\$+|\$+$/g, '') });
         break;
+      case 'steps': {
+        const lines = Array.isArray(b.lines) ? (b.lines as unknown[]).filter((l) => l && typeof (l as { tex?: unknown }).tex === 'string').map((l) => ({ tex: ((l as { tex: string }).tex).trim().replace(/^\$+|\$+$/g, ''), why: str((l as { why?: unknown }).why) ? ((l as { why: string }).why) : undefined })) : [];
+        if (lines.length >= 2) blocks.push({ type: 'steps', lines });
+        break;
+      }
       case 'table': {
         const head = Array.isArray(b.head) ? (b.head as unknown[]).map(String) : [];
         const rows = Array.isArray(b.rows) ? (b.rows as unknown[]).filter(Array.isArray).map((r) => (r as unknown[]).map(String).slice(0, head.length)) : [];

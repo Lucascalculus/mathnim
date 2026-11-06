@@ -212,20 +212,20 @@ export type Block =
    */
   | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
+  /**
+   * A derivation, one formula that changes line by line (the engine's formula steps): each line one TeX formula, its
+   * `why` what was done to get it. In the text it is part of the page (no frame); it is checked before it is drawn.
+   */
+  | { type: 'steps'; lines: { tex: string; why?: L10n }[]; caption?: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
   | { type: 'table'; head: L10n[]; rows: L10n[][] }
-  /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `explain`. */
-  | { type: 'quiz'; prompt: L10n; options: { label: L10n; correct?: boolean; feedback?: L10n }[]; explain?: L10n }
-  /**
-   * Text as it stands on an exam paper (a question as set, or a full-mark answer), in the paper's
-   * own language `lang`; a learner reading another language sees the translation under it.
- 
+  /** A small question inside the page (one right option): a wrong pick says why and can be tried again; the right one shows `exp
 ```
 
 ## Visuals
 
-65 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+67 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
 
 ### econ
 
@@ -248,6 +248,17 @@ export type Block =
 - **`econ_screening`**: Two packages for two kinds of buyers (ECON90015 Q3b: demands 24 − q and 16 − q, MC = 6): drag the size of the small package and see what the low type pays (area under its demand), the rent the high type must be left (the strip between the demands), and the profit, highest where one more unit earns as much as it costs in rent (q2 = 2).
   - params: `q2: number in [0, 10] =2 - the size of the small package the scene ends on (2 is best; 10 is where its demand meets MC)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: economics, price discrimination, second degree, screening, information rent, packages, menu pricing
+  - used in: _(not yet used by a lesson)_
+
+### formula
+
+- **`formula_steps`** *(engine)*: A derivation as one formula that changes line by line (solving, simplifying, expanding, differentiating, putting numbers in, converting units, balancing a reaction, rewriting a logic formula): each token stays, travels over the = sign, flows together or cancels; the reason for each line is written under it. Every line is checked. One narration beat (§) per change.
+  - params: `steps: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % subtract 3 from both sides\n2x = 8\nx = 4 % divide both sides by 2" - the derivation in English: one complete TeX formula per line (no $), and after a line `%` with a few words for what was done to get it; 2-8 lines, one change per line`; `steps_zh: text (max 2000) ="2x + 3 = 11\n2x + 3 - 3 = 11 - 3 % 两边同时减 3\n2x = 8\nx = 4 % 两边同时除以 2" - the same lines with their reasons in Chinese (empty: the English lines are used)`; `per_step: number in [0.6, 3] =1.3 - seconds each change takes`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: derivation, algebra, equation, simplify, calculus, derivative, units, chemistry, logic, expected value, substitution, formula
+  - used in: _(not yet used by a lesson)_
+- **`substitute_point`** *(engine)*: Putting a number into a function: the graph of y = f(x) beside the formula steps y = f(x) → the number put in → the value; as the steps put x in, the point stands on the axis at x, and as they work it out it rises onto the curve. The number put in and the point share a colour.
+  - params: `fn: text (max 120) ="x^2 - 2x" - the function of x in TeX, without y = (e.g. x^2 - 2x, \frac{12}{x}, 2^{x}, \sin x)`; `x0: number in [-10, 10] =3 - the number put in for x`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: function, substitution, evaluate, graph, value of a function, derivation, algebra
   - used in: _(not yet used by a lesson)_
 
 ### ft/a

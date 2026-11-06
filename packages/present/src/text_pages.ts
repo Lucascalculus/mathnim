@@ -13,7 +13,7 @@ import { load_tex } from '@mathnim/engine';
 import { highlight_lines, lang_label } from './highlight';
 import { CueGuide } from './cue';
 import { drag_hint, t } from './i18n';
-import { display_math_html, esc, math_html } from './math';
+import { display_math_html, esc, math_html, steps_rows_html } from './math';
 
 /** The notes a figure keeps beside itself (@mathnim/visuals' aside()), as one line. */
 export const asides = (p: StagePlayer): string => ((p.scene as { asides?: string[] }).asides ?? []).join(' · ');
@@ -123,6 +123,9 @@ export class BlockRenderer {
         const tag = b.ordered ? 'ol' : 'ul';
         return `<${tag} class="mn-list">${b.items.map((x) => `<li>${this.prose(x)}</li>`).join('')}</${tag}>`;
       }
+      case 'steps':
+        this.formulas++;
+        return steps_rows_html(b.lines.map((l) => ({ tex: l.tex, why: l.why ? tr(l.why, this.lang) : undefined })));
       case 'math':
         this.formulas++;
         return `<div class="mn-dmath" role="math" aria-label="${esc(b.tex)}"><div class="mn-dmath-tex">${display_math_html(b.tex)}</div>${b.label ? `<span class="mn-eqlabel">(${esc(b.label)})</span>` : ''}</div>`;

@@ -34,6 +34,7 @@ function block_strings(b: Block, at: string, out: LessonString[]): void {
     case 'visual': return void add('caption', b.caption);
     case 'frame': add('alt', b.alt, 'label'); return void add('caption', b.caption);
     case 'callout': add('title', b.title, 'label'); return void add('body', b.body);
+    case 'steps': b.lines.forEach((l, i) => add(`lines[${i}].why`, l.why, 'label')); return void add('caption', b.caption);
     case 'details': add('summary', b.summary, 'label'); return b.blocks.forEach((c, i) => block_strings(c, `${at}.blocks[${i}]`, out));
     case 'table': b.head.forEach((x, i) => add(`head[${i}]`, x, 'label')); return b.rows.forEach((r, i) => r.forEach((x, j) => add(`rows[${i}][${j}]`, x, 'label')));
     case 'cite': return void add('text', b.text, 'label');
@@ -195,6 +196,7 @@ export function describe_step(s: Step, lang: Lang): string {
         case 'visual': out.push(`[interactive figure ${b.name}]${b.caption ? ` ${tr(b.caption, lang)}` : ''}`); break;
         case 'frame': out.push(`[instrument ${b.src}: ${tr(b.alt, lang)}]${b.caption ? ` ${tr(b.caption, lang)}` : ''}`); break;
         case 'callout': out.push(`[${b.kind}] ${b.title ? `${tr(b.title, lang)}: ` : ''}${tr(b.body, lang)}`); break;
+        case 'steps': out.push(b.lines.map((l) => `$$${l.tex}$$${l.why ? ` (${tr(l.why, lang)})` : ''}`).join('\n')); break;
         case 'details': out.push(`[details: ${tr(b.summary, lang)}]`); blocks(b.blocks); break;
         case 'table': out.push([b.head, ...b.rows].map((r) => r.map((x) => tr(x, lang)).join(' | ')).join('\n')); break;
         case 'cite': out.push(`[source ${b.key}] ${tr(b.text, lang)}`); break;

@@ -31,6 +31,7 @@ function blocks(bs: Block[], depth = 0): void {
       case 'visual': out.push(`${pad}[visual ${b.name}${b.explore ? ' (explore)' : ''}] ${L(b.caption)}`); break;
       case 'frame': out.push(`${pad}[instrument ${b.src}] ${L(b.caption ?? b.alt)}`); break;
       case 'callout': out.push(`${pad}> **${b.kind}${b.title ? ': ' + L(b.title) : ''}** ${L(b.body)}`); break;
+      case 'steps': b.lines.forEach((l, i) => out.push(`${pad}${i ? '⇒' : '  '} $$ ${l.tex} $$${l.why ? `  (${L(l.why)})` : ''}`)); break;
       case 'details': out.push(`${pad}<details> ${L(b.summary)}`); blocks(b.blocks, depth + 1); break;
       case 'table': out.push(`${pad}| ${b.head.map(L).join(' | ')} |`); for (const r of b.rows) out.push(`${pad}| ${r.map(L).join(' | ')} |`); break;
       case 'cite': out.push(`${pad}[^${b.key}]: ${L(b.text)}`); break;

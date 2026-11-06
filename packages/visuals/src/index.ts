@@ -15,6 +15,8 @@ import { symmetric_ellipse } from './linalg/symmetric_ellipse';
 import { covariance_ellipse } from './linalg/covariance_ellipse';
 import { pca_projection } from './linalg/pca_projection';
 import { pca_3d } from './linalg/pca_3d';
+import { formula_steps } from './formula/formula_steps';
+import { substitute_point } from './formula/substitute_point';
 
 // Words in a figure are Mathium's, not manim's: Inter (bundled with manim-web) for every family a visual asks for by
 // default, at the font's own spacing (manim's Pango rounds each letter to a whole pixel at a few pixels' size).
@@ -33,6 +35,8 @@ export { THEMES, apply_palette, palette, set_theme, theme, type Palette, type Th
 export { circle_slices, lined_up_width, slices } from './geometry/circle_slices';
 
 export * as linalg from './linalg';
+export { formula_steps, formula_steps_figure } from './formula/formula_steps';
+export { substitute_point, substitute_figure, substitute_lines } from './formula/substitute_point';
 export { linear_map } from './linalg/linear_map';
 export { determinant_area } from './linalg/determinant_area';
 export { eigen_hunt } from './linalg/eigen_hunt';
@@ -46,6 +50,7 @@ export { pca_3d } from './linalg/pca_3d';
 
 register(circle_slices);
 register(linear_map, determinant_area, eigen_hunt, lambda_sweep, rotation_no_eigen, matrix_power, symmetric_ellipse, covariance_ellipse, pca_projection, pca_3d);
+register(formula_steps, substitute_point);
 
 // The LLM fine-tuning course's visuals are not here: each part's index
 // (src/ft/<part>/index.ts) registers its visuals when imported, which the app
