@@ -7574,5 +7574,92 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "physics-stress",
+  "title": {
+   "en": "Physics on the engine (stress test)",
+   "zh": "引擎上的物理（压力测试）"
+  },
+  "summary": {
+   "en": "Not a course: three figures that test the figure engine (a pendulum, point charges, torque in 3D).",
+   "zh": "不是一门课：三张测试图形引擎的图（单摆、点电荷、三维力矩）。"
+  },
+  "audience": {
+   "en": "Reviewers of the engine.",
+   "zh": "引擎的审阅者。"
+  },
+  "outcomes": [],
+  "lang": "en",
+  "mine": false,
+  "public": true,
+  "ready": true,
+  "test": true,
+  "cover": "/thumbs/physics-stress.webp",
+  "packs": [
+   "physics"
+  ],
+  "origin": {
+   "decks": 0,
+   "exams": 0,
+   "note": {
+    "en": "Written by an AI (Claude) as an engine test · not a course",
+    "zh": "由 AI（Claude）为测试引擎而写 · 不是一门课"
+   }
+  },
+  "units": [
+   {
+    "title": {
+     "en": "Figures",
+     "zh": "图"
+    },
+    "lessons": [
+     "physics-stress-figures"
+    ]
+   }
+  ],
+  "lessons": [
+   {
+    "id": "physics-stress-figures",
+    "title": {
+     "en": "Physics figures (engine stress test)",
+     "zh": "物理图（引擎压力测试）"
+    },
+    "summary": {
+     "en": "Three figures that test whether the engine can carry a physics course.",
+     "zh": "三张图，测试引擎能否撑起一门物理课。"
+    },
+    "minutes": 6,
+    "meta": {
+     "title": {
+      "en": "Physics figures (engine stress test)",
+      "zh": "物理图（引擎压力测试）"
+     },
+     "mode": "essay",
+     "langs": [
+      "en",
+      "zh"
+     ],
+     "has_scene": false,
+     "kinds": [
+      "read"
+     ],
+     "skills": [
+      {
+       "id": "physics-stress.figures",
+       "name": {
+        "en": "Reading the three physics figures",
+        "zh": "读懂三张物理图"
+       },
+       "description": {
+        "en": "A pendulum, point charges and a torque, as the engine draws them.",
+        "zh": "单摆、点电荷和力矩，用引擎画出来的样子。"
+       }
+      }
+     ]
+    }
+   }
+  ],
+  "demo": true
  }
 ]

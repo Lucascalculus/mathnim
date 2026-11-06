@@ -328,19 +328,40 @@ export class FigurePlayer {
   // ---------------------------------------------------------------- live: a frame only when something changed
   start_live(): void {
     if (this.live_off) return;
-    this.live_off = watch_writes(() => {
-      if (!this.live_raf) this.live_raf = raf(() => {
-        this.live_raf = 0;
-        this.draw();
-      });
-    });
+    this.live_off = watch_writes(() => this.wake_live());
     this.draw();
+    // (a running simulation needs frames although nothing else changes)
+    if (this.scene.sims.length) this.wake_live();
   }
   stop_live(): void {
     this.live_off?.();
     this.live_off = null;
     if (this.live_raf) caf(this.live_raf);
     this.live_raf = 0;
+    this.last_tick = 0;
+  }
+  private wake_live(): void {
+    if (!this.live_raf) this.live_raf = raf(() => {
+      this.live_raf = 0;
+      this.tick_sims();
+      this.draw();
+    });
+  }
+  private last_tick = 0;
+  /**
+   * Advance every running simulation by the real time since the last frame (at most 0.1 s: a hidden tab or a long
+   * frame slows the run rather than jumping it), and ask for the next frame while any runs. Nothing runs at rest.
+   */
+  private tick_sims(): void {
+    const sims = this.scene.sims.filter((s) => s.running.peek() > 0);
+    if (!sims.length) {
+      this.last_tick = 0;
+      return;
+    }
+    const t = now(), dt = this.last_tick ? Math.min(0.1, (t - this.last_tick) / 1000) : 1 / 60;
+    this.last_tick = t;
+    for (const s of sims) s.advance(dt * this.rate);
+    this.wake_live();
   }
 
   // ---------------------------------------------------------------- the tutor's hands (acts.ts)

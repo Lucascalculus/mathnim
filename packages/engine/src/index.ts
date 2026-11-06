@@ -18,6 +18,8 @@ export * from './acts';
 export * from './mirror';
 export * from './shapes';
 export * from './view3d';
+export * from './sim';
+export * from './vectors';
 export * from './version';
 export * from './steps';
 export * from './steps_check';

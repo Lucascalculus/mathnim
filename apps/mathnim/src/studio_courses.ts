@@ -27,6 +27,12 @@ export interface StudioEntry {
   lessons: { id: string; title: L10n; summary: L10n; minutes: number; meta: LessonMeta }[];
   /** Visual packs its lessons embed (a demo written with interactive figures), loaded before a lesson. */
   packs?: string[];
+  /** Not listed on the home page (a demo for a reviewer, opened by its address). */
+  hidden?: boolean;
+  /** Listed in the home page's Test section: an experiment, not a course (Course.test). */
+  test?: boolean;
+  /** Its card's picture: a path under public/ (Course.cover), instead of its first lesson drawn. */
+  cover?: string;
 }
 
 /** The packs a course entry may name: each registers its visuals when imported. */
@@ -34,12 +40,14 @@ const PACKS: Record<string, () => Promise<unknown>> = {
   econ: () => import('@mathnim/visuals/econ'),
   it: () => import('@mathnim/visuals/it'),
   mgmt: () => import('@mathnim/visuals/mgmt'),
+  physics: () => import('@mathnim/visuals/physics'),
 };
 
 export const studio_slug = (id: string) => `course-${id}`;
 const MINE = { en: 'My courses', zh: '我的课程' };
 const SHARED = { en: 'Made from lecture slides', zh: '用课件生成的课程' };
 const DEMO = { en: 'Made from lecture slides · demo', zh: '用课件生成的课程 · 示例' };
+const TEST = { en: 'Test', zh: '测试' };
 const lesson_url = (e: StudioEntry, lesson: string) =>
   e.demo ? `/demo/${encodeURIComponent(e.id)}/${encodeURIComponent(lesson)}.json` : `/api/studio/lessons/${encodeURIComponent(e.id)}/${encodeURIComponent(lesson)}`;
 
@@ -52,8 +60,11 @@ export function course_of_entry(e: StudioEntry): Course {
     summary: e.summary,
     audience: e.audience || undefined,
     outcomes: e.outcomes.length ? e.outcomes : undefined,
-    category: e.mine ? MINE : e.demo ? DEMO : SHARED,
+    category: e.test ? TEST : e.mine ? MINE : e.demo ? DEMO : SHARED,
     accent: '#0F766E',
+    hidden: e.hidden || undefined,
+    test: e.test || undefined,
+    cover: e.cover?.startsWith('/') ? e.cover : undefined,
     generated: { decks: e.origin?.decks ?? 0, exams: e.origin?.exams ?? 0, lessons: e.lessons.length, note: e.origin?.note },
     units: e.units.map((u, i) => ({
       id: `u${i + 1}`,
@@ -96,8 +107,8 @@ export async function load_studio_courses(): Promise<void> {
   const entries = [...own, ...demos.filter((d) => !own.some((e) => e.id === d.id))];
   for (let i = COURSES.length - 1; i >= 0; i--) if (COURSES[i].id.startsWith('studio-')) COURSES.splice(i, 1);
   const courses = entries.map(course_of_entry);
-  // the learner's own first (after the hand-made courses), then the shared ones and the demos
-  COURSES.push(...courses.filter((c) => c.category === MINE), ...courses.filter((c) => c.category === SHARED), ...courses.filter((c) => c.category === DEMO));
+  // the learner's own first (after the hand-made courses), then the shared ones and the demos; the tests last
+  COURSES.push(...[MINE, SHARED, DEMO, TEST].flatMap((k) => courses.filter((c) => c.category === k)));
   const skills: Skill[] = entries.flatMap((e) => e.lessons.flatMap((l) => l.meta.skills));
   learner.add_skills(skills);
 }

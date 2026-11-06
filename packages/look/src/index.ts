@@ -71,6 +71,11 @@ export const NOUNS: Record<string, Pigment> = {
   // fine-tuning
   'base-model': 'ink', 'adapter': 'violet', 'reward': 'viridian', 'loss': 'vermilion', 'attention': 'cobalt',
   'train-loss': 'cobalt', 'val-loss': 'vermilion', 'metric': 'viridian',
+  // physics (the stress test, docs/design/PHYSICS-STRESS.md): a pendulum and its small-angle model, its energies;
+  // charges (positive red, negative blue, as every textbook) and their field; a lever's arm, the force and the torque
+  'bob': 'ink', 'small-angle': 'violet', 'kinetic': 'cobalt', 'potential': 'ochre', 'energy': 'ink',
+  'positive': 'vermilion', 'negative': 'cobalt', 'field': 'ink',
+  'lever': 'ink', 'lever-arm': 'cobalt', 'force': 'vermilion', 'torque': 'violet',
 };
 
 /**
@@ -172,6 +177,8 @@ export const MOTION: Record<string, Motion> = {
   linear: { response: 1, damping: 1, reduced: 'instant', curve: 'linear' },
   /** Words written on. */
   write: { response: 1.0, damping: 1, reduced: 'instant', curve: 'linear' },
+  /** Simulated time passing (a Sim's clock in a script): at one speed, and kept under reduced motion (the motion is the content). */
+  simulate: { response: 1, damping: 1, reduced: 'fade', curve: 'linear' },
 };
 
 /** Layout rules, applied by the engine per device. */
