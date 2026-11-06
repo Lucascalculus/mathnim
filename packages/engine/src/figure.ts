@@ -54,6 +54,9 @@ export class Figure {
   frame: Box = { x: 0, y: 0, w: 960, h: 540 };
   phone = false;
   renderer = new Renderer();
+  /** 'paper': the look's paper behind everything (a figure on its own stage); 'clear': nothing, so the figure sits in
+   *  the text it is part of (formula steps in an answer). */
+  paper: 'paper' | 'clear' = 'paper';
   private steps: Step[] = [];
   private listeners: Listener[] = [];
   private checks: { name: string; f: (fig: Figure) => string | null }[] = [];
@@ -280,7 +283,8 @@ export class Figure {
     return this.renderer.frame(this.body(), this.overlay(), env, now_version(), {
       force: o.force,
       before: () => this.place_labels(),
-      background: paint_background,
+      // (no background at all for a clear figure: the renderer then clears the canvas each frame, as an opaque paper never needs)
+      background: this.paper === 'clear' ? undefined : paint_background,
     });
   }
 

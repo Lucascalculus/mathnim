@@ -144,6 +144,14 @@ export const CSS = `
 .mn-dev{grid-column:1/-1;font:12px/1.5 ui-monospace,monospace;background:var(--mn-panel);border:1px dashed var(--mn-border);border-radius:10px;padding:10px;white-space:pre-wrap;max-height:260px;overflow:auto}
 .mn-dev .error{color:var(--mn-bad)}.mn-dev .warning{color:var(--mn-warn)}
 .mn-math svg{vertical-align:middle}
+/* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
+.mn-steps{margin:10px 0}
+.mn-step{text-align:center;margin:2px 0}
+.mn-step-why{font-size:13px;line-height:1.4;color:var(--mn-ink2,#5B5B62);margin:-2px 0 6px}
+.mn-steps-wait{min-height:1.4em}
+.mn-steps-live>.mn-step{display:none}
+.mn-steps-stage{width:100%}
+.mn-steps-stage canvas{display:block;margin:0 auto;cursor:pointer}
 /* a formula on a page can be clicked to ask about it */
 .mn-pagehost .mn-math{cursor:pointer;border-radius:3px;transition:background-color .15s}
 .mn-pagehost .mn-math:hover{background-color:color-mix(in srgb,var(--mn-accent) 7%,transparent)}

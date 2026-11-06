@@ -1,0 +1,391 @@
+=== Q1: How do I solve 3x - 7 = 11?
+DIAGNOSIS: Wants the step-by-step procedure for isolating $x$ in a one-variable linear equation, likely unsure about undoing subtraction before division.
+
+Undo the subtraction first, then the multiplication: add 7 to both sides to get $3x = 18$, then divide both sides by 3 to get $x = 6$. **Always perform the same operation on both sides**, and check by substituting back: $3(6) - 7 = 11$. ✓
+
+```steps
+3x - 7 = 11
+3x - 7 + 7 = 11 + 7   % add 7 to both sides
+3x = 18
+x = 6                 % divide both sides by 3
+```
+
+=== Q2: 5(x+2)=35 怎么解？
+DIAGNOSIS: Student wants the step-by-step method for solving a linear equation with a parenthesized term — likely unsure whether to divide first or expand first.
+
+Divide both sides by 5 first, since 5 is multiplying the whole bracket: $\frac{5(x+2)}{5}=\frac{35}{5}$ gives $x+2=7$. Then subtract 2 from both sides to get $x=5$. Checking: $5(5+2)=5\cdot 7=35$, correct. Expanding first ($5x+10=35$) works too.
+
+```steps
+5(x+2) = 35
+\frac{5(x+2)}{5} = \frac{35}{5}   % 两边同除以 5
+x + 2 = 7
+x + 2 - 2 = 7 - 2   % 两边同减 2
+x = 5
+```
+
+=== Q3: Why is the derivative of x^4 equal to 4x^3?
+DIAGNOSIS: Student wants an exact/intuitive justification of the power rule for \(x^4\), not just the rule statement.
+
+The derivative is a limit: \(\frac{(x+h)^4-x^4}{h}\). Expanding cancels \(x^4\), and dividing by \(h\) leaves \(4x^3+6x^2h+4xh^2+h^3\); as \(h\to0\), only \(4x^3\) survives. That is **the power rule** \(\frac{d}{dx}x^n=nx^{n-1}\) with \(n=4\).
+
+```steps
+\frac{(x+h)^4-x^4}{h}
+\frac{x^4+4x^3h+6x^2h^2+4xh^3+h^4-x^4}{h}   % expand numerator
+\frac{4x^3h+6x^2h^2+4xh^3+h^4}{h}   % cancel x^4
+4x^3+6x^2h+4xh^2+h^3   % divide by h
+4x^3   % as h\to 0
+```
+
+=== Q4: 怎么对 sin(3x) 求导？
+DIAGNOSIS: 学生可能想确认对 $\sin(3x)$ 求导时链式法则中内层函数 $3x$ 的处理，容易漏乘内层导数。
+
+对 $\sin(3x)$ 求导时，**先对外层正弦求导，再乘以内层 $3x$ 的导数**。外层导数是 $\cos(3x)$，内层导数是 $3$，所以结果是 $3\cos(3x)$，不是 $\cos(3x)$。
+
+```steps
+\frac{d}{dx}\sin(3x)
+= \cos(3x)\cdot \frac{d}{dx}(3x)   % 用链式法则
+= \cos(3x)\cdot 3   % 内层导数为3
+= 3\cos(3x)   % 整理
+```
+
+=== Q5: Expand (2x-3)^2.
+DIAGNOSIS: Wants the expansion checked/done; the usual risk is dropping the middle term and writing $4x^2-9$.
+
+**Square the binomial as a whole, not term by term**: $(a-b)^2=a^2-2ab+b^2$. With $a=2x$ and $b=3$, this gives $(2x)^2-2(2x)(3)+3^2$. So the expansion is $4x^2-12x+9$ — the middle term $-\!12x$ is the part that's easy to lose.
+
+```steps
+(2x-3)^2 = (2x-3)(2x-3)
+(2x-3)(2x-3) = 4x^2 - 6x - 6x + 9   % expand both products
+4x^2 - 6x - 6x + 9 = 4x^2 - 12x + 9   % combine like terms
+```
+
+=== Q6: 把 x^2-9 因式分解
+DIAGNOSIS: Student wants to factor a difference of squares and may not recognize \(a^2-b^2=(a-b)(a+b)\).
+
+这是平方差：$x^2-9=x^2-3^2$。用 **$a^2-b^2=(a-b)(a+b)$** 得 $x^2-9=(x-3)(x+3)$；展开时中间项相消，可用来检验。
+
+```steps
+x^2-9
+x^2-3^2   % 写成平方差
+(x-3)(x+3)   % 用平方差公式
+```
+
+=== Q7: Solve -3x + 4 > 10.
+DIAGNOSIS: Wants the solution to a linear inequality; the likely trap is forgetting to flip the inequality sign when dividing by $-3$.
+
+Isolate the $x$ term first by subtracting 4 from both sides, giving $-3x > 6$. Then divide by $-3$, and remember the **key idea: dividing by a negative number flips the inequality sign**, so $x < -2$.
+
+```steps
+-3x + 4 > 10
+-3x + 4 - 4 > 10 - 4   % subtract 4 from both sides
+-3x > 6
+x < -2                 % divide by -3, flip the sign
+```
+
+=== Q8: 怎么配平 Al + O2 → Al2O3？
+DIAGNOSIS: The student wants a method for balancing a combustion/synthesis equation, likely unsure how to choose coefficients when O appears in both O₂ and Al₂O₃.
+
+配平的关键是**用最小公倍数让氧原子数两边相等**：右边 Al₂O₃ 里有 3 个氧，左边 O₂ 每次给 2 个，2 和 3 的最小公倍数是 6，所以取 3 个 O₂ 和 2 个 Al₂O₃，再数出右边共 4 个铝，左边补 4。最后核对：氧两边都是 6，铝两边都是 4。
+
+```steps
+\ce{Al + O2 -> Al2O3}
+\ce{Al + 3O2 -> 2Al2O3}   % 氧取最小公倍数6
+\ce{4Al + 3O2 -> 2Al2O3}  % 右边4个铝，左边配4
+```
+
+=== Q9: Show that not (p or q) is equivalent to (not p) and (not q).
+DIAGNOSIS: The student wants a justification of De Morgan's law (probably for exam review); needs the key idea that negation swaps and/or, backed by a truth-table argument.
+
+Both sides are true in exactly one situation: when $p$ and $q$ are **both false**. If $p\lor q$ fails, neither disjunct holds, so $\lnot p$ and $\lnot q$ both hold; conversely, if either $p$ or $q$ were true, $p\lor q$ would be true and $\lnot(p\lor q)$ false. Since the two formulas have identical truth values in every row of the truth table, they are logically equivalent.
+
+=== Q10: 期望值怎么算：40%概率赚100元，60%概率亏50元？
+DIAGNOSIS: 学生不确定期望值如何把概率与正负收益（利润/亏损）结合，可能需要确认亏损项要取负号。
+
+期望值是**每个结果的收益乘以它的概率，再全部相加**，亏损要带负号参与。这里 $E = 0.4\times 100 + 0.6\times(-50) = 40 - 30 = 10$，即长期平均每次赚 $10$ 元。只要概率之和为 $1$，这样算出的就是每次的平均收益。
+
+```steps
+E = 0.4 \times 100 + 0.6 \times (-50)
+E = 40 - 30   % 分别算出两项
+E = 10        % 相加得期望收益
+```
+
+=== Q11: Convert 72 km/h to m/s.
+DIAGNOSIS: Wants a step-by-step unit conversion from km/h to m/s, likely unsure whether to multiply or divide by 3.6.
+
+Multiply by $\frac{1000}{3600}$: replace km with $1000$ m and 1 h with $3600$ s, so $72 \times \frac{1000}{3600} = 72 \div 3.6 = 20$ m/s. The **conversion factor is $\frac{1000}{3600}$**, which equals $\frac{1}{3.6}$; dividing by 3.6 always turns km/h into m/s.
+
+```steps
+72 \text{ km/h} = \frac{72 \text{ km}}{1 \text{ h}}
+= \frac{72 \times 1000 \text{ m}}{3600 \text{ s}}   % convert km to m and h to s
+= \frac{72000}{3600} \text{ m/s}   % simplify the numerator
+= 20 \text{ m/s}   % divide
+```
+
+=== Q12: 利润 = 价格 × 数量 − 成本，价格 12，数量 50，成本 200，利润是多少？
+DIAGNOSIS: 学生只需把给定数值代入利润公式并正确按运算顺序计算，没有明显概念误解。
+
+代入公式：$12 \times 50 - 200 = 600 - 200 = 400$。**先算乘法，再减成本**，所以利润是 $400$。
+
+=== Q13: Rearrange v = u + at to make t the subject.
+DIAGNOSIS: The student wants the steps to isolate \(t\) in a linear formula, likely unsure which inverse operations to apply and in what order.
+
+To make \(t\) the subject, **undo the operations around \(t\) in reverse order**. First subtract \(u\) from both sides, then divide both sides by \(a\). This assumes \(a\neq 0\); if \(a=0\), the equation cannot be solved for \(t\) this way.
+
+```steps
+v = u + at
+v - u = at % subtract u from both sides
+\frac{v-u}{a} = t % divide both sides by a
+t = \frac{v-u}{a} % swap the two sides
+```
+
+=== Q14: 复利 1000(1+0.05)^3 怎么算？
+DIAGNOSIS: 学生看到复利公式 $1000(1+0.05)^3$ 不确定运算顺序，想确认是否需要先算括号里的加法、再算三次方、最后乘 1000。
+
+先算括号：$1+0.05=1.05$，再算三次方 $1.05^3=1.157625$（注意不是 $1+3\times0.05$），最后乘本金 $1000\times1.157625=1157.625$。**三次方要作用在整个 $1.05$ 上**，也就是 $1.05\times1.05\times1.05$。所以三年后本利和约为 $1157.63$。
+
+```steps
+1000(1+0.05)^3
+1000(1.05)^3        % 先算括号内的加法
+1000 \times 1.157625   % 计算 1.05 的三次方
+1157.625            % 乘以本金 1000
+```
+
+=== Q15: In the LP, evaluate z = 3x + 5y at the corner (4, 6).
+DIAGNOSIS: The student wants to evaluate the linear-programming objective at the given corner point and may be unsure which coordinate goes to x and which to y.
+
+Substitute the corner into the objective: $x=4$ and $y=6$, so $z=3(4)+5(6)$. That gives $z=12+30=42$. **The corner $(4,6)$ has objective value $42$.**
+
+=== Q16: Why does 2/(x-1) = 4 give x = 1.5?
+DIAGNOSIS: The student likely wants the algebra justification for clearing the fraction and solving the equation, and may be unsure why \(x=1.5\) follows.
+
+Multiply both sides by \(x-1\) to **clear the denominator** (valid since \(x\ne1\)). That gives \(2=4(x-1)\). Divide by \(4\), so \(x-1=0.5\), then add \(1\): \(x=1.5\). Check: \(2/(1.5-1)=2/0.5=4\).
+
+```steps
+\frac{2}{x-1}=4
+\frac{2}{x-1}\cdot(x-1)=4(x-1)   % multiply both sides by x-1
+2=4(x-1)
+\frac{2}{4}=x-1   % divide both sides by 4
+\frac{1}{2}=x-1
+x=\frac{3}{2}   % add 1 to both sides
+```
+
+=== Q17: What does a shadow price mean?
+DIAGNOSIS: Wants the meaning of the shadow price (dual variable) of a constraint, probably in an LP exam context; likely unsure whether it is a value or a rate.
+
+The **shadow price is the marginal rate of change of the optimal objective value per unit increase in a constraint's right-hand side**, i.e. the dual variable of that constraint. If a constraint like $2x+3y \le 10$ has shadow price $5$, relaxing its limit to $11$ raises the optimum by about $5$, and tightening to $9$ lowers it by about $5$. It is valid only while the constraint stays binding — outside its range of feasibility the rate changes, and a nonbinding constraint has shadow price $0$.
+
+=== Q18: 什么是过拟合？
+DIAGNOSIS: 学生需要一个关于过拟合的准确概念，可能是复习机器学习基础术语，尚未暴露具体误解。
+
+**过拟合**是模型把训练数据里的噪声和偶然细节也当成规律学了进去，于是在训练集上误差很小，换到新数据上误差却明显变大。它通常出现在模型过于复杂（参数太多、树太深）或数据太少、特征太多的时候。判断它要看训练误差与验证误差的差距，而不是只看训练准确率。
+
+=== Q1: Solve 7 - 2x = 15.
+DIAGNOSIS: The student likely wants the solution and may mishandle the negative coefficient when isolating \(x\).
+
+Subtract 7 from both sides to get \(-2x=8\), then **divide by \(-2\)**, giving \(x=-4\). Check: \(7-2(-4)=7+8=15\). A common slip is dropping the minus sign and getting \(x=4\), which does not check.
+
+```steps
+7 - 2x = 15
+7 - 2x - 7 = 15 - 7   % subtract 7 from both sides
+-2x = 8
+x = -4                % divide both sides by -2
+```
+
+=== Q2: 解方程 3(x-4) = 2x + 1
+DIAGNOSIS: 学生需要完整的解一元一次方程步骤，可能在分配律或移项变号上不够稳。
+
+**先展开括号，再把含 $x$ 的项移到一边**。两边同时减去 $2x$，再同时加上 $12$，就能得到 $x=13$。代回原式可检验：$3(13-4)=27$，$2\cdot13+1=27$。
+
+```steps
+3(x-4)=2x+1
+3x-12=2x+1 % 展开左边括号
+3x-12-2x=2x+1-2x % 两边减去 2x
+x-12=1 % 合并同类项
+x-12+12=1+12 % 两边加上 12
+x=13 % 得到解
+```
+
+=== Q3: Differentiate x^2 e^x.
+DIAGNOSIS: Likely unsure how to differentiate a product $x^2e^x$; may try to differentiate each factor separately instead of using the product rule.
+
+For $x^2e^x$ you need the **product rule**, since it is a product of two functions. Set $u=x^2$ and $v=e^x$; then $u'=2x$ and $v'=e^x$, so the derivative is $u'v+uv'$. This gives $2xe^x+x^2e^x$, or $(x^2+2x)e^x$.
+
+```steps
+y=x^2 e^x
+u=x^2,\quad v=e^x
+u'=2x,\quad v'=e^x
+y'=u'v+uv'
+y'=2x e^x+x^2 e^x
+y'=(x^2+2x)e^x % factor e^x
+```
+
+=== Q4: 求 ln(x^2+1) 的导数
+DIAGNOSIS: 学生想用链式法则求 $\ln(x^2+1)$ 的导数，可能漏乘内层导数 $2x$。
+
+对 $\ln(x^2+1)$ 求导要用**链式法则**：先对外层 $\ln$ 求导得 $\frac{1}{x^2+1}$，再乘内层 $x^2+1$ 的导数 $2x$。因为 $x^2+1>0$，不需要加绝对值。结果是 $\frac{2x}{x^2+1}$。
+
+```steps
+y = \ln(x^2+1)
+y' = \frac{1}{x^2+1}\cdot (x^2+1)'   % 用链式法则
+y' = \frac{1}{x^2+1}\cdot 2x         % 内层导数为 2x
+y' = \frac{2x}{x^2+1}
+```
+
+=== Q5: Simplify (x^2 - 4)/(x - 2).
+DIAGNOSIS: Wants the simplification confirmed; likely unsure whether the numerator factors or whether cancelling is allowed, and may not track the domain restriction.
+
+Factor the numerator as a difference of squares: $x^2-4=(x-2)(x+2)$. The factor $x-2$ cancels with the denominator, leaving $x+2$ — **but only for $x\neq 2$**, where the original expression is undefined.
+
+```steps
+\frac{x^2-4}{x-2}
+\frac{(x-2)(x+2)}{x-2}   % factor numerator as difference of squares
+x+2, \quad x \neq 2      % cancel x-2, state restriction
+```
+
+=== Q6: 化简 (a+b)^2 - (a-b)^2
+DIAGNOSIS: 学生要化简含平方差的代数式，可能展开后符号处理易错。
+
+用**平方差公式**更快：把 $(a+b)^2-(a-b)^2$ 看成两个平方相减，先写成 $[(a+b)-(a-b)][(a+b)+(a-b)]$，括号内分别得 $2b$ 和 $2a$，相乘即 $4ab$。展开再相减也会得到同样结果。
+
+```steps
+(a+b)^2-(a-b)^2
+=((a+b)-(a-b))((a+b)+(a-b))
+=(2b)(2a)
+=4ab
+```
+
+=== Q7: Solve 2x - 5 \le 3x + 1.
+DIAGNOSIS: The student wants to solve the linear inequality and may forget that dividing or multiplying by a negative reverses the inequality sign.
+
+Isolate \(x\) on one side. **When you multiply or divide by a negative number, reverse the inequality sign.** So the solution is \(x \ge -6\).
+
+```steps
+2x - 5 \le 3x + 1
+2x - 5 - 3x \le 3x + 1 - 3x   % subtract 3x from both sides
+-x - 5 \le 1
+-x - 5 + 5 \le 1 + 5   % add 5 to both sides
+-x \le 6
+x \ge -6   % multiply by -1 and reverse the inequality
+```
+
+=== Q8: 配平 C3H8 + O2 → CO2 + H2O
+DIAGNOSIS: 学生可能不清楚如何用原子守恒按 C→H→O 顺序配平丙烷燃烧，或想确认系数是否正确。
+
+**配平只改系数，不改下标。** 先看碳：左边有3个C，所以 $\ce{CO2}$ 前写3；再看氢：8个H，所以 $\ce{H2O}$ 前写4；最后看氧：右边共有10个O，因此 $\ce{O2}$ 前写5。检查两边 C、H、O 原子数都一致。
+
+```steps
+\ce{C3H8 + O2 -> CO2 + H2O}
+\ce{C3H8 + O2 -> 3CO2 + H2O}   % 在CO2前写3
+\ce{C3H8 + O2 -> 3CO2 + 4H2O}  % 在H2O前写4
+\ce{C3H8 + 5O2 -> 3CO2 + 4H2O} % 在O2前写5
+```
+
+=== Q9: Show that p → q is equivalent to ¬q → ¬p.
+DIAGNOSIS: Student wants a formal proof of the contrapositive equivalence and may be unsure whether to use a truth table or logical identities.
+
+A conditional and its contrapositive have the same truth value: **$p\to q$ is equivalent to $\neg q\to\neg p$** because both are false only when $p$ is true and $q$ is false. Rewriting each implication as a disjunction shows they match.
+
+```steps
+p \to q \equiv \neg p \lor q
+\neg q \to \neg p \equiv \neg(\neg q) \lor \neg p   % rewrite implication
+\neg q \to \neg p \equiv q \lor \neg p             % double negation
+\neg q \to \neg p \equiv \neg p \lor q             % commutativity
+p \to q \equiv \neg q \to \neg p                   % same disjunction
+```
+
+=== Q10: 一个项目 30% 概率赚 200，70% 概率亏 40，期望收益多少？
+DIAGNOSIS: 学生需要把加权平均（期望值）应用到含亏损的收益上，可能对负号或概率求和存疑。
+
+**期望值就是把每种结果的收益乘以它的概率再加起来**，亏损要按负数代入。所以收益是 $0.3\times200+0.7\times(-40)=60-28$，期望收益为 32。
+
+```steps
+E = 0.3 \times 200 + 0.7 \times (-40)
+E = 60 - 28   % 分别算出两项
+E = 32        % 相加得期望收益
+```
+
+=== Q11: How many seconds are in 2.5 hours?
+DIAGNOSIS: The student needs the hour-to-second conversion factor and how to apply it to a decimal number of hours.
+
+There are $3600$ seconds in one hour, so multiply $2.5$ by $3600$. The **unit conversion factor** cancels hours and leaves seconds: $2.5\times3600=9000$.
+
+```steps
+2.5\,\text{h} = 2.5 \times \frac{3600\,\text{s}}{1\,\text{h}}\,\text{h}
+2.5 \times \frac{3600\,\text{s}}{1\,\text{h}}\,\text{h} = 2.5 \times 3600\,\text{s}   % cancel hours
+2.5 \times 3600\,\text{s} = 9000\,\text{s}   % multiply
+```
+
+=== Q12: 收入 = 单价 × 销量，单价 15 元，销量 120，收入多少？
+DIAGNOSIS: 学生想确认把单价和销量代入收入公式后相乘的结果，可能只是需要核对计算。
+
+把已知数代入公式即可：收入 = 单价 × 销量。**将 $15$ 与 $120$ 相乘**得到 $1800$，所以收入是 $1800$ 元。
+
+```steps
+\text{收入} = \text{单价} \times \text{销量}
+\text{收入} = 15 \times 120   % 代入单价和销量
+\text{收入} = 1800 \text{ 元}
+```
+
+=== Q13: Make r the subject of A = πr^2.
+DIAGNOSIS: Wants to rearrange the area formula for the radius, but may forget to divide by $\pi$ first and then take a square root.
+
+Divide both sides by $\pi$, then take the square root. **Undo operations in reverse order**: from $\pi r^2$, first divide by $\pi$, then square-root. Since $r$ is a length, use the positive root: $r=\sqrt{\frac{A}{\pi}}$.
+
+```steps
+A = \pi r^2
+\frac{A}{\pi} = r^2   % divide both sides by \pi
+r = \pm\sqrt{\frac{A}{\pi}}   % take square roots
+r = \sqrt{\frac{A}{\pi}}   % radius is positive
+```
+
+=== Q14: 本金 2000，年利率 4%，两年复利后是多少？
+DIAGNOSIS: 学生想确认复利两年后的本息和，可能不确定是乘一次还是两次利率因子。
+
+**复利**是每年把利息并入本金再计息，所以两年要乘两次 $1.04$。若按年复利，本息和为 $2000(1.04)^2=2163.20$。
+
+```steps
+A = 2000(1+0.04)^2
+A = 2000 \times 1.04^2   % 代入本金和年利率
+A = 2000 \times 1.0816
+A = 2163.20              % 计算本息和
+```
+
+=== Q15: Evaluate the objective 4x + 3y at the vertex (10, 5).
+DIAGNOSIS: The student wants to substitute the vertex coordinates into the objective function correctly, likely checking whether x=10 goes with 4 and y=5 goes with 3.
+
+Substitute the vertex into the objective: the first coordinate is $x=10$, so $4x=4(10)$; the second is $y=5$, so $3y=3(5)$. Then add: $40+15=55$. So the objective value at $(10,5)$ is $55$.
+
+```steps
+4x + 3y
+4(10) + 3(5)   % substitute x = 10 and y = 5
+40 + 15        % multiply
+55             % add
+```
+
+=== Q16: Why is log_2(8) = 3?
+DIAGNOSIS: The student treats log as a separate operation rather than the inverse of exponentiation, and wants to see why the value 3 is forced.
+
+A logarithm asks one question: **to what power must I raise the base to get the argument?** Here the base is 2 and the argument is 8, so you ask "2 to what power gives 8?" Since $2 \cdot 2 \cdot 2 = 8$, that power is 3. Equivalently, $\log_2(8)=3$ is just a restatement of $2^3=8$.
+
+```steps
+\log_2(8) = 3
+2^{\log_2(8)} = 2^{3}   % exponentiate both sides with base 2
+8 = 2^{3}               % use the inverse property
+2^{3} = 2\cdot 2\cdot 2 = 8
+```
+
+=== Q17: What is a confidence interval?
+DIAGNOSIS: Wants a working definition for exam recall; the usual trap is saying "95% probability the parameter is in this interval" — needs the frequentist interpretation made explicit.
+
+A confidence interval is a range built from sample data by a procedure that captures the true parameter in $95\%$ of repeated samples. The **confidence level describes the procedure, not this particular interval**: once computed, the interval either contains $\mu$ or it doesn't. What you can say is that if we sampled again and again, about $95\%$ of the intervals produced would contain the parameter.
+
+=== Q18: 边际成本是什么意思？
+DIAGNOSIS: 学生复习备考，想知道"边际成本"的定义与其数学表达之间的联系，可能是对导数在经济量中的含义不清楚。
+
+边际成本是**多生产一单位产品所增加的成本**，数学上就是总成本函数对产量的导数：$MC=\frac{dTC}{dQ}$。如果总成本是线性的（固定单位成本），边际成本就是那个常数；若成本函数非线性，就要用导数，而不是平均成本 $TC/Q$。考试中常问"产量为 $Q$ 时的边际成本"，就是把 $Q$ 代入导数式。
+
+```steps
+TC = 2Q^2 + 5Q + 100
+MC = \frac{dTC}{dQ} = 4Q + 5   % 对Q求导
+Q = 10 \Rightarrow MC = 45     % 代入Q=10
+```

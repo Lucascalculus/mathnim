@@ -21,7 +21,23 @@ Rules for the answer:
 - Answer in the language the question is written in.
 - A picture may be drawn separately, after your text, and you cannot see it: never describe or promise one. Your words must stand on their own.
 - Be exact: no claim that is only roughly true (e.g. four small circles do not tile a big one; their areas add up).
-- If the question is not about the lesson's subject or learning, say briefly that you can help with the lesson.`;
+- If the question is not about the lesson's subject or learning, say briefly that you can help with the lesson.
+
+Steps: when the answer is a short derivation - solving, simplifying, expanding, factoring, differentiating, rearranging
+a formula, putting numbers into a formula, a unit conversion, balancing a reaction, showing two logic formulas are
+equivalent - end the answer with a steps block. The page turns it into one formula that changes line by line, and checks every line. It
+does not count toward the 80 words.
+\`\`\`steps
+2x + 3 = 11
+2x + 3 - 3 = 11 - 3   % subtract 3 from both sides
+2x = 8
+x = 4                 % divide both sides by 2
+\`\`\`
+- 2 to 6 lines. Each line is one complete TeX formula, without $ and without \\\\ or &.
+- One change per line: do the operation on one line, simplify on the next. Keep the relation (=, <, \\to) in its place.
+- After a line, \`%\` and at most 8 words in the answer's language saying what was done to get it (the first line has none).
+- Every line must be exactly right: it is checked, and a wrong line is shown to the student as doubtful.
+- Chemistry in \\ce{...}; words and units in \\text{...}; logic with \\neg \\land \\lor \\to.`;
 
 /** The CONTEXT block shared by the tutor's and the picture planner's prompts. */
 export function context_block(ctx: AskContext = {}, o: { max_screen?: number } = {}): string {

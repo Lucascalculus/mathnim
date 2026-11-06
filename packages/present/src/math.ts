@@ -66,7 +66,42 @@ const mark_bold_math = (chunk: string): string =>
 /** "\$" is a literal dollar in prose (it starts no math); inside math it stays TeX's own \$. */
 const DOLLAR = '\u0004';
 
+/**
+ * A ```steps block (a derivation, one TeX line per step, `% words` for what was done) becomes a column of displayed
+ * formulas with their reasons: readable as it is, and turned into the engine's formula steps by mount_steps() where
+ * the page can play them. A block still arriving (an answer streaming in) shows nothing yet.
+ */
+const STEPS_FENCE = /```[ \t]*steps[^\n]*\n([\s\S]*?)(```|$)/g;
+function steps_html(body: string, closed: boolean): string {
+  if (!closed) return '<div class="mn-steps mn-steps-wait"></div>';
+  const rows: { tex: string; why: string }[] = [];
+  for (const raw of body.split('\n')) {
+    let l = raw.trim(), why = '';
+    const c = /(^|[^\\])%(.*)$/.exec(l);
+    if (c) { why = c[2].trim(); l = l.slice(0, c.index + c[1].length).trim(); }
+    l = l.replace(/^\$+|\$+$/g, '').replace(/^\\\[|\\\]$/g, '').trim();
+    if (l) rows.push({ tex: l, why });
+    else if (why && rows.length && !rows[rows.length - 1].why) rows[rows.length - 1].why = why; // (a reason on its own line)
+  }
+  const html = rows.map((r) => `<div class="mn-step">${tex_html(r.tex, true)}${r.why ? `<div class="mn-step-why">${esc(r.why)}</div>` : ''}</div>`).join('');
+  return `<div class="mn-steps" data-steps="${esc(body)}">${html}</div>`;
+}
+
 export function math_html(text: string, o: MarkupOptions = {}): string {
+  if (!text.includes('```')) return prose_math_html(text, o);
+  const out: string[] = [];
+  let at = 0;
+  for (const m of text.matchAll(STEPS_FENCE)) {
+    if (m.index! > at) out.push(prose_math_html(text.slice(at, m.index).replace(/\s+$/, ''), o));
+    out.push(steps_html(m[1], m[2] === '```'));
+    at = m.index! + m[0].length;
+    if (!m[0].length) break;
+  }
+  if (at < text.length) out.push(prose_math_html(text.slice(at).replace(/^\s+/, ''), o));
+  return out.join('');
+}
+
+function prose_math_html(text: string, o: MarkupOptions = {}): string {
   return text
     .split(/(`[^`\n]+`)/g)
     .map((chunk) => {

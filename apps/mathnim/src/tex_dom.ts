@@ -2,7 +2,7 @@
 // MathJax is large (about 0.5 MB compressed): the first page does not wait for it. It is loaded once
 // the shell is up, or by the first page that needs it (lessons, review); formulas written meanwhile
 // (course pages, the outline) are drawn when it arrives (present's set_tex_renderer).
-import { set_tex_renderer } from '@mathnim/present';
+import { mount_steps, set_tex_renderer, ui_lang } from '@mathnim/present';
 import { init_tex } from 'manim-web';
 import { tex_to_svg } from 'manim-web/utils/tex/mathjax';
 
@@ -18,4 +18,24 @@ export function enable_dom_tex(): Promise<void> {
         .replace(/width='([\d.]+)pt' height='([\d.]+)pt'/, (_m, w, h) => `width='${(+w / 10) * 1.12}em' height='${(+h / 10) * 1.12}em' fill='currentColor' style='vertical-align:-0.25em'`);
     }),
   ));
+}
+
+// formula steps (```steps in a tutor's answer or a page) become the engine's derivation wherever they are put in the
+// page: one watcher for the whole document, so every place that writes math_html() gets them
+let watching = false;
+export function watch_steps(): void {
+  if (watching || typeof MutationObserver === 'undefined') return;
+  watching = true;
+  let queued = false;
+  const run = () => {
+    queued = false;
+    if (document.querySelector('.mn-steps[data-steps]:not([data-live])')) void enable_dom_tex().then(() => mount_steps(document, ui_lang() === 'zh' ? 'zh' : 'en'));
+  };
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    // (a timer, not an animation frame: frames stop in a hidden tab, and an answer that arrives there must still be read)
+    setTimeout(run, 30);
+  }).observe(document.body, { childList: true, subtree: true });
+  run();
 }

@@ -19,3 +19,5 @@ export * from './mirror';
 export * from './shapes';
 export * from './view3d';
 export * from './version';
+export * from './steps';
+export * from './steps_check';

@@ -205,6 +205,12 @@ export type Block =
   | { type: 'svg'; svg: L10n; alt: L10n; caption?: L10n }
   /** A visual from @mathnim/visuals embedded in the page (plays; explorable when `explore`). */
   | { type: 'visual'; name: string; params?: Record<string, unknown>; caption?: L10n; explore?: boolean }
+  /**
+   * An interactive instrument: a self-contained HTML page from the app's public folder (`src`, e.g. 'frames/mgmt90141/lp_plane.html'),
+   * shown in a sandboxed frame that gets the learner's language (?lang=) and `params` (?p=, JSON) and reports its own height. `alt` says what it is
+   * for text-only readers. Unlike `visual` it is not a manim-web scene: it can be any small interaction (chips, fields, sliders, tables).
+   */
+  | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
   | { type: 'callout'; kind: 'note' | 'warning' | 'misconception' | 'open'; title?: L10n; body: L10n }
   /** Collapsed "details on demand". */
   | { type: 'details'; summary: L10n; blocks: Block[] }
@@ -214,15 +220,12 @@ export type Block =
   /**
    * Text as it stands on an exam paper (a question as set, or a full-mark answer), in the paper's
    * own language `lang`; a learner reading another language sees the translation under it.
-   */
-  | { type: 'paper'; title: L10n; lang: Lang; paras: L10n[]; answer?: boolean }
-  /** A source reference shown as a footnote. */
-  | { type: 'cite'; key: string; text: L10n; url: string };
+ 
 ```
 
 ## Visuals
 
-64 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
+65 parametric visuals (`packages/visuals`): each is a scene with checked parameters, used by lessons (scene steps, worlds, `visual` blocks, course covers) and chosen by the AI tutor for its answers. Packs load on demand (`import('@mathnim/visuals/mpc')`, `.../ft/<part>`, `.../econ` and `.../it` for demo courses through their entries' `packs`); the core pack (geometry, linear algebra) loads with the app. New visuals: `packages/visuals/README.md`; visuals marked *(engine)* are figures made with `@mathnim/engine` (`define_figure`; new visuals start there: `packages/engine/README.md`); check them with `npm run check -w @mathnim/visuals -- --only <names>` and look at the contact sheets.
 
 ### econ
 
@@ -430,6 +433,13 @@ export type Block =
   - topics: linear algebra, symmetric matrices, eigenvectors, spectral theorem, ellipse, pca
   - used in: `eigen-pca/lesson.ts`, `ft/c/c2_lora.ts`
 
+### mgmt
+
+- **`mgmt_lp_plane`** *(engine)*: The plan plane of a linear program with two decisions (Shader Electronics and its special cases): every point is a whole plan, each limit is a wall, the allowed plans are the region the walls leave, and the best plan is a corner. Hands: drag a plan (what it earns, what each limit says), drag the profit line (it dies at the best plan), drag a wall (the best plan and the profit follow).
+  - params: `problem: one of shader|alternative|infeasible|unbounded|redundant|consolidated ="shader" - 'shader': the lecturer's example (max 7x1+5x2, electronic 4x1+3x2<=240, assembly 2x1+x2<=100, best 30/40 = $410); 'alternative': the profit line parallel to a wall; 'infeasible'; 'unbounded'; 'redundant'; 'consolidated': the minimisation (min 10000x1+8000x2, consultant 3x1+2x2<=84, x1>=8, x2>=10, x1+x2>=25; best 8 and 17 = 216000)`; `tool: one of look|plan|sweep|walls ="look" - what the hand moves: 'look' nothing, 'plan' a plan, 'sweep' the profit line, 'walls' a limit's wall`; `story: one of build|shown ="build" - 'build': the axes, then the walls one by one, then the set; 'shown': everything at once`; `plan: 2 numbers in [0, 110] =[20,20] - the plan in hand to start with [x1, x2] (tool plan)`; `level: number in [0, 1000000] =0 - the objective line to start with (0: none; tool sweep starts there)`; `best: boolean =false - show the best plan (hidden while the learner is still predicting it)`; `corners: boolean =false - mark every corner of the feasible set with what it earns`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
+  - topics: linear programming, feasible region, corner, optimal solution, constraints, binding constraint, objective function
+  - used in: _(not yet used by a lesson)_
+
 ### mpc
 
 - **`mpc_active_set`**: Be the active-set solver on M4's two-move cart QP, sample by sample along the MPC's own closed loop: choose which limits are held with equality (the working set W, chips in a table); the candidate plan z_W is the cheapest plan on all held lines; the table shows each held limit's multiplier λ (negative: it pulls, let it go) and whether z_W keeps or breaks each other limit. Optimal when nothing is broken and every λ ≥ 0. 'Next sample' moves one sample on and keeps W (warm start); counters compare the changes made with a from-scratch solve. Exact arithmetic on the toy cart.
@@ -468,7 +478,7 @@ export type Block =
   - params: `brakes: one of 1|0.5 ="1" - largest deceleration in m/s²: '1' shows three PD tunings, '0.5' only the tuned one (it was tuned for 1)`; `show_mpc: boolean =false - also draw the docking MPC (horizon 20 steps for brakes 1, 40 for brakes 0.5)`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, pid, pd controller, saturation, control
   - used in: `mpc/m1_lookahead.ts`
-- **`mpc_qp_plane`** *(engine)*: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: the cost bowl and its ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line in its own colour, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
+- **`mpc_qp_plane`** *(engine)*: The cart's MPC cut to two decisions (a₁ for the first second, a₂ for the second) so the QP can be drawn: cost ellipses around the no-limits plan, each limit (motor, speed, wall) a straight line, the feasible polygon, and the best plan where the smallest ellipse touches it (active limits drawn thick). Drag the cart's state (p₀, v₀): the lines slide, the optimum slides along edges; fast and close, the polygon vanishes (no plan). Shows the clipped no-limits plan for comparison. Exact QP on the toy cart.
   - params: `story: one of full|setup ="full" - 'full': the narrated build (cost ellipses, the limits one family at a time, the smallest ellipse touching the polygon, then the state moves); 'setup': everything shown at once at (p0, v0), for a world`; `p0: number in [4, 9.9] =8 - initial position of the cart [m] (its front bumper; the wall is at 10 m, the flag at 9.5 m)`; `v0: number in [0, 2] =0 - initial speed [m/s] (the limit is 2)`; `clip: boolean =true - show the clipped no-limits plan (□) and its cost ellipse, for comparison with the best plan`; `lang: one of auto|en|zh ="auto" - language of the labels: 'en', 'zh', or 'auto' (the learner's language)`
   - topics: mpc, quadratic program, constraints, active set, kkt, feasible set, level sets, control
   - used in: `mpc/m4_constraints.ts`
@@ -550,6 +560,7 @@ How lessons are shown: the essay and game views, text pages, narration, cues and
 | `packages/present/src/math.ts` | Text with inline TeX (`$...$`) in DOM elements. The TeX renderer is pluggable (the app passes manim-web's MathJax adapter); without one the TeX source is shown. |
 | `packages/present/src/narrator.ts` | Narration: pre-generated neural-voice audio (tools/gen_narration.py, edge-tts) with captions timed to its word boundaries. Lines without recorded audio (e.g. freshly generated by the AI) are synthesised on demand by the server (POST /api/tts: the same voice, word boundaries included) when it offers live narration (/api/providers says {tts: true}); otherwise, or when that fails, they are shown as captions only, unless the learner turns on the browser's own voice. |
 | `packages/present/src/sketchpad.ts` | Draw-your-prediction overlay: the learner sketches a curve (or places a point) on top of the scene; strokes are kept in data coordinates. |
+| `packages/present/src/steps_mount.ts` | The formula steps in a text (a tutor's answer, a page): each column of formulas math_html made from a ```steps block becomes the engine's derivation, one formula that changes line by line, played once when it is first seen; a click plays it again. Before it is drawn it is read, typeset and checked (review_steps): a block that does not read or typeset keeps its column; a line that does not follow from the one before is marked while it rests. |
 | `packages/present/src/styles.ts` | Styles for the lesson UI. Colours are CSS variables so a theme (or the host page) can restyle everything; the defaults are the quiet white theme. |
 | `packages/present/src/text_pages.ts` | Text pages: read (prose, formulas, code, figures, embedded visuals), derive (a derivation revealed line by line, with "why" notes and a fill-in line) and code (code next to its notes). The HTML is built as strings (blocks_html is pure, so it is tested without a DOM), then hydrate() binds the behaviour: copy buttons, code tabs, footnote links, embedded visuals. LessonView puts the article in its reading column and the outline or progress in the side panel. |
 | `packages/present/src/view.ts` | The lesson player UI (plain DOM, no framework): stage + side panel + timeline + mastery. Everything it shows comes from LessonRuntime events. Text steps (read, derive, code) replace the stage with a reading column (text_pages.ts). Every L10n text is shown in the learner's language (ViewOptions.lang, default the interface language of i18n.ts); the UI's own strings come from the i18n dictionary. |
@@ -560,6 +571,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 
 | module | what it is |
 |---|---|
+| `packages/ai/src/acts.ts` | The tutor acting in the figure on the learner's screen (docs/design/ENGINE.md §10), on the model's side: the figure's manifest (what is on screen, what the learner can move) goes into the prompt, the model may end its answer with a few ACT lines, and they are parsed out of the text and checked against the manifest here. The figure checks them again against itself before it moves (packages/engine/src/acts.ts): the tutor can only do what the learner can. (The types are the engine's, written out: this module also runs on the server, which does not load the engine.) |
 | `packages/ai/src/backend.ts` | Where the page sends the tutor's operations (ops_types.ts). In production: the site's server (/api/ai), which writes the prompts and calls the model. Offline: recorded answers for known questions (a demo without a model). In a development build a model called from the page can run them too (local_backend.ts, never in production pages). |
 | `packages/ai/src/generate.ts` | Syllabus entry -> complete lesson: plan the steps (predict, watch, practise), then generate and validate each scene with the same pipeline as questions. |
 | `packages/ai/src/grade_text.ts` | Free-text answers checked against a rubric's key points by the active model (JSON mode, thinking off): which key points the answer makes, and one sentence of feedback in the learner's language. The lesson view falls back to self-assessment when there is no model or the call fails. |
@@ -603,6 +615,7 @@ The tutor that answers questions (text first, a ready-made visual when it explai
 | `npm run doctor` | npm run doctor -w mathnim |
 | `npm run narration` | npm run narration -w mathnim |
 | `npm run deploy` | npm run build && cd apps/mathnim && wrangler pages deploy dist --project-name mathnim --branch main --commit-dirty=true |
+| `npm run specimen` | rsync -a --delete --exclude shots/ --exclude .DS_Store docs/design/specimen/ apps/mathnim/public/p/0y7r2k8c6i/ |
 | `npm run catalog` | npm run catalog -w mathnim -- |
 | `npm run dev -w mathnim` | vite |
 | `npm run build -w mathnim` | vite build && node tools/fingerprints.mjs --expect dist |

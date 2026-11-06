@@ -155,10 +155,16 @@ export function tex_ready(): boolean {
 }
 
 // ------------------------------------------------------------------ typesetting
+/** Where an item came from in MathJax's tree (tex_glyphs only): its glyph's character (data-c), the token node it
+ *  belongs to (an id per mi / mn / mo / mtext node, in output order) and that node's kind, and the kinds of the
+ *  structures around it, innermost last (mfrac, msqrt, msup ...). */
+interface Origin { c?: string; leaf?: number; leaf_kind?: string; chain?: string[]; size?: number }
 type Item =
-  | { kind: 'path'; segs: SVGSegment[]; fill: string | null }
-  | { kind: 'rect'; x0: number; y0: number; x1: number; y1: number; fill: string | null }
+  | ({ kind: 'path'; segs: SVGSegment[]; fill: string | null } & Origin)
+  | ({ kind: 'rect'; x0: number; y0: number; x1: number; y1: number; fill: string | null } & Origin)
+  | ({ kind: 'text'; s: string; x: number; y: number; size: number; family: string; fill: string | null } & Origin)
   | { kind: 'special'; text: string };
+const TOKEN_NODES = new Set(['mi', 'mn', 'mo', 'mtext', 'ms']);
 interface Typeset { items: Item[]; width: number; height: number; depth: number }
 type Clip = [number, number, number, number] | null;
 
@@ -177,10 +183,13 @@ function typeset(src: string, display: boolean): Typeset {
   const svg = adaptor.firstChild(container);
   const vb = (adaptor.getAttribute(svg, 'viewBox') ?? '0 0 0 0').split(/\s+/).map(Number);
   const items: Item[] = [];
-  const walk = (el: Any, ctm: SVGMatrix, fill: string | null, clip: Clip) => {
+  let leaves = 0;
+  const walk = (el: Any, ctm: SVGMatrix, fill: string | null, clip: Clip, origin: Origin = { chain: [] }) => {
     const tag = adaptor.kind(el);
     if (tag === '#text' || tag === '#comment') return;
     const attr = (n: string) => adaptor.getAttribute(el, n);
+    const mml = attr('data-mml-node');
+    if (mml) origin = TOKEN_NODES.has(mml) ? { ...origin, leaf: leaves++, leaf_kind: mml } : { ...origin, chain: [...(origin.chain ?? []), mml] };
     let m = matrix_multiply(ctm, parse_transform(attr('transform')));
     const f = color_of(attr('fill'), fill);
     if (tag === 'svg' && el !== svg) {
@@ -208,30 +217,38 @@ function typeset(src: string, display: boolean): Typeset {
             return o;
           });
         }
-        items.push({ kind: 'path', segs, fill: f });
+        const c = attr('data-c');
+        items.push({ kind: 'path', segs, fill: f, ...origin, c: c ? String.fromCodePoint(parseInt(c, 16)) : undefined, size: Math.round(Math.hypot(m[0], m[1]) * 1000) / 1000 });
       }
+    } else if (tag === 'text') {
+      // a character MathJax's fonts do not have (Chinese in \text{}): kept as text, with its baseline and size
+      // (tex_to_svg leaves it out, as it always has; tex_glyphs gives it, for figures that draw it with a font)
+      const s = (adaptor.childNodes(el) as Any[]).map((c: Any) => adaptor.value(c) ?? '').join('');
+      const [x, y] = matrix_apply(m, 0, 0), size = num((attr('font-size') ?? '1000').replace('px', ''), 1000) * Math.hypot(m[0], m[1]);
+      if (s) items.push({ kind: 'text', s, x, y, size, family: attr('font-family') ?? 'serif', fill: f, ...origin });
+      return;
     } else if (tag === 'rect') {
       if (attr('data-hitbox') !== null && attr('data-hitbox') !== undefined) return;
       if (attr('fill') === 'none' || attr('fill') === 'transparent') return;
       const x = num(attr('x')), y = num(attr('y')), w = num(attr('width')), h = num(attr('height'));
-      rect(m, x, y, x + w, y + h, f, clip);
+      rect(m, x, y, x + w, y + h, f, clip, origin);
     } else if (tag === 'line') {
       // table rules: a stroked line becomes a filled rectangle, as TeX's rules are
       const sw = num(attr('stroke-width'), 0);
       if (sw > 0) {
         const x1 = num(attr('x1')), y1 = num(attr('y1')), x2 = num(attr('x2')), y2 = num(attr('y2'));
         const hw = sw / 2;
-        if (y1 === y2) rect(m, Math.min(x1, x2), y1 - hw, Math.max(x1, x2), y1 + hw, color_of(attr('stroke'), f), clip);
-        else if (x1 === x2) rect(m, x1 - hw, Math.min(y1, y2), x1 + hw, Math.max(y1, y2), color_of(attr('stroke'), f), clip);
+        if (y1 === y2) rect(m, Math.min(x1, x2), y1 - hw, Math.max(x1, x2), y1 + hw, color_of(attr('stroke'), f), clip, origin);
+        else if (x1 === x2) rect(m, x1 - hw, Math.min(y1, y2), x1 + hw, Math.max(y1, y2), color_of(attr('stroke'), f), clip, origin);
       }
     }
-    for (const c of adaptor.childNodes(el)) walk(c, m, f, clip);
+    for (const c of adaptor.childNodes(el)) walk(c, m, f, clip, origin);
   };
-  const rect = (m: SVGMatrix, x0: number, y0: number, x1: number, y1: number, fill: string | null, clip: Clip) => {
+  const rect = (m: SVGMatrix, x0: number, y0: number, x1: number, y1: number, fill: string | null, clip: Clip, origin: Origin) => {
     const [ax, ay] = matrix_apply(m, x0, y0), [bx, by] = matrix_apply(m, x1, y1);
     let r = [Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by)];
     if (clip) r = [Math.max(r[0], clip[0]), Math.max(r[1], clip[1]), Math.min(r[2], clip[2]), Math.min(r[3], clip[3])];
-    if (r[2] > r[0] && r[3] > r[1]) items.push({ kind: 'rect', x0: r[0], y0: r[1], x1: r[2], y1: r[3], fill });
+    if (r[2] > r[0] && r[3] > r[1]) items.push({ kind: 'rect', x0: r[0], y0: r[1], x1: r[2], y1: r[3], fill, ...origin });
   };
   for (const c of adaptor.childNodes(svg)) walk(c, IDENTITY_MATRIX, null, null);
   return { items, width: vb[2] ?? 0, height: -(vb[1] ?? 0), depth: (vb[3] ?? 0) + (vb[1] ?? 0) };
@@ -419,6 +436,7 @@ function text_mode(expression: string, defs: string, align: 'left' | 'center' | 
     for (const it of r.items) {
       if (it.kind === 'path') items.push({ ...it, segs: transform_segments(it.segs, shift) });
       else if (it.kind === 'rect') items.push({ ...it, x0: it.x0 + x, x1: it.x1 + x, y0: it.y0 + y, y1: it.y1 + y });
+      else if (it.kind === 'text') items.push({ ...it, x: it.x + x, y: it.y + y });
       else items.push(it);
     }
     prev_depth = r.depth;
@@ -444,6 +462,7 @@ function emit(items: Item[]): string {
     y1 = Math.max(y1, y);
   };
   for (const it of items) {
+    if (it.kind === 'text') continue;
     if (it.kind === 'special') {
       const raw = /^\s*dvisvgm:raw\s*([\s\S]*)$/.exec(it.text);
       if (!raw) continue;
@@ -509,4 +528,66 @@ export function tex_to_svg(expression: string, environment: string | null = null
   const svg = emit(items);
   cache.set(key, svg);
   return svg;
+}
+
+/** One piece of ink of a typeset formula, as tex_glyphs gives it (TeX units, y down, the same numbers as tex_to_svg). */
+export interface TexGlyph {
+  /** A glyph's path, or a rule (fraction bar, root's roof, table line) as a rectangle [x, y, w, h]. */
+  d?: string;
+  rect?: [number, number, number, number];
+  /** The character the glyph draws (MathJax's data-c), when it is one. */
+  c?: string;
+  /** The token node it belongs to (an id per mi / mn / mo / mtext node, in output order; -1: none, e.g. a rule). */
+  leaf: number;
+  leaf_kind: string;
+  /** The structures around it, outermost first (e.g. ['math', 'mfrac'] for a fraction's bar). */
+  chain: string[];
+  fill: string | null;
+  /** Its extent [x0, y0, x1, y1] (end points of its segments, as tex_to_svg's viewBox counts them). */
+  box: [number, number, number, number];
+  /** How large it is set: 1 for the main size, 0.707 for a script, 0.5 for a script's script (glyphs only). */
+  size?: number;
+  /** Text MathJax has no glyph for (Chinese in \text{}): its characters, drawn with a font of `font_size` (TeX units) at `at` (the baseline's left). */
+  text?: string;
+  font_size?: number;
+  family?: string;
+  at?: [number, number];
+}
+/**
+ * A formula typeset exactly as tex_to_svg(expression, environment) draws it, piece by piece with where each piece
+ * came from: what the engine's formula steps match from one line to the next. The pieces come in tex_to_svg's order,
+ * so piece i is the i-th path (or rect) of that SVG.
+ */
+export function tex_glyphs(expression: string, environment = 'align*'): { glyphs: TexGlyph[]; view: [number, number, number, number] } {
+  if (!tex_ready()) throw new Error('TeX is not loaded yet: await init_tex() first.');
+  const env = environment_code(environment);
+  const items = typeset(env.begin + '\n' + expression + '\n' + env.end, true).items;
+  const glyphs: TexGlyph[] = [];
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const it of items) {
+    if (it.kind === 'special') continue;
+    const o = { leaf: it.leaf ?? -1, leaf_kind: it.leaf_kind ?? '', chain: it.chain ?? [], fill: it.fill };
+    if (it.kind === 'text') {
+      // (MathJax sets each such character in a 1 em box: that is its extent)
+      const k = 0.01, x = it.x * k, y = it.y * k, sz = it.size * k, w = sz / 0.884 * [...it.s].length;
+      const box: [number, number, number, number] = [x, y - sz * 0.88, x + w, y + sz * 0.12];
+      glyphs.push({ ...o, text: it.s, font_size: sz, family: it.family, at: [x, y], c: it.s, box });
+      x0 = Math.min(x0, box[0]); y0 = Math.min(y0, box[1]); x1 = Math.max(x1, box[2]); y1 = Math.max(y1, box[3]);
+      continue;
+    }
+    if (it.kind === 'path') {
+      const segs = transform_segments(it.segs, PT);
+      let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+      for (const sg of segs) { a = Math.min(a, sg.end[0]); b = Math.min(b, sg.end[1]); c = Math.max(c, sg.end[0]); d = Math.max(d, sg.end[1]); }
+      glyphs.push({ ...o, d: segments_to_d(segs), c: it.c, box: [a, b, c, d], size: it.size });
+      x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d);
+    } else {
+      const [a, b, c, d] = [it.x0 / 100, it.y0 / 100, it.x1 / 100, it.y1 / 100];
+      glyphs.push({ ...o, rect: [+f4(a), +f4(b), +f4(c - a), +f4(d - b)], box: [a, b, c, d] });
+      x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d);
+    }
+  }
+  if (!(x1 > x0)) [x0, x1] = [0, 1];
+  if (!(y1 > y0)) [y0, y1] = [0, 1];
+  return { glyphs, view: [+f4(x0), +f4(y0), +f4(x1 - x0), +f4(y1 - y0)] };
 }

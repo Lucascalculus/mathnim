@@ -14,7 +14,7 @@ import { navigate } from './router';
 import { detect_server_providers, load_settings } from './settings';
 import { mount_shell } from './shell';
 import { load_studio_courses } from './studio_courses';
-import { enable_dom_tex } from './tex_dom';
+import { enable_dom_tex, watch_steps } from './tex_dom';
 
 // Visuals draw their labels in the learner's language (lang 'auto'): Chinese once a Chinese font is loaded
 // (set_language waits for it), English otherwise. Subscribed before the shell, so a page re-rendered for a
@@ -26,6 +26,8 @@ const start_lang = load_settings().lang;
 // the account (and its progress) and the courses made from uploads come first: routes and the learner model need them
 // (asked side by side: the catalog only needs the session cookie, not the answer about who is signed in)
 const account = Promise.all([load_me().catch(() => null), load_studio_courses()]);
+// formula steps anywhere in the page become the engine's derivation (needs only the page, not the account)
+watch_steps();
 // (MathJax is not waited for: the pages with formulas wait for it themselves, see tex_dom.ts)
 Promise.allSettled([detect_server_providers(), account]).finally(() => {
   visual_lang(start_lang);
