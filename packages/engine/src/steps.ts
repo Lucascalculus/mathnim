@@ -202,8 +202,18 @@ export interface TexLine {
 }
 const center = (t: Token): number => (t.box[0] + t.box[2]) / 2;
 
+/** Lines typeset so far, by their TeX (checking a block and drawing it typeset each line once). */
+const typeset_cache = new Map<string, TexLine>();
 /** Typeset a line and cut it into tokens: one per token node (a number, a name, an operator, a word), one per rule. */
 export function typeset_line(tex: string): TexLine {
+  const hit = typeset_cache.get(tex);
+  if (hit) return hit;
+  const t = typeset_uncached(tex);
+  if (typeset_cache.size > 800) typeset_cache.clear();
+  if (!t.error) typeset_cache.set(tex, t);
+  return t;
+}
+function typeset_uncached(tex: string): TexLine {
   let r: ReturnType<typeof tex_glyphs>;
   try {
     r = tex_glyphs(tex);
@@ -596,11 +606,12 @@ export class Steps extends Thing implements Block {
     // every piece is drawn as itself (its weight never changes); what flows together or cancels out also gets, while
     // the pieces meet, the ink between them: their field blurred and cut at half strength, so they join into one drop
     // for a moment instead of overlapping as outlines. At rest there is none of it.
-    if (live === 0) { for (const only of ['paths', 'rules'] as const) for (const p of ps) this.draw_piece(g, p, x0, y0, k, color, 1, 0, only); }
-    else for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0, k, color, p.w);
+    // (the bridge first, under the pieces: it is computed at half resolution, and the glyphs' own edges stay sharp on top)
     const drop = u > 1e-6 && kk < n - 1 ? Math.sin(Math.PI * smooth(0.3, 0.75, u)) : 0;
     const liquid = ps.filter((p) => p.liquid && p.w > 0.05);
     if (liquid.length > 1 && drop > 0.05) this.draw_liquid(g, liquid, x0, y0, k, color, drop, env.dpr);
+    if (live === 0) { for (const only of ['paths', 'rules'] as const) for (const p of ps) this.draw_piece(g, p, x0, y0, k, color, 1, 0, only); }
+    else for (const p of ps) if (p.w > 0.002) this.draw_piece(g, p, x0, y0, k, color, p.w);
     // a line that does not follow from the one before: a hollow ring before it (not established), while it rests
     const resting = u < 1e-6 || kk >= n - 1 ? kk : -1;
     if (resting >= 0 && this.doubtful.includes(resting + 1)) {
@@ -638,14 +649,24 @@ export class Steps extends Thing implements Block {
       const s = k * p.scale, X = (x: number) => x0 + (p.dx + p.cx) * k + (x - p.cx) * s, Y = (y: number) => y0 + (p.dy + p.cy) * k + (y - p.cy) * s;
       a = Math.min(a, X(gl.box[0])); c = Math.max(c, X(gl.box[2])); b = Math.min(b, Y(gl.box[1])); d = Math.max(d, Y(gl.box[3]));
     }
-    const r = Math.max(0.5, this.px() * dpr * 0.07 * drop), pad = Math.ceil(r * 3 + 2);
-    const L = Math.floor(a * dpr) - pad, T = Math.floor(b * dpr) - pad, W = Math.ceil(c * dpr) + pad - L, H = Math.ceil(d * dpr) + pad - T;
-    if (!(W > 0 && H > 0) || W * H > 4e6) { for (const p of ps) this.draw_piece(g, p, x0, y0, k, color, p.w); return; }
-    const cv = make_canvas(W, H) as unknown as HTMLCanvasElement, q = cv.getContext('2d') as CanvasRenderingContext2D;
-    q.setTransform(dpr, 0, 0, dpr, -L, -T);
-    for (const p of ps) this.draw_piece(q, p, x0, y0, k, '#000', Math.min(1, p.w), 0.3);
-    const img = q.getImageData(0, 0, W, H), px = img.data, al = new Float32Array(W * H);
-    // (a piece arriving into a drop is drawn a little stronger, so the new token grows out of the drop)
+    // computed at half the device resolution (a quarter of the pixels: it is soft, and the pieces are drawn sharp over it)
+    const S = 0.5, ds = dpr * S;
+    const r = Math.max(0.5, this.px() * ds * 0.07 * drop), pad = Math.ceil(r * 3 + 2);
+    const L = Math.floor(a * ds) - pad, T = Math.floor(b * ds) - pad, W = Math.ceil(c * ds) + pad - L, H = Math.ceil(d * ds) + pad - T;
+    if (!(W > 0 && H > 0) || W * H > 2e6) return;
+    // (one canvas and one buffer, kept and grown: a change's frames reuse them)
+    if (!this.liq || this.liq.cv.width < W || this.liq.cv.height < H) {
+      const cv = make_canvas(Math.max(W, this.liq?.cv.width ?? 0), Math.max(H, this.liq?.cv.height ?? 0)) as unknown as HTMLCanvasElement;
+      this.liq = { cv, q: cv.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D, al: new Float32Array(0) };
+    }
+    const { cv, q } = this.liq;
+    if (this.liq.al.length < W * H) this.liq.al = new Float32Array(W * H);
+    const al = this.liq.al;
+    q.setTransform(1, 0, 0, 1, 0, 0);
+    q.clearRect(0, 0, W, H);
+    q.setTransform(ds, 0, 0, ds, -L, -T);
+    for (const p of ps) this.draw_piece(q, p, x0, y0, k, '#000', Math.min(1, p.w), 0.3 / S);
+    const img = q.getImageData(0, 0, W, H), px = img.data;
     for (let i = 0; i < W * H; i++) al[i] = px[i * 4 + 3] / 255;
     blur(al, W, H, r);
     // cut at half strength, with a soft rim (the anti-aliasing of the cut)
@@ -658,9 +679,11 @@ export class Steps extends Thing implements Block {
     q.putImageData(img, 0, 0);
     g.save();
     g.setTransform(1, 0, 0, 1, 0, 0);
-    g.drawImage(cv as unknown as CanvasImageSource, L, T);
+    g.imageSmoothingEnabled = true;
+    g.drawImage(cv as unknown as CanvasImageSource, 0, 0, W, H, L / S, T / S, W / S, H / S);
     g.restore();
   }
+  private liq: { cv: HTMLCanvasElement; q: CanvasRenderingContext2D; al: Float32Array } | null = null;
 }
 function hex_rgb(c: string): [number, number, number] {
   const m = /^#?([0-9a-f]{6})/i.exec(c.trim());
@@ -669,8 +692,10 @@ function hex_rgb(c: string): [number, number, number] {
   return r ? [+r[1], +r[2], +r[3]] : [17, 17, 19];
 }
 /** A Gaussian-like blur of a strength field: three box blurs each way. */
+let blur_tmp = new Float32Array(0);
 export function blur(a: Float32Array, W: number, H: number, r: number): void {
-  const rad = Math.max(1, Math.round(r / 1.7)), tmp = new Float32Array(Math.max(W, H));
+  if (blur_tmp.length < Math.max(W, H)) blur_tmp = new Float32Array(Math.max(W, H));
+  const rad = Math.max(1, Math.round(r / 1.7)), tmp = blur_tmp;
   for (let pass = 0; pass < 3; pass++) {
     for (let y = 0; y < H; y++) box1(a, y * W, 1, W, rad, tmp);
     for (let x = 0; x < W; x++) box1(a, x, W, H, rad, tmp);
