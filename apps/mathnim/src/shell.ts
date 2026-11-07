@@ -281,6 +281,7 @@ a.nav-ic{text-decoration:none}
 .lesson-card{display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .15s,border-color .15s;text-decoration:none;color:inherit}
 .lesson-card:hover{transform:translateY(-2px);border-color:var(--mn-accent)}
 .lesson-card .thumb{width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#f3f4f8,#e9ebf2);border:1px solid var(--mn-border);display:block}
+.lesson-card .thumb.world{background:var(--mn-bg)}
 .lesson-card .thumb.empty{background:linear-gradient(135deg,color-mix(in srgb,var(--mn-accent) 10%,#fff),#f3f4f8)}
 .lesson-card .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--mn-muted)}
 .tag{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--mn-faint);color:var(--mn-muted)}
