@@ -830,6 +830,9 @@ html{overflow-x:clip}
 .nt.xt tr.open td.chev svg:not(.ext *){transform:rotate(180deg)}
 .nt.xt tr.xr:hover td.chev svg:not(.ext *){color:var(--ink)}
 .nt .cut:not(.ext *){font-weight:600;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--vermilion) var(--k),var(--paper))}
+.bbar:not(.ext *),.gapc:not(.ext *){margin-top:28px}
+.bbar svg:not(.ext *),.gapc svg:not(.ext *){display:block;overflow:visible}
+.gapc .cap:not(.ext *){font-size:12.5px;color:var(--graphite-t);margin-top:10px}
 @media (max-width:640px){.nt th:has(> svg.mb):not(.ext *){display:none}
 .tbl:not(.ext *){overflow-x:auto}}
 #glyphs.glyphs:not(.ext *){gap:18px}
@@ -1248,6 +1251,7 @@ load(); requestAnimationFrame(tick);
     <h3 class="sech gap"><span lang="en">The estimator was the problem</span></h3>
     <p class="lead"><span lang="en">Each orange error alone breaks the 5 cm limit; fixing the estimator removed 98% of it all.</span></p>
     <div class="tbl"><table class="nt budget" id="t-budget"></table></div>
+    <div class="bbar" id="budgetbar"></div>
   </figure>
   <figure class="fig" style="margin-inline:0">
     <h3 class="sech gap"><span lang="en">What didn’t make it</span></h3>
@@ -1284,6 +1288,7 @@ load(); requestAnimationFrame(tick);
   <figure class="fig" style="margin-inline:0">
     <h3 class="sech gap"><span lang="en">Sim-to-real Gap</span></h3>
     <div class="tbl"><table class="nt" id="t-track"></table></div>
+    <div class="gapc" id="gapcharts"></div>
   </figure>
 </section>
 
@@ -2209,6 +2214,55 @@ fig(() => ntable($('#t-budget'), ['Source of error', 'Without fix, cm', 'With fi
   brow(BUDGET[BUDGET.length - 1], BUDGET.length - 1),
 ], { num: [1, 2, 3] }));
 
+// the same shares as one bar, drawn as a disk's usage is: one block per error fixed, as wide as its share of all the
+// error removed, as deep as the table's figure, named inside it (above it, on a leader, when it is too narrow); the
+// estimator's fixes and the controller's under braces
+const BSHORT = ['Wheel speed', 'Reversing', 'Cone delay', 'Cone range', 'Heading', 'Tracking'];
+function budget_bar(el) {
+  if (!el) return;
+  const W = width_of(el), sh = GAIN.map((g) => g / GSUM), gap = 2, n = BUDGET.length, FS = 11.5;
+  const depth = (i) => (GHI > GLO ? (Math.log10(GAIN[i]) - GLO) / (GHI - GLO) : 1);
+  const xs = []; let x = 0;
+  sh.forEach((s) => { xs.push([x + (xs.length ? gap / 2 : 0), x + s * W - (xs.length < n - 1 ? gap / 2 : 0)]); x += s * W; });
+  const pct = (i) => `${Math.round(100 * sh[i])}%`;
+  const inside = sh.map((s, i) => Math.max(tw(BSHORT[i], FS, 500), tw(pct(i), FS, 650)) + 12 <= xs[i][1] - xs[i][0]);
+  const out = sh.map((s, i) => i).filter((i) => !inside[i]);   // (left to right: the leftmost nearest the bar)
+  const LH = 17, by = out.length * LH + (out.length ? 10 : 0), bh = 40, Ht = by + bh + 62;
+  const svg = S('svg', { role: 'img', 'aria-label': L('The error removed, fix by fix: the estimator 98%, the controller 2%') });
+  svg_size(svg, W, Ht);
+  svg.append(S('clipPath', { id: 'bb-clip' }, S('rect', { x: 0, y: by, width: W, height: bh, rx: 5 })));
+  const g = S('g', { 'clip-path': 'url(#bb-clip)' });
+  xs.forEach(([a, b], i) => {
+    const k = 0.35 + 0.65 * depth(i), deep = k > 0.62, ink = deep ? '#fff' : css(PIG.ink);
+    g.append(S('rect', { x: a, y: by, width: Math.max(1, b - a), height: bh, fill: css(mix(PIG.paper, PIG.vermilion, k)) }));
+    if (!inside[i]) return;
+    g.append(S('text', { x: a + 6, y: by + 16, 'font-size': FS, 'font-weight': 500, style: `fill:${ink}` }, BSHORT[i]));
+    g.append(S('text', { x: a + 6, y: by + 31, 'font-size': FS, 'font-weight': 650, style: `fill:${ink}` }, pct(i)));
+  });
+  svg.append(g);
+  // the ones too narrow to hold their names: above the bar, just left of them, each on a leader across and down (the
+  // leftmost lowest, so no leader crosses another or a name)
+  const xe = out.length ? xs[out[0]][0] - 10 : 0;
+  out.forEach((i, r) => {
+    const cx = Math.round((xs[i][0] + xs[i][1]) / 2) + 0.5, y = by - 10 - r * LH, ly = Math.round(y - 4) + 0.5;
+    const t = S('text', { x: xe, y, 'text-anchor': 'end', 'font-size': FS, style: `fill:${css(PIG.ink2)}` }, BSHORT[i] + '  ');
+    t.append(S('tspan', { 'font-weight': 650, fill: css(mix(PIG.paper, PIG.vermilion, 0.35 + 0.65 * depth(i))) }, pct(i)));
+    svg.append(t, S('path', { d: `M${xe + 4},${ly}H${cx}V${by - 1}`, fill: 'none', stroke: 'rgba(26,27,31,0.45)', 'stroke-width': 1 }));
+  });
+  // the braces: the estimator's fixes, the controller's
+  const brace = (a, b, y, d) => { const m = (a + b) / 2, q = Math.min(d, (b - a) / 4); return `M${a},${y} q0,${d / 2} ${q},${d / 2} L${m - q},${y + d / 2} q${q},0 ${q},${d / 2} q0,${-d / 2} ${q},${-d / 2} L${b - q},${y + d / 2} q${q},0 ${q},${-d / 2}`; };
+  const yb = by + bh + 8, ctl = BUDGET.findIndex((r) => r[4]);
+  [[0, ctl - 1, 'Estimator'], [ctl, n - 1, 'Controller']].forEach(([i0, i1, name], j) => {
+    const a = xs[i0][0] + 1, b = xs[i1][1] - 1, m = (a + b) / 2, p = Math.round(100 * sh.slice(i0, i1 + 1).reduce((s, v) => s + v, 0));
+    svg.append(S('path', { d: brace(a, b, yb, 12), fill: 'none', stroke: 'rgba(26,27,31,0.7)', 'stroke-width': 1 }));
+    const t = S('text', { x: j ? W : m, y: yb + 32, 'text-anchor': j ? 'end' : 'middle', 'font-size': 14, 'font-weight': 650, style: `fill:${css(PIG.ink)}` }, `${name}  `);
+    t.append(S('tspan', { fill: css(PIG.vermilion) }, `${p}%`));
+    svg.append(t);
+  });
+  el.innerHTML = ''; el.append(svg);
+}
+fig(() => budget_bar($('#budgetbar')));
+
 // ---------- 04 · forward methods on the same seeds (report Tables 7, 8) ----------
 fig(() => ntable($('#t-methods'),
   ['Method', 'Standard slot, %', 'Hidden 2° trim, %'],
@@ -2281,6 +2335,33 @@ fig(() => xtable($('#t-track'), ['Manoeuvre', 'Simulator', '+ real', '+ measured
   { cells: ['Tail-in 90° <code>reverse</code>', '24', '24', { h: '<span class="lim">16</span>' }], more: 'The same reverse floor; its median park takes 50 s.' },
   { cells: ['Parallel → out → nose-in <code>demo_pp</code>', '25', '25', '25'] },
 ], { num: [1, 2, 3] }));
+// the same runs as five small charts across: parked of 30, each bar one more piece of the real car; a bar lower than
+// the one before is ochre (the reverse floor of the measured ESC)
+const GAPC = [['Nose-in 90°', 'primitive', [28, 29, 29]], ['Nose-in 60°', 'primitive', [26, 26, 26]], ['Parallel', 'reverse', [27, 28, 23]],
+  ['Tail-in 90°', 'reverse', [24, 24, 16]], ['Parallel → out → nose-in', 'demo_pp', [25, 25, 25]]];
+function gap_charts(el) {
+  if (!el) return;
+  const W = width_of(el), gap = 22, pw = (W - gap * (GAPC.length - 1)) / GAPC.length, top = 46, ph = 128, Ht = top + ph + 30;
+  const svg = S('svg', { role: 'img', 'aria-label': L('Parked of 30 for each manoeuvre: simulator, plus the real car, plus the measured ESC') });
+  svg_size(svg, W, Ht);
+  const names = ['Sim', '+ real', '+ ESC'], ink = [0.28, 0.5, 0.85];
+  GAPC.forEach(([name, pol, v], c) => {
+    const x0 = c * (pw + gap), bw = Math.min(30, pw / 5), step = (pw - 3 * bw) / 3;
+    svg.append(S('text', { x: x0, y: 14, 'font-size': 13, 'font-weight': 600, style: `fill:${css(PIG.ink)}` }, name));
+    svg.append(S('text', { x: x0, y: 31, 'font-size': 11.5, 'font-family': MONO, style: `fill:${css(PIG.graphite_t)}` }, pol));
+    svg.append(S('line', { x1: x0, y1: top + ph + 0.5, x2: x0 + pw, y2: top + ph + 0.5, stroke: 'rgba(26,27,31,0.7)', 'stroke-width': 1 }));
+    v.forEach((n, i) => {
+      const bx = x0 + step / 2 + i * (bw + step), h = (n / 30) * ph, drop = i && n < v[i - 1];
+      svg.append(S('rect', { x: bx + 0.5, y: top + 0.5, width: bw - 1, height: ph - 1, fill: 'none', stroke: 'rgba(26,27,31,0.13)', 'stroke-width': 1 }));
+      svg.append(S('rect', { x: bx, y: top + ph - h, width: bw, height: h, fill: drop ? css(PIG.ochre) : css(PIG.ink, ink[i]) }));
+      // (the number at the top of its bar, inside it: white on the darker bars)
+      svg.append(S('text', { x: bx + bw / 2, y: top + ph - h + 16, 'text-anchor': 'middle', 'font-size': 12.5, 'font-weight': i === 2 ? 650 : 500, style: `fill:${drop || i ? '#fff' : css(PIG.ink)}` }, String(n)));
+      svg.append(S('text', { x: bx + bw / 2, y: top + ph + 18, 'text-anchor': 'middle', 'font-size': 11, style: `fill:${css(PIG.graphite_t)}` }, names[i]));
+    });
+  });
+  el.innerHTML = ''; el.append(svg, H('div', { class: 'cap', html: L('Parked of 30 on our track; each bar adds one more piece of the real car. Ochre: fewer than the bar before.') }));
+}
+fig(() => gap_charts($('#gapcharts')));
 
 // ---------- 02 · why layered: three structures ----------
 function arch_sketch(kind) {
@@ -4225,6 +4306,8 @@ const WHY = [
 const ALTS = [['B', 'Logic inside the ROS node', 'Every test would need ROS and the car’s topics: no quick unit tests, no simulator batches.'],
   ['C', 'A ROS node per stage', 'Perceive, plan and control as separate nodes. DREAM calls one function at 50 Hz, so this shape was not on offer.']];
 const WFIG = [];
+// the cards' figures run 1.3 times as fast as they were drawn
+const WSPEED = 1.3;
 const sv = (w, h) => { const s = S('svg', { viewBox: `0 0 ${w} ${h}`, class: 'wfig', role: 'img' }); return s; };
 const tx = (x, y, t, o = {}) => S('text', { x, y, class: o.cls || 't-xs', 'text-anchor': o.a || 'start', style: o.st || null }, t);
 // 1 · three sources take turns at the bridge; the core never changes
@@ -4376,7 +4459,7 @@ function why_build() {
   });
   figs.forEach((f, j) => f.frame(j === FLOW.why && !RM ? 0 : WSTILL[WHY[j].f]));
   // only the selected figure runs, and only while the frames are on screen
-  const loop = (now) => { if (!vis || !el.isConnected) return; figs[FLOW.why]?.frame(Math.max(0, now - WRUN.t0) / 1000); WRUN.raf = requestAnimationFrame(loop); };
+  const loop = (now) => { if (!vis || !el.isConnected) return; figs[FLOW.why]?.frame(Math.max(0, now - WRUN.t0) / 1000 * WSPEED); WRUN.raf = requestAnimationFrame(loop); };
   WRUN.io?.disconnect();
   if (!RM && window.IntersectionObserver) { WRUN.io = new IntersectionObserver((es) => { vis = WRUN.vis = es.some((e) => e.isIntersecting); cancelAnimationFrame(WRUN.raf); if (vis) WRUN.raf = requestAnimationFrame(loop); }); WRUN.io.observe(el); }
 }
@@ -4413,7 +4496,7 @@ function why_render() {
     H('div', { class: 'alts' }, ALTS.map(([k, t, why]) => H('div', { class: 'alt' }, arch_sketch(k), H('div', { class: 't' }, L(t)), H('div', { class: 'v' }, L(why)))))));
   if (RM) { f.frame(WSTILL[w.f]); return; }
   const t0 = performance.now();
-  const loop = (now) => { if (FLOW.wsel !== i || !f.s.isConnected) return; f.frame(Math.max(0, now - t0) / 1000); WRUN.sheet_raf = requestAnimationFrame(loop); };
+  const loop = (now) => { if (FLOW.wsel !== i || !f.s.isConnected) return; f.frame(Math.max(0, now - t0) / 1000 * WSPEED); WRUN.sheet_raf = requestAnimationFrame(loop); };
   WRUN.sheet_raf = requestAnimationFrame(loop);
 }
 fig(why_render);
