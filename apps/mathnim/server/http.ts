@@ -146,6 +146,8 @@ export interface Note {
   provider?: string;
   chars?: number;
   error?: string;
+  /** Calls to the model that failed and were made again (deepseek.ts). */
+  retries?: number;
   /** Set when the response streams: the log line is written when this settles. */
   after?: Promise<unknown>;
 }

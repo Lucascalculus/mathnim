@@ -30,6 +30,8 @@ export interface DeepseekDeps {
 
 export const MAX_BODY = 256 * 1024;
 export const MAX_TOKENS = 32000;
+/** Calls in all for one question when DeepSeek fails (a streamed answer), and how long a stream may take to begin. */
+const ATTEMPTS = 3, STALL_MS = 6000;
 const UPSTREAM = 'https://api.deepseek.com';
 
 export const allowed_models = (spec?: string): string[] => (list(spec).length ? list(spec) : ['deepseek-flash']);
@@ -92,7 +94,31 @@ export async function forward_chat(request: Request, body: Record<string, unknow
   const blocked = limit();
   if (blocked) return blocked;
 
-  const upstream = await f(`${UPSTREAM}/chat/completions`, { method: 'POST', headers, body: payload, signal: request.signal });
+  // (DeepSeek may hold a request ~15 s and then answer with an internal error: on 2026-11-07 two calls in three, any
+  // model, even "Say OK". So: a streamed answer that has not begun within STALL_MS is given up and asked again, and a
+  // 5xx is asked again, up to ATTEMPTS calls in all (a non-streamed one: once more, it may take long to write).)
+  const streamed = body.stream === true, attempts = streamed ? ATTEMPTS : 2;
+  let upstream: Response | null = null, failure = '';
+  for (let k = 0; k < attempts && !request.signal?.aborted; k++) {
+    const ctrl = new AbortController(), stop = () => ctrl.abort();
+    request.signal?.addEventListener('abort', stop, { once: true });
+    const timer = streamed ? setTimeout(stop, STALL_MS) : null;
+    try {
+      upstream = await f(`${UPSTREAM}/chat/completions`, { method: 'POST', headers, body: payload, signal: ctrl.signal });
+    } catch (e) {
+      upstream = null;
+      failure = ctrl.signal.aborted ? `no answer within ${STALL_MS / 1000} s` : String((e as Error)?.message ?? e);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+    if (upstream && upstream.status < 500) break;
+    if (upstream) failure = `upstream ${upstream.status}`;
+    note.retries = k + 1;
+  }
+  if (!upstream) {
+    note.error = failure || 'no answer';
+    return new Response(JSON.stringify({ error: { message: 'The model did not answer; please ask again.', type: 'upstream_unavailable' } }), { status: 503, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+  }
   const ct = upstream.headers.get('content-type') ?? 'application/json';
   const out_headers = { 'content-type': ct, 'cache-control': 'no-store', 'x-mathnim-answer-id': answer_id, ...(cache ? { 'x-mathnim-cache': 'miss' } : {}) };
   if (!upstream.ok || !upstream.body) {

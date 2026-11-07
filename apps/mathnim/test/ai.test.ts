@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ai } from '../server/ai';
 import { allowed_models, extract_usage, MAX_TOKENS } from '../server/deepseek';
 import { RateLimiter, type Note } from '../server/http';
@@ -94,6 +94,48 @@ describe('/api/ai', () => {
     const r = await ai(post('/x', op('tutor', { question: 'hi' })), ENV, deps(upstream('{"error":"x"}', 'application/json', 402)), note);
     expect(r.status).toBe(402);
     expect(note.error).toBe('upstream 402');
+  });
+  // (DeepSeek, 2026-11-07: two calls in three held ~15 s and answered 500, any model)
+  it('asks the model again when it fails: a streamed answer up to three times, a non-streamed one twice', async () => {
+    const seq = (statuses: number[], body: string, ct: string) => {
+      let k = 0;
+      const calls: number[] = [];
+      const fetch = (async () => { const st = statuses[Math.min(k++, statuses.length - 1)]; calls.push(st); return new Response(st >= 500 ? '{"error":{"message":"Internal Server Error"}}' : body, { status: st, headers: { 'content-type': st >= 500 ? 'application/json' : ct } }); }) as unknown as typeof globalThis.fetch;
+      return { fetch, calls };
+    };
+    const a = seq([500, 500, 200], SSE, 'text/event-stream'), na: Note = {};
+    const ra = await ai(post('/api/ai', op('tutor', { question: 'hi' }, { stream: true })), ENV, { limiter: null, answers: null, fetch: a.fetch }, na);
+    expect(ra.status).toBe(200);
+    expect(await ra.text()).toBe(SSE);
+    expect(a.calls).toEqual([500, 500, 200]);
+    expect(na.retries).toBe(2);
+    const b = seq([500, 500, 500], '{}', 'application/json'), nb: Note = {};
+    const rb = await ai(post('/api/ai', op('starters', { lesson: 'L', page: 'P', text: 'T', lang: 'en' })), ENV, { limiter: null, answers: null, fetch: b.fetch }, nb);
+    expect(rb.status).toBe(500);
+    expect(b.calls).toEqual([500, 500]);
+    expect(nb.error).toBe('upstream 500');
+  });
+  it('gives up on a streamed answer that has not begun within 6 s and asks again', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      let k = 0;
+      const fetch = ((_u: string, init: RequestInit) => {
+        if (k++ === 0) return new Promise((_ok, fail) => init.signal?.addEventListener('abort', () => fail(new DOMException('aborted', 'AbortError'))));
+        return Promise.resolve(new Response(SSE, { headers: { 'content-type': 'text/event-stream' } }));
+      }) as unknown as typeof globalThis.fetch;
+      const note: Note = {};
+      const p = ai(post('/api/ai', op('tutor', { question: 'hi' }, { stream: true })), ENV, { limiter: null, answers: null, fetch }, note);
+      let done = false;
+      void p.then(() => (done = true));
+      // (the stall timer starts after the request is hashed: step the clock until the answer is back)
+      for (let i = 0; i < 40 && !done; i++) { await new Promise((r) => (globalThis as unknown as { setImmediate: (f: () => void) => void }).setImmediate(() => r(null))); await vi.advanceTimersByTimeAsync(500); }
+      const r = await p;
+      expect(r.status).toBe(200);
+      expect(k).toBe(2);
+      expect(note.retries).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

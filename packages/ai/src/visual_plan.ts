@@ -170,7 +170,7 @@ export interface PlanOptions {
   /** The tutor's one-line reading of the question, when it is known in time. */
   diagnosis?: string;
   signal?: AbortSignal;
-  /** Per call (default 15 s); a call that takes longer is aborted. */
+  /** Per call (default 35 s: the server asks the model again when it fails); a call that takes longer is aborted. */
   timeout_ms?: number;
   /** Skip the repair when the first call already took this long and its visual is usable with defaults (default 6 s). */
   repair_budget_ms?: number;
@@ -182,7 +182,7 @@ export interface PlanOptions {
 
 async function call_with_timeout(input: { question: string; diagnosis?: string; offered: string[]; rounds: Round[] }, o: PlanOptions): Promise<{ reply: string; ms: number; usage?: Usage }> {
   const ctrl = new AbortController();
-  const ms_limit = o.timeout_ms ?? 15000;
+  const ms_limit = o.timeout_ms ?? 35000;
   const abort = () => ctrl.abort();
   o.signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(abort, ms_limit);

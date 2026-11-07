@@ -509,8 +509,10 @@ export class AskPanel {
       plan = await plan_visual(c.question, { backend: c.backend, context: c.context, diagnosis: c.diagnosis });
       route = decide(plan);
     } catch (e) {
+      // (no plan - the model did not answer in time - no picture: the words are the answer. Drawing one from scratch,
+      // a far longer call to the same failing model, left the learner watching "drawing…" for minutes)
       console.warn('picture plan failed', e);
-      route = decide(null, e);
+      route = { kind: 'none' };
     }
     c.timing.plan = performance.now() - c.t0;
     // (a derivation or a formula taken apart is drawn in the words themselves, the engine's own: a formula visual
