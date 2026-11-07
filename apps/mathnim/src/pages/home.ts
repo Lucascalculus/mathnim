@@ -14,6 +14,7 @@ import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '
 import { studio_available } from '../account';
 import { backlink } from '../backlink';
 import { WORLDS, follower, redraw, setup } from '../course_worlds';
+import { draw_lesson_worlds } from '../lesson_worlds';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -200,6 +201,8 @@ export function course_page(root: HTMLElement, route: Route): () => void {
       }).join('')}</div></section>`).join('')}
       ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
     </div>`;
+  // a lesson with a world of its own (src/worlds/<course>/<lesson>.ts) is drawn as it; the others keep their picture
+  draw_lesson_worlds(root, lang);
   draw_thumbnails(root);
   celebrate(root, c);
   up_next(root, c);
