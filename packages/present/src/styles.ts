@@ -232,9 +232,10 @@ export const CSS = `
 .mn-lever-bead:focus-visible{outline:2px solid rgba(37,99,235,.5);outline-offset:2px}
 .mn-parts-stage canvas{display:block;cursor:pointer;touch-action:pan-y}
 .mn-parts-stage .mn-mirror *{pointer-events:none!important}
-/* glass: a pane simply there beside what was tapped (clear, not frosted; nothing animates in) */
+/* glass: a pane simply there beside what was tapped, frosted so what lies behind it gives way to what it says (the
+   compositor's blur, nothing computed; nothing animates in) */
 .mn-glass{position:absolute;z-index:80;box-sizing:border-box;padding:14px 16px;border-radius:16px;font-size:14.5px;line-height:1.55;color:var(--mn-ink,#1a1b1f);
-  background:rgba(255,255,255,.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.2),0 14px 30px -14px rgba(26,27,31,.35)}
+  background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(24px) saturate(1.7);backdrop-filter:blur(24px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.2),0 14px 30px -14px rgba(26,27,31,.35)}
 .mn-glass-out{transition:opacity .18s;opacity:0}
 .mn-glass-src a{color:inherit}
 /* formula steps (a steps block): a column of formulas, then the engine's derivation drawn over it once it can play */
@@ -575,7 +576,7 @@ export const CSS = `
 .mn-lessonbar{background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;pointer-events:none}
 .mn-lessonbar-in{padding:0 40px calc(16px + env(safe-area-inset-bottom))}
 .mn-lessonbar .mn-lb-main{pointer-events:auto;justify-self:center;width:min(100%,640px);box-sizing:border-box;height:56px;padding:6px 6px 6px 8px;border-radius:28px;
-  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.8));-webkit-backdrop-filter:saturate(1.5);backdrop-filter:saturate(1.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,.64));-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);
   box-shadow:inset 0 .75px 0 #fff,inset 0 -.5px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.13),0 1.5px 2px rgba(26,27,31,.05),0 14px 34px -10px rgba(26,27,31,.2)}
 .mn-lessonbar .mn-btn:not(.primary),.mn-lessonbar .mn-lb-start button{background:transparent;border-color:transparent;border-radius:22px;box-shadow:none}
 .mn-lessonbar .mn-btn:not(.primary):hover{background:rgba(26,27,31,.06);border-color:transparent}
