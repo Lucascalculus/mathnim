@@ -32,44 +32,51 @@ function bez(c: XY[], k: number): { p: XY; t: XY } {
   return { p, t: [t[0] / l, t[1] / l] };
 }
 
+// (performance: the glyphs arrive in waves, not one by one: each flock is cut into BANDS stretches along its
+// length, and a stretch flies in as one group, so there are a few dozen animations instead of thousands; a glyph
+// is turned by the text's own `rotate`, not a wrapping g, so each is one element)
+const BANDS = 12;
 export function svg(): string {
   seed = 20;
-  const out: string[] = [];
-  for (const F of FLOCKS) for (let i = 0; i < F.n; i++) {
-    const s = rnd();
-    const { p, t } = bez(F.spine, s);
-    const nrm: XY = [-t[1], t[0]];
-    // the ribbon twists: its seen width is |cos| of the twist, so it pinches thin and dark where it folds edge-on;
-    // across it the birds fill evenly, thinning at the edges; it tapers to wisps at both ends
-    const twist = Math.cos(s * Math.PI * 2 * F.turns + F.phase);
-    const width = F.width * Math.sin(Math.PI * s) ** 0.55 + 8;
-    const u = rnd() * 2 - 1, across = Math.sign(u) * Math.abs(u) ** 0.8 + gauss() * 0.08;
-    const off = width * (0.07 + 0.93 * Math.abs(twist)) * across;
-    const depth = gauss() * 22 * (0.4 + Math.abs(twist));
-    const x = p[0] + nrm[0] * off + t[0] * depth, y = p[1] + nrm[1] * off + t[1] * depth;
-    // near birds (one side of the twist) are drawn larger than far ones
-    const near = 0.75 + 0.5 * (0.5 + 0.5 * Math.sin(s * Math.PI * 2 * F.turns + F.phase) * across);
-    // a few strays round the flock
-    const stray = rnd() < 0.04;
-    const sx = stray ? x + gauss() * 120 : x, sy = stray ? y + gauss() * 90 : y;
-    const thread = Math.abs(across) < 0.1 && !stray && F === FLOCKS[0] && rnd() < 0.75;
-    const r = rnd();
-    const ch = thread ? GLYPHS[Math.floor(rnd() * 26)] : r < 0.5 ? GLYPHS[26 + Math.floor(rnd() * (GLYPHS.length - 26))] : r < 0.93 ? GLYPHS[Math.floor(rnd() * 46)] : PUNCT[Math.floor(rnd() * PUNCT.length)];
-    const cjk = ch.charCodeAt(0) > 0x2e80;
-    const size = (cjk ? 8.5 : 10) * near * (0.8 + 0.35 * rnd()) * (stray ? 0.85 : 1);
-    const ang = (Math.atan2(t[1], t[0]) * 180) / Math.PI + gauss() * 18;
-    const op = thread ? 0.85 : (0.25 + 0.45 * rnd()) * (0.55 + 0.45 * (1 - Math.abs(twist)));
-    // it arrives along the flock's length, from a little behind and aside
-    const d = F.delay + s * 1.5 + rnd() * 0.35;
-    const dx = -t[0] * (40 + 60 * rnd()) + gauss() * 30, dy = -t[1] * (40 + 60 * rnd()) + gauss() * 30;
-    // (the rotation on a g: a glyph's arrival is a CSS transform, which would replace its own; the drift is
-    // turned back into the glyph's frame so it comes from behind it on the page)
-    const a = (-ang * Math.PI) / 180, rx = dx * Math.cos(a) - dy * Math.sin(a), ry = dx * Math.sin(a) + dy * Math.cos(a);
-    const glyph = ch.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-    out.push(`<g transform="rotate(${f1(ang)} ${f1(sx)} ${f1(sy)})"><text x="${f1(sx)}" y="${f1(sy)}" font-size="${f1(size)}" fill="${thread ? VIOLET : INK}" fill-opacity="${op.toFixed(2)}"${cjk ? ` font-family="${SANS}"` : ''} style="--d:${d.toFixed(2)}s;--dx:${f1(rx)}px;--dy:${f1(ry)}px">${glyph}</text></g>`);
-  }
-  const css = `.mm text{opacity:0;animation:mm-in 1.1s cubic-bezier(.2,.7,.2,1) var(--d) forwards}
+  const groups: string[] = [];
+  FLOCKS.forEach((F, fi) => {
+    const bands: string[][] = Array.from({ length: BANDS }, () => []);
+    for (let i = 0; i < F.n; i++) {
+      const s = rnd();
+      const { p, t } = bez(F.spine, s);
+      const nrm: XY = [-t[1], t[0]];
+      // the ribbon twists: its seen width is |cos| of the twist, so it pinches thin and dark where it folds
+      // edge-on; across it the birds fill evenly, thinning at the edges; it tapers to wisps at both ends
+      const twist = Math.cos(s * Math.PI * 2 * F.turns + F.phase);
+      const width = F.width * Math.sin(Math.PI * s) ** 0.55 + 8;
+      const u = rnd() * 2 - 1, across = Math.sign(u) * Math.abs(u) ** 0.8 + gauss() * 0.08;
+      const off = width * (0.07 + 0.93 * Math.abs(twist)) * across;
+      const depth = gauss() * 22 * (0.4 + Math.abs(twist));
+      const x = p[0] + nrm[0] * off + t[0] * depth, y = p[1] + nrm[1] * off + t[1] * depth;
+      // near birds (one side of the twist) are drawn larger than far ones; a few strays round the flock
+      const near = 0.75 + 0.5 * (0.5 + 0.5 * Math.sin(s * Math.PI * 2 * F.turns + F.phase) * across);
+      const stray = rnd() < 0.04;
+      const sx = stray ? x + gauss() * 120 : x, sy = stray ? y + gauss() * 90 : y;
+      const thread = Math.abs(across) < 0.1 && !stray && fi === 0 && rnd() < 0.75;
+      const r = rnd();
+      const ch = thread ? GLYPHS[Math.floor(rnd() * 26)] : r < 0.5 ? GLYPHS[26 + Math.floor(rnd() * (GLYPHS.length - 26))] : r < 0.93 ? GLYPHS[Math.floor(rnd() * 46)] : PUNCT[Math.floor(rnd() * PUNCT.length)];
+      const cjk = ch.charCodeAt(0) > 0x2e80;
+      const size = (cjk ? 8.5 : 10) * near * (0.8 + 0.35 * rnd()) * (stray ? 0.85 : 1);
+      const ang = (Math.atan2(t[1], t[0]) * 180) / Math.PI + gauss() * 18;
+      const op = thread ? 0.85 : (0.25 + 0.45 * rnd()) * (0.55 + 0.45 * (1 - Math.abs(twist)));
+      const glyph = ch.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
+      const cls = thread ? ' class="v"' : cjk ? ' class="c"' : '';
+      bands[Math.min(BANDS - 1, Math.floor(s * BANDS))].push(`<text x="${f1(sx)}" y="${f1(sy)}" rotate="${Math.round(ang)}" font-size="${f1(size)}" fill-opacity="${op.toFixed(2)}"${cls}>${glyph}</text>`);
+    }
+    // each stretch flies in along the flock, from a little behind it
+    bands.forEach((glyphs, b) => {
+      const { t } = bez(F.spine, (b + 0.5) / BANDS);
+      groups.push(`<g style="--d:${(F.delay + ((b + 0.5) / BANDS) * 1.5).toFixed(2)}s;--dx:${f1(-t[0] * 70)}px;--dy:${f1(-t[1] * 70)}px">${glyphs.join('')}</g>`);
+    });
+  });
+  const css = `.mm{fill:${INK}}.mm .v{fill:${VIOLET}}.mm .c{font-family:${SANS}}
+.mm>g{opacity:0;animation:mm-in 1.3s cubic-bezier(.2,.7,.2,1) var(--d) forwards}
 @keyframes mm-in{from{opacity:0;transform:translate(var(--dx),var(--dy))}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.mm text{animation:none;opacity:1}}`;
-  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" font-family="${MONO}"><style>${css}</style><g class="mm">${out.join('')}</g></svg>`;
+@media (prefers-reduced-motion:reduce){.mm>g{animation:none;opacity:1}}`;
+  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" font-family="${MONO}"><style>${css}</style><g class="mm">${groups.join('')}</g></svg>`;
 }

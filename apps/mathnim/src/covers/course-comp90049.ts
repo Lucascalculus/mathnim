@@ -29,9 +29,13 @@ function palette_at(x: number, y: number): string[] {
   return SKY;
 }
 
+// (performance: dots are dabbed on in WAVES groups, each a random share of them fading in together, so a few
+// dozen animations run rather than thousands; the colour of each dot is a class, not an attribute)
+const WAVES = 18;
 export function svg(): string {
   seed = 49;
-  const o: string[] = [];
+  const all = [...new Set([...SKY, ...SUN, ...HILL, ...WATER])];
+  const waves: string[][] = Array.from({ length: WAVES }, () => []);
   const G = 15;
   for (let gy = 60; gy < 900; gy += G) for (let gx = 600; gx < 1620; gx += G) {
     const x = gx + (rnd() - 0.5) * G * 0.9, y = gy + (rnd() - 0.5) * G * 0.9;
@@ -39,10 +43,12 @@ export function svg(): string {
     if (rnd() > smooth(690, 1060, x) * smooth(40, 170, y)) continue;
     const pal = palette_at(x, y);
     const r = (pal === SUN ? 5.4 : 4.6) * (0.75 + 0.45 * rnd());
-    o.push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="${pick(pal)}" style="--d:${(0.1 + rnd() * 2.4).toFixed(2)}s"/>`);
+    waves[Math.floor(rnd() * WAVES)].push(`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" class="k${all.indexOf(pick(pal))}"/>`);
   }
-  const css = `.pt circle{opacity:0;transform-box:fill-box;transform-origin:center;animation:pt-in .45s ease-out var(--d) forwards}
-@keyframes pt-in{from{opacity:0;transform:scale(.3)}to{opacity:.9;transform:none}}
-@media (prefers-reduced-motion:reduce){.pt circle{animation:none;opacity:.9}}`;
-  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMid slice"><style>${css}</style><g class="pt">${o.join('')}</g></svg>`;
+  const css = all.map((c, i) => `.pt .k${i}{fill:${c}}`).join('') + `
+.pt>g{opacity:0;animation:pt-in .9s ease-out var(--d) forwards}
+@keyframes pt-in{to{opacity:.9}}
+@media (prefers-reduced-motion:reduce){.pt>g{animation:none;opacity:.9}}`;
+  const body = waves.map((w, i) => `<g style="--d:${(0.1 + (i / WAVES) * 2.2).toFixed(2)}s">${w.join('')}</g>`).join('');
+  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMid slice"><style>${css}</style><g class="pt">${body}</g></svg>`;
 }

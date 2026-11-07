@@ -21,6 +21,13 @@ looked like, what was learnt. Read it before drawing the next one; add to it aft
 - **Colour means something within the drawing**, not across the site. Each course's start button takes the
   course's colour (a wash of it, never a black block: Lucas, "我很不喜欢那个黑色按钮").
 - **Check it in the real page** at 1440 x 900 (and 1920, 1024), after the drawing has finished arriving.
+- **Cost** (measured 2026-11-08, headless Chrome at 1440 x 900): what costs is not the drawing's file but the
+  number of elements and, above all, of animations. The glyph flock first had 2,500 glyphs each in its own `<g>`,
+  each animated: 550 KB, 55 ms to insert, frames of 170-250 ms while it arrived. Now glyphs arrive in a few dozen
+  waves (one animation per group: a stretch of a flock, a ring of the halftone, a random share of the dots),
+  glyphs turn by the text's own `rotate` (no wrapping `<g>`), repeated attributes are classes: 218 KB, about
+  35 ms, 36 animations, no long frames. Rule: under 3,000 elements, under 100 animations, and nothing animates
+  after the arrival. The page computes each drawing once a visit.
 
 ## The covers
 

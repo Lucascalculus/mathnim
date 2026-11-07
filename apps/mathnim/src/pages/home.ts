@@ -499,11 +499,13 @@ function cover_title(s: string, cover: Cover): string {
 }
 
 /** A course's own drawing behind its title: loaded with the page, drawn in by CSS (finished at once for reduced motion). */
+const drawn = new WeakMap<Cover, string>();   // (each drawing is computed once a visit)
 function draw_cover_art(root: HTMLElement, cover: Cover): void {
   const box = root.querySelector<HTMLElement>('.cover-art');
   if (!box) return;
   cover.load().then((m) => {
-    if (box.isConnected) box.innerHTML = m.svg();
+    if (!drawn.has(cover)) drawn.set(cover, m.svg());
+    if (box.isConnected) box.innerHTML = drawn.get(cover)!;
   }, (e) => console.warn('course cover', e));
 }
 
