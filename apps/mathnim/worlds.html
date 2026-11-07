@@ -17,14 +17,15 @@
 </head>
 <body>
 <!-- The lessons' worlds (src/worlds/<course>/<lesson>.ts), each from straight above (as at rest) and in the world (as
-     when the hand is on its card): a sheet to look at them all. Dev only (not built): /worlds.html?c=mpc&lang=zh -->
+     when the hand is on its card): a sheet to look at them all. Dev only (not built): /worlds.html?c=mpc&lang=zh (c: a course's folder or the start of lesson ids) -->
 <header><h1>Lesson worlds</h1><div class="muted" id="n"></div></header>
 <main id="m"></main>
 <script type="module">
 import { world_ids, load_world } from '/src/lesson_worlds.ts';
 import { setup } from '/src/course_worlds.js';
 const q = new URLSearchParams(location.search), course = q.get('c') ?? '', lang = q.get('lang') ?? 'en';
-const ids = world_ids().filter((id) => !course || id.startsWith(course));
+// ?c= a course's folder (math) or the start of lesson ids (ft-c)
+const ids = world_ids(course).length ? world_ids(course) : world_ids().filter((id) => id.startsWith(course));
 document.getElementById('n').textContent = `${ids.length} lessons · ${lang}`;
 const m = document.getElementById('m');
 for (const id of ids) {
