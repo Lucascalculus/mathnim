@@ -245,7 +245,7 @@ function route_start(c: Course, lang: Lang): string {
         <header class="unit-hd"><i class="unit-n" aria-hidden="true"></i><h3>${esc(t('before_course'))}</h3></header>
         <div class="route-body">
           <p class="route-lead">${math_html(tr(p.summary, lang))}</p>
-          ${p.links.length ? `<ul class="route-links" aria-label="${esc(t('prereq_links'))}">${p.links.map((k) => `<li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span>${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul>` : ''}
+          ${p.links.length ? `<p class="route-links"><span>${esc(t('prereq_links'))}</span>${p.links.map((k) => `<a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener"${k.note ? ` title="${esc(tr(k.note, lang))}"` : ''}>${esc(tr(k.title, lang))}</a>`).join('<i aria-hidden="true">·</i>')}</p>` : ''}
         </div>
       </section>`;
 }

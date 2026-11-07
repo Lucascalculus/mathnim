@@ -277,10 +277,11 @@ a.nav-ic{text-decoration:none}
 .unit.start .unit-hd h3{font-size:17px;color:var(--mn-muted)}
 .unit.start .unit-hd{margin-bottom:10px}
 .route-lead{margin:0;font-size:14.5px;line-height:1.6;color:var(--mn-muted);max-width:68ch}
-.route-links{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
-.route-links a{font-size:13.5px;font-weight:600;color:var(--mn-fg);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-fg) 22%,transparent);text-underline-offset:3px}
+.route-links{margin:8px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:13.5px;line-height:1.5}
+.route-links span{color:var(--mn-muted)}
+.route-links i{font-style:normal;color:var(--mn-border)}
+.route-links a{color:var(--mn-fg);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-fg) 22%,transparent);text-underline-offset:3px}
 .route-links a:hover{color:var(--course-accent,var(--mn-accent));text-decoration-color:currentColor}
-.route-links span{display:block;margin-top:3px;font-size:12.5px;line-height:1.45;color:var(--mn-muted)}
 .unit.goal{padding-bottom:0}
 .unit.goal .unit-n{border:0;background:none;width:24px;height:22px;left:-2px;top:3px}
 .unit.goal .unit-n svg{width:24px;height:20px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
@@ -288,7 +289,7 @@ a.nav-ic{text-decoration:none}
 .route-outcomes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:72ch}
 .route-outcomes li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.55}
 .route-outcomes li::before{content:'';position:absolute;left:1px;top:.5em;width:9px;height:9px;box-sizing:border-box;border-radius:50%;border:2px solid var(--course-accent,var(--mn-accent))}
-@media (max-width:980px){.units-route{margin-left:0;width:auto}.units-route .lessons,.route-links{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}.course-cover{height:auto;margin-top:-16px}.cover-art{display:none}.course-cover>.backlink{position:static;margin:0 0 12px 12px}.cover-text{position:static;transform:none;width:auto;padding:8px 12px 12px}}
+@media (max-width:980px){.units-route{margin-left:0;width:auto}.units-route .lessons{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}.course-cover{height:auto;margin-top:-16px}.cover-art{display:none}.course-cover>.backlink{position:static;margin:0 0 12px 12px}.cover-text{position:static;transform:none;width:auto;padding:8px 12px 12px}}
 .course-hero h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
 .course-hero h1 .title-crown svg{display:block;width:30px;height:25px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
 /* cleared since last seen: the node pops, the check draws, the route runs on to the next stop; sparks fly */
