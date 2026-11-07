@@ -945,13 +945,23 @@ p.r-line + p.r-line{margin-top:4px;color:#8d9198;font-size:17px}
 .rC-list{position:absolute;left:12px;top:50px;width:380px;max-height:min(72vh,580px);overflow-y:auto;padding:8px 8px 12px;border-radius:12px;background:var(--rn-paper);
   box-shadow:0 0 0 1px var(--rn-hair),0 18px 50px rgba(26,27,31,.18);display:none}
 .rC.open .rC-list{display:block}
-.rC-list a.rn-ph{display:flex;align-items:center;gap:8px;padding:12px 10px 7px;border-radius:8px;transition:color .2s}
-.rC-list a.rn-ph:hover,.rC-list a.rn-ph.on{color:var(--rn-ink)}
-.rC-list a.rn-ph.on::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--c)}
+/* a part: a row of its own to click, its colour at the left, an arrow that leans on the hover; then its sections, in
+   full for the part being read, small and close together for the others */
+.rC a.rC-p{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--rn-ink);font:600 14px/1.2 var(--rn-font);transition:background .2s}
+.rC a.rC-p + a,.rC a.rC-s + a.rC-p{margin-top:6px}
+.rC a.rC-p i{flex:none;width:3px;height:16px;border-radius:2px;background:var(--c)}
+.rC a.rC-p .t{flex:1}
+.rC a.rC-p svg{flex:none;width:14px;height:14px;fill:none;stroke:var(--rn-grey);stroke-width:1.6;transition:transform .2s,stroke .2s}
+.rC a.rC-p:hover,.rC a.rC-p.on{background:color-mix(in srgb,var(--rn-ink) 6%,transparent)}
+.rC a.rC-p:hover svg{transform:translateX(3px);stroke:var(--rn-ink)}
 .rC-s{display:flex;gap:12px;align-items:center;padding:6px 10px;border-radius:8px;color:var(--rn-ink2)}
-.rC-s[hidden]{display:none}
 .rC-s:hover{background:color-mix(in srgb,var(--rn-ink) 6%,transparent);color:var(--rn-ink)}
 .rC-s.on{color:var(--rn-ink);font-weight:600}
+.rC-s .rn-num{display:none;flex:none;width:12px;text-align:right;font:600 11px/1 var(--rn-font);font-variant-numeric:tabular-nums;color:var(--c)}
+.rC-s.mini{gap:9px;padding:2.5px 10px 2.5px 23px;font-size:12px;line-height:1.3;color:var(--rn-grey);border-radius:6px}
+.rC-s.mini .rn-dot{display:none}
+.rC-s.mini .rn-num{display:block}
+.rC-s.mini:hover{background:transparent;color:var(--rn-ink)}
 @media (prefers-reduced-motion: reduce){ .rC{transition:none} }
 @media print{ .rC{display:none!important} }
 </style>
@@ -4786,7 +4796,7 @@ fig(() => { dfig_b(); });
 <script>window.RN = {"names": {"part-cone": ["How the car sees the road", "Passing boards", "Steering", "Speed", "Real-world testing", "Results"], "part-parking": ["Architecture", "A very strong simulator", "Where does the error come from?", "Real-world testing and calibration", "Results", "RL Drifting"]}};
 // The report's navigation: a top line, always there. Each part opens with its page 0 (its title and demo, no number);
 // then every h2 is a section, with its number (the circle beside it) and its part's colour taken from the page. The
-// list shows every part, and the sections of the one being read; a part's name takes you to it. Section names may be
+// list shows every part as a row to click, the sections of the one being read in full and the others' small. Section names may be
 // shortened in combine.py (NAV_NAMES).
 (function () {
   var R = window.RN || {}, root = document.documentElement;
@@ -4794,6 +4804,7 @@ fig(() => { dfig_b(); });
     down: '<svg viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3"/></svg>',
     up: '<svg viewBox="0 0 14 14"><path d="M3.5 8.5L7 5l3.5 3.5"/></svg>',
     dn: '<svg viewBox="0 0 14 14"><path d="M3.5 5.5L7 9l3.5-3.5"/></svg>',
+    go: '<svg viewBox="0 0 14 14"><path d="M2.5 7h9M8 3.5L11.5 7 8 10.5"/></svg>',
   };
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function txt(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -4832,7 +4843,8 @@ fig(() => { dfig_b(); });
   var step = C.querySelectorAll('.rC-step'), prev = step[0], next = step[1];
   function open(on) { C.classList.toggle('open', on); now.setAttribute('aria-expanded', String(on)); }
   stops.forEach(function (S) {
-    var a = S.kind === 'part' ? el('a', 'rn-ph', txt(S.label)) : el('a', 'rC-s', '<span class="rn-dot">' + txt(S.n) + '</span><span>' + txt(S.title) + '</span>');
+    var a = S.kind === 'part' ? el('a', 'rC-p', '<i></i><span class="t">' + txt(S.label) + '</span>' + ICON.go)
+      : el('a', 'rC-s', '<span class="rn-dot">' + txt(S.n) + '</span><span class="rn-num">' + txt(S.n) + '</span><span>' + txt(S.title) + '</span>');
     a.href = '#' + S.el.id; a.style.setProperty('--c', S.colour);
     a.addEventListener('click', function (e) { e.preventDefault(); open(false); go(S); });
     list.appendChild(a); S.row = a;
@@ -4863,7 +4875,7 @@ fig(() => { dfig_b(); });
     prev.disabled = k <= 0 && (k < 0 || stops[0].el.getBoundingClientRect().top >= -8);
     next.disabled = k >= stops.length - 1;
     // (the list: every part; the sections of the one being read only)
-    stops.forEach(function (T, i) { T.row.classList.toggle('on', i === k); if (T.kind === 'sec') T.row.hidden = !S || T.part !== S.part; });
+    stops.forEach(function (T, i) { T.row.classList.toggle('on', i === k); if (T.kind === 'sec') T.row.classList.toggle('mini', !S || T.part !== S.part); });
     var h = document.documentElement.scrollHeight - innerHeight;
     bar.style.width = (h > 0 ? Math.min(100, (y / h) * 100) : 0).toFixed(2) + '%';
   }
