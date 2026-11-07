@@ -13,6 +13,7 @@ import { ready_visuals } from '../cjk_font';
 import { last_in_course, learner, lesson_status, map_seen, set_map_seen } from '../store';
 import { studio_available } from '../account';
 import { backlink } from '../backlink';
+import { WORLDS, follower, redraw, setup } from '../course_worlds';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -27,8 +28,14 @@ function current_lesson(c: Course): CourseLesson | undefined {
   return all.find((l) => l.id === last_in_course(c)) ?? all.find((l) => lesson_status(l.id) !== 'done') ?? all[0];
 }
 const thumb = (lesson_id: string, cls = 'thumb') => `<canvas class="${cls}" width="640" height="360" data-lesson="${esc(lesson_id)}" aria-hidden="true"></canvas>`;
-/** A course's cover: an image under public/, or a lesson's thumbnail. */
+/** The courses drawn as their world (course_worlds.js): seen from straight above, turned to 3D when the hand comes. */
+const WORLD_OF: Record<string, string> = {
+  mpc: 'mpc', 'llm-finetuning': 'ft', math: 'geo', 'studio-5hujdkdkkm': 'it', 'studio-econ90015': 'econ',
+  'studio-comp90049': 'ml', 'studio-mktg90037': 'value', 'studio-mgmt90141': 'lp',
+};
+/** A course's cover: its world, an image under public/, or a lesson's thumbnail. */
 function cover(c: Course): string {
+  if (WORLD_OF[c.id] && WORLDS[WORLD_OF[c.id]]) return `<canvas class="thumb world" data-world="${WORLD_OF[c.id]}" data-course="${esc(c.id)}" aria-hidden="true"></canvas>`;
   if (c.cover?.startsWith('/')) return `<img class="thumb" src="${esc(c.cover.replace('{lang}', ui_lang()))}" alt="" loading="lazy">`;
   const l = lessons_of(c).find((x) => x.id === c.cover) ?? lessons_of(c)[0];
   return l ? thumb(l.id) : '<div class="thumb empty" aria-hidden="true"></div>'; // (a course still being written)
@@ -97,6 +104,41 @@ export function home(root: HTMLElement): void {
       : '')
     + `<section class="test-section"><h2 class="section-title">${esc(t('test_section'))}</h2><div class="catalog">${tests.map(course_card).join('')}${TEST_PAGES.map(page_card).join('')}</div></section>`;
   draw_thumbnails(root);
+  draw_worlds(root);
+}
+
+/**
+ * Each course's world on its card: straight from above at rest (the plan, read like a drawing), and when the hand
+ * comes to the card the camera turns down into the world; it turns back when the hand leaves. A unit learned colours
+ * the part of the world it names. Drawn when it changes, never in a loop.
+ */
+function draw_worlds(root: HTMLElement): void {
+  const lang = ui_lang();
+  for (const cv of root.querySelectorAll<HTMLCanvasElement>('canvas.thumb.world')) {
+    const c = COURSES.find((x) => x.id === cv.dataset.course), world = WORLDS[cv.dataset.world ?? ''];
+    if (!c || !world) continue;
+    const parts = visible_units(c).map((u) => (u.lessons.length ? u.lessons.filter((l) => lesson_status(l.id) === 'done').length / u.lessons.length : 0));
+    const st = { lang, parts, top: 1, dims: false, pad: [10, 12, 10, 12] as [number, number, number, number] };
+    let w = 0, h = 0, ctx: CanvasRenderingContext2D | null = null;
+    const paint = () => {
+      const r = cv.getBoundingClientRect();
+      if (r.width < 8) return;
+      if (Math.round(r.width) !== w) {
+        w = Math.round(r.width); h = Math.round((w * 9) / 16); ctx = setup(cv, w, h);
+        // (the card sets the canvas's size on screen; only its pixels follow)
+        cv.style.width = ''; cv.style.height = '';
+      }
+      ctx!.clearRect(0, 0, w, h);
+      world(ctx!, w, h, st);
+    };
+    const turn = follower(1, () => { st.top = turn.v; redraw(paint); });
+    const card = cv.closest<HTMLElement>('.course-card') ?? cv;
+    card.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') turn.set(0, 900); });
+    card.addEventListener('pointerleave', () => turn.set(1, 700));
+    // (laid out again when the card's width changes)
+    new ResizeObserver(() => redraw(paint)).observe(cv);
+    redraw(paint);
+  }
 }
 
 /** What a lesson is made of, in words ("动画 · 交互 · 推导 · 代码"); reading and questions go without saying. */
@@ -436,7 +478,7 @@ const queue: HTMLCanvasElement[] = [];
 let drawing = false;
 
 function draw_thumbnails(root: HTMLElement): void {
-  const canvases = [...root.querySelectorAll<HTMLCanvasElement>('canvas.thumb')];
+  const canvases = [...root.querySelectorAll<HTMLCanvasElement>('canvas.thumb:not(.world)')];
   const lazy: HTMLCanvasElement[] = [];
   for (const c of canvases) {
     const hit = THUMBS.get(thumb_key(c));

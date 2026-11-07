@@ -118,6 +118,7 @@ a.nav-ic{text-decoration:none}
 .course-resume:hover{background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 15%,transparent)}
 .course-card:hover{transform:translateY(-2px)}
 .course-card .thumb{width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#f3f4f8,#e9ebf2);border:1px solid var(--mn-border);display:block;object-fit:cover}
+.course-card .thumb.world{background:var(--mn-bg)}
 .course-name{font-weight:700;font-size:19px;letter-spacing:-.01em}
 .course-sum{font-size:14px;line-height:1.55}
 .course-card .meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mn-muted)}
