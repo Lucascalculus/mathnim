@@ -185,7 +185,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
       <div class="cover-art" aria-hidden="true"></div>
       ${backlink('/', t('all_courses'))}
       <div class="cover-text">${text}
-        ${go ? milestones(c, go, lang) : ''}
+        ${go ? milestones(c, go, lang, false) : ''}
         ${review_line(c)}
       </div>
     </section>`
@@ -272,21 +272,31 @@ function unit_states(c: Course, go: CourseLesson | undefined): Map<string, UnitS
   return new Map(units.map((u) => [u.id, cleared(u) ? 'done' : u === next ? 'next' : 'todo']));
 }
 
-/** A drawn course's unit, as a stop of the map above: its number on the route down the left (a check once cleared),
- *  its name and size beside it, its lessons to the right. */
+/** A drawn course's unit, as a checkpoint of the route down the left (its own crown, won once the unit is cleared),
+ *  its name and size, its lessons hung under it. */
 function route_unit(c: Course, u: ReturnType<typeof visible_units>[number], i: number, go: CourseLesson | undefined, lang: Lang): string {
   const before = visible_units(c).slice(0, i).reduce((n, v) => n + v.lessons.length, 0);
   const st = unit_states(c, go).get(u.id) ?? 'todo';
   const min = u.lessons.reduce((n, l) => n + l.minutes, 0);
   return `
       <section class="unit ${st}" id="unit-${esc(u.id)}">
-        <header class="unit-hd"><i class="unit-n" aria-hidden="true">${st === 'done' ? CHECK : i + 1}</i><h3>${math_html(unit_title(c, u, lang))}</h3><p class="unit-size">${esc(t('course_size', { n: u.lessons.length, d: duration(min) }))}</p></header>
+        <header class="unit-hd"><i class="unit-n crown" aria-hidden="true">${CHECKPOINT_CROWNS[i % CHECKPOINT_CROWNS.length]}</i><h3>${math_html(unit_title(c, u, lang))}</h3><p class="unit-size">${esc(t('course_size', { n: u.lessons.length, d: duration(min) }))}</p></header>
         <div class="lessons">${u.lessons.map((l, k) => lesson_card(l, lang, before + k + 1, l.id === go?.id)).join('')}</div>
       </section>`;
 }
 
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
 const CROWN = '<svg viewBox="0 0 24 20"><path d="M3 17V6.5l5 4.5 4-7 4 7 5-4.5V17z"/></svg>';
+/** A crown for each checkpoint of a drawn course's route, no two alike (grey to come, ringed in the course's colour
+ *  next, gold once its unit is cleared); the course's own crown, CROWN, is the route's end. */
+const CHECKPOINT_CROWNS = [
+  '<path d="M4 16V8.5l4.2 3.3L12 5l3.8 6.8L20 8.5V16z"/>',
+  '<path d="M4.5 16l-1-8.2 4.6 3.6L12 6.2l3.9 5.2 4.6-3.6-1 8.2z"/><circle cx="3.5" cy="6.4" r="1.5"/><circle cx="12" cy="4.3" r="1.5"/><circle cx="20.5" cy="6.4" r="1.5"/>',
+  '<path d="M3.5 16V7h3v3h2.7V7h5.6v3h2.7V7h3v9z"/>',
+  '<path d="M5 16h14v-3H5z"/><path class="ln" d="M5.6 13c0-5.2 2.8-7.5 6.4-7.5s6.4 2.3 6.4 7.5"/><path class="ln" d="M12 5.5V1.9M10.4 3.4h3.2"/>',
+  '<path d="M3 16.5c3-1.6 6-2.3 9-2.3s6 .7 9 2.3l-1.2-6.8-3.3 2.6L12 3.8l-4.5 8.5-3.3-2.6z"/>',
+  '<path d="M3.5 16V8l3.6 2.6L9.5 6l2.5 4.2L14.5 6l2.4 4.6L20.5 8v8z"/><circle cx="12" cy="12.8" r="1.4"/>',
+].map((d) => `<svg viewBox="0 0 24 20">${d}</svg>`);
 
 /** Back from a finished lesson (?after=<lesson>): the next lesson's card is marked "next" and scrolled to, after the map. */
 function up_next(root: HTMLElement, c: Course): void {
@@ -314,7 +324,7 @@ function review_line(c: Course): string {
 /** The learning map, a level route: the course's units as stops, named as on the page below (a check once all their
  *  lessons are done, the next one pulsing; each opens its first lesson not yet done), and a crown at the end, won by
  *  finishing every lesson. */
-function milestones(c: Course, go: CourseLesson | undefined, lang: Lang): string {
+function milestones(c: Course, go: CourseLesson | undefined, lang: Lang, crown = true): string {
   const all = lessons_of(c);
   const units = visible_units(c);
   const states = unit_states(c, go);
@@ -324,7 +334,7 @@ function milestones(c: Course, go: CourseLesson | undefined, lang: Lang): string
     const st = states.get(u.id) ?? 'todo';
     const to = u.lessons.find((l) => lesson_status(l.id) !== 'done') ?? u.lessons[0];
     return `<li class="ms ${st}" data-ms="${esc(u.id)}"><a href="${lesson_path(to.id)}" title="${esc(tr(to.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(unit_title(c, u, lang))}</span></a></li>`;
-  }).join('')}<li class="goal${won ? ' won' : ''}" data-ms="crown" title="${esc(goal)}" role="img" aria-label="${esc(goal)}">${CROWN}</li></ol>`;
+  }).join('')}${crown ? `<li class="goal${won ? ' won' : ''}" data-ms="crown" title="${esc(goal)}" role="img" aria-label="${esc(goal)}">${CROWN}</li>` : ''}</ol>`;
 }
 
 /** Clearing a stop should feel like clearing a level: the stops cleared since the learner last saw this map light up

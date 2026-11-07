@@ -78,7 +78,25 @@ goals that random dragging won't reach, specific feedback). The full bar:
   "AI bar" was rejected as overused ("这个 AI bar style 被用得太多了"). So were
   cheesy Chinese "AI style" glows and robot imagery. Technical feel comes from
   precision (a dot grid, crop marks, a small monospaced label), not from glow.
+- **Art is drawn, not engineered** (2026-11-08: "每个课的绘画风格都可以不一样。
+  有时候未必要跟课程主题完全紧密相连，这才是艺术。不要想着'引擎复用' … 不是所有东西都
+  需要'蠢蠢大模型能用'"). A course's cover (`apps/mathnim/src/covers/<course>.ts`)
+  is drawn for that course alone, in a style of its own, different from the
+  other courses'. It may be only loosely related to the subject: it is a cover,
+  not a teaching figure. Don't build art as reusable engine parts, and don't
+  simplify it so a model can produce it. The engine's criteria (decoupling,
+  "a dumb LLM draws it right") are for the engine and the lesson figures, not
+  for art. When Lucas points to an existing drawing, use it as it is (the MPC
+  page opens on the Team Bat logbook's track, unchanged).
 - What exists and works:
+  - the **course page** of a course with a cover (MPC, 2026-11-08, "非常非常
+    非常棒"): it opens on the drawing across the window, with the title (two
+    lines, the second light), the start button and the map in its clear part.
+    Below, on the same column, the course reads as a route: a quiet first stop
+    (what to know, one line of starter links), each unit a checkpoint with a
+    crown of its own and its lessons hung under it (pictures without card
+    chrome, numbered 01–08 in small mono, the one to continue framed in the
+    course colour), and the final crown with what the course gives;
   - the **course map** as a level route (checks, a pulsing next stop, a crown
     you can drag and wear);
   - the **moving cover** (the course's signature animation plays once);

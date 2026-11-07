@@ -269,6 +269,16 @@ a.nav-ic{text-decoration:none}
 .units-route .lesson-title{font-size:15.5px;line-height:1.35}
 .units-route .lesson-card .meta{font-size:12px}
 .lesson-no{font:500 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;color:var(--mn-muted)}
+/* each checkpoint's crown (no two alike): grey to come, the course's colour next, gold once won */
+.units-route .unit-n.crown,.units-route .unit.done .unit-n.crown{border:0;border-radius:0;background:none;width:24px;height:22px;left:-2px;top:3px}
+.unit-n.crown svg{width:24px;height:20px;overflow:visible;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.unit-n.crown svg .ln{fill:none}
+.unit.next .unit-n.crown svg{stroke:var(--course-accent,var(--mn-accent))}
+.unit.done .unit-n.crown svg{fill:#F5B400;stroke:#DB9A00}
+.unit.done .unit-n.crown svg .ln{fill:none}
+/* (the cover's map has no crown: the stops run to the right end) */
+.course-cover .milestones .ms:last-child{flex:none}
+.course-cover .milestones .ms:last-child::after{display:none}
 /* the lesson to start or continue with: its picture framed in the course's colour, its circle ringed */
 .units-route .lesson-card.here .thumb{border-color:var(--course-accent,var(--mn-accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 14%,transparent)}
 .units-route .lesson-card.here .pm-current{border-color:var(--course-accent,var(--mn-accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 20%,transparent)}
@@ -283,8 +293,8 @@ a.nav-ic{text-decoration:none}
 .route-links a{color:var(--mn-fg);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-fg) 22%,transparent);text-underline-offset:3px}
 .route-links a:hover{color:var(--course-accent,var(--mn-accent));text-decoration-color:currentColor}
 .unit.goal{padding-bottom:0}
-.unit.goal .unit-n{border:0;background:none;width:24px;height:22px;left:-2px;top:3px}
-.unit.goal .unit-n svg{width:24px;height:20px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
+.unit.goal .unit-n{border:0;background:none;width:28px;height:24px;left:-4px;top:1px}
+.unit.goal .unit-n svg{width:28px;height:24px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
 .unit.goal.won .unit-n svg{fill:#F5B400;stroke:#DB9A00}
 .route-outcomes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:72ch}
 .route-outcomes li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.55}

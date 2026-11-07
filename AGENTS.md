@@ -61,6 +61,11 @@ npm run catalog                   # after adding a visual, field, module or regi
   see (typography, composition, motion, interaction) prefer Mathium's own
   identity over matching Manim or 3b1b. Manim parity only serves manim-web's
   regression tests (`docs/TASTE.md` §5).
+- **Art is drawn, not engineered** (from 2026-11-08): a course's cover and
+  other art are drawn one by one, each in its own style, and need not
+  illustrate the subject closely. Don't make them reusable engine parts or
+  shape them for a model to produce; "a dumb LLM draws it right" is an engine
+  criterion, not an art one (`docs/TASTE.md` §5).
 - **Bilingual**: every learner-facing string is `{ en, zh }`; write the
   Chinese natively.
 - **One light theme. Narration only on scene steps. No instructional copy in
