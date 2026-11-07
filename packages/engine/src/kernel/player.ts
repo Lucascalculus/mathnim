@@ -429,6 +429,51 @@ export class FigurePlayer {
     });
   }
 
+  /**
+   * Move a param toward a value as a damped spring would (response s, damping ratio): what a hand drags follows it
+   * with a little lag, and what it lets go of keeps its momentum (v, per second) and settles. A new target for a
+   * param already moving keeps its velocity; hold() stops it.
+   */
+  spring(p: Param<number>, to: number, o: { v?: number; response?: number; damping?: number } = {}): Promise<void> {
+    const R = o.response ?? 0.62, k = ((2 * Math.PI) / R) ** 2, c = (4 * Math.PI * (o.damping ?? 0.86)) / R;
+    let s = this.springs.get(p);
+    if (s) { s.to = to; s.k = k; s.c = c; if (o.v !== undefined) s.v = o.v; }
+    else {
+      const mine = { to, v: o.v ?? 0, k, c, last: now(), done: [] as (() => void)[] };
+      s = mine;
+      this.springs.set(p, mine);
+      const step = () => {
+        if (this.springs.get(p) !== mine) return;
+        const t = now(), dt = Math.min(0.05, (t - mine.last) / 1000);
+        mine.last = t;
+        let x = p.peek();
+        // (semi-implicit Euler in small steps: stable for a stiff spring)
+        const n = Math.max(1, Math.ceil(dt * 240));
+        for (let i = 0; i < n; i++) { const h = dt / n; mine.v += (-mine.k * (x - mine.to) - mine.c * mine.v) * h; x += mine.v * h; }
+        const busy = Math.abs(x - mine.to) > 1e-4 || Math.abs(mine.v) > 1e-3;
+        // (at rest it is exactly where it belongs)
+        p.set(busy ? x : mine.to, true);
+        if (busy) raf(step);
+        else { this.springs.delete(p); mine.done.forEach((f) => f()); }
+      };
+      raf(step);
+    }
+    const ss = s;
+    return new Promise((res) => ss.done.push(res));
+  }
+  /** Stop any spring on p (the hand has taken it). */
+  hold(p: Param<number>): void {
+    const s = this.springs.get(p);
+    if (!s) return;
+    this.springs.delete(p);
+    s.done.forEach((f) => f());
+  }
+  /** Is p moving on a spring? */
+  springing(p: Param<number>): boolean {
+    return this.springs.has(p);
+  }
+  private springs = new Map<Param<number>, { to: number; v: number; k: number; c: number; last: number; done: (() => void)[] }>();
+
   // ---------------------------------------------------------------- the hand
   /** Turn the figure's handles on (an explore step) or off. */
   set_interactive(on: boolean): void {

@@ -286,7 +286,7 @@ export function match_symbol(L: TexLine, tex: string, taken: Set<Token> = new Se
  * Where a line has a noun's symbol: its tokens in a row with the same keys, at the same sizes relative to each other
  * (x_0's 0 is a subscript in both), not already another noun's. Longer symbols first, so x_0 is taken before x.
  */
-function noun_tokens(L: TexLine, nouns: Record<string, string>): Map<Token, string> {
+export function noun_tokens(L: TexLine, nouns: Record<string, string>): Map<Token, string> {
   const out = new Map<Token, string>();
   if (L.error) return out;
   const size = (t: Token) => t.glyphs[0].size ?? 1;

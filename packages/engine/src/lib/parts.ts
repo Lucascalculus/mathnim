@@ -1,33 +1,40 @@
-// A formula read block by block, layer by layer (分块、逐层; specimen gpu/int/explode.js, then Lucas 2026-11-07:
-// "有些公式不是每项的标记，可能是一块（好几项）的标记，来找到直觉…或者是逐层的标记"). The intuition in a formula is rarely
-// in one symbol: it is in a block of several terms that means one thing - the error, the average over the data, the
-// share of the whole - and a block is itself made of blocks. So the parts of a formula are a tree. Tapped, the formula
-// shows its outermost blocks, each in a colour of its own with a brace and what it means; tap a block that has an
-// inside and it opens: its own blocks come out the same way, while the brace of the block they make up moves outward
-// (you see that these make that), and the rest of the formula steps back. Tap it again, or beside it, to go back out.
-// At rest the formula is drawn whole, a dotted line under each outer block (something is folded there).
+// A formula taken apart (分解的公式; the specimen's gpu/int/explode.js, ported with its look and motion, 2026-11-07). A
+// formula is an assembly, and it can be drawn the way an engineer draws one. Pull it apart (or tap it) and the camera
+// turns to the house view while each block lifts on its own card, straight up along one axis; light from straight
+// above leaves each card's shadow where it sat, so the paper keeps the assembled formula; a leader runs from each card
+// to what it means. Let go and the cards drop back into their shadows, glyph for glyph.
 //
-// For a model to write: the formula, then each block as it is written in the formula with what it means; a block's
-// own blocks indented under it (in a text: a ```parts fence, `piece: meaning` lines, two spaces per layer).
-//   parts_figure('P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}', [{ tex: 'P(A\\mid B)', says: 'the posterior' },
-//     { tex: '\\frac{P(B\\mid A)\\,P(A)}{P(B)}', says: 'the share…', parts: [{ tex: 'P(B\\mid A)\\,P(A)', says: … }] }])
-import { look, type Pigment } from '@mathnim/look';
+// A block is often several terms that mean one thing (the error, the average over the data), and a block is made of
+// blocks: the parts are a tree, read as a sub-assembly is drawn. A card that holds more is two sheets thick. Tap it
+// and the rest settles back onto the paper, it comes down to the first level, and its own blocks lift off it onto
+// cards above it; tap it again, or the paper, to go back out.
+//
+// A second view, for comparison (Lucas: 没有3D视角迁移的对照版本): 'flat' keeps the page's own view; the blocks move apart
+// in the plane and become cards, each with its words; a card that holds more comes apart the same way, inside itself.
+//
+// For a model to write: the formula, then each block as it is written in the formula with what it means (a name in
+// bold first, if it has one); a block's own blocks indented under it (in a text: a ```parts fence, `piece: meaning`
+// lines, two spaces per layer; `% nouns: A = hypothesis` colours a symbol everywhere, words included).
+//   parts_figure('P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}', [{ tex: 'P(A\\mid B)', says: '**posterior** …' },
+//     { tex: '\\frac{P(B\\mid A)\\,P(A)}{P(B)}', says: '…', parts: [{ tex: 'P(B\\mid A)\\,P(A)', says: … }] }])
+import { look, text_color_of } from '@mathnim/look';
 import type { TexGlyph } from 'manim-web/utils/tex/mathjax';
-import type { Box, XY } from '../kernel/geom';
+import { grow_poly, hull, in_convex, nearest_on, poly_bounds, poly_cross, rect_poly, seg_cross, seg_poly, type Box, type XY } from '../kernel/geom';
 import { Figure } from '../kernel/figure';
 import { column, type Block, type LayoutEnv, type Size } from '../kernel/layout';
+import { make_canvas } from '../kernel/render';
 import { set, wait, type Step } from '../kernel/script';
 import { param, read, type Param } from '../kernel/state';
-import { typeset_line, type TexLine, type Token } from './steps';
+import { noun_tokens, typeset_line, type TexLine, type Token } from './steps';
 import { tex_scale } from '../kernel/tex';
-import { break_lines, font_css, font_of, t, tex_as_text, text_width, tr, type L10n, type Lang } from '../kernel/text';
+import { break_lines, font_css, font_of, t, tex_as_text, text_width, tr, type L10n, type Lang, type Span, type TextLine } from '../kernel/text';
 import { Thing, type DrawEnv } from '../kernel/thing';
 import { define_thing } from '../kernel/registry';
 
 export interface FormulaPart {
   /** The block as it is written in the formula (TeX): one symbol or several terms. */
   tex: string;
-  /** What it means. */
+  /** What it means; a name first in bold if it has one: '**prior** belief in A before B'. */
   says: string | L10n;
   /** The blocks it is made of: its next layer. */
   parts?: FormulaPart[];
@@ -39,29 +46,81 @@ export interface PartNode {
   children: PartNode[];
   parent: PartNode | null;
   depth: number;
-  /** Its colour while its layer is shown. */
-  color: string;
 }
-/** One block's mark in a layer: its brace, and its words (px, from the formula's TeX origin). */
-interface Mark {
-  node: PartNode;
-  /** Under the formula (1) or over it (-1). */
-  side: 1 | -1;
-  x0: number;
-  x1: number;
-  /** Where the brace starts (its ends, on the formula's side) and its tip. */
-  y: number;
-  tip: number;
-  label: { x: number; y: number; w: number; h: number; lines: string[] };
-  /** A block that the shown layer makes up (drawn outward, quieter). */
-  outer: boolean;
+/** 'house': taken apart in depth, under the house camera (the specimen); 'flat': apart in the plane. */
+export type PartsView = 'house' | 'flat';
+
+type Rect = [number, number, number, number];
+interface Cam { a: number; b: number; c: number; d: number; hz: number }
+/** A layer as it stands fully apart (paper px from the formula's middle; heights in px). */
+interface Pose {
+  focus: PartNode | null;
+  /** The blocks on cards: the focus and its blocks, or the outermost blocks. */
+  cards: PartNode[];
+  rect: Map<PartNode, Rect>;
+  z: Map<PartNode, number>;
+  /** The card each card rests on when it comes down (null: the paper). */
+  under: Map<PartNode, PartNode | null>;
+  /** Each token's ink where it is now, its height, and how much it shows (the rest steps back from a focus). */
+  box: Map<Token, Rect>;
+  tz: Map<Token, number>;
+  dim: Map<Token, number>;
+  /** Whose words show; the focus's quietly. */
+  says: PartNode[];
+}
+interface Card { node: PartNode; rect: Rect; z: number; rest: number; alpha: number; under: PartNode | null; face: XY[] }
+interface Scene { K: Cam; o: XY; lift: number; cards: Card[]; tok: Map<Token, { box: Rect; z: number; a: number; on: PartNode | null }> }
+interface Words { name: string | null; lines: TextLine[]; w: number; h: number }
+interface Label { node: PartNode; x: number; y: number; w: number; h: number; at: XY; quiet: boolean }
+/** The stage solved for one width and language: sizes, where the formula sits together and apart, every layer. */
+interface Solved {
+  w: number;
+  lang: Lang;
+  px: number;
+  k: number;
+  /** The formula's middle (px from its TeX origin): paper coordinates are from here. */
+  c: XY;
+  H: number;
+  /** The camera's origin together (at the top of the stage) and apart (the middle of what is drawn). */
+  o0: XY;
+  o1: XY;
+  /** Where the formula ends while it is together (px from the stage's top). */
+  band: number;
+  base: Map<Token, Rect>;
+  poses: Pose[];
+  words: Map<PartNode, Words>;
+  labels: Map<PartNode, Label>[];
+  /** Blocks whose words found no room. */
+  missing: number;
 }
 
-// (the colours of a layer: the pigments of nouns; vermilion is the one action, so it is not among them)
-const PIGMENTS: Pigment[] = ['cobalt', 'viridian', 'violet', 'ochre', 'teal'];
+// the house camera, the same on every page (the specimen's)
+const AZ = -0.5, EL = 0.66;
+/** c = 0: straight above (reading); c = 1: the house view. */
+function cam(c: number): Cam {
+  const az = AZ * c, el = Math.PI / 2 - c * (Math.PI / 2 - EL), ca = Math.cos(az), sa = Math.sin(az), ce = c === 0 ? 0 : Math.cos(el), se = Math.sin(el);
+  return { a: ca, b: sa * se, c: -sa, d: ca * se, hz: ce };
+}
+const proj = (K: Cam, o: XY, x: number, y: number, z: number): XY => [o[0] + K.a * x + K.c * y, o[1] + K.b * x + K.d * y - K.hz * z];
+const quad = (K: Cam, o: XY, r: Rect, z: number): XY[] => [proj(K, o, r[0], r[1], z), proj(K, o, r[2], r[1], z), proj(K, o, r[2], r[3], z), proj(K, o, r[0], r[3], z)];
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+const smooth = (x: number) => { const u = clamp01(x); return u * u * (3 - 2 * u); };
+const mix = (a: number, b: number, u: number) => a + (b - a) * u;
+const mix_rect = (a: Rect, b: Rect, u: number): Rect => [mix(a[0], b[0], u), mix(a[1], b[1], u), mix(a[2], b[2], u), mix(a[3], b[3], u)];
+const pad = (r: Rect, x: number, y: number): Rect => [r[0] - x, r[1] - y, r[2] + x, r[3] + y];
+const bounds = (rs: Rect[]): Rect => [Math.min(...rs.map((r) => r[0])), Math.min(...rs.map((r) => r[1])), Math.max(...rs.map((r) => r[2])), Math.max(...rs.map((r) => r[3]))];
+const meet = (a: Rect, b: Rect) => a[0] <= b[2] && b[0] <= a[2] && a[1] <= b[3] && b[1] <= a[3];
+const shift = (q: XY[], dx: number, dy: number): XY[] => q.map(([x, y]) => [x + dx, y + dy] as XY);
+/** Ink at an alpha: for the scaffolding (edges, sockets, leaders) and shadows. */
+const GR = (a: number) => `rgba(26,27,31,${a.toFixed(3)})`;
+/** The amounts of coming apart at which leaders show: each must be clear at all of them. */
+const LEADER_E = [0.8, 0.9, 1];
+
 // (brackets, stretched or not, are matched by what they hold: a \left( set alone is not the same glyph)
 const BRACKETS = /^[()[\]{}⟨⟩‖⎛⎜⎝⎞⎟⎠⎡⎢⎣⎤⎥⎦⎧⎨⎩⎫⎬⎭]+$/;
 const set_apart = (t: Token) => t.kind === 'rule' || BRACKETS.test(t.key);
+/** A rule drawn as rectangles only (a fraction's bar): it can stretch as what it spans moves apart. */
+const is_bar = (t: Token) => t.kind === 'rule' && t.glyphs.every((g) => g.rect);
 
 /**
  * The tokens of a block in a line: its run of tokens (the same keys, at the same sizes relative to each other; rules
@@ -126,44 +185,51 @@ export class Parts extends Thing implements Block {
   /** The blocks that have an inside, depth first: layer n (n ≥ 1) shows the inside of opens[n − 1]. */
   readonly opens: PartNode[] = [];
   readonly issues: string[] = [];
-  /** 0: the formula alone; 1: a layer of its blocks shown, each with what it means. */
+  readonly view: PartsView;
+  /** How far apart (0 together, 1 apart). */
   readonly open: Param<number>;
   /** Which layer: 0 the outermost blocks, n the inside of opens[n − 1]. */
   readonly layer: Param<number>;
-  /** The layer's marks coming in (0..1): back to 0 and on to 1 whenever the layer changes. */
+  /** The layer it is coming from, and how far it has come (0 there, 1 at `layer`). */
+  readonly from: Param<number>;
   readonly fade: Param<number>;
+  private noun_of: Map<Token, string>;
+  private nouns: Record<string, string>;
   private paths = new Map<TexGlyph, Path2D>();
-  private px_fit = 0;
-  private lang: Lang = 'en';
   private size: number | null;
-  constructor(public tex: string, parts: FormulaPart[], o: { id?: string; size?: number } = {}) {
+  private lang: Lang = 'en';
+  private S: Solved | null = null;
+  constructor(public tex: string, parts: FormulaPart[], o: { id?: string; size?: number; view?: PartsView; nouns?: Record<string, string> } = {}) {
     super({ id: o.id ?? 'parts', role: 'text', z: 5 });
+    this.view = o.view ?? 'house';
     this.line = typeset_line(tex);
     if (this.line.error) this.issues.push(`the formula does not typeset: ${this.line.error}`);
-    const look_ = look();
-    const grow = (ps: FormulaPart[], parent: PartNode | null, scope: Token[], first: number): PartNode[] => {
+    const grow = (ps: FormulaPart[], parent: PartNode | null, scope: Token[]): PartNode[] => {
       const taken = new Set<Token>();
-      return ps.flatMap((part, i) => {
+      return ps.flatMap((part) => {
         const tokens = this.line.error ? null : find_block(this.line, part.tex, scope, taken);
         if (!tokens) {
           this.issues.push(parent ? `the block ${part.tex} is not inside ${parent.part.tex}` : `the block ${part.tex} is not in the formula`);
           return [];
         }
         tokens.forEach((t) => taken.add(t));
-        const node: PartNode = { part, tokens, children: [], parent, depth: parent ? parent.depth + 1 : 0, color: look_.palette[PIGMENTS[(first + i) % PIGMENTS.length]] };
+        const node: PartNode = { part, tokens, children: [], parent, depth: parent ? parent.depth + 1 : 0 };
         this.nodes.push(node);
         if (part.parts?.length) {
           this.opens.push(node);
-          node.children = grow(part.parts, node, tokens, first + i + 1);
+          node.children = grow(part.parts, node, tokens);
         }
         return [node];
       });
     };
-    this.roots = grow(parts, null, this.line.tokens, 0);
+    this.roots = grow(parts, null, this.line.tokens);
     // (a block whose inside was not found does not open)
     for (const n of [...this.opens]) if (!n.children.length) this.opens.splice(this.opens.indexOf(n), 1);
-    this.open = param(0, { name: `${this.id}.open`, range: [0, 1], tutor: true, doc: 'the formula read block by block (1) or whole (0)' });
+    this.nouns = o.nouns ?? {};
+    this.noun_of = noun_tokens(this.line, this.nouns);
+    this.open = param(0, { name: `${this.id}.open`, range: [0, 1], tutor: true, doc: 'the formula taken apart (1) or together (0)' });
     this.layer = param(0, { name: `${this.id}.layer`, range: [0, Math.max(0, this.opens.length)], tutor: true, doc: 'which layer: 0 the outer blocks, n the inside of the n-th block that has one' });
+    this.from = param(0, { name: `${this.id}.from`, range: [0, Math.max(0, this.opens.length)] });
     this.fade = param(1, { name: `${this.id}.fade`, range: [0, 1] });
     this.size = o.size ?? null;
   }
@@ -171,190 +237,322 @@ export class Parts extends Thing implements Block {
   get found(): { part: FormulaPart; tokens: Token[] }[] {
     return this.nodes.map((n) => ({ part: n.part, tokens: n.tokens }));
   }
-  private px(): number {
-    return this.size ?? (this.px_fit || look().type.display.size);
-  }
-  private label_font() {
-    return font_of('caption', { size: Math.round(Math.max(look().type.caption.size, this.px() * 0.36)) });
-  }
-  /** What a block means, as drawn: its $…$ TeX as the characters it shows. */
-  private words(n: PartNode): string {
-    return tex_as_text(tr(n.part.says, this.lang)).replace(/\$/g, '');
+  /** Blocks whose words found no room at the width laid out. */
+  get missing(): number {
+    return this.S?.missing ?? 0;
   }
   /** The block whose inside layer n shows (null: the outermost layer). */
-  private focus_of(n: number): PartNode | null {
+  focus_of(n: number): PartNode | null {
     return n >= 1 ? this.opens[n - 1] ?? null : null;
   }
-  /** A block's extent (px, from the TeX origin). */
-  private extent(ts: Token[]): { x0: number; x1: number; y0: number; y1: number } {
-    const k = tex_scale(this.px());
-    return { x0: Math.min(...ts.map((t) => t.box[0])) * k, x1: Math.max(...ts.map((t) => t.box[2])) * k, y0: Math.min(...ts.map((t) => t.box[1])) * k, y1: Math.max(...ts.map((t) => t.box[3])) * k };
+  /** The layer that shows a block's inside, and the one that shows the block itself. */
+  layer_inside(n: PartNode): number {
+    return this.opens.indexOf(n) + 1;
   }
-  /**
-   * The marks of layer n (px, from the TeX origin), laid out for a slot `w` wide. A brace under each block - over it
-   * for a block above the formula's axis (a numerator, an exponent), under it for one below (a denominator); either
-   * for one across the axis - and its words beyond the brace, in one row, each as near its own brace as it can be
-   * with none meeting another (so the leaders from the braces never cross). When a row is too full, every other block
-   * that may go either way goes over; then the words wrap narrower; at the last, a second row. Outward on the same
-   * side come the blocks this layer makes up, from the nearest out.
-   */
-  plan(n: number, w = this.box.w || 600): { marks: Mark[]; above: number; below: number } {
-    const k = tex_scale(this.px()), px = this.px(), f = this.label_font(), lineh = f.size * look().type.caption.line;
-    const V = this.line.view, fx0 = V[0] * k, fx1 = (V[0] + V[2]) * k, top = V[1] * k, bottom = (V[1] + V[3]) * k;
-    const mid = (fx0 + fx1) / 2, left = mid - w / 2 + 4, right = mid + w / 2 - 4;
-    const F = this.focus_of(n), shown = F ? F.children : this.roots;
-    const gap = px * 0.14, bh = px * 0.3, rowgap = px * 0.16, sep = 14;
-    // the formula's axis: the middle of its relation (or of the formula)
-    const A = this.line.anchor >= 0 ? this.line.tokens[this.line.anchor].box : null;
-    const axis = A ? ((A[1] + A[3]) / 2) * k : (top + bottom) / 2;
-    const items = shown.map((nd) => {
-      const e = this.extent(nd.tokens);
-      const lock: -1 | 0 | 1 = e.y1 < axis - px * 0.1 ? -1 : e.y0 > axis + px * 0.1 ? 1 : 0;
-      return { nd, e, lock, cx: (e.x0 + e.x1) / 2 };
-    }).sort((a, b) => a.cx - b.cx);
-    // (a block with an inside says so with a › after its words, never alone on a line)
-    const more = text_width(' ›', f);
-    const wrap = (nd: PartNode, maxw: number) => {
-      const extra = nd.children.length ? more : 0;
-      const ls = break_lines(this.words(nd), f, Math.min(maxw, w - 16) - extra);
-      const lines = ls.map((l) => l.spans.map((s) => s.s).join(''));
-      if (extra) lines[lines.length - 1] += ' ›';
-      return { lines, w: Math.max(...ls.map((l, i) => l.width + (i === ls.length - 1 ? extra : 0))), h: ls.length * lineh };
-    };
-    /** Left edges for widths `ws` as near `want` as can be, in order, `sep` apart, inside [left, right]; null: too wide. */
-    const pack = (want: number[], ws: number[]): number[] | null => {
-      const total = ws.reduce((s, x) => s + x, 0) + sep * Math.max(0, ws.length - 1);
-      if (total > right - left) return null;
-      // clusters of labels that would meet, each centred on what its labels want, merged until none meet
-      let cl = want.map((x, i) => ({ items: [i], x }));
-      const width = (c: { items: number[] }) => c.items.reduce((s, i) => s + ws[i], 0) + sep * (c.items.length - 1);
-      const place = (c: { items: number[]; x: number }) => {
-        let off = 0;
-        const ideal = c.items.map((i) => { const o = off; off += ws[i] + sep; return want[i] - o; });
-        c.x = Math.max(left, Math.min(right - width(c), ideal.reduce((s, x) => s + x, 0) / ideal.length));
-      };
-      cl.forEach(place);
-      for (let merged = true; merged;) {
-        merged = false;
-        for (let j = 1; j < cl.length; j++) {
-          if (cl[j - 1].x + width(cl[j - 1]) + sep > cl[j].x) {
-            const c = { items: [...cl[j - 1].items, ...cl[j].items], x: 0 };
-            place(c);
-            cl = [...cl.slice(0, j - 1), c, ...cl.slice(j + 1)];
-            merged = true;
-            break;
-          }
+  layer_of(n: PartNode): number {
+    return n.parent ? this.layer_inside(n.parent) : 0;
+  }
+
+  // ---------------------------------------------------------------- what each block says
+  private ink_of(t: Token): string {
+    const nn = this.noun_of.get(t);
+    return t.glyphs[0].fill ?? (nn ? text_color_of(`noun:${nn}`, look()) : this.text_color);
+  }
+  /** A block's words: its name (bold), and what it means, its symbols in their nouns' colours. */
+  private words(nd: PartNode, lang: Lang): Words {
+    const s = tr(nd.part.says, lang).trim(), m = /^\*\*(.+?)\*\*\s*[:：,，—–-]?\s*([\s\S]*)$/.exec(s);
+    const name = m ? m[1].trim() : null, mean = m ? m[2].trim() : s;
+    const spans: Span[] = [];
+    mean.split(/(\$[^$]+\$)/).forEach((p) => {
+      if (!p) return;
+      const tex = /^\$([^$]+)\$$/.exec(p)?.[1].trim();
+      if (tex === undefined) spans.push({ s: p });
+      else spans.push({ s: tex_as_text(p).replace(/\$/g, ''), color: this.nouns[tex] ? text_color_of(`noun:${this.nouns[tex]}`, look()) : undefined, weight: 500 });
+    });
+    const FN = font_of('label', { weight: 600 }), FM = font_of('label', { weight: 400 }), LH = Math.round(FM.size * 1.3);
+    const lines = mean ? break_lines(spans, FM, 230) : [];
+    const w = Math.ceil(Math.max(name ? text_width(name, FN) : 0, ...lines.map((l) => l.width)));
+    return { name, lines, w, h: (name ? LH + 1 : 0) + lines.length * LH };
+  }
+
+  // ---------------------------------------------------------------- the poses: each layer fully apart
+  private pose(n: number, px: number, base: Map<Token, Rect>, axis: number): Pose {
+    const F = this.focus_of(n), cards = F ? [F, ...F.children] : [...this.roots];
+    const has = new Map(cards.map((c) => [c, new Set(c.tokens)]));
+    const carrier = (t: Token) => cards.filter((c) => has.get(c)!.has(t)).sort((a, b) => b.depth - a.depth)[0] ?? null;
+    const inF = F ? new Set(F.tokens) : null;
+    const P: Pose = { focus: F, cards, rect: new Map(), z: new Map(), under: new Map(), box: new Map(), tz: new Map(), dim: new Map(), says: F ? [F, ...F.children] : [...this.roots] };
+    for (const t of this.line.tokens) P.dim.set(t, inF && !inF.has(t) ? 0.3 : 1);
+    for (const c of cards) P.under.set(c, F && c !== F ? F : null);
+    const cpx = px * 0.16, cpy = px * 0.14, ink = (nd: PartNode) => bounds(nd.tokens.map((t) => P.box.get(t)!));
+    if (this.view === 'house') {
+      for (const t of this.line.tokens) P.box.set(t, base.get(t)!);
+      for (const c of cards) P.rect.set(c, pad(ink(c), cpx, cpy));
+      // heights: from the lowest card on screen up, each rises just far enough to clear everything already placed (the
+      // paper's ink, the cards below it): every card on its own level; a focus's blocks above it
+      const K = cam(1), O: XY = [0, 0], T = px * 0.07, step = px * 0.45, gap = px * 0.3;
+      const placed: { q: XY[]; bb: Rect }[] = [];
+      const keep = (q: XY[]) => placed.push({ q, bb: poly_bounds(q) });
+      for (const t of this.line.tokens) if (!carrier(t)) keep(quad(K, O, base.get(t)!, 0));
+      const low = (nd: PartNode) => Math.max(...quad(K, O, P.rect.get(nd)!, 0).map((v) => v[1]));
+      const order = F ? [F, ...[...F.children].sort((a, b) => low(b) - low(a))] : [...cards].sort((a, b) => low(b) - low(a));
+      let z = 0;
+      for (const c of order) {
+        z += step;
+        const r = P.rect.get(c)!;
+        for (let i = 0; i < 4000; i++) {
+          const q = hull([...quad(K, O, r, z), ...quad(K, O, r, z - T * (c.children.length ? 2 : 1))]), g = grow_poly(q, gap), gb = poly_bounds(g);
+          if (!placed.some((p) => meet(gb, p.bb) && poly_cross(g, p.q))) { keep(q); break; }
+          z += 2;
         }
+        P.z.set(c, z);
       }
-      const out: number[] = [];
-      for (const c of cl) { let x = c.x; for (const i of c.items) { out[i] = x; x += ws[i] + sep; } }
+      for (const t of this.line.tokens) { const c = carrier(t); P.tz.set(t, c ? P.z.get(c)! : 0); }
+      return P;
+    }
+    // flat: the cards of each level move apart sideways (blocks stacked one over another move as one column), what
+    // lies between them moves with them, and a bar that spans them stretches; then up or down, away from the axis
+    const levels = F ? [[F], F.children] : [cards];
+    const s = px * 0.3, v = px * 0.3;
+    const cols = levels.map((lv) => {
+      const rs = lv.map((c) => { const b = bounds(c.tokens.map((t) => base.get(t)!)); return { x0: b[0], x1: b[2], set: new Set(c.tokens) }; }).sort((a, b) => a.x0 - b.x0);
+      const out: { x0: number; x1: number; set: Set<Token> }[] = [];
+      for (const r of rs) {
+        const last = out[out.length - 1];
+        if (last && r.x0 < last.x1 - 0.5) { last.x1 = Math.max(last.x1, r.x1); for (const t of r.set) last.set.add(t); } else out.push({ ...r, set: new Set(r.set) });
+      }
       return out;
+    });
+    const total = cols.reduce((a, cs) => a + cs.length * 2 * s, 0);
+    // past a column's left edge a point moves by s, past its right edge by s more; a token in a column moves with it
+    const pt = (x: number, c: { x0: number; x1: number }) => (x > c.x0 + 1e-6 ? s : 0) + (x >= c.x1 - 1e-6 ? s : 0);
+    // (a token outside every column moves as one with the smallest block that holds it and no card - the
+    // denominator under a numerator coming apart stays whole - else on its own)
+    const unit_mid = (t: Token): number => {
+      const inside = this.nodes.filter((nd) => nd.tokens.includes(t) && !cards.some((c) => nd.tokens.includes(c.tokens[0]) && c.tokens.every((x) => nd.tokens.includes(x)))).sort((a, b) => b.depth - a.depth)[0];
+      const r = bounds((inside ? inside.tokens : [t]).map((x) => base.get(x)!));
+      return (r[0] + r[2]) / 2;
     };
-    // sides and widths: the first layout whose rows fit
-    type Placed = { side: 1 | -1; lab: ReturnType<typeof wrap>; x: number; row: number }[];
-    let chosen: Placed | null = null as Placed | null;
-    for (const maxw of [260, 210, 160, 120]) {
-      for (const alt of [false, true]) {
-        let flex = 0;
-        const sides = items.map((it) => (it.lock !== 0 ? it.lock : alt && flex++ % 2 === 1 ? -1 : 1) as 1 | -1);
-        const labs = items.map((it) => wrap(it.nd, maxw));
-        const res: Placed = items.map((_, i) => ({ side: sides[i], lab: labs[i], x: 0, row: 0 }));
-        let ok = true;
-        for (const side of [1, -1] as const) {
-          const idx = items.map((_, i) => i).filter((i) => sides[i] === side);
-          const xs = pack(idx.map((i) => items[i].cx - labs[i].w / 2), idx.map((i) => labs[i].w));
-          if (!xs) { ok = false; break; }
-          idx.forEach((i, j) => (res[i].x = xs[j]));
-        }
-        if (ok) { chosen = res; break; }
+    const moved = (t: Token): Rect => {
+      const b = base.get(t)!, mid = unit_mid(t);
+      let d0 = -total / 2, d1 = -total / 2;
+      for (const cs of cols) for (const c of cs) {
+        if (c.set.has(t)) { d0 += s; d1 += s; }
+        else if (is_bar(t)) { d0 += pt(b[0], c); d1 += pt(b[2], c); }
+        else { const k = pt(mid, c); d0 += k; d1 += k; }
       }
-      if (chosen) break;
+      return [b[0] + d0, b[1], b[2] + d1, b[3]];
+    };
+    for (const t of this.line.tokens) P.box.set(t, moved(t));
+    const inner = levels[levels.length - 1];
+    for (const c of inner) {
+      const b = bounds(c.tokens.map((t) => base.get(t)!)), dy = b[3] < axis - px * 0.1 ? -v : b[1] > axis + px * 0.1 ? v : 0;
+      if (dy) for (const t of c.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + dy, r[2], r[3] + dy]); }
     }
-    if (!chosen) {
-      // too much for one row on each side: a further row for those that do not fit
-      chosen = items.map((it) => ({ side: (it.lock || 1) as 1 | -1, lab: wrap(it.nd, 120), x: 0, row: 0 }));
-      const rows: Record<string, { x0: number; x1: number }[]> = {};
-      chosen.forEach((c, i) => {
-        c.x = Math.max(left, Math.min(right - c.lab.w, items[i].cx - c.lab.w / 2));
-        while ((rows[`${c.side}:${c.row}`] ?? []).some((q) => c.x < q.x1 + sep && c.x + c.lab.w > q.x0 - sep)) c.row++;
-        (rows[`${c.side}:${c.row}`] ??= []).push({ x0: c.x, x1: c.x + c.lab.w });
-      });
-    }
-    const marks: Mark[] = [];
-    const ext = { above: 0, below: 0 };
-    for (const side of [1, -1] as const) {
-      const y = side === 1 ? bottom + gap : top - gap;
-      const mine = chosen.map((c, i) => ({ c, it: items[i] })).filter((x) => x.c.side === side);
-      // each brace just beyond the ink in its own column (a block high in an exponent keeps its brace near it)
-      const column = (e: { x0: number; x1: number }) => {
-        const ts = this.line.tokens.filter((t) => t.box[2] * k > e.x0 + 1 && t.box[0] * k < e.x1 - 1);
-        if (!ts.length) return y;
-        return side === 1 ? Math.max(...ts.map((t) => t.box[3] * k)) + gap : Math.min(...ts.map((t) => t.box[1] * k)) - gap;
-      };
-      const by = mine.map((x) => column(x.it.e));
-      // the words beyond the whole formula (they never sit on its ink), the braces near their own
-      const base = by.length ? (side === 1 ? Math.max(...by, y) : Math.min(...by, y)) + side * (bh + gap) : y;
-      const nrows = Math.max(0, ...mine.map((x) => x.c.row + 1));
-      const row_h = Array.from({ length: nrows }, (_, r) => Math.max(lineh, ...mine.filter((x) => x.c.row === r).map((x) => x.c.lab.h)));
-      let at = base;
-      const row_at: number[] = [];
-      for (let r = 0; r < nrows; r++) { row_at.push(side === 1 ? at : at - row_h[r]); at += side * (row_h[r] + rowgap); }
-      mine.forEach(({ c, it }, i) => marks.push({ node: it.nd, side, x0: it.e.x0, x1: it.e.x1, y: by[i], tip: by[i] + side * bh, label: { x: c.x, y: row_at[c.row], w: c.lab.w, h: c.lab.h, lines: c.lab.lines }, outer: false }));
-      let reach = mine.length ? Math.abs(at - y) : 0;
-      // the blocks this layer makes up, outward on the side the focus is drawn: the nearest first
-      const fside = F ? ((e) => (e.y1 < axis - px * 0.1 ? -1 : 1))(this.extent(F.tokens)) : 0;
-      if (F && fside === side) {
-        let o = y + side * Math.max(reach, gap) + (mine.length ? side * gap : 0);
-        for (let a: PartNode | null = F; a; a = a.parent) {
-          const e = this.extent(a.tokens), lab = wrap(a, Math.max(160, Math.min(320, w - 16)));
-          const ls = break_lines(this.words(a), f, Math.max(160, Math.min(320, w - 16)));
-          const lw = Math.max(...ls.map((l) => l.width)), lh = ls.length * lineh, cx = (e.x0 + e.x1) / 2;
-          const lx = Math.max(left, Math.min(right - lw, cx - lw / 2));
-          const ly = side === 1 ? o + bh + gap : o - bh - gap - lh;
-          marks.push({ node: a, side, x0: e.x0, x1: e.x1, y: o, tip: o + side * bh, label: { x: lx, y: ly, w: lw, h: lh, lines: ls.map((l) => l.spans.map((s) => s.s).join('')) }, outer: true });
-          void lab;
-          o += side * (bh + gap + lh + rowgap);
-        }
-        reach = Math.abs(o - y);
+    for (const c of cards) P.rect.set(c, c === F ? pad(ink(c), cpx * 2, cpy * 2) : pad(ink(c), cpx, cpy));
+    for (const c of cards) P.z.set(c, 0);
+    for (const t of this.line.tokens) P.tz.set(t, 0);
+    return P;
+  }
+  /** A block's card in a pose: its own, or where its ink is. */
+  private rect_in(P: Pose, nd: PartNode, px: number): Rect {
+    return P.rect.get(nd) ?? pad(bounds(nd.tokens.map((t) => P.box.get(t)!)), px * 0.16, px * 0.14);
+  }
+  /** Its height in a pose: its card's, else the card it lies on (else the paper). */
+  private z_in(P: Pose, nd: PartNode): number {
+    for (let a: PartNode | null = nd; a; a = a.parent) if (P.z.has(a)) return P.z.get(a)!;
+    return 0;
+  }
+  private rest_in(P: Pose, nd: PartNode): number {
+    if (!P.cards.includes(nd)) return this.z_in(P, nd);
+    const u = P.under.get(nd);
+    return u ? P.z.get(u)! : 0;
+  }
+
+  // ---------------------------------------------------------------- the stage
+  /** Solve the stage for a width: the size of the formula, every layer apart, room for the words, the words placed. */
+  private solve(w: number, lang: Lang): Solved {
+    if (this.S && this.S.w === w && this.S.lang === lang) return this.S;
+    const V = this.line.view, k1 = tex_scale(1);
+    let px = this.size ?? Math.max(look().type.label.size, Math.min(look().type.display.size * 1.15, (w - 24) / (V[2] * k1)));
+    let S!: Solved, tb: Rect = [0, 0, 0, 0];
+    for (let tries = 0; tries < 6; tries++) {
+      const k = tex_scale(px), c: XY = [(V[0] + V[2] / 2) * k, (V[1] + V[3] / 2) * k];
+      const base = new Map<Token, Rect>(this.line.tokens.map((t) => [t, [t.box[0] * k - c[0], t.box[1] * k - c[1], t.box[2] * k - c[0], t.box[3] * k - c[1]]]));
+      const A = this.line.anchor >= 0 ? base.get(this.line.tokens[this.line.anchor])! : null, axis = A ? (A[1] + A[3]) / 2 : 0;
+      S = { w, lang, px, k, c, H: 0, o0: [0, 0], o1: [0, 0], band: 0, base, poses: [], words: new Map(), labels: [], missing: 0 };
+      this.S = S;
+      for (let n = 0; n <= this.opens.length; n++) S.poses.push(this.pose(n, px, base, axis));
+      // what every layer draws apart, around the camera's origin
+      const all: Rect[] = [];
+      for (let n = 0; n < S.poses.length; n++) {
+        const sc = this.scene(S, 1, n, n, 1, [0, 0]);
+        for (const o of this.keep_clear(S, sc)) all.push(poly_bounds(o.poly));
       }
-      if (side === 1) ext.below = gap + reach;
-      else ext.above = gap + reach;
+      tb = bounds(all);
+      if (tb[2] - tb[0] <= w - 28 || this.size) break;
+      px *= Math.max(0.7, (w - 28) / (tb[2] - tb[0]) * 0.98);
     }
-    return { marks, above: ext.above, below: ext.below };
+    for (const nd of this.nodes) S.words.set(nd, this.words(nd, lang));
+    // together, the formula at the top of the stage; apart, what is drawn in its middle with the words around it
+    const fh = this.line.view[3] * S.k, top = Math.max(6, S.px * 0.3);
+    S.o0 = [w / 2, top + fh / 2];
+    S.band = top + fh + S.px * 0.36;
+    const lh = Math.max(40, ...[...S.words.values()].map((x) => x.h));
+    let H = Math.max(S.band, Math.ceil(tb[3] - tb[1] + 2 * (lh + 26)));
+    const tcx = (tb[0] + tb[2]) / 2, tcy = (tb[1] + tb[3]) / 2, room = Math.max(0, (w - (tb[2] - tb[0])) / 2 - 12);
+    let best: { labels: Map<PartNode, Label>[]; o1: XY; H: number; missing: number } | null = null;
+    search: for (let tries = 0; tries < 4; tries++, H += 48) {
+      for (const dx of [0, -0.33, 0.33, -0.66, 0.66, -1, 1]) {
+        const o1: XY = [w / 2 - tcx + dx * room, H / 2 - tcy];
+        S.H = H;
+        const labels = S.poses.map((_, n) => this.place(S, n, o1, H));
+        const missing = labels.reduce((a, l, n) => a + S.poses[n].says.length - l.size, 0);
+        if (!best || missing < best.missing) best = { labels, o1, H, missing };
+        if (!missing) break search;
+      }
+    }
+    S.labels = best!.labels;
+    S.o1 = best!.o1;
+    S.H = best!.H;
+    // the stage as tall as what is drawn apart, words included, and no taller (the page opens only that much)
+    let y0 = Infinity, y1 = -Infinity;
+    for (let n = 0; n < S.poses.length; n++) {
+      for (const e of LEADER_E) for (const o of this.keep_clear(S, this.scene(S, e, n, n, 1))) { y0 = Math.min(y0, o.bb[1]); y1 = Math.max(y1, o.bb[3]); }
+      for (const lb of S.labels[n].values()) { y0 = Math.min(y0, lb.y); y1 = Math.max(y1, lb.y + lb.h); }
+    }
+    const dy = Math.max(0, Math.floor(y0 - 12));
+    if (dy > 0) {
+      S.o1 = [S.o1[0], S.o1[1] - dy];
+      for (const m of S.labels) for (const lb of m.values()) { lb.y -= dy; lb.at = [lb.at[0], lb.at[1] - dy]; }
+    }
+    S.H = Math.ceil(Math.max(S.band, y1 - dy + 12));
+    S.missing = best!.missing;
+    return S;
   }
-  /** The most room any layer needs above and below the formula (px), for a slot w wide. */
-  private room(w: number): { above: number; below: number } {
-    let above = 0, below = 0;
-    for (let n = 0; n <= this.opens.length; n++) { const p = this.plan(n, w); above = Math.max(above, p.above); below = Math.max(below, p.below); }
-    return { above: above + this.px() * 0.1, below: below + this.px() * 0.1 };
-  }
-  measure(w: number, _env: LayoutEnv): Size {
-    const k1 = tex_scale(1), W = this.line.view[2];
-    this.px_fit = Math.max(look().type.label.size, Math.min(look().type.display.size * 1.15, (w - 16) / (W * k1)));
-    const r = this.room(w), h = r.above + this.line.view[3] * tex_scale(this.px()) + r.below + this.px() * 0.2;
-    return { h, min: h };
+  measure(w: number, env: LayoutEnv): Size {
+    const S = this.solve(w, env.lang);
+    return { h: S.H, min: S.H };
   }
   arrange(b: Box, env: LayoutEnv): void {
     this.lang = env.lang;
-    const s = this.measure(b.w, env), k = tex_scale(this.px()), w = this.line.view[2] * k, r = this.room(b.w);
-    this.box = { x: b.x, y: b.y, w: b.w, h: s.h };
-    this.x0 = b.x + (b.w - w) / 2 - this.line.view[0] * k;
-    this.y0 = b.y + r.above + this.px() * 0.1 - this.line.view[1] * k;
+    const S = this.solve(b.w, env.lang);
+    this.box = { x: b.x, y: b.y, w: b.w, h: S.H };
   }
-  private x0 = 0;
-  private y0 = 0;
-  /**
-   * The bands of the figure (px from its top): the room for marks above the formula, the formula, the room below. A
-   * page shows only the formula while it is whole, and opens the rooms as it is read.
-   */
+  /** The bands of the figure (px from its top): a page shows only the formula while it is together. */
   bands(): { top: number; bottom: number } {
-    const k = tex_scale(this.px()), V = this.line.view;
-    return { top: Math.max(0, this.y0 + V[1] * k - this.px() * 0.12 - this.box.y), bottom: Math.max(0, this.y0 + (V[1] + V[3]) * k + this.px() * 0.16 - this.box.y) };
+    return { top: 0, bottom: this.box.y + (this.S?.band ?? this.box.h) };
   }
-  /** Kept for pages that open only the room above (the old exploded formula). */
-  room_end(): number {
-    return this.bands().top;
+
+  // ---------------------------------------------------------------- a moment
+  /** The scene at `e` apart, `u` of the way from layer a to layer b, with the camera's origin apart at o1. */
+  private scene(S: Solved, e: number, a: number, b: number, u: number, o1 = S.o1): Scene {
+    e = clamp01(e);
+    const oc = smooth(Math.min(1, e * 1.15)), lift = smooth((e - 0.08) / 0.92), uu = smooth(u), house = this.view === 'house';
+    const K = cam(house ? oc : 0), o: XY = [mix(S.o0[0], o1[0], oc), mix(S.o0[1], o1[1], oc)];
+    const A = S.poses[a] ?? S.poses[0], B = S.poses[b] ?? S.poses[0];
+    const tok: Scene['tok'] = new Map();
+    for (const t of this.line.tokens) {
+      const box = mix_rect(S.base.get(t)!, mix_rect(A.box.get(t)!, B.box.get(t)!, uu), lift);
+      tok.set(t, { box, z: mix(A.tz.get(t)!, B.tz.get(t)!, uu) * lift, a: 1 - (1 - mix(A.dim.get(t)!, B.dim.get(t)!, uu)) * lift, on: null });
+    }
+    const cards: Card[] = [...new Set([...A.cards, ...B.cards])].map((nd) => {
+      const closed = pad(bounds(nd.tokens.map((t) => S.base.get(t)!)), S.px * 0.16, S.px * 0.14);
+      const rect = mix_rect(closed, mix_rect(this.rect_in(A, nd, S.px), this.rect_in(B, nd, S.px), uu), lift);
+      const z = mix(this.z_in(A, nd), this.z_in(B, nd), uu) * lift, rest = mix(this.rest_in(A, nd), this.rest_in(B, nd), uu) * lift;
+      const ina = A.cards.includes(nd), inb = B.cards.includes(nd), here = ina && inb ? 1 : ina ? 1 - uu : uu;
+      // a card shows as it rises off what it rests on (in the plane: as it comes apart)
+      const alpha = house ? clamp01((z - rest) / (S.px * 0.25)) : here * smooth((lift - 0.1) / 0.5);
+      return { node: nd, rect, z, rest, alpha, under: (inb ? B.under.get(nd) : A.under.get(nd)) ?? null, face: quad(K, o, rect, z) };
+    }).sort((p, q) => p.z - q.z || p.node.depth - q.node.depth);
+    for (const c of cards) for (const t of c.node.tokens) { const r = tok.get(t)!; if (!r.on || r.on.depth < c.node.depth) r.on = c.node; }
+    return { K, o, lift, cards, tok };
   }
+  /** The scene now. */
+  private now(): Scene | null {
+    const S = this.S;
+    if (!S) return null;
+    return this.scene(S, read(this.open), Math.round(read(this.from)), Math.round(read(this.layer)), read(this.fade));
+  }
+  /** What a word or a leader must keep clear of: cards (with their edges), sockets, every glyph. */
+  private keep_clear(S: Solved, sc: Scene): { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean }[] {
+    const out: { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean }[] = [];
+    const add = (node: PartNode | null, poly: XY[], o: { glyph?: boolean; socket?: boolean } = {}) => out.push({ node, poly, bb: poly_bounds(poly), ...o });
+    for (const c of sc.cards) {
+      if (c.alpha < 0.05) continue;
+      add(c.node, this.card_poly(S, sc, c));
+      if (this.view === 'house' && c.z - c.rest > 1) add(c.node, grow_poly(quad(sc.K, sc.o, c.rect, c.rest), 4), { socket: true });
+    }
+    for (const r of sc.tok.values()) add(r.on, quad(sc.K, sc.o, r.box, r.z), { glyph: true });
+    return out;
+  }
+  /** A card's outline on screen, its edge (or the sheet under it) included. */
+  private card_poly(S: Solved, sc: Scene, c: Card): XY[] {
+    const two = c.node.children.length > 0;
+    if (this.view === 'house') return hull([...c.face, ...shift(c.face, 0, S.px * 0.07 * sc.K.hz * (two ? 2 : 1))]);
+    return two ? hull([...c.face, ...shift(c.face, 3, 3)]) : c.face;
+  }
+
+  // ---------------------------------------------------------------- the words: places all round, kept off every card,
+  // glyph and each other; leaders straight, never crossing. Depth-first over the blocks, nearest places first.
+  private place(S: Solved, n: number, o1: XY, H: number): Map<PartNode, Label> {
+    const P = S.poses[n], W = S.w, house = this.view === 'house';
+    const SC = LEADER_E.map((e) => this.scene(S, e, n, n, 1, o1)), OB = SC.map((sc) => this.keep_clear(S, sc));
+    const face = (sc: Scene, nd: PartNode) => sc.cards.find((c) => c.node === nd)?.face ?? null;
+    // (a leader leaves its own card, and the cards it lies on: never another card, never a glyph)
+    const holds = (a: PartNode | null, nd: PartNode) => { for (let x: PartNode | null = nd; x; x = x.parent) if (x === a) return true; return false; };
+    type Cand = { node: PartNode; x: number; y: number; w: number; h: number; at: XY; anchors: XY[]; box: XY[]; bb: Rect; cost: number };
+    const M = 12, cand = new Map<PartNode, Cand[]>();
+    for (const nd of P.says) {
+      const wd = S.words.get(nd)!, w = wd.w, h = wd.h, f = face(SC[SC.length - 1], nd);
+      if (!f) continue;
+      const cxc = f.reduce((s, v) => s + v[0], 0) / 4, cyc = f.reduce((s, v) => s + v[1], 0) / 4;
+      const list: Cand[] = [];
+      for (let x = M; x + w <= W - M; x += 8) for (let y = M; y + h <= H - M; y += 6) {
+        const bb: Rect = [x - 6, y - 6, x + w + 6, y + h + 6], box = rect_poly(x, y, w, h, 6);
+        if (OB.some((ob) => ob.some((o) => meet(bb, o.bb) && poly_cross(box, o.poly)))) continue;
+        // attach to the side of the words facing the card: the end of their first line, or their top or bottom
+        const side = x > cxc ? 'l' : x + w < cxc ? 'r' : y > cyc ? 't' : 'b';
+        const mid = house ? Math.min(w / 2, 24) : w / 2;
+        const at: XY = side === 'l' ? [x - 4, y + 10] : side === 'r' ? [x + w + 4, y + 10] : side === 't' ? [x + mid, y - 4] : [x + mid, y + h + 3];
+        const anchors = SC.map((sc) => nearest_on(face(sc, nd) ?? f, at)), an = anchors[anchors.length - 1];
+        const len = Math.hypot(at[0] - an[0], at[1] - an[1]);
+        if (len < 16 || len > 260) continue;
+        let clear = true;
+        for (let k = 0; k < SC.length && clear; k++) {
+          const a = anchors[k], a2: XY = [a[0] + (at[0] - a[0]) * 0.02, a[1] + (at[1] - a[1]) * 0.02];
+          const sb: Rect = [Math.min(a2[0], at[0]), Math.min(a2[1], at[1]), Math.max(a2[0], at[0]), Math.max(a2[1], at[1])];
+          if (OB[k].some((o) => !o.socket && (o.glyph || !holds(o.node, nd)) && meet(sb, o.bb) && seg_poly(a2, at, o.poly))) clear = false;
+        }
+        if (!clear) continue;
+        // short leaders read best: in the house view level or gently sloped, in the plane straight up or down
+        const dx = Math.abs(at[0] - an[0]), dy = Math.abs(at[1] - an[1]);
+        const bend = house ? 40 * Math.min(dy / (dx + 1), 3) + (side === 't' || side === 'b' ? 30 : 0) : 40 * Math.min(dx / (dy + 1), 3) + (side === 'l' || side === 'r' ? 30 : 0);
+        list.push({ node: nd, x, y, w, h, at, anchors, box: rect_poly(x, y, w, h, 8), bb: [x - 8, y - 8, x + w + 8, y + h + 8], cost: len + bend });
+      }
+      list.sort((a, b) => a.cost - b.cost);
+      // variety: the best place in each small region, so the search can move a label far away
+      const seen = new Set<string>();
+      cand.set(nd, list.filter((c) => { const key = `${Math.floor(c.x / 36)},${Math.floor(c.y / 28)}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, 220));
+    }
+    const order = P.says.filter((nd) => cand.get(nd)?.length).sort((a, b) => cand.get(a)!.length - cand.get(b)!.length);
+    const ok = (c: Cand, chosen: Cand[]) => chosen.every((d) => !(meet(c.bb, d.bb) && poly_cross(c.box, d.box)) && c.anchors.every((a, k) => !seg_cross(a, c.at, d.anchors[k], d.at) && !seg_poly(a, c.at, d.box) && !seg_poly(d.anchors[k], d.at, c.box)));
+    let best: Cand[] | null = null, best_cost = Infinity, nodes = 0;
+    (function dfs(i: number, chosen: Cand[], cost: number) {
+      if (cost >= best_cost || nodes++ > 40000) return;
+      if (i === order.length) { best = chosen.slice(); best_cost = cost; return; }
+      for (const c of cand.get(order[i])!) {
+        if (cost + c.cost >= best_cost) break;
+        if (ok(c, chosen)) { chosen.push(c); dfs(i + 1, chosen, cost + c.cost); chosen.pop(); }
+      }
+    })(0, [], 0);
+    // (no way for all of them: as many as fit, nearest first)
+    if (!best) { const got: Cand[] = []; for (const nd of order) { const c = cand.get(nd)!.find((x) => ok(x, got)); if (c) got.push(c); } best = got; }
+    const placed: Cand[] = best;
+    return new Map(placed.map((c) => [c.node, { node: c.node, x: c.x, y: c.y, w: c.w, h: c.h, at: c.at, quiet: c.node === P.focus }]));
+  }
+
+  // ---------------------------------------------------------------- reading it
   things(): Thing[] {
     return [this];
   }
@@ -366,204 +564,346 @@ export class Parts extends Thing implements Block {
     return `${this.tex}\n${walk(this.roots, 0)}`;
   }
   override parts_of = (lang: Lang) => {
-    const k = tex_scale(this.px()), V = this.line.view;
-    const out: { text: string; tex?: boolean; box: Box }[] = [{ text: this.tex, tex: true, box: { x: this.x0 + V[0] * k, y: this.y0 + V[1] * k, w: V[2] * k, h: V[3] * k } }];
-    // the layer shown (the outermost while the formula is whole): each block with what it means, where it is
+    const S = this.S, k = S?.k ?? tex_scale(30), V = this.line.view;
+    const ox = this.box.x + (S?.o0[0] ?? 0), oy = this.box.y + (S?.o0[1] ?? 0);
+    const at = (r: Rect): Box => ({ x: ox + r[0], y: oy + r[1], w: r[2] - r[0], h: r[3] - r[1] });
+    const out: { text: string; tex?: boolean; box: Box }[] = [{ text: this.tex, tex: true, box: at([-(V[2] * k) / 2, -(V[3] * k) / 2, (V[2] * k) / 2, (V[3] * k) / 2]) }];
+    // the layer shown (the outermost while together): each block with what it means, where it is in the formula
     const n = read(this.open) > 0.5 ? Math.round(read(this.layer)) : 0, F = this.focus_of(n);
-    for (const nd of F ? F.children : this.roots) {
-      const e = this.extent(nd.tokens);
-      out.push({ text: `${nd.part.tex}: ${tr(nd.part.says, lang)}`, box: { x: this.x0 + e.x0, y: this.y0 + e.y0, w: e.x1 - e.x0, h: e.y1 - e.y0 } });
-    }
+    for (const nd of F ? F.children : this.roots) out.push({ text: `${nd.part.tex}: ${tr(nd.part.says, lang)}`, box: S ? at(bounds(nd.tokens.map((t) => S.base.get(t)!))) : this.box });
     return out;
   };
   /**
-   * What a tap at p (px) does: whole → the outer layer; on a block that has an inside → that inside; on the block
-   * whose inside is shown, or beside the formula → one layer out (whole, from the outermost). Null: nothing.
+   * What a tap at p (px) does: together → apart, the outer layer; on a card that holds more → its inside; on the
+   * card whose inside is shown, or on the paper → one layer out (together, from the outermost). Null: nothing.
    */
   tap(p: XY): { open: number; layer: number } | null {
     const n = Math.round(read(this.layer)), F = this.focus_of(n);
     if (read(this.open) < 0.5) return { open: 1, layer: 0 };
     const hit = this.block_at(p);
-    if (hit && hit !== F && hit.children.length) return { open: 1, layer: this.opens.indexOf(hit) + 1 };
+    if (hit && hit !== F && hit.children.length) return { open: 1, layer: this.layer_inside(hit) };
     if (hit && hit !== F) return null;
-    if (F) return { open: 1, layer: F.parent ? this.opens.indexOf(F.parent) + 1 : 0 };
+    if (F) return { open: 1, layer: this.layer_of(F) };
     return { open: 0, layer: 0 };
   }
-  /** The middle of a block's ink (px, in the figure): where a tap on it lands, where a pointer points. */
-  middle(n: PartNode): XY {
-    const e = this.extent(n.tokens);
-    return [this.x0 + (e.x0 + e.x1) / 2, this.y0 + (e.y0 + e.y1) / 2];
+  /** The middle of a block's card now (px, in the figure): where a tap on it lands. */
+  middle(nd: PartNode): XY {
+    const sc = this.now(), c = sc?.cards.find((x) => x.node === nd);
+    if (!sc || !c) return [this.box.x, this.box.y];
+    return [this.box.x + c.face.reduce((s, v) => s + v[0], 0) / 4, this.box.y + c.face.reduce((s, v) => s + v[1], 0) / 4];
   }
-  /** The block of the shown layer (or one the layer makes up) at p (px): its ink, or its words. */
+  /** The block whose card (or words) is at p (px, in the figure), the card in front first. */
   block_at(p: XY): PartNode | null {
-    const n = Math.round(read(this.layer)), plan = this.plan(n);
-    const near = (x0: number, y0: number, x1: number, y1: number, pad = 4) => p[0] >= x0 - pad && p[0] <= x1 + pad && p[1] >= y0 - pad && p[1] <= y1 + pad;
-    for (const m of plan.marks) {
-      const e = this.extent(m.node.tokens);
-      if (!m.outer && near(this.x0 + e.x0, this.y0 + e.y0, this.x0 + e.x1, this.y0 + e.y1)) return m.node;
-      if (near(this.x0 + m.label.x, this.y0 + m.label.y, this.x0 + m.label.x + m.label.w, this.y0 + m.label.y + m.label.h)) return m.node;
-    }
-    for (const m of plan.marks) if (m.outer) { const e = this.extent(m.node.tokens); if (near(this.x0 + e.x0, this.y0 + e.y0, this.x0 + e.x1, this.y0 + e.y1)) return m.node; }
+    const S = this.S, sc = this.now();
+    if (!S || !sc || read(this.open) < 0.5) return null;
+    const q: XY = [p[0] - this.box.x, p[1] - this.box.y], n = Math.round(read(this.layer));
+    for (const lb of S.labels[n]?.values() ?? []) if (q[0] >= lb.x - 4 && q[0] <= lb.x + lb.w + 4 && q[1] >= lb.y - 4 && q[1] <= lb.y + lb.h + 4) return lb.node;
+    for (const c of [...sc.cards].reverse()) if (c.alpha > 0.5 && in_convex(q, this.card_poly(S, sc, c))) return c.node;
     return null;
   }
+  /** Every leader at `e` apart in layer n (px, in the figure): for the checks. */
+  leaders(e: number, n: number): { node: PartNode; a: XY; b: XY }[] {
+    const S = this.S;
+    if (!S) return [];
+    const sc = this.scene(S, e, n, n, 1);
+    return [...(S.labels[n]?.values() ?? [])].flatMap((lb) => { const c = sc.cards.find((x) => x.node === lb.node); return c ? [{ node: lb.node, a: nearest_on(c.face, lb.at), b: lb.at }] : []; });
+  }
+  /** Glyphs at `e` apart in layer n, as screen polygons (px, in the figure), with the label boxes: for the checks. */
+  ink_at(e: number, n: number): { glyphs: XY[][]; labels: Box[] } {
+    const S = this.S;
+    if (!S) return { glyphs: [], labels: [] };
+    const sc = this.scene(S, e, n, n, 1);
+    return { glyphs: [...sc.tok.values()].map((r) => quad(sc.K, sc.o, r.box, r.z)), labels: [...(S.labels[n]?.values() ?? [])].map((l) => ({ x: l.x, y: l.y, w: l.w, h: l.h })) };
+  }
+  /** Where a token is drawn at `e` apart in layer n (its TeX origin, px in the figure): together, where it was typeset. */
+  origin_of(t: Token, e: number, n = 0): XY {
+    const S = this.S!, sc = this.scene(S, e, n, n, 1), r = sc.tok.get(t)!;
+    const p = proj(sc.K, sc.o, r.box[0] - t.box[0] * S.k, r.box[1] - t.box[1] * S.k, r.z);
+    return [this.box.x + p[0], this.box.y + p[1]];
+  }
+  /** Where the formula was typeset (its TeX origin, px in the figure). */
+  typeset_at(): XY {
+    const S = this.S!;
+    return [this.box.x + S.o0[0] - S.c[0], this.box.y + S.o0[1] - S.c[1]];
+  }
+
+  // ---------------------------------------------------------------- drawing
   private path(g: TexGlyph): Path2D {
     let p = this.paths.get(g);
     if (!p) { p = new (globalThis as { Path2D: typeof Path2D }).Path2D(g.d ?? ''); this.paths.set(g, p); }
     return p;
   }
-  private glyphs(g: CanvasRenderingContext2D, ts: Token[], color: string, alpha: number): void {
-    if (alpha < 0.003 || !ts.length) return;
-    const k = tex_scale(this.px());
+  /** A token where the scene has it: the camera's plane, lifted z, moved to its box (a bar stretched to it). */
+  private token(g: CanvasRenderingContext2D, S: Solved, sc: Scene, t: Token): void {
+    const r = sc.tok.get(t)!, k = S.k;
+    if (r.a < 0.003) return;
+    const K = sc.K, b = S.base.get(t)!;
     g.save();
-    g.globalAlpha *= alpha;
-    g.translate(this.x0, this.y0);
+    g.globalAlpha *= r.a;
+    g.translate(sc.o[0], sc.o[1] - K.hz * r.z);
+    g.transform(K.a, K.b, K.c, K.d, 0, 0);
+    g.fillStyle = this.ink_of(t);
+    if (is_bar(t) && Math.abs(r.box[2] - r.box[0] - (b[2] - b[0])) > 0.01) {
+      // (a bar that spans blocks moving apart stretches with them)
+      for (const gl of t.glyphs) {
+        const R = gl.rect!, sx = (r.box[2] - r.box[0]) / Math.max(1e-6, b[2] - b[0]);
+        const x0 = r.box[0] + (R[0] * k - S.c[0] - b[0]) * sx, y0 = r.box[1] + (R[1] * k - S.c[1] - b[1]);
+        g.fillRect(x0, y0, R[2] * k * sx, R[3] * k);
+      }
+      g.restore();
+      return;
+    }
+    g.translate(r.box[0] - t.box[0] * k, r.box[1] - t.box[1] * k);
     g.scale(k, k);
-    for (const t of ts) for (const gl of t.glyphs) {
-      g.fillStyle = gl.fill ?? color;
+    for (const gl of t.glyphs) {
+      if (gl.fill) g.fillStyle = gl.fill;
       if (gl.text) { g.font = `${gl.font_size}px ${look().fonts.serif}`; g.fillText(gl.text, gl.at![0], gl.at![1]); }
       else if (gl.rect) g.fillRect(gl.rect[0], gl.rect[1], gl.rect[2], gl.rect[3]);
       else g.fill(this.path(gl));
     }
     g.restore();
   }
-  /** A curly brace from x0 to x1, its ends at y and its tip `dir` (1 down, −1 up) bh further; grown from its middle by `s`. */
-  private brace(g: CanvasRenderingContext2D, x0: number, x1: number, y: number, bh: number, dir: 1 | -1, s: number): void {
-    const m = (x0 + x1) / 2, h0 = (m - x0) * s, a = m - h0, b = m + h0, q = Math.min(bh * 0.9, h0 / 2), y1 = y + dir * bh / 2, y2 = y + dir * bh;
-    g.beginPath();
-    g.moveTo(a, y);
-    g.quadraticCurveTo(a, y1, a + q, y1);
-    g.lineTo(m - q, y1);
-    g.quadraticCurveTo(m, y1, m, y2);
-    g.quadraticCurveTo(m, y1, m + q, y1);
-    g.lineTo(b - q, y1);
-    g.quadraticCurveTo(b, y1, b, y);
-    g.stroke();
-  }
-  draw(env: DrawEnv): void {
-    const g = env.g as CanvasRenderingContext2D, open = Math.max(0, Math.min(1, read(this.open))), o = open * open * (3 - 2 * open);
-    const fade = Math.max(0, Math.min(1, read(this.fade))), fe = fade * fade * (3 - 2 * fade);
-    const n = Math.round(read(this.layer)), F = this.focus_of(n), shown = F ? F.children : this.roots;
-    const ink = this.text_color;
-    // the formula: the shown blocks in their colours; the rest of the block they make up in ink; the rest stepping back
-    const lit = new Map<Token, string>();
-    for (const nd of shown) for (const t of nd.tokens) lit.set(t, nd.color);
-    const inner = new Set(F ? F.tokens : this.line.tokens);
-    const back = 1 - 0.66 * o * (F ? 1 : 0);
-    const groups = new Map<string, { ts: Token[]; a: number }>();
-    for (const t of this.line.tokens) {
-      const c = lit.get(t), color = c && o > 0.01 ? mix(ink, c, o * fe) : ink, a = inner.has(t) ? 1 : back;
-      const key = `${color}|${a}`;
-      (groups.get(key) ?? groups.set(key, { ts: [], a }).get(key)!).ts.push(t);
+  // shadows: drawn once per card size and blur (never computed while it moves), then laid on the paper as it is seen
+  private shadows = new Map<string, CanvasImageSource>();
+  private shadow_sprite(w: number, h: number, blur: number): { img: CanvasImageSource; m: number } {
+    const m = Math.ceil(blur * 2 + 2), key = `${Math.round(w)}x${Math.round(h)}|${blur}`;
+    let img = this.shadows.get(key);
+    if (!img) {
+      const s = 2, c = make_canvas((Math.round(w) + 2 * m) * s, (Math.round(h) + 2 * m) * s), g = c.getContext('2d') as unknown as CanvasRenderingContext2D;
+      g.scale(s, s);
+      // (the shadow of a box drawn far to the left, cast back into the sprite: a blur every canvas has)
+      g.shadowColor = 'rgba(26,27,31,1)';
+      g.shadowBlur = blur * 2 * s;
+      g.shadowOffsetX = 10000 * s;
+      g.fillStyle = '#000';
+      g.fillRect(m - 10000, m, Math.round(w), Math.round(h));
+      img = c as unknown as CanvasImageSource;
+      if (this.shadows.size > 64) this.shadows.clear();
+      this.shadows.set(key, img);
     }
-    for (const [key, gr] of groups) this.glyphs(g, gr.ts, key.split('|')[0], gr.a);
-    // whole: a dotted line under each outer block (something is folded here)
-    const px = this.px(), bh = px * 0.3;
-    if (o < 0.999) {
+    return { img, m };
+  }
+  private shadow(g: CanvasRenderingContext2D, S: Solved, sc: Scene, c: Card): void {
+    const K = sc.K, r = c.rect, w = r[2] - r[0], h = r[3] - r[1];
+    if (this.view === 'house') {
+      const dz = c.z - c.rest;
+      if (dz < 0.5) return;
+      // straight under the card: sharper when low, softer as it rises; and the socket it returns to
+      const t = Math.min(1, dz / (S.px * 2.5)), a = Math.max(0, 0.04 + 0.05 * Math.min(1, dz / (S.px * 0.6)) - 0.03 * t);
       g.save();
-      g.globalAlpha *= 1 - o;
-      g.fillStyle = 'rgba(98,102,109,0.8)';
-      const k = tex_scale(px), base = this.y0 + (this.line.view[1] + this.line.view[3]) * k + px * 0.08;
-      for (const nd of this.roots) {
-        const e = this.extent(nd.tokens);
-        for (let x = this.x0 + e.x0 + 1; x < this.x0 + e.x1 - 1; x += 5) { g.beginPath(); g.arc(x, base, 0.95, 0, Math.PI * 2); g.fill(); }
+      g.translate(sc.o[0], sc.o[1] - K.hz * c.rest);
+      g.transform(K.a, K.b, K.c, K.d, 0, 0);
+      for (const [blur, wt] of [[1, 1 - t], [8, t]] as const) {
+        if (wt < 0.01) continue;
+        const s = this.shadow_sprite(w, h, blur);
+        g.globalAlpha = a * wt * 1.6;
+        g.drawImage(s.img, r[0] - s.m, r[1] - s.m, w + 2 * s.m, h + 2 * s.m);
       }
       g.restore();
-    }
-    if (o < 0.01) return;
-    const f = this.label_font(), lineh = f.size * look().type.caption.line;
-    for (const m of this.plan(n).marks) {
-      const a = o * (m.outer ? 0.62 : fe), grow = m.outer ? 1 : fe;
-      if (a < 0.01) continue;
       g.save();
-      g.globalAlpha *= a;
-      g.strokeStyle = m.node.color;
-      g.lineWidth = Math.max(1.2, px * 0.045);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      this.brace(g, this.x0 + m.x0, this.x0 + m.x1, this.y0 + m.y, bh, m.side, grow);
-      // a leader from the tip to its words: straight down when they are beyond it; else down to the gap above the
-      // row of words, along it, and into them (so it passes no other words)
-      const tipx = this.x0 + (m.x0 + m.x1) / 2, tipy = this.y0 + m.tip + m.side * 2;
-      const lx0 = this.x0 + m.label.x, edge = this.y0 + (m.side === 1 ? m.label.y : m.label.y + m.label.h) - m.side * 3;
-      const ax = Math.max(lx0 + 6, Math.min(lx0 + m.label.w - 6, tipx));
-      if (Math.abs(edge - tipy) > px * 0.3 || Math.abs(ax - tipx) > 1) {
-        g.lineWidth = 0.9;
+      g.strokeStyle = GR(0.22 * Math.min(1, dz / (S.px * 0.5)));
+      g.lineWidth = 0.75;
+      g.setLineDash([3, 3]);
+      poly(g, quad(K, sc.o, r, c.rest));
+      g.stroke();
+      g.restore();
+      return;
+    }
+    if (c.alpha < 0.01) return;
+    const s = this.shadow_sprite(w, h, 5);
+    g.save();
+    g.globalAlpha = 0.11 * c.alpha;
+    g.translate(sc.o[0], sc.o[1] + 2);
+    g.drawImage(s.img, r[0] - s.m, r[1] - s.m, w + 2 * s.m, h + 2 * s.m);
+    g.restore();
+  }
+  private card(g: CanvasRenderingContext2D, S: Solved, sc: Scene, c: Card): void {
+    const a = c.alpha;
+    if (a < 0.001) return;
+    const two = c.node.children.length > 0;
+    g.save();
+    if (this.view === 'house') {
+      // its edge (two sheets for a card that holds more), then its face
+      const T = S.px * 0.07 * sc.K.hz, edge = hull([...c.face, ...shift(c.face, 0, T * (two ? 2 : 1))]);
+      g.fillStyle = `rgba(226,222,214,${a})`;
+      poly(g, edge);
+      g.fill();
+      g.strokeStyle = GR(0.16 * a);
+      g.lineWidth = 0.75;
+      g.stroke();
+      if (two) { g.strokeStyle = GR(0.12 * a); poly(g, hull([...c.face, ...shift(c.face, 0, T)])); g.stroke(); }
+      g.fillStyle = `rgba(255,255,255,${a})`;
+      poly(g, c.face);
+      g.fill();
+    } else {
+      const [x0, y0, x1, y1] = poly_bounds(c.face), rr = Math.min(6, S.px * 0.14);
+      if (two) {
+        g.fillStyle = `rgba(255,255,255,${a})`;
+        g.strokeStyle = GR(0.14 * a);
+        g.lineWidth = 0.75;
         g.beginPath();
-        g.moveTo(tipx, tipy);
-        if (Math.abs(ax - tipx) <= 1) g.lineTo(tipx, edge);
-        else {
-          const ym = edge - m.side * Math.min(px * 0.22, Math.abs(edge - tipy) / 2), r = Math.min(4, Math.abs(ax - tipx) / 2), dx = Math.sign(ax - tipx);
-          g.lineTo(tipx, ym - m.side * r);
-          g.quadraticCurveTo(tipx, ym, tipx + dx * r, ym);
-          g.lineTo(ax - dx * r, ym);
-          g.quadraticCurveTo(ax, ym, ax, ym + m.side * r);
-          g.lineTo(ax, edge);
-        }
+        g.roundRect(x0 + 3, y0 + 3, x1 - x0, y1 - y0, rr);
+        g.fill();
         g.stroke();
       }
-      g.font = font_css(f);
-      g.fillStyle = m.outer ? env.look.palette.ink2 : m.node.color;
-      g.textBaseline = 'top';
-      m.label.lines.forEach((l, i) => {
-        const w = g.measureText(l).width;
-        g.fillText(l, this.x0 + m.label.x + (m.label.w - w) / 2, this.y0 + m.label.y + i * lineh);
-      });
+      g.fillStyle = `rgba(255,255,255,${a})`;
+      g.strokeStyle = GR(0.16 * a);
+      g.lineWidth = 0.75;
+      g.beginPath();
+      g.roundRect(x0, y0, x1 - x0, y1 - y0, rr);
+      g.fill();
+      g.stroke();
+    }
+    g.restore();
+  }
+  private words_of(g: CanvasRenderingContext2D, env: DrawEnv, S: Solved, sc: Scene, lb: Label, alpha: number): void {
+    const c = sc.cards.find((x) => x.node === lb.node);
+    if (!c || c.alpha < 0.3 || alpha < 0.003) return;
+    const wd = S.words.get(lb.node)!, an = nearest_on(c.face, lb.at), P = env.look.palette;
+    const FN = font_of('label', { weight: 600 }), FM = font_of('label', { weight: 400 }), LH = Math.round(FM.size * 1.3);
+    g.save();
+    g.globalAlpha *= alpha * (lb.quiet ? 0.7 : 1);
+    g.strokeStyle = GR(0.62);
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(an[0], an[1]);
+    g.lineTo(lb.at[0], lb.at[1]);
+    g.stroke();
+    g.fillStyle = P.ink;
+    g.beginPath();
+    g.arc(an[0], an[1], 2.6, 0, Math.PI * 2);
+    g.fill();
+    g.textBaseline = 'top';
+    let y = lb.y;
+    if (wd.name) {
+      g.font = font_css(FN);
+      g.fillStyle = lb.quiet ? P.ink2 : P.ink;
+      g.fillText(wd.name, lb.x, y);
+      y += LH + 1;
+    }
+    for (const l of wd.lines) {
+      for (const sp of l.spans) {
+        g.font = font_css(sp.weight ? { ...FM, weight: sp.weight } : FM);
+        g.fillStyle = sp.color ?? (wd.name ? P.ink2 : lb.quiet ? P.ink2 : P.ink);
+        g.fillText(sp.s, lb.x + sp.x, y);
+      }
+      y += LH;
+    }
+    g.restore();
+  }
+  draw(env: DrawEnv): void {
+    const S = this.S, sc = this.now();
+    if (!S || !sc) return;
+    const g = env.g as CanvasRenderingContext2D;
+    g.save();
+    g.translate(this.box.x, this.box.y);
+    // 1. on the paper: the shadows and sockets of the cards that rest on it, then its own ink
+    for (const c of sc.cards) if (!c.under) this.shadow(g, S, sc, c);
+    for (const t of this.line.tokens) if (!sc.tok.get(t)!.on) this.token(g, S, sc, t);
+    // 2. each card, lowest first: its edge and face, what rests on it, its ink
+    for (const c of sc.cards) {
+      this.card(g, S, sc, c);
+      for (const d of sc.cards) if (d.under === c.node) this.shadow(g, S, sc, d);
+      for (const t of c.node.tokens) if (sc.tok.get(t)!.on === c.node) this.token(g, S, sc, t);
+    }
+    // 3. leaders and words, front-on, once the cards are apart (a new layer's as it arrives, the last one's leaving)
+    const e = clamp01(read(this.open)), la = clamp01((e - 0.8) / 0.2), a = Math.round(read(this.from)), b = Math.round(read(this.layer)), u = clamp01(read(this.fade));
+    if (la > 0) {
+      for (const lb of S.labels[b]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (a === b ? 1 : smooth((u - 0.55) / 0.45)));
+      if (a !== b) for (const lb of S.labels[a]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (1 - smooth(u / 0.35)));
+    }
+    // 4. together: a dotted line under each outer block (something is folded here)
+    if (e < 0.2) {
+      g.save();
+      g.globalAlpha *= 1 - e / 0.2;
+      g.fillStyle = 'rgba(98,102,109,0.8)';
+      const yb = S.o0[1] + (this.line.view[3] * S.k) / 2 + S.px * 0.1;
+      for (const nd of this.roots) {
+        const r = bounds(nd.tokens.map((t) => S.base.get(t)!));
+        for (let x = S.o0[0] + r[0] + 1; x < S.o0[0] + r[2] - 1; x += 5) { g.beginPath(); g.arc(x, yb, 0.95, 0, Math.PI * 2); g.fill(); }
+      }
       g.restore();
     }
+    g.restore();
   }
 }
 
-/** A colour u of the way from a to b (hex; anything else jumps half way). */
-function mix(a: string, b: string, u: number): string {
-  const p = /^#([0-9a-f]{6})$/i.exec(a), q = /^#([0-9a-f]{6})$/i.exec(b);
-  if (!p || !q) return u < 0.5 ? a : b;
-  const x = parseInt(p[1], 16), y = parseInt(q[1], 16), c = (sh: number) => Math.round(((x >> sh) & 255) + ((((y >> sh) & 255) - ((x >> sh) & 255)) * Math.max(0, Math.min(1, u))));
-  return `#${((c(16) << 16) | (c(8) << 8) | c(0)).toString(16).padStart(6, '0')}`;
+function poly(g: CanvasRenderingContext2D, q: XY[]): void {
+  g.beginPath();
+  g.moveTo(q[0][0], q[0][1]);
+  for (let i = 1; i < q.length; i++) g.lineTo(q[i][0], q[i][1]);
+  g.closePath();
 }
 
 /**
- * A figure of one formula read block by block. `tour`: its script opens it and goes through every layer and back (a
- * gallery's demo, a video); else it waits whole for a tap (the page's hands).
+ * A figure of one formula taken apart. `view`: 'house' (in depth, the specimen's) or 'flat' (in the plane). `tour`:
+ * its script takes it apart and goes through every layer and back (a gallery's demo, a video); else it waits together
+ * for a hand.
  */
-export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang; size?: number; paper?: boolean; tour?: boolean } = {}): Figure & { formula: Parts } {
+export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang; size?: number; paper?: boolean; tour?: boolean; view?: PartsView; nouns?: Record<string, string> } = {}): Figure & { formula: Parts } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { formula: Parts };
   if (o.paper === false) fig.paper = 'clear';
-  const p = new Parts(tex, parts, { id: 'parts', size: o.size });
+  const p = new Parts(tex, parts, { id: 'parts', size: o.size, view: o.view, nouns: o.nouns });
   fig.formula = p;
-  for (const q of [p.open, p.layer, p.fade]) fig.params.set(q.name, q);
+  for (const q of [p.open, p.layer, p.from, p.fade]) fig.params.set(q.name, q);
   fig.layout(column([p]), o.paper === false ? { pad: 2 } : {});
   if (o.tour) {
-    const go = (n: number): Step[] => [set(p.fade, 0, 'linear', 0.001), set(p.layer, n, 'linear', 0.001), set(p.fade, 1, 'travel', 0.5), wait(2.6)];
-    fig.script(wait(0.8), set(p.open, 1, 'travel', 0.6), wait(2.6), ...p.opens.flatMap((_, i) => go(i + 1)), ...go(0), set(p.open, 0, 'travel', 0.6));
+    const go = (from: number, n: number): Step[] => [set(p.from, from, 'linear', 0.001), set(p.fade, 0, 'linear', 0.001), set(p.layer, n, 'linear', 0.001), set(p.fade, 1, 'travel', 0.9), wait(2.6)];
+    const seq: Step[] = [];
+    let at = 0;
+    for (let i = 0; i < p.opens.length; i++) { seq.push(...go(at, i + 1)); at = i + 1; }
+    fig.script(wait(0.8), set(p.open, 1, 'travel', 0.9), wait(2.6), ...seq, ...go(at, 0), set(p.open, 0, 'travel', 0.8));
   }
   fig.check('every block is in the formula, each inside the block it is part of', () => (p.issues.length ? p.issues.join('; ') : null));
-  fig.check("no layer's words meet, and all are inside the figure", () => {
+  fig.check('every layer has room for its words', () => (p.missing ? `${p.missing} block(s) have no room for their words` : null));
+  fig.check('no leader crosses another, a glyph or words; no words meet', () => {
     const bad: string[] = [];
     for (let n = 0; n <= p.opens.length; n++) {
-      const ms = p.plan(n).marks.filter((m) => !m.outer);
-      for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
-        const a = ms[i].label, b = ms[j].label;
-        if (ms[i].side === ms[j].side && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) bad.push(`layer ${n}: "${ms[i].node.part.tex}" meets "${ms[j].node.part.tex}"`);
+      const box_poly = (b: Box) => rect_poly(b.x, b.y, b.w, b.h);
+      for (const e of [0.8, 0.9, 1]) {
+        const L = p.leaders(e, n), ink = p.ink_at(e, n);
+        for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (seg_cross(L[i].a, L[i].b, L[j].a, L[j].b)) bad.push(`layer ${n}: leaders of ${L[i].node.part.tex} and ${L[j].node.part.tex} cross`);
+        for (const l of L) {
+          const a2: XY = [l.a[0] + (l.b[0] - l.a[0]) * 0.02, l.a[1] + (l.b[1] - l.a[1]) * 0.02];
+          if (ink.glyphs.some((q) => seg_poly(a2, l.b, q))) bad.push(`layer ${n}: the leader of ${l.node.part.tex} crosses a glyph`);
+        }
+        for (let i = 0; i < ink.labels.length; i++) for (let j = i + 1; j < ink.labels.length; j++) if (poly_cross(box_poly(ink.labels[i]), box_poly(ink.labels[j]))) bad.push(`layer ${n}: words meet`);
       }
     }
-    return bad.length ? bad.join('; ') : null;
+    return bad.length ? [...new Set(bad)].join('; ') : null;
   });
   return fig;
 }
 
 // ---------------------------------------------------------------- entry
+const BAYES = 'P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}';
+const bayes_parts = (lang: Lang): FormulaPart[] => {
+  const zh = lang === 'zh';
+  return [
+    { tex: 'P(A\\mid B)', says: zh ? '**后验** 看到 $B$ 之后，$A$ 有多可信' : '**posterior** how believable $A$ is after $B$' },
+    { tex: '\\frac{P(B\\mid A)\\,P(A)}{P(B)}', says: zh ? '**更新** 在 $B$ 发生的情况里，$A$ 也成立的份额' : "**update** the share of $B$'s cases in which $A$ also holds", parts: [
+      { tex: 'P(B\\mid A)\\,P(A)', says: zh ? '**联合** $A$ 和 $B$ 一起发生有多常见' : '**joint** how often $A$ and $B$ happen together', parts: [
+        { tex: 'P(B\\mid A)', says: zh ? '**似然** 如果 $A$ 成立，看到 $B$ 的可能' : '**likelihood** how likely $B$ is if $A$ holds' },
+        { tex: 'P(A)', says: zh ? '**先验** 看到 $B$ 之前，对 $A$ 的相信' : '**prior** belief in $A$ before $B$' }] },
+      { tex: 'P(B)', says: zh ? '**证据** $B$ 本身有多常见' : '**evidence** how common $B$ is anyway' }] },
+  ];
+};
+const BAYES_NOUNS = { A: 'hypothesis', B: 'evidence' };
 define_thing({
-  name: 'parts', says: t('a formula read block by block and layer by layer: each block (one symbol or several terms) in its colour with what it means; a block opens into the blocks it is made of', '一块一块、一层一层读的公式：每一块（一个符号或几项）有自己的颜色和意思；点开一块，看到它由哪几块组成'),
+  name: 'parts', says: t('a formula taken apart like an exploded drawing: each block (one symbol or several terms) lifts on its own card with what it means; a card that holds more comes apart in turn', '像工程分解图一样拆开的公式：每一块（一个符号或几项）升到自己的卡片上，引线指向它的意思；装着更多的卡片可以再拆开'),
   zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'int/explode',
-  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: 'how often A and B happen together', parts: [{ tex: 'P(A)', says: 'the prior' }] }, …], { lang })",
-  rules: ['each block as it is written in the formula; several terms that mean one thing are one block', "a block's own blocks are its next layer: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)'],
-  accept: t('every block found inside the block it belongs to; no layer\'s words meet; whole, every glyph is where it was typeset', '每一块都在它所属的块里找到；同一层的文字互不相碰；合上时每个字形都在排版位置'),
-  demo: (lang) => parts_figure('P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}', [
-    { tex: 'P(A\\mid B)', says: lang === 'zh' ? '看到 B 之后，A 有多可能' : 'how likely A is, now that B is seen' },
-    { tex: '\\frac{P(B\\mid A)\\,P(A)}{P(B)}', says: lang === 'zh' ? '在 B 发生的情况里，A 也成立的份额' : "the share of B's cases in which A also holds", parts: [
-      { tex: 'P(B\\mid A)\\,P(A)', says: lang === 'zh' ? 'A 和 B 一起发生有多常见' : 'how often A and B happen together', parts: [
-        { tex: 'P(B\\mid A)', says: lang === 'zh' ? 'A 成立时 B 有多可能' : 'how likely B is if A is true' },
-        { tex: 'P(A)', says: lang === 'zh' ? '没看证据前 A 有多常见' : 'how common A is before any evidence' }] },
-      { tex: 'P(B)', says: lang === 'zh' ? 'B 总共有多常见' : 'how often B happens at all' }] }], { lang, tour: true }),
+  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, view: 'house' | 'flat', nouns: { A: 'hypothesis' } })",
+  rules: ['each block as it is written in the formula; several terms that mean one thing are one block', "a block's own blocks are its next layer: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)', 'a name in bold first when the block has one (**prior**), then what it means in plain words'],
+  accept: t('together again, every glyph is where it was typeset (0 px); no leader crosses another, a glyph or words, at every amount where leaders show; every block found inside the block it belongs to', '合上后每个字形回到排版位置（误差 0 px）；引线显示的每个时刻都互不相交，也不穿过字形或文字；每一块都在它所属的块里找到'),
+  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS }),
+  source: 'packages/engine/src/lib/parts.ts',
+});
+define_thing({
+  name: 'parts_flat', says: t('the same formula taken apart in the plane, for comparison: the blocks move apart and become cards with what each means; a card that holds more comes apart inside itself', '同一个公式在平面里拆开（对照版）：各块移开、变成卡片并显示意思；装着更多的卡片在自己里面再分开'),
+  zones: ['figure', 'text'], maturity: 'experiment', since: '0.3.0', from: 'int/explode',
+  syntax: "parts_figure(tex, parts, { lang, view: 'flat' })",
+  rules: ['as parts, in the plane: no camera turn'],
+  accept: t('as parts', '同 parts'),
+  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: 'flat' }),
   source: 'packages/engine/src/lib/parts.ts',
 });

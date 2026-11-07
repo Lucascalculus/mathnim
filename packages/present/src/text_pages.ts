@@ -143,7 +143,7 @@ export class BlockRenderer {
         if (b.parts?.length) {
           type P = NonNullable<typeof b.parts>[number];
           const of = (ps: P[]): PartText[] => ps.map((p) => ({ tex: p.tex, says: tr(p.says, this.lang), html: this.prose(p.says), parts: p.parts && of(p.parts) }));
-          return parts_html(b.tex, of(b.parts));
+          return parts_html(b.tex, of(b.parts), { view: b.view, nouns: b.nouns });
         }
         return `<div class="mn-dmath" role="math" aria-label="${esc(b.tex)}"><div class="mn-dmath-tex">${display_math_html(b.tex)}</div>${b.label ? `<span class="mn-eqlabel">(${esc(b.label)})</span>` : ''}</div>`;
       case 'code':

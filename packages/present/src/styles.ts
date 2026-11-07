@@ -216,10 +216,9 @@ export const CSS = `
 .mn-parts-list>div{display:flex;gap:.5em;align-items:baseline}
 .mn-parts-list dd{margin:0}
 .mn-parts-live>.mn-parts-tex,.mn-parts-live>.mn-parts-list{display:none}
-.mn-parts-stage{overflow:hidden}
-.mn-parts-stage canvas{display:block;cursor:pointer}
-.mn-parts-moving{transition:height .6s cubic-bezier(.3,.7,.2,1)}
-.mn-parts-moving canvas{transition:margin-top .6s cubic-bezier(.3,.7,.2,1)}
+.mn-parts-stage{overflow:hidden;transition:height .55s cubic-bezier(.3,.7,.2,1)}
+.mn-parts-stage canvas{display:block;cursor:pointer;touch-action:pan-y}
+.mn-parts-stage .mn-mirror *{pointer-events:none!important}
 /* glass: a pane simply there beside what was tapped (clear, not frosted; nothing animates in) */
 .mn-glass{position:absolute;z-index:80;box-sizing:border-box;padding:14px 16px;border-radius:16px;font-size:14.5px;line-height:1.55;color:var(--mn-ink,#1a1b1f);
   background:rgba(255,255,255,.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(26,27,31,.06),0 0 0 .5px rgba(26,27,31,.2),0 14px 30px -14px rgba(26,27,31,.35)}

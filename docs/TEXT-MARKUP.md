@@ -15,7 +15,7 @@ mistake shows as plain text, never as a broken page. Design: `docs/design/ENGINE
 | a number computed from the ones the learner drags | `{{= 2.5*n}}` or `{{= 2.5*n, 2}}` (2 decimals) | it follows as you drag, every digit a wheel | everyone, the tutor too |
 | a claim with its chain of reasons, each opened on demand | a ```` ```why ```` fence (below) | the claim with a hollow ring; tapped, its reasons drop on threads, down to a definition or an assumption | everyone, the tutor too |
 | a derivation written line by line, every line checked | a ```` ```steps ```` fence (below) | written line by line, each line coming down out of the one above, every line checked | everyone, the tutor too |
-| a formula read block by block, layer by layer: each block with what it means, and inside it the blocks it is made of | a ```` ```parts ```` fence (below) | the formula; tapped, its outer blocks each in a colour with a brace and what they mean; tap a block to see the blocks inside it | everyone, the tutor too |
+| a formula taken apart like an exploded drawing: pulled up or tapped, each block lifts on its own card with what it means; a card that holds more comes apart in turn | a ```` ```parts ```` fence (below) | the formula; pulled up or tapped, the camera turns and its outer blocks lift onto cards, each with a leader to its name and meaning; tap a card that holds more (two sheets thick) and its own blocks lift off it | everyone, the tutor too |
 | more, folded under the sentence, for who wants it | a ```` ```details ```` fence (below) | a title; tapped, the rest unfolds like folded paper | course authors |
 | a source, on glass beside its mark | `[^key]` (and a `cite` block with that key) | a small number; tapped, the source is on glass beside it | course authors |
 
@@ -43,12 +43,12 @@ One complete TeX formula per line, 2 to 8 lines, one change per line; `%` and a 
 
 ```parts
 L = \frac{1}{n}\sum_i (\hat y_i - y_i)^2
-\frac{1}{n}\sum_i: the average over all n points
+\frac{1}{n}\sum_i: **average** over all n points
 (\hat y_i - y_i)^2: point i's miss, squared: big misses count far more
-  \hat y_i - y_i: the miss: prediction minus truth
+  \hat y_i - y_i: **miss** prediction minus truth
 ```
 
-The formula on the first line; then each block as it is written in the formula, a colon, and what it means. A block is whatever means one thing: one symbol or several terms (the error, the average, the share of the whole). Indent a block two spaces under the block it is part of: the big picture first, the inside on demand. Write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything).
+The formula on the first line; then each block as it is written in the formula, a colon, and what it means. A block is whatever means one thing: one symbol or several terms (the error, the average, the share of the whole). A block with a name says it first in bold: **prior** belief in A before B. Indent a block two spaces under the block it is part of: the big picture first, the inside on demand. Write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything). A line % nouns: A = hypothesis, B = evidence colours those symbols as their nouns, in the formula and in the words.
 
 ```details Why the gradient is held by the active constraint
 At the optimum the cost cannot fall along the wall.

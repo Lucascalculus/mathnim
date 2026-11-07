@@ -1,11 +1,12 @@
-// A formula read block by block, layer by layer (parts.ts): a block is found with its brackets and bars (P(A) is not
+// A formula taken apart (parts.ts; the specimen's explode.js): a block is found with its brackets and bars (P(A) is not
 // the start of P(A | B); a fraction takes its bar), inside the block it belongs to, after the relation when it is
-// written twice; whole, the formula is drawn as typeset; a layer shows its blocks and, outward, the blocks they make
-// up; a tap goes in and out; no layer's words meet. Then the formulas of AI, mathematics and physics in
-// fixtures/formula_layers.ts, in both languages: every block found, every layer laid out.
+// written twice. The specimen's acceptance, as tests: put back together, every glyph is where it was typeset (0 px)
+// and the frame is the frame before, pixel for pixel; at every amount where leaders show, none crosses another, a
+// glyph or words. Layers: the focus comes down to the first level and its blocks lift off it; a tap goes in and out.
+// Then the formulas of AI, mathematics and physics in fixtures/formula_layers.ts, in both views and both languages.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createCanvas } from '@napi-rs/canvas';
-import { load_tex, parts_figure, typeset_line, type FormulaPart } from '../src/index';
+import { load_tex, parts_figure, poly_cross, seg_cross, seg_poly, typeset_line, type FormulaPart, type PartsView, type XY } from '../src/index';
 import { use_node_canvas } from '../node';
 import { FORMULAS } from './fixtures/formula_layers';
 
@@ -16,14 +17,14 @@ beforeAll(async () => {
 
 const BAYES = 'P(A\\mid B) = \\frac{P(B\\mid A)\\,P(A)}{P(B)}';
 const LAYERS: FormulaPart[] = [
-  { tex: 'P(A\\mid B)', says: 'the posterior' },
+  { tex: 'P(A\\mid B)', says: '**posterior** how believable $A$ is after $B$' },
   { tex: '\\frac{P(B\\mid A)\\,P(A)}{P(B)}', says: "the share of B's cases in which A also holds", parts: [
-    { tex: 'P(B\\mid A)\\,P(A)', says: 'how often A and B happen together', parts: [{ tex: 'P(B\\mid A)', says: 'the likelihood' }, { tex: 'P(A)', says: 'the prior' }] },
-    { tex: 'P(B)', says: 'the evidence' }] },
+    { tex: 'P(B\\mid A)\\,P(A)', says: 'how often A and B happen together', parts: [{ tex: 'P(B\\mid A)', says: '**likelihood** how likely $B$ is if $A$ holds' }, { tex: 'P(A)', says: '**prior** belief in $A$ before $B$' }] },
+    { tex: 'P(B)', says: '**evidence** how common $B$ is anyway' }] },
 ];
 
-function make(parts: FormulaPart[] = LAYERS, tex = BAYES, w = 640) {
-  const fig = parts_figure(tex, parts, { lang: 'en' });
+function make(parts: FormulaPart[] = LAYERS, tex = BAYES, view: PartsView = 'house', w = 700) {
+  const fig = parts_figure(tex, parts, { lang: 'en', view, nouns: { A: 'hypothesis', B: 'evidence' } });
   fig.build();
   const H = Math.ceil(fig.layout_for(w, undefined).h);
   return { fig, F: fig.formula, W: w, H };
@@ -34,6 +35,7 @@ function pixels(fig: ReturnType<typeof make>['fig'], W: number, H: number) {
   return c.getContext('2d').getImageData(0, 0, W, H).data;
 }
 const keys = (ts: { key: string }[]) => ts.filter((t) => !t.key.startsWith('▭') && !t.key.startsWith('·')).map((t) => t.key).join('');
+const at = (F: ReturnType<typeof make>['F'], open: number, layer: number, from = layer, fade = 1) => { F.open.set(open, true); F.from.set(from, true); F.layer.set(layer, true); F.fade.set(fade, true); };
 
 describe('finding the blocks', () => {
   it('finds each block with what it holds, inside the block it is part of', () => {
@@ -48,7 +50,6 @@ describe('finding the blocks', () => {
   it('brackets are part of a block: P(A) is not the start of P(A | B)', () => {
     const { F } = make([{ tex: 'P(A)', says: 'the prior' }]);
     const n = F.nodes[0], L = typeset_line(BAYES);
-    // (the P(A) found is the one in the numerator, after the relation)
     expect(Math.min(...n.tokens.map((t) => t.box[0]))).toBeGreaterThan(L.tokens[L.anchor].box[2]);
     expect(keys(n.tokens)).toBe('P(A)');
   });
@@ -64,84 +65,110 @@ describe('finding the blocks', () => {
   });
 });
 
-describe('reading it, layer by layer', () => {
-  it('whole, the formula is drawn as typeset (the open state only adds marks and colour)', () => {
-    const a = make(), b = make();
-    b.F.open.set(0, true);
-    const pa = pixels(a.fig, a.W, a.H), pb = pixels(b.fig, b.W, b.H);
-    let diff = 0;
-    for (let i = 0; i < pa.length; i++) diff = Math.max(diff, Math.abs(pa[i] - pb[i]));
+for (const view of ['house', 'flat'] as const) describe(`taken apart (${view})`, () => {
+  it('put back together, every glyph is where it was typeset (0 px), and the frame is the frame before', () => {
+    const { fig, F, W, H } = make(LAYERS, BAYES, view);
+    const before = pixels(fig, W, H);
+    for (const t of F.line.tokens) { const p = F.origin_of(t, 0), q = F.typeset_at(); expect(Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1])).toBe(0); }
+    at(F, 1, 2, 1, 0.4);
+    const apart = pixels(fig, W, H);
+    at(F, 0, 0);
+    const after = pixels(fig, W, H);
+    let diff = 0, moved = 0;
+    for (let i = 0; i < before.length; i++) diff = Math.max(diff, Math.abs(before[i] - after[i]));
+    for (let i = 0; i < before.length; i += 4) if (Math.abs(before[i] - apart[i]) > 40) moved++;
     expect(diff).toBe(0);
-    // and opening it draws something where there was nothing (the braces and the words)
-    b.F.open.set(1, true);
-    const pc = pixels(b.fig, b.W, b.H);
-    let changed = 0;
-    for (let i = 0; i < pa.length; i += 4) if (Math.abs(pa[i] - pc[i]) > 40) changed++;
-    expect(changed).toBeGreaterThan(500);
+    expect(moved).toBeGreaterThan(1000);
   });
-  it('a layer shows its blocks, and outward the blocks they make up, nearest first', () => {
-    const { F } = make();
-    expect(F.plan(0).marks.map((m) => `${m.outer ? 'outer ' : ''}${keys(m.node.tokens)}`).sort()).toEqual(['P(A∣B)', 'P(B∣A)P(A)P(B)'].sort());
-    const deep = F.plan(2).marks;
-    expect(deep.filter((m) => !m.outer).map((m) => keys(m.node.tokens)).sort()).toEqual(['P(A)', 'P(B∣A)']);
-    expect(deep.filter((m) => m.outer).map((m) => keys(m.node.tokens))).toEqual(['P(B∣A)P(A)', 'P(B∣A)P(A)P(B)']);
-    // (the numerator's blocks are above the formula; their outer braces further out on the same side)
-    for (const m of deep) expect(m.side).toBe(-1);
-    const outer = deep.filter((m) => m.outer);
-    expect(outer[1].y).toBeLessThan(outer[0].y);
+  it('at every amount where leaders show, none crosses another, a glyph or words; no words meet', () => {
+    const { F } = make(LAYERS, BAYES, view);
+    expect(F.missing).toBe(0);
+    for (let n = 0; n <= F.opens.length; n++) for (const e of [0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1]) {
+      const L = F.leaders(e, n), ink = F.ink_at(e, n);
+      expect(L.length).toBe(n === 0 ? 2 : 3);
+      for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) expect(seg_cross(L[i].a, L[i].b, L[j].a, L[j].b)).toBe(false);
+      for (const l of L) {
+        const a2: XY = [l.a[0] + (l.b[0] - l.a[0]) * 0.02, l.a[1] + (l.b[1] - l.a[1]) * 0.02];
+        for (const q of ink.glyphs) expect(seg_poly(a2, l.b, q)).toBe(false);
+      }
+      const box = (b: { x: number; y: number; w: number; h: number }): XY[] => [[b.x, b.y], [b.x + b.w, b.y], [b.x + b.w, b.y + b.h], [b.x, b.y + b.h]];
+      for (let i = 0; i < ink.labels.length; i++) for (let j = i + 1; j < ink.labels.length; j++) expect(poly_cross(box(ink.labels[i]), box(ink.labels[j]))).toBe(false);
+    }
   });
-  it('a tap goes in and out: whole → outer layer → inside a block → back out → whole', () => {
-    const { F } = make();
-    const at = (n: (typeof F.nodes)[number]) => F.middle(n);
+  it('a tap goes in and out: together → apart → inside a card → inside its card → back out → together', () => {
+    const { F } = make(LAYERS, BAYES, view);
     expect(F.tap([0, 0])).toEqual({ open: 1, layer: 0 });
-    F.open.set(1, true);
-    const share = F.nodes[1];
-    expect(F.tap(at(share))).toEqual({ open: 1, layer: 1 });
-    F.layer.set(1, true);
-    const together = F.nodes[2];
-    expect(F.tap(at(together))).toEqual({ open: 1, layer: 2 });
-    F.layer.set(2, true);
-    // a block with no inside: nothing; beside it all: one layer out
-    expect(F.tap(at(F.nodes[3]))).toBeNull();
+    at(F, 1, 0);
+    const share = F.nodes[1], together = F.nodes[2];
+    expect(F.tap(F.middle(share))).toEqual({ open: 1, layer: 1 });
+    at(F, 1, 1);
+    expect(F.tap(F.middle(together))).toEqual({ open: 1, layer: 2 });
+    at(F, 1, 2);
+    // a card with nothing inside: nothing; the card whose inside is shown, or the paper: one layer out
+    expect(F.tap(F.middle(F.nodes[3]))).toBeNull();
+    // (in the plane the focus's blocks lie on it and cover its middle)
+    if (view === 'house') expect(F.tap(F.middle(together))).toEqual({ open: 1, layer: 1 });
     expect(F.tap([F.box.x + 2, F.box.y + 2])).toEqual({ open: 1, layer: 1 });
-    F.layer.set(0, true);
+    at(F, 1, 0);
     expect(F.tap([F.box.x + 2, F.box.y + 2])).toEqual({ open: 0, layer: 0 });
+  });
+});
+
+describe('the house view and the plane', () => {
+  it('house: a layer lifts its blocks, each on its own level; deeper, the focus comes down first and its blocks lift off it', () => {
+    const { F } = make();
+    at(F, 1, 0);
+    const z = (n: number) => (F as unknown as { now(): { cards: { node: unknown; z: number }[] } }).now().cards.find((c) => c.node === F.nodes[n])!.z;
+    expect(z(0)).toBeGreaterThan(0);
+    expect(z(1)).toBeGreaterThan(0);
+    expect(z(0)).not.toBe(z(1));
+    at(F, 1, 2);
+    // the joint block (the focus) on the first level, the likelihood and the prior above it
+    expect(z(3)).toBeGreaterThan(z(2));
+    expect(z(4)).toBeGreaterThan(z(2));
+  });
+  it('flat: no camera turn; apart, sibling cards never meet, and every glyph keeps its size', () => {
+    const { F } = make(LAYERS, BAYES, 'flat');
+    for (let n = 0; n <= F.opens.length; n++) {
+      at(F, 1, n);
+      const sc = (F as unknown as { now(): { K: { a: number; b: number; c: number; d: number }; cards: { node: { parent: unknown }; rect: number[] }[]; tok: Map<unknown, { box: number[] }> } }).now();
+      expect([sc.K.a, Math.abs(sc.K.b), Math.abs(sc.K.c), sc.K.d]).toEqual([1, 0, 0, 1]);
+      const cs = sc.cards.filter((c) => c.node !== F.focus_of(n));
+      for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
+        const a = cs[i].rect, b = cs[j].rect;
+        expect(a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]).toBe(false);
+      }
+      for (const t of F.line.tokens) if (!t.glyphs.every((g) => g.rect)) {
+        const r = sc.tok.get(t)!.box, k = (F as unknown as { S: { k: number } }).S.k;
+        expect(Math.abs(r[2] - r[0] - (t.box[2] - t.box[0]) * k)).toBeLessThan(1e-6);
+      }
+    }
   });
   it('the mirror reads the formula and the blocks of the layer shown', () => {
     const { F } = make();
-    expect(F.parts_of!('en').map((p) => p.text)).toEqual([BAYES, 'P(A\\mid B): the posterior', "\\frac{P(B\\mid A)\\,P(A)}{P(B)}: the share of B's cases in which A also holds"]);
-    F.open.set(1, true);
-    F.layer.set(2, true);
-    expect(F.parts_of!('en').slice(1).map((p) => p.text)).toEqual(['P(B\\mid A): the likelihood', 'P(A): the prior']);
+    expect(F.parts_of!('en').map((p) => p.text)).toEqual([BAYES, 'P(A\\mid B): **posterior** how believable $A$ is after $B$', "\\frac{P(B\\mid A)\\,P(A)}{P(B)}: the share of B's cases in which A also holds"]);
+    at(F, 1, 2);
+    expect(F.parts_of!('en').slice(1).map((p) => p.text.split(':')[0])).toEqual(['P(B\\mid A)', 'P(A)']);
   });
-  it('its open state and layer are the tutor\'s to move', () => {
+  it("how far apart and which layer are the tutor's to move", () => {
     const { fig, F } = make();
     expect(F.open.spec.tutor).toBe(true);
     expect(F.layer.spec.tutor).toBe(true);
     expect(fig.params.get(F.layer.name)).toBe(F.layer);
+    expect(fig.params.get(F.from.name)).toBe(F.from);
   });
 });
 
 describe('formulas of AI, mathematics and physics', () => {
-  for (const lang of ['en', 'zh'] as const) {
-    it.each(FORMULAS.map((f) => [f.id, f] as const))(`${lang}: %s - every block found, no layer's words meet`, (_id, F) => {
+  for (const view of ['house', 'flat'] as const) for (const lang of ['en', 'zh'] as const) {
+    it.each(FORMULAS.map((f) => [f.id, f] as const))(`${view}, ${lang}: %s - every block found, every layer's words placed, no leader crossing`, (_id, F) => {
       const loc = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { en: string; zh: string })[lang], ...(p.parts ? { parts: loc(p.parts) } : {}) }));
-      const fig = parts_figure(F.tex, loc(F.parts), { lang });
+      const fig = parts_figure(F.tex, loc(F.parts), { lang, view });
       fig.build();
-      fig.layout_for(640, undefined);
+      fig.layout_for(700, undefined);
       expect(fig.formula.issues).toEqual([]);
+      expect(fig.formula.missing).toBe(0);
       expect(fig.lint().filter((i) => i.rule === 'invariant').map((i) => i.message)).toEqual([]);
-      // every layer's words are inside the figure, and never on the formula's ink
-      const k = fig.formula.parts_of!(lang)[0].box;
-      for (let n = 0; n <= fig.formula.opens.length; n++) {
-        for (const m of fig.formula.plan(n).marks) {
-          const f = fig.formula as unknown as { x0: number; y0: number };
-          const x = f.x0 + m.label.x, y = f.y0 + m.label.y;
-          expect(x).toBeGreaterThanOrEqual(fig.formula.box.x - 1);
-          expect(x + m.label.w).toBeLessThanOrEqual(fig.formula.box.x + fig.formula.box.w + 1);
-          expect(y + m.label.h <= k.y + 1 || y >= k.y + k.h - 1, `${F.id} layer ${n}: "${m.label.lines[0]}" on the formula`).toBe(true);
-        }
-      }
     });
   }
 });

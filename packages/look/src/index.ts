@@ -59,6 +59,8 @@ export const NOUNS: Record<string, Pigment> = {
   'motor': 'ink', 'speed': 'ochre', 'state': 'ink', 'cost': 'cobalt',
   // probability, statistics
   'data': 'ink', 'mean': 'cobalt', 'density': 'cobalt', 'sample': 'ink',
+  // Bayes: what is believed and what is seen (as the specimen's exploded formula drew A and B)
+  'hypothesis': 'cobalt', 'evidence': 'ochre',
   // linear algebra
   'i-hat': 'viridian', 'j-hat': 'vermilion', 'eigenvector': 'violet', 'determinant': 'ochre', 'flipped': 'violet', 'collapsed': 'vermilion', 'grid': 'cobalt',
   // operations research (MGMT90141): the profit line, the feasible set, and up to four limits (a wall of the plan plane)

@@ -58,6 +58,10 @@ def lesson():
                          {'tex': 'f(x_0+h)', 'says': T('the height at the second point', '第二个点的高度')},
                          {'tex': 'f(x_0)', 'says': T('the height at P', 'P 点的高度')}]},
                      {'tex': 'h', 'says': T('the run: how far apart the two points are', '水平距离：两点相距多远')}]}]},
+             p(T("Bayes' rule, taken apart like an exploded drawing: pull it up, or tap it; tap a card that holds more to take it apart in turn.", '贝叶斯公式，像工程分解图一样拆开：往上拉，或点一下；装着更多的卡片可以再点开。')),
+             {'type': 'math', 'tex': BAYES, 'parts': BAYES_PARTS, 'nouns': {'A': 'hypothesis', 'B': 'evidence'}},
+             p(T('The same, apart in the plane (for comparison: no camera turn).', '同一个公式，在平面里拆开（对照：镜头不转）。')),
+             {'type': 'math', 'tex': BAYES, 'parts': BAYES_PARTS, 'nouns': {'A': 'hypothesis', 'B': 'evidence'}, 'view': 'flat'},
              p(T('Take $f(x) = x^2$ at $x_0 = 1$. With the second point {{h = 1, 0.1..2, 0.1}} to the right, the secant rises {{= (1+h)^2 - 1, 2}} over that run: its slope is {{= ((1+h)^2 - 1)/h, 2}}. The closer the points, the closer that is to 2.',
                  '取 $f(x) = x^2$，$x_0 = 1$。第二个点在右边 {{h = 1, 0.1..2, 0.1}} 处时，割线在这段距离上升高 {{= (1+h)^2 - 1, 2}}，斜率是 {{= ((1+h)^2 - 1)/h, 2}}。两点越近，它就越接近 2。')),
              p(T('A matrix moves the plane. With $a$ = {{a = 1.5, -3..3, 0.1}}, $b$ = {{b = 1, -3..3, 0.1}}, $c$ = {{c = 0.5, -3..3, 0.1}} and $d$ = {{d = 2, -3..3, 0.1}}, the unit square becomes a [parallelogram](noun:determinant) whose area is $ad - bc$ = {{= a*d - b*c, 2}}. The numbers in the sentence and the numbers in the figure are the same numbers.',
@@ -66,11 +70,11 @@ def lesson():
              steps((r'\lim_{h\to 0}\frac{(1+h)^2 - 1}{h}', ), (r'\lim_{h\to 0}\frac{2h + h^2}{h}', T('expand: the 1s cancel', '展开：两个 1 抵消')), (r'\lim_{h\to 0}\,(2 + h)', T('divide by $h$', '除以 $h$')), (r'2', T(r'let $h \to 0$', r'令 $h \to 0$'))),
              p(T('Solving an equation: each step does the same to both sides, and you see it done before it is worked out.', '解方程：每一步都对两边做同样的事；先看见它怎么做，再看它算出来。')),
              steps(('2x + 3 = 11',), ('2x = 8', T('take 3 from both sides', '两边减 3')), ('x = 4', T('divide both sides by 2', '两边除以 2')), nouns={'x': 'value'}),
-             p(T('The same moves find the best slope $w$ of a line through data. First what is being made small, block by block (tap it):', '同样的动作也能求出过一组数据的直线的最佳斜率 $w$。先一块一块看要变小的是什么（点一下）：')),
+             p(T('The same moves find the best slope $w$ of a line through data. First what is being made small, block by block (pull it up, or tap it):', '同样的动作也能求出过一组数据的直线的最佳斜率 $w$。先一块一块看要变小的是什么（往上拉，或点一下）：')),
              {'type': 'math', 'tex': r'L(w) = \frac{1}{n}\sum_i (w x_i - y_i)^2', 'parts': [
-                 {'tex': r'\frac{1}{n}\sum_i', 'says': T('the average over all n points', '对全部 n 个点取平均')},
+                 {'tex': r'\frac{1}{n}\sum_i', 'says': T('**average** over all n points', '**平均** 对全部 n 个点取平均')},
                  {'tex': '(w x_i - y_i)^2', 'says': T("point i's miss, squared: big misses count far more", '第 i 个点的偏差平方：大的偏差算得多得多'), 'parts': [
-                     {'tex': 'w x_i - y_i', 'says': T('the miss: where the line says, minus where the point is', '偏差：直线给的值减去点的实际位置'), 'parts': [
+                     {'tex': 'w x_i - y_i', 'says': T('**miss** where the line says, minus where the point is', '**偏差** 直线给的值减去点的实际位置'), 'parts': [
                          {'tex': 'w x_i', 'says': T('the line at $x_i$', '直线在 $x_i$ 处的高度')},
                          {'tex': 'y_i', 'says': T('the point itself', '点本身的高度')}]}]}]},
              p(T('Then the derivation, from its mean squared error $L(w)$:', '然后是推导，从均方误差 $L(w)$ 出发：')),
@@ -96,6 +100,17 @@ def lesson():
     return {'id': LID, 'mode': 'essay', 'title': T('The three zones (engine test)', '三个区域（引擎测试）'),
             'description': T('What joined the engine from the design specimen, each in its zone.', '从设计样本并入引擎的东西，各在各的区域。'),
             'minutes': 6, 'skills': [SKILL], 'misconceptions': [], 'steps': steps_}
+
+
+BAYES = r'P(A\mid B) = \frac{P(B\mid A)\,P(A)}{P(B)}'
+BAYES_PARTS = [
+    {'tex': r'P(A\mid B)', 'says': T('**posterior** how believable $A$ is after $B$', '**后验** 看到 $B$ 之后，$A$ 有多可信')},
+    {'tex': r'\frac{P(B\mid A)\,P(A)}{P(B)}', 'says': T("**update** the share of $B$'s cases in which $A$ also holds", '**更新** 在 $B$ 发生的情况里，$A$ 也成立的份额'), 'parts': [
+        {'tex': r'P(B\mid A)\,P(A)', 'says': T('**joint** how often $A$ and $B$ happen together', '**联合** $A$ 和 $B$ 一起发生有多常见'), 'parts': [
+            {'tex': r'P(B\mid A)', 'says': T('**likelihood** how likely $B$ is if $A$ holds', '**似然** 如果 $A$ 成立，看到 $B$ 的可能')},
+            {'tex': 'P(A)', 'says': T('**prior** belief in $A$ before $B$', '**先验** 看到 $B$ 之前，对 $A$ 的相信')}]},
+        {'tex': 'P(B)', 'says': T('**evidence** how common $B$ is anyway', '**证据** $B$ 本身有多常见')}]},
+]
 
 
 def build():
