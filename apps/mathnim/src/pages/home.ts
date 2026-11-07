@@ -162,32 +162,45 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   const written = new Set(all.flatMap((l) => lesson_info(l)?.langs ?? []));
   const langs = written.has('zh') && written.has('en') ? '中 / EN' : written.has('zh') ? '中文' : 'EN';
   const still = c.feature?.replace('{lang}', lang);
-  const cover_box = c.cover_motion || still;
+  // (a course drawn for its own page shows the drawing instead of the moving cover)
+  const cover_box = !c.cover_art && (c.cover_motion || still);
   // one quiet line above the title: category · size · languages
   const meta = [
     c.category ? `<b>${esc(tr(c.category, lang))}</b>` : '',
     all.length ? esc(t('course_size', { n: all.length, d: duration(all.reduce((n, l) => n + l.minutes, 0)) })) : '',
     all.length ? langs : '',
   ].filter(Boolean).join(' · ');
-  root.innerHTML = `
-    ${backlink('/', t('all_courses'))}
-    <header class="card course-hero"${accent(c)}>
-      <div class="hero-top">
-        <div class="hero-text">
+  const text = `
           ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
-          <h1>${math_html(tr(c.title, lang))}</h1>
+          <h1>${c.cover_art ? cover_title(tr(c.title, lang)) : math_html(tr(c.title, lang))}</h1>
           ${c.generated ? `<p class="gen-tag">${esc(c.generated.note ? tr(c.generated.note, ui_lang()) : t('gen_tag', { d: c.generated.decks, e: c.generated.exams }))}</p>` : ''}
-          
           ${go ? `<div class="row hero-go">
             <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
             ${done ? `<span class="muted">${esc(t('course_done', { k: done, n: all.length }))}</span>` : ''}
-          </div>` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}
+          </div>` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}`;
+  // a course with a drawing of its own opens on it, across the window, its title, start and map in the drawing's
+  // clear part; the others in a card with the moving cover beside the title
+  const hero = c.cover_art
+    ? `<section class="course-cover"${accent(c)}>
+      <div class="cover-art" aria-hidden="true"></div>
+      ${backlink('/', t('all_courses'))}
+      <div class="cover-text">${text}
+        ${go ? milestones(c, go, lang) : ''}
+        ${review_line(c)}
+      </div>
+    </section>`
+    : `${backlink('/', t('all_courses'))}
+    <header class="card course-hero"${accent(c)}>
+      <div class="hero-top">
+        <div class="hero-text">${text}
         </div>
         ${cover_box ? `<figure class="hero-feature" title="${esc(t('cover_replay'))}">${still ? `<img src="${esc(still)}" alt="" onerror="this.remove()">` : ''}<canvas width="1280" height="720" aria-label="${esc(tr(c.title, lang))}"></canvas></figure>` : ''}
       </div>
       ${go ? milestones(c, go, lang) : ''}
       ${review_line(c)}
-    </header>
+    </header>`;
+  root.innerHTML = `
+    ${hero}
     ${about(c, lang)}
     <div class="units">${visible_units(c).map((u) => `
       <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => {
@@ -208,6 +221,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   up_next(root, c);
   const stop_crown = play_crown(root, c);
   const stop_cover = play_cover(root, c);
+  draw_cover_art(root, c);
   return () => {
     stop_cover();
     stop_crown();
@@ -302,7 +316,7 @@ function celebrate(root: HTMLElement, c: Course): void {
 function play_crown(root: HTMLElement, c: Course): () => void {
   const goal = root.querySelector<HTMLElement>('.milestones .goal');
   const svg = goal?.querySelector<SVGSVGElement>('svg');
-  const title = root.querySelector<HTMLElement>('.course-hero h1');
+  const title = root.querySelector<HTMLElement>('.course-hero h1, .course-cover h1');
   if (!goal || !svg || !title) return () => {};
   const won = goal.classList.contains('won');
   const key = `mathnim.crown.${c.id}`;
@@ -315,7 +329,8 @@ function play_crown(root: HTMLElement, c: Course): () => void {
     worn.className = 'title-crown';
     worn.setAttribute('aria-label', t('map_won'));
     worn.innerHTML = CROWN;
-    title.append(worn);
+    // (on a cover's two-line title, at the end of its second line)
+    (title.querySelector<HTMLElement>(':scope > span') ?? title).append(worn);
     goal.classList.add('away');
     try {
       localStorage.setItem(key, 'worn');
@@ -405,6 +420,21 @@ function play_crown(root: HTMLElement, c: Course): () => void {
   goal.addEventListener('pointerup', up);
   goal.addEventListener('pointercancel', up);
   return () => worn?.remove();
+}
+
+/** The title on the cover in two lines, the second light: what is in brackets ("模型预测控制（MPC）"), else the last word. */
+function cover_title(s: string): string {
+  const m = s.match(/^(.*?)\s*[（(]([^（）()]+)[）)]$/) ?? s.match(/^(.*\S)\s+(\S+)$/);
+  return m ? `${math_html(m[1])}<span>${math_html(m[2])}</span>` : math_html(s);
+}
+
+/** A course's own drawing behind its title: loaded with the page, drawn in by CSS (finished at once for reduced motion). */
+function draw_cover_art(root: HTMLElement, c: Course): void {
+  const box = root.querySelector<HTMLElement>('.cover-art');
+  if (!box || !c.cover_art) return;
+  c.cover_art().then((svg) => {
+    if (box.isConnected) box.innerHTML = svg;
+  }, (e) => console.warn('course cover art', e));
 }
 
 /** The moving cover: play the course's animation once (muted), rest on its last frame, replay on click. */

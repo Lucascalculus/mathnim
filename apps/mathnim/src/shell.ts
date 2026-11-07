@@ -222,6 +222,28 @@ a.nav-ic{text-decoration:none}
 .milestones .goal.held svg{transition:none}
 .milestones .goal.away svg{opacity:.18}
 .milestones .route-light{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#F5B400;box-shadow:0 0 10px 3px rgba(245,180,0,.55);pointer-events:none;z-index:3}
+/* a course with a drawing of its own (src/covers): the page opens on it, across the window under the top bar; the
+   title, the start and the map sit in its clear part (the infield of the logbook's track: 21% across, centred), the
+   drawing drawn in once, each line at its own pace */
+.app-shell:has(.course-cover){overflow-x:clip}
+.course-cover{position:relative;isolation:isolate;width:100vw;margin:-24px 0 40px calc(50% - 50vw);height:max(560px,min(56.25vw,calc(100vh - var(--mn-sticky-top))))}
+.cover-art{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.cover-art svg{display:block;width:100%;height:100%}
+.cover-art .dw{stroke-dasharray:1.3 1.3;stroke-dashoffset:1.3;animation:art-draw var(--t,1.2s) cubic-bezier(.45,.05,.25,1) var(--d,0s) forwards}
+.cover-art .fd{opacity:0;animation:art-fade var(--t,.7s) ease-out var(--d,0s) forwards}
+@keyframes art-draw{to{stroke-dashoffset:0}}
+@keyframes art-fade{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.cover-art .dw{animation:none;stroke-dashoffset:0}.cover-art .fd{animation:none;opacity:1}}
+.course-cover>.backlink{position:absolute;left:max(24px,calc(50vw - 726px));top:18px;margin:0}
+.cover-text{position:absolute;left:20.9%;top:48.5%;transform:translateY(-50%);width:42%;display:flex;flex-direction:column;gap:6px}
+.cover-text .hero-meta{font-size:clamp(14px,.95vw,17px)}
+.course-cover h1{font-size:clamp(40px,4.7vw,84px);line-height:.98;letter-spacing:-.035em;font-weight:700;margin:6px 0 0}
+.course-cover h1>span{display:block;font-weight:300;color:#44464d;letter-spacing:-.03em}
+.course-cover .hero-go{margin-top:clamp(12px,1.55vw,24px)}
+.course-cover .milestones{margin-top:clamp(16px,2.1vw,32px)}
+.course-cover h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
+.course-cover h1 .title-crown svg{display:block;width:40px;height:33px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
+@media (max-width:980px){.course-cover{height:auto;margin-top:-16px}.cover-art{display:none}.course-cover>.backlink{position:static;margin:0 0 12px 12px}.cover-text{position:static;transform:none;width:auto;padding:8px 12px 12px}}
 .course-hero h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
 .course-hero h1 .title-crown svg{display:block;width:30px;height:25px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
 /* cleared since last seen: the node pops, the check draws, the route runs on to the next stop; sparks fly */

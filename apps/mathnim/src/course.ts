@@ -89,6 +89,11 @@ export interface Course {
    * `feature` (a still of it) shows until it is ready, and instead of it for reduced motion.
    */
   cover_motion?: { visual: string; params?: Record<string, unknown>; pack?: () => Promise<unknown>; rate?: number };
+  /**
+   * A drawing made for this course's page alone (src/covers/<course>.ts): the hero's background, the title in its
+   * clear part, drawn in once as the page opens. It takes the place of the moving cover on the course page.
+   */
+  cover_art?: () => Promise<string>;
   /** Where the course sits on the home page ("中学数学", "大学与工程"); courses with the same category are listed together. */
   category?: L10n;
   /** When set, only these lessons are shown (a course published in batches); the rest stay reachable by address and checked by the tools. */
@@ -251,6 +256,8 @@ export const MPC_COURSE: Course = {
   id: 'mpc',
   // plan, apply the first step, plan again: the cart docks at the wall
   cover_motion: { visual: 'mpc_receding_loop', params: { N: 20 }, pack: () => import('@mathnim/visuals/mpc'), rate: 1.6 },
+  // the course page: the rail, the phase plane, the QP and the bend, drawn from the lessons' own runs
+  cover_art: () => import('./covers/mpc').then((m) => m.svg()),
   category: { en: 'AI', zh: 'AI' },
   slug: 'mpc',
   title: { en: 'Model Predictive Control', zh: '模型预测控制（MPC）' },
