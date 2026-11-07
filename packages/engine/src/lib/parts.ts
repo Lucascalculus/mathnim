@@ -123,7 +123,28 @@ const shift = (q: XY[], dx: number, dy: number): XY[] => q.map(([x, y]) => [x + 
 /** Ink at an alpha: for the scaffolding (edges, sockets, leaders) and shadows. */
 const GR = (a: number) => `rgba(26,27,31,${a.toFixed(3)})`;
 /** The amounts of coming apart at which leaders show: each must be clear at all of them. */
-const LEADER_E = [0.8, 0.9, 1];
+// (the words come in as the cards arrive, over the last few hundredths of the way, when nothing moves by more than a
+// pixel: their places are found for the cards at rest, and their leaders kept clear from where the words come in. The
+// stage holds everything drawn on the way there too.)
+const WORDS_FROM = 0.94;
+const LEADER_E = [WORDS_FROM, 1];
+const MOTION_E = [0.8, 0.9, 1];
+// The label search, made light (Lucas, 2026-11-07: 可以损失一些细微的效果来实现大幅性能优化). Over the 22 formulas in
+// both views and languages at 672, 536, 420 and 360 px, no word lost at a desktop column; layout 2.8 ms in the middle
+// (5.1 before), 16 ms at most (160); a long formula of thirteen blocks with long words 0.17 s (1.8 s, and minutes with
+// nothing to stop it).
+/**
+ * Where the drawing may stand when the words do not all have room: [the stage taller by 48 px this many times, moved
+ * sideways by this share of the room], in order. The first serves 87% of the corpus; these are the ones that served
+ * the rest.
+ */
+const TRIES: [number, number][] = [[0, 0], [0, -0.33], [0, 0.33], [0, -0.66], [0, 0.66], [1, 0], [0, -1], [0, 1], [2, 0], [2, 0.33], [3, -0.33], [3, 0.33]];
+/** More words than this without room at the first place, and no other is tried. */
+const HOPE = 5;
+/** The words' places tried: every this many px across and down (8 by 6 before: the words land up to 4 px off). */
+const STEP: [number, number] = [12, 8];
+/** How many tests of one word's place against another's the search for the best places together may make. */
+const PAIRS = 40000;
 
 // (brackets, stretched or not, are matched by what they hold: a \left( set alone is not the same glyph)
 const BRACKETS = /^[()[\]{}⟨⟩‖⎛⎜⎝⎞⎟⎠⎡⎢⎣⎤⎥⎦⎧⎨⎩⎫⎬⎭]+$/;
@@ -501,15 +522,29 @@ export class Parts extends Thing implements Block {
     const lh = Math.max(40, ...[...S.words.values()].map((x) => x.h));
     let H = Math.max(S.band, Math.ceil(tb[3] - tb[1] + 2 * (lh + 26)));
     const tcx = (tb[0] + tb[2]) / 2, tcy = (tb[1] + tb[3]) / 2, room = Math.max(0, (wa - (tb[2] - tb[0])) / 2 - 12);
+    // (places for the drawing, the nearest first, until every layer's words have room: almost always the first. A layer
+    // that missed words is tried first, and a place is left as soon as it cannot beat the best so far)
     let best: { labels: Map<PartNode, Label>[]; o1: XY; H: number; missing: number } | null = null;
-    search: for (let tries = 0; tries < 4; tries++, H += 48) {
-      for (const dx of [0, -0.33, 0.33, -0.66, 0.66, -1, 1]) {
+    let order = S.poses.map((_, n) => n);
+    const H0 = H;
+    search: {
+      for (const [up, dx] of TRIES) {
+        H = H0 + 48 * up;
         const o1: XY = [wa / 2 - tcx + dx * room, H / 2 - tcy];
         S.H = H;
-        const labels = S.poses.map((_, n) => this.place(S, n, o1, H));
-        const missing = labels.reduce((a, l, n) => a + S.poses[n].says.length - l.size, 0);
-        if (!best || missing < best.missing) best = { labels, o1, H, missing };
-        if (!missing) break search;
+        const labels: Map<PartNode, Label>[] = new Array(S.poses.length), miss: number[] = new Array(S.poses.length).fill(0);
+        let missing = 0, beaten = false;
+        for (const n of order) {
+          labels[n] = this.place(S, n, o1, H);
+          missing += miss[n] = S.poses[n].says.length - labels[n].size;
+          if (best && missing >= best.missing) { beaten = true; break; }
+        }
+        if (beaten) continue;
+        best = { labels, o1, H, missing };
+        // (another place makes room for a word or two, not for many: more than that and the formula has more words than
+        // the column holds, and the first is kept)
+        if (!missing || missing > HOPE) break search;
+        order = [...order].sort((a, b) => miss[b] - miss[a]);
       }
     }
     S.labels = best!.labels;
@@ -518,7 +553,7 @@ export class Parts extends Thing implements Block {
     // the stage as tall as what is drawn apart, words included, and no taller (the page opens only that much)
     let y0 = Infinity, y1 = -Infinity;
     for (let n = 0; n < S.poses.length; n++) {
-      for (const e of LEADER_E) for (const o of this.keep_clear(S, this.scene(S, e, n, n, 1))) { y0 = Math.min(y0, o.bb[1]); y1 = Math.max(y1, o.bb[3]); }
+      for (const e of MOTION_E) for (const o of this.keep_clear(S, this.scene(S, e, n, n, 1))) { y0 = Math.min(y0, o.bb[1]); y1 = Math.max(y1, o.bb[3]); }
       for (const lb of S.labels[n].values()) { y0 = Math.min(y0, lb.y); y1 = Math.max(y1, lb.y + lb.h); }
     }
     const dy = Math.max(0, Math.floor(y0 - 12));
@@ -600,7 +635,7 @@ export class Parts extends Thing implements Block {
   // glyph and each other; leaders straight, never crossing. Depth-first over the blocks, nearest places first.
   private place(S: Solved, n: number, o1: XY, H: number): Map<PartNode, Label> {
     const P = S.poses[n], W = S.w - S.aside, house = this.view === '3d';
-    const SC = LEADER_E.map((e) => this.scene(S, e, n, n, 1, o1)), OB = SC.map((sc) => this.keep_clear(S, sc));
+    const SC = LEADER_E.map((e) => this.scene(S, e, n, n, 1, o1)), NB = SC.map((sc) => new Near(this.keep_clear(S, sc)));
     const face = (sc: Scene, nd: PartNode) => sc.cards.find((c) => c.node === nd)?.face ?? null;
     // (a leader leaves its own card, and the cards it lies on: never another card, never a glyph)
     const holds = (a: PartNode | null, nd: PartNode) => { for (let x: PartNode | null = nd; x; x = x.parent) if (x === a) return true; return false; };
@@ -611,21 +646,22 @@ export class Parts extends Thing implements Block {
       if (!f) continue;
       const cxc = f.reduce((s, v) => s + v[0], 0) / 4, cyc = f.reduce((s, v) => s + v[1], 0) / 4;
       const list: Cand[] = [];
-      for (let x = M; x + w <= W - M; x += 8) for (let y = M; y + h <= H - M; y += 6) {
-        const bb: Rect = [x - 6, y - 6, x + w + 6, y + h + 6], box = rect_poly(x, y, w, h, 6);
-        if (OB.some((ob) => ob.some((o) => meet(bb, o.bb) && poly_cross(box, o.poly)))) continue;
+      for (let x = M; x + w <= W - M; x += STEP[0]) for (let y = M; y + h <= H - M; y += STEP[1]) {
         // attach to the side of the words facing the card: the end of their first line, or their top or bottom
         const side = x > cxc ? 'l' : x + w < cxc ? 'r' : y > cyc ? 't' : 'b';
         const mid = house ? Math.min(w / 2, 24) : w / 2;
         const at: XY = side === 'l' ? [x - 4, y + 10] : side === 'r' ? [x + w + 4, y + 10] : side === 't' ? [x + mid, y - 4] : [x + mid, y + h + 3];
-        const anchors = SC.map((sc) => nearest_on(face(sc, nd) ?? f, at)), an = anchors[anchors.length - 1];
-        const len = Math.hypot(at[0] - an[0], at[1] - an[1]);
+        // (out of a leader's reach first: the cheap test)
+        const an = nearest_on(f, at), len = Math.hypot(at[0] - an[0], at[1] - an[1]);
         if (len < 16 || len > 260) continue;
+        const bb: Rect = [x - 6, y - 6, x + w + 6, y + h + 6], box = rect_poly(x, y, w, h, 6);
+        if (NB[NB.length - 1].some(bb, (o) => poly_cross(box, o.poly))) continue;
+        const anchors = SC.map((sc) => nearest_on(face(sc, nd) ?? f, at));
         let clear = true;
         for (let k = 0; k < SC.length && clear; k++) {
           const a = anchors[k], a2: XY = [a[0] + (at[0] - a[0]) * 0.02, a[1] + (at[1] - a[1]) * 0.02];
           const sb: Rect = [Math.min(a2[0], at[0]), Math.min(a2[1], at[1]), Math.max(a2[0], at[0]), Math.max(a2[1], at[1])];
-          if (OB[k].some((o) => !o.socket && o.roof !== nd && (o.glyph || !holds(o.node, nd)) && meet(sb, o.bb) && seg_poly(a2, at, o.poly))) clear = false;
+          if (NB[k].some(sb, (o) => !o.socket && o.roof !== nd && (o.glyph || !holds(o.node, nd)) && seg_poly(a2, at, o.poly))) clear = false;
         }
         if (!clear) continue;
         // short leaders read best: in the house view level or gently sloped, in the plane straight up or down
@@ -639,16 +675,20 @@ export class Parts extends Thing implements Block {
       cand.set(nd, list.filter((c) => { const key = `${Math.floor(c.x / 36)},${Math.floor(c.y / 28)}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, 220));
     }
     const order = P.says.filter((nd) => cand.get(nd)?.length).sort((a, b) => cand.get(a)!.length - cand.get(b)!.length);
-    const ok = (c: Cand, chosen: Cand[]) => chosen.every((d) => !(meet(c.bb, d.bb) && poly_cross(c.box, d.box)) && c.anchors.every((a, k) => !seg_cross(a, c.at, d.anchors[k], d.at) && !seg_poly(a, c.at, d.box) && !seg_poly(d.anchors[k], d.at, c.box)));
-    let best: Cand[] | null = null, best_cost = Infinity, nodes = 0;
+    let pairs = 0;
+    const ok = (c: Cand, chosen: Cand[]) => (pairs += chosen.length, chosen.every((d) => !(meet(c.bb, d.bb) && poly_cross(c.box, d.box)) && c.anchors.every((a, k) => !seg_cross(a, c.at, d.anchors[k], d.at) && !seg_poly(a, c.at, d.box) && !seg_poly(d.anchors[k], d.at, c.box))));
+    // (the best places for all of them together, nearest first; when that takes more than PAIRS tests of one place
+    // against another, the best found so far)
+    let best: Cand[] | null = null, best_cost = Infinity;
     (function dfs(i: number, chosen: Cand[], cost: number) {
-      if (cost >= best_cost || nodes++ > 40000) return;
+      if (cost >= best_cost || pairs > PAIRS) return;
       if (i === order.length) { best = chosen.slice(); best_cost = cost; return; }
       for (const c of cand.get(order[i])!) {
-        if (cost + c.cost >= best_cost) break;
+        if (cost + c.cost >= best_cost || pairs > PAIRS) break;
         if (ok(c, chosen)) { chosen.push(c); dfs(i + 1, chosen, cost + c.cost); chosen.pop(); }
       }
     })(0, [], 0);
+
     // (no way for all of them: as many as fit, nearest first)
     if (!best) { const got: Cand[] = []; for (const nd of order) { const c = cand.get(nd)!.find((x) => ok(x, got)); if (c) got.push(c); } best = got; }
     const placed: Cand[] = best;
@@ -915,7 +955,7 @@ export class Parts extends Thing implements Block {
       for (const t of c.node.tokens) if (sc.tok.get(t)!.on === c.node) this.token(g, S, sc, t);
     }
     // 3. leaders and words, front-on, once the cards are apart (a new layer's as it arrives, the last one's leaving)
-    const e = clamp01(read(this.open)), la = clamp01((e - 0.8) / 0.2), a = Math.round(read(this.from)), b = Math.round(read(this.layer)), u = clamp01(read(this.fade));
+    const e = clamp01(read(this.open)), la = clamp01((e - WORDS_FROM) / (1 - WORDS_FROM)), a = Math.round(read(this.from)), b = Math.round(read(this.layer)), u = clamp01(read(this.fade));
     if (la > 0) {
       for (const lb of S.labels[b]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (a === b || (S.labels[a]?.has(lb.node) && same_place(S.labels[a].get(lb.node)!, lb)) ? 1 : smooth((u - 0.55) / 0.45)));
       if (a !== b) for (const lb of S.labels[a]?.values() ?? []) if (!(S.labels[b]?.has(lb.node) && same_place(S.labels[b].get(lb.node)!, lb))) this.words_of(g, env, S, sc, lb, la * (1 - smooth(u / 0.35)));
@@ -937,6 +977,34 @@ export class Parts extends Thing implements Block {
 }
 
 /** Words in the same place in two layers (a card that stays as it was keeps its words, without a flicker). */
+/** Things to keep clear of, bucketed by where they are (48 px squares): a box or a leader is tested only against those near it. */
+class Near<T extends { bb: Rect }> {
+  private cells = new Map<number, number[]>();
+  private seen: Int32Array;
+  private tick = 0;
+  constructor(private items: T[]) {
+    this.seen = new Int32Array(items.length);
+    items.forEach((o, i) => this.each(o.bb, (k) => { const c = this.cells.get(k); if (c) c.push(i); else this.cells.set(k, [i]); }));
+  }
+  private each(r: Rect, f: (k: number) => void): void {
+    for (let x = Math.floor(r[0] / 48); x <= Math.floor(r[2] / 48); x++) for (let y = Math.floor(r[1] / 48); y <= Math.floor(r[3] / 48); y++) f((x + 4096) * 8192 + y + 4096);
+  }
+  /** Whether any thing whose bounds meet r passes the test. */
+  some(r: Rect, test: (o: T) => boolean): boolean {
+    const tick = ++this.tick;
+    let hit = false;
+    this.each(r, (k) => {
+      if (hit) return;
+      for (const i of this.cells.get(k) ?? []) {
+        if (this.seen[i] === tick) continue;
+        this.seen[i] = tick;
+        const o = this.items[i];
+        if (meet(r, o.bb) && test(o)) { hit = true; return; }
+      }
+    });
+    return hit;
+  }
+}
 function same_place(a: Label, b: Label): boolean {
   return a.x === b.x && a.y === b.y && a.quiet === b.quiet;
 }
@@ -974,7 +1042,7 @@ export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang
     const bad: string[] = [];
     for (let n = 0; n <= p.opens.length; n++) {
       const box_poly = (b: Box) => rect_poly(b.x, b.y, b.w, b.h);
-      for (const e of [0.8, 0.9, 1]) {
+      for (const e of [0.94, 0.97, 1]) {
         const L = p.leaders(e, n), ink = p.ink_at(e, n);
         for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (seg_cross(L[i].a, L[i].b, L[j].a, L[j].b)) bad.push(`layer ${n}: leaders of ${L[i].node.part.tex} and ${L[j].node.part.tex} cross`);
         for (const l of L) {

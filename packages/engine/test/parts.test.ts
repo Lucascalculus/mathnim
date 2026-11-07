@@ -83,7 +83,7 @@ for (const view of ['split', '3d'] as const) describe(`taken apart (${view})`, (
   it('at every amount where leaders show, none crosses another, a glyph or words; no words meet', () => {
     const { F } = make(LAYERS, BAYES, view);
     expect(F.missing).toBe(0);
-    for (let n = 0; n <= F.opens.length; n++) for (const e of [0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1]) {
+    for (let n = 0; n <= F.opens.length; n++) for (const e of [0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1]) {
       const L = F.leaders(e, n), ink = F.ink_at(e, n);
       // (split: the blocks shown are every block opened so far, split; else the layer's blocks and the one opened)
       expect(L.length).toBe(view === 'split' ? [2, 3, 4][n] : n === 0 ? 2 : 3);
@@ -202,7 +202,7 @@ describe('with the lever, at the widths of the column', () => {
       expect(P.missing).toBe(0);
       expect(fig.lint().filter((i) => i.rule === 'invariant').map((i) => i.message)).toEqual([]);
       const edge = room.x - P.box.x - 2;
-      for (let n = 0; n <= P.opens.length; n++) for (const e of [0.8, 0.9, 1]) {
+      for (let n = 0; n <= P.opens.length; n++) for (const e of [0.94, 0.97, 1]) {
         const ink = P.ink_at(e, n);
         const right = Math.max(...ink.glyphs.flat().map((q) => q[0]), ...ink.cards.flat().map((q) => q[0]), ...ink.labels.map((b) => b.x + b.w));
         expect(right, `layer ${n} at ${e}`).toBeLessThanOrEqual(edge);
@@ -212,4 +212,35 @@ describe('with the lever, at the widths of the column', () => {
       expect(Math.max(...t)).toBeLessThan(edge);
     });
   }
+});
+
+// The label search, where it costs most: when not every word has room (gravity at 420 px in Chinese), and a long
+// formula of many blocks with long words, the worst a lesson might write (1.8 s before the obstacles were bucketed and
+// the words placed for the cards at rest). It finishes, and the same formula lays out the same every time.
+describe('the label search, when not every word has room', () => {
+  const lay = (tex: string, parts: FormulaPart[], lang: 'en' | 'zh', view: PartsView, w: number) => {
+    const fig = parts_figure(tex, parts, { lang, view, lever: true, paper: false });
+    fig.build();
+    fig.layout_for(w, undefined);
+    return fig.formula;
+  };
+  it('keeps the best it found, the same every time', () => {
+    const G = FORMULAS.find((f) => f.id === 'gravity')!;
+    const zh = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { zh: string }).zh, ...(p.parts ? { parts: zh(p.parts) } : {}) }));
+    const a = lay(G.tex, zh(G.parts), 'zh', '3d', 420), b = lay(G.tex, zh(G.parts), 'zh', '3d', 420);
+    for (let n = 0; n <= a.opens.length; n++) expect(a.ink_at(1, n).labels).toEqual(b.ink_at(1, n).labels);
+    expect(a.ink_at(1, 0).labels.length).toBeGreaterThan(0);
+  });
+  it('a long formula of many blocks with long words lays out in a moment', () => {
+    const says = 'what this term adds to the whole, in words long enough to need two or three lines of their own';
+    const terms = ['a_1 x_1^2', 'b_2 \\sin(x_2)', 'c_3 e^{x_3}', 'd_4 \\log x_4', 'f_5 \\sqrt{x_5}', 'g_6 x_6'];
+    const parts: FormulaPart[] = terms.map((t) => { const [k, v] = t.split(' '); return { tex: t, says, parts: [{ tex: k, says: 'its weight, how much it counts' }, { tex: v, says }] }; });
+    for (const view of ['split', '3d'] as const) {
+      const t0 = performance.now();
+      const F = lay(`y = ${terms.join(' + ')}`, parts, 'en', view, 672);
+      expect(F.issues).toEqual([]);
+      // (generous, for a slow machine: about 0.1 s here)
+      expect(performance.now() - t0).toBeLessThan(1500);
+    }
+  });
 });
