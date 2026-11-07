@@ -65,7 +65,7 @@ export async function mount_parts(root: ParentNode, lang: Lang): Promise<void> {
 async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   if (!el.isConnected) return;
   const d = JSON.parse(el.dataset.parts ?? '{}') as { tex: string; parts: FormulaPart[]; view?: PartsView; nouns?: Record<string, string> };
-  const fig = parts_figure(d.tex, d.parts, { lang, paper: false, view: d.view, nouns: d.nouns });
+  const fig = parts_figure(d.tex, d.parts, { lang, paper: false, view: d.view, nouns: d.nouns, lever: true });
   const F = fig.formula;
   if (F.issues.length) { el.dataset.issues = F.issues.join(' | '); return; }
   const stage = document.createElement('div');
@@ -154,6 +154,10 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   bead.setAttribute('aria-label', zh ? '公式拆到哪一层' : 'how far the formula is taken apart');
   lever.append(rail, bead);
   el.append(lever);
+  // (in the strip the figure keeps for it at the right of the stage, as the specimen's handle: inside the column, off
+  // the margin, nothing drawn under it)
+  const room = F.lever_room();
+  if (room) lever.style.left = `${room.x + (room.w - 36) / 2}px`;
   let gap = 20, top = 0;
   function build(): void {
     for (const x of [...lever.querySelectorAll('.mn-lever-stop')]) x.remove();

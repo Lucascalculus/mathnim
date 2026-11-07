@@ -218,8 +218,7 @@ export const CSS = `
 .mn-parts-live>.mn-parts-tex,.mn-parts-live>.mn-parts-list{display:none}
 .mn-parts-live{position:relative}
 .mn-parts-stage{overflow:hidden;transition:height .55s cubic-bezier(.3,.7,.2,1)}
-.mn-lever{position:absolute;top:0;left:calc(100% + 10px);width:36px;touch-action:none;user-select:none;-webkit-user-select:none}
-@media (max-width:820px){.mn-lever{left:auto;right:-6px}}
+.mn-lever{position:absolute;top:0;right:0;width:36px;touch-action:none;user-select:none;-webkit-user-select:none}
 .mn-lever-rail{position:absolute;left:17.5px;width:1px;background:rgba(26,27,31,.2)}
 .mn-lever-stop{position:absolute;left:10px;width:16px;height:14px;margin-top:-7px;padding:0;border:0;background:none;cursor:pointer}
 .mn-lever-stop::before{content:'';position:absolute;left:2px;top:6.25px;width:12px;height:1.5px;border-radius:1px;background:rgba(26,27,31,.38)}

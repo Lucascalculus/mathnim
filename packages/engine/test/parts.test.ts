@@ -187,3 +187,29 @@ describe('formulas of AI, mathematics and physics', () => {
     });
   }
 });
+
+// On a page the lever stands in a strip at the right of the stage (the specimen's handle): at the column's widths on a
+// desktop (1440 and 1024 wide), every layer still has room for its words, and nothing apart (a card, a glyph, words) goes
+// into the strip; together, the formula stays in the middle of the column.
+describe('with the lever, at the widths of the column', () => {
+  for (const view of ['house', 'flat', 'split'] as const) for (const lang of ['en', 'zh'] as const) for (const w of [672, 536]) {
+    it.each(FORMULAS.map((f) => [f.id, f] as const))(`${view}, ${lang}, ${w} px: %s`, (_id, F) => {
+      const loc = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { en: string; zh: string })[lang], ...(p.parts ? { parts: loc(p.parts) } : {}) }));
+      const fig = parts_figure(F.tex, loc(F.parts), { lang, view, lever: true, paper: false });
+      fig.build();
+      fig.layout_for(w, undefined);
+      const P = fig.formula, room = P.lever_room()!;
+      expect(P.missing).toBe(0);
+      expect(fig.lint().filter((i) => i.rule === 'invariant').map((i) => i.message)).toEqual([]);
+      const edge = room.x - P.box.x - 2;
+      for (let n = 0; n <= P.opens.length; n++) for (const e of [0.8, 0.9, 1]) {
+        const ink = P.ink_at(e, n);
+        const right = Math.max(...ink.glyphs.flat().map((q) => q[0]), ...ink.cards.flat().map((q) => q[0]), ...ink.labels.map((b) => b.x + b.w));
+        expect(right, `layer ${n} at ${e}`).toBeLessThanOrEqual(edge);
+      }
+      const t = P.ink_at(0, 0).glyphs.flat().map((q) => q[0]);
+      expect(Math.abs((Math.min(...t) + Math.max(...t)) / 2 - P.box.w / 2)).toBeLessThan(2);
+      expect(Math.max(...t)).toBeLessThan(edge);
+    });
+  }
+});

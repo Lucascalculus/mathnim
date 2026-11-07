@@ -98,6 +98,8 @@ interface Solved {
   labels: Map<PartNode, Label>[];
   /** Blocks whose words found no room. */
   missing: number;
+  /** The strip at the right kept for the page's lever (px; 0 with none): nothing apart goes into it. */
+  aside: number;
 }
 
 // the house camera, the same on every page (the specimen's)
@@ -208,9 +210,10 @@ export class Parts extends Thing implements Block {
   private nouns: Record<string, string>;
   private paths = new Map<TexGlyph, Path2D>();
   private size: number | null;
+  private lever: boolean;
   private lang: Lang = 'en';
   private S: Solved | null = null;
-  constructor(public tex: string, parts: FormulaPart[], o: { id?: string; size?: number; view?: PartsView; nouns?: Record<string, string> } = {}) {
+  constructor(public tex: string, parts: FormulaPart[], o: { id?: string; size?: number; view?: PartsView; nouns?: Record<string, string>; lever?: boolean } = {}) {
     super({ id: o.id ?? 'parts', role: 'text', z: 5 });
     this.view = o.view ?? 'house';
     this.line = typeset_line(tex);
@@ -243,6 +246,7 @@ export class Parts extends Thing implements Block {
     this.from = param(0, { name: `${this.id}.from`, range: [0, Math.max(0, this.opens.length)] });
     this.fade = param(1, { name: `${this.id}.fade`, range: [0, 1] });
     this.size = o.size ?? null;
+    this.lever = !!o.lever;
   }
   /** The blocks the old API listed: every block with its tokens, depth first. */
   get found(): { part: FormulaPart; tokens: Token[] }[] {
@@ -471,13 +475,16 @@ export class Parts extends Thing implements Block {
   private solve(w: number, lang: Lang): Solved {
     if (this.S && this.S.w === w && this.S.lang === lang) return this.S;
     const V = this.line.view, k1 = tex_scale(1);
-    let px = this.size ?? Math.max(look().type.label.size, Math.min(look().type.display.size * 1.15, (w - 24) / (V[2] * k1)));
+    // (with a lever, the specimen's handle at the right: together the formula stays in the middle, clear of it; apart,
+    // everything drawn keeps to the left of it)
+    const aside = this.lever ? (w < 560 ? 44 : 56) : 0, wa = w - aside;
+    let px = this.size ?? Math.max(look().type.label.size, Math.min(look().type.display.size * 1.15, (w - 2 * aside - 24) / (V[2] * k1)));
     let S!: Solved, tb: Rect = [0, 0, 0, 0];
     for (let tries = 0; tries < 6; tries++) {
       const k = tex_scale(px), c: XY = [(V[0] + V[2] / 2) * k, (V[1] + V[3] / 2) * k];
       const base = new Map<Token, Rect>(this.line.tokens.map((t) => [t, [t.box[0] * k - c[0], t.box[1] * k - c[1], t.box[2] * k - c[0], t.box[3] * k - c[1]]]));
       const A = this.line.anchor >= 0 ? base.get(this.line.tokens[this.line.anchor])! : null, axis = A ? (A[1] + A[3]) / 2 : 0;
-      S = { w, lang, px, k, c, H: 0, o0: [0, 0], o1: [0, 0], band: 0, base, poses: [], words: new Map(), labels: [], missing: 0 };
+      S = { w, lang, px, k, c, H: 0, o0: [0, 0], o1: [0, 0], band: 0, base, poses: [], words: new Map(), labels: [], missing: 0, aside };
       this.S = S;
       for (let n = 0; n <= this.opens.length; n++) S.poses.push(this.pose(n, px, base, axis));
       // what every layer draws apart, around the camera's origin
@@ -487,8 +494,8 @@ export class Parts extends Thing implements Block {
         for (const o of this.keep_clear(S, sc)) all.push(poly_bounds(o.poly));
       }
       tb = bounds(all);
-      if (tb[2] - tb[0] <= w - 28 || this.size) break;
-      px *= Math.max(0.7, (w - 28) / (tb[2] - tb[0]) * 0.98);
+      if (tb[2] - tb[0] <= wa - 28 || this.size) break;
+      px *= Math.max(0.7, (wa - 28) / (tb[2] - tb[0]) * 0.98);
     }
     for (const nd of this.nodes) S.words.set(nd, this.words(nd, lang));
     // together, the formula at the top of the stage; apart, what is drawn in its middle with the words around it
@@ -497,11 +504,11 @@ export class Parts extends Thing implements Block {
     S.band = top + fh + S.px * 0.36;
     const lh = Math.max(40, ...[...S.words.values()].map((x) => x.h));
     let H = Math.max(S.band, Math.ceil(tb[3] - tb[1] + 2 * (lh + 26)));
-    const tcx = (tb[0] + tb[2]) / 2, tcy = (tb[1] + tb[3]) / 2, room = Math.max(0, (w - (tb[2] - tb[0])) / 2 - 12);
+    const tcx = (tb[0] + tb[2]) / 2, tcy = (tb[1] + tb[3]) / 2, room = Math.max(0, (wa - (tb[2] - tb[0])) / 2 - 12);
     let best: { labels: Map<PartNode, Label>[]; o1: XY; H: number; missing: number } | null = null;
     search: for (let tries = 0; tries < 4; tries++, H += 48) {
       for (const dx of [0, -0.33, 0.33, -0.66, 0.66, -1, 1]) {
-        const o1: XY = [w / 2 - tcx + dx * room, H / 2 - tcy];
+        const o1: XY = [wa / 2 - tcx + dx * room, H / 2 - tcy];
         S.H = H;
         const labels = S.poses.map((_, n) => this.place(S, n, o1, H));
         const missing = labels.reduce((a, l, n) => a + S.poses[n].says.length - l.size, 0);
@@ -596,7 +603,7 @@ export class Parts extends Thing implements Block {
   // ---------------------------------------------------------------- the words: places all round, kept off every card,
   // glyph and each other; leaders straight, never crossing. Depth-first over the blocks, nearest places first.
   private place(S: Solved, n: number, o1: XY, H: number): Map<PartNode, Label> {
-    const P = S.poses[n], W = S.w, house = this.view === 'house';
+    const P = S.poses[n], W = S.w - S.aside, house = this.view === 'house';
     const SC = LEADER_E.map((e) => this.scene(S, e, n, n, 1, o1)), OB = SC.map((sc) => this.keep_clear(S, sc));
     const face = (sc: Scene, nd: PartNode) => sc.cards.find((c) => c.node === nd)?.face ?? null;
     // (a leader leaves its own card, and the cards it lies on: never another card, never a glyph)
@@ -710,17 +717,22 @@ export class Parts extends Thing implements Block {
     return [...(S.labels[n]?.values() ?? [])].flatMap((lb) => { const c = sc.cards.find((x) => x.node === lb.node); return c ? [{ node: lb.node, a: nearest_on(c.face, lb.at), b: lb.at }] : []; });
   }
   /** Glyphs at `e` apart in layer n, as screen polygons (px, in the figure), with the label boxes: for the checks. */
-  ink_at(e: number, n: number): { glyphs: XY[][]; roofs: (PartNode | undefined)[]; labels: Box[] } {
+  ink_at(e: number, n: number): { glyphs: XY[][]; roofs: (PartNode | undefined)[]; labels: Box[]; cards: XY[][] } {
     const S = this.S;
-    if (!S) return { glyphs: [], roofs: [], labels: [] };
+    if (!S) return { glyphs: [], roofs: [], labels: [], cards: [] };
     const sc = this.scene(S, e, n, n, 1);
-    return { glyphs: [...sc.tok.values()].map((r) => quad(sc.K, sc.o, r.box, r.z)), roofs: [...sc.tok.values()].map((r) => r.roof), labels: [...(S.labels[n]?.values() ?? [])].map((l) => ({ x: l.x, y: l.y, w: l.w, h: l.h })) };
+    return { glyphs: [...sc.tok.values()].map((r) => quad(sc.K, sc.o, r.box, r.z)), roofs: [...sc.tok.values()].map((r) => r.roof), labels: [...(S.labels[n]?.values() ?? [])].map((l) => ({ x: l.x, y: l.y, w: l.w, h: l.h })), cards: sc.cards.filter((c) => c.alpha >= 0.05).map((c) => this.card_poly(S, sc, c)) };
   }
   /** Where a token is drawn at `e` apart in layer n (its TeX origin, px in the figure): together, where it was typeset. */
   origin_of(t: Token, e: number, n = 0): XY {
     const S = this.S!, sc = this.scene(S, e, n, n, 1), r = sc.tok.get(t)!;
     const p = proj(sc.K, sc.o, r.box[0] - t.box[0] * S.k, r.box[1] - t.box[1] * S.k, r.z);
     return [this.box.x + p[0], this.box.y + p[1]];
+  }
+  /** The strip kept for the page's lever (px in the figure, from the figure's left), or null without a lever. */
+  lever_room(): { x: number; w: number } | null {
+    const S = this.S;
+    return S && S.aside ? { x: this.box.x + S.w - S.aside, w: S.aside } : null;
   }
   /** Where the formula was typeset (its TeX origin, px in the figure). */
   typeset_at(): XY {
@@ -934,10 +946,10 @@ function poly(g: CanvasRenderingContext2D, q: XY[]): void {
  * its script takes it apart and goes through every layer and back (a gallery's demo, a video); else it waits together
  * for a hand.
  */
-export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang; size?: number; paper?: boolean; tour?: boolean; view?: PartsView; nouns?: Record<string, string> } = {}): Figure & { formula: Parts } {
+export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang; size?: number; paper?: boolean; tour?: boolean; view?: PartsView; nouns?: Record<string, string>; lever?: boolean } = {}): Figure & { formula: Parts } {
   const fig = new Figure({ lang: o.lang ?? 'en' }) as Figure & { formula: Parts };
   if (o.paper === false) fig.paper = 'clear';
-  const p = new Parts(tex, parts, { id: 'parts', size: o.size, view: o.view, nouns: o.nouns });
+  const p = new Parts(tex, parts, { id: 'parts', size: o.size, view: o.view, nouns: o.nouns, lever: o.lever });
   fig.formula = p;
   for (const q of [p.open, p.layer, p.from, p.fade]) fig.params.set(q.name, q);
   fig.layout(column([p]), o.paper === false ? { pad: 2 } : {});
