@@ -41,6 +41,7 @@ define_ui({
   begin: { en: 'Start', zh: '开始' },
   audience: { en: 'For: {a}', zh: '适合：{a}' },
   outcomes: { en: 'After this course you can', zh: '学完你能' },
+  before_course: { en: 'Before you start', zh: '开始之前' },
   about_course: { en: 'Course details', zh: '课程详情' },
   cover_replay: { en: 'Click to play again', zh: '点一下再播一遍' },
   map_goal: { en: 'Finish all {n} lessons to win the crown', zh: '学完全部 {n} 节课，拿下皇冠' },

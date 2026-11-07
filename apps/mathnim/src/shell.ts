@@ -243,7 +243,52 @@ a.nav-ic{text-decoration:none}
 .course-cover .milestones{margin-top:clamp(16px,2.1vw,32px)}
 .course-cover h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
 .course-cover h1 .title-crown svg{display:block;width:40px;height:33px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
-@media (max-width:980px){.course-cover{height:auto;margin-top:-16px}.cover-art{display:none}.course-cover>.backlink{position:static;margin:0 0 12px 12px}.cover-text{position:static;transform:none;width:auto;padding:8px 12px 12px}}
+/* below a drawn course's cover, the page keeps to the cover's column (the track's infield: from the title's left
+   edge, 20.9% of the window, to 84%) and reads as the map's route, a line down the left: what to know first, each
+   unit (its number on the line, its name and size, its lessons hung under it), and the crown with what the course
+   gives */
+.units-route{margin:64px 0 96px calc(20.9vw - max(24px,50vw - 726px));width:63vw;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:0}
+.units-route .unit{position:relative;padding:0 0 56px 38px}
+.units-route .unit::before{content:'';position:absolute;left:9px;top:26px;bottom:4px;width:2px;background:var(--mn-border)}
+.units-route .unit:last-child::before{display:none}
+.units-route .unit.done::before{background:var(--course-accent,var(--mn-accent))}
+.unit-hd{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;margin:0 0 18px}
+.unit-n{position:absolute;left:0;top:4px;display:grid;place-items:center;width:20px;height:20px;box-sizing:border-box;border-radius:50%;border:2px solid var(--mn-border);background:var(--mn-panel);font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;color:var(--mn-muted)}
+.unit-n svg{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.unit.done .unit-n{background:var(--course-accent,var(--mn-accent));border-color:var(--course-accent,var(--mn-accent))}
+.unit.next .unit-n{border-color:var(--course-accent,var(--mn-accent));color:var(--course-accent,var(--mn-accent))}
+.units-route .unit-hd h3{margin:0;font-size:22px;font-weight:650;line-height:1.25;letter-spacing:-.012em}
+.unit-size{margin:0;font-size:13px;color:var(--mn-muted)}
+.units-route .lessons{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+/* its lessons without a card's chrome: the picture is the thing (on the page's paper, as the cover's drawing is),
+   the title and a small mono line under it; the picture lifts on hover */
+.units-route .lesson-card{background:none;border:0;box-shadow:none;border-radius:0;padding:0;gap:10px}
+.units-route .lesson-card:hover{transform:none}
+.units-route .lesson-card .thumb{background:var(--mn-panel);transition:transform .2s cubic-bezier(.3,1.4,.5,1),border-color .15s,box-shadow .2s}
+.units-route .lesson-card:hover .thumb{transform:translateY(-3px);border-color:var(--course-accent,var(--mn-accent));box-shadow:0 10px 24px -14px rgba(20,30,40,.35)}
+.units-route .lesson-title{font-size:15.5px;line-height:1.35}
+.units-route .lesson-card .meta{font-size:12px}
+.lesson-no{font:500 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;color:var(--mn-muted)}
+/* the lesson to start or continue with: its picture framed in the course's colour, its circle ringed */
+.units-route .lesson-card.here .thumb{border-color:var(--course-accent,var(--mn-accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 14%,transparent)}
+.units-route .lesson-card.here .pm-current{border-color:var(--course-accent,var(--mn-accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--course-accent,var(--mn-accent)) 20%,transparent)}
+/* the first stop is quiet (an open ring, grey words): it is read once; the crown's stop says what the course gives */
+.unit.start .unit-n{border-style:dashed}
+.unit.start .unit-hd h3{font-size:17px;color:var(--mn-muted)}
+.unit.start .unit-hd{margin-bottom:10px}
+.route-lead{margin:0;font-size:14.5px;line-height:1.6;color:var(--mn-muted);max-width:68ch}
+.route-links{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.route-links a{font-size:13.5px;font-weight:600;color:var(--mn-fg);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--mn-fg) 22%,transparent);text-underline-offset:3px}
+.route-links a:hover{color:var(--course-accent,var(--mn-accent));text-decoration-color:currentColor}
+.route-links span{display:block;margin-top:3px;font-size:12.5px;line-height:1.45;color:var(--mn-muted)}
+.unit.goal{padding-bottom:0}
+.unit.goal .unit-n{border:0;background:none;width:24px;height:22px;left:-2px;top:3px}
+.unit.goal .unit-n svg{width:24px;height:20px;fill:var(--mn-panel);stroke:#a9adb3;stroke-width:1.8;stroke-linejoin:round}
+.unit.goal.won .unit-n svg{fill:#F5B400;stroke:#DB9A00}
+.route-outcomes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:72ch}
+.route-outcomes li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.55}
+.route-outcomes li::before{content:'';position:absolute;left:1px;top:.5em;width:9px;height:9px;box-sizing:border-box;border-radius:50%;border:2px solid var(--course-accent,var(--mn-accent))}
+@media (max-width:980px){.units-route{margin-left:0;width:auto}.units-route .lessons,.route-links{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}.course-cover{height:auto;margin-top:-16px}.cover-art{display:none}.course-cover>.backlink{position:static;margin:0 0 12px 12px}.cover-text{position:static;transform:none;width:auto;padding:8px 12px 12px}}
 .course-hero h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
 .course-hero h1 .title-crown svg{display:block;width:30px;height:25px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
 /* cleared since last seen: the node pops, the check draws, the route runs on to the next stop; sparks fly */

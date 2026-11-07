@@ -201,18 +201,11 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     </header>`;
   root.innerHTML = `
     ${hero}
-    ${about(c, lang)}
-    <div class="units">${visible_units(c).map((u) => `
-      <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => {
-        const st = lesson_status(l.id);
-        return `
-        <a class="card lesson-card status-${st}" href="${lesson_path(l.id)}" title="${esc(kinds_text(l))}">
-          ${thumb(l.id)}
-          <div class="lesson-title">${progress_mark(st as Progress, t(STATUS[st]))}${math_html(tr(l.title, lang))}</div>
-          <div class="meta"><span>${esc(t('minutes', { n: l.minutes }))}</span></div>
-        </a>`;
-      }).join('')}</div></section>`).join('')}
+    ${c.cover_art ? '' : about(c, lang)}
+    <div class="units${c.cover_art ? ' units-route' : ''}"${accent(c)}>${c.cover_art ? route_start(c, lang) : ''}${visible_units(c).map((u, i) => c.cover_art ? route_unit(c, u, i, go, lang) : `
+      <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => lesson_card(l, lang)).join('')}</div></section>`).join('')}
       ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
+      ${c.cover_art ? route_goal(c, lang) : ''}
     </div>`;
   // a lesson with a world of its own (src/worlds/<course>/<lesson>.ts) is drawn as it; the others keep their picture
   draw_lesson_worlds(root, lang);
@@ -226,6 +219,70 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     stop_cover();
     stop_crown();
   };
+}
+
+/** A lesson's card: its picture, its status and title, its length. */
+function lesson_card(l: CourseLesson, lang: Lang, no?: number, here = false): string {
+  const st = lesson_status(l.id);
+  // (where the learner is, on a drawn course's route: ringed, in the site's language of circles)
+  const mark = (here && st === 'new' ? 'current' : st) as Progress;
+  // (a drawn course numbers its lessons through the course, in the cover's small mono figures)
+  const meta = no ? `<span class="lesson-no">${String(no).padStart(2, '0')} · ${esc(t('minutes', { n: l.minutes }))}</span>` : `<span>${esc(t('minutes', { n: l.minutes }))}</span>`;
+  return `
+        <a class="card lesson-card status-${st}${here ? ' here' : ''}" href="${lesson_path(l.id)}" title="${esc(kinds_text(l))}">
+          ${thumb(l.id)}
+          <div class="lesson-title">${progress_mark(mark, t(STATUS[st]))}${math_html(tr(l.title, lang))}</div>
+          <div class="meta">${meta}</div>
+        </a>`;
+}
+
+/** The route's first stop on a drawn course's page: what to know before starting, and where to pick it up. */
+function route_start(c: Course, lang: Lang): string {
+  const p = c.prerequisites;
+  if (!p) return '';
+  return `
+      <section class="unit start">
+        <header class="unit-hd"><i class="unit-n" aria-hidden="true"></i><h3>${esc(t('before_course'))}</h3></header>
+        <div class="route-body">
+          <p class="route-lead">${math_html(tr(p.summary, lang))}</p>
+          ${p.links.length ? `<ul class="route-links" aria-label="${esc(t('prereq_links'))}">${p.links.map((k) => `<li><a href="${esc(tr(k.url, lang))}" target="_blank" rel="noopener">${esc(tr(k.title, lang))}</a>${k.note ? `<span>${esc(tr(k.note, lang))}</span>` : ''}</li>`).join('')}</ul>` : ''}
+        </div>
+      </section>`;
+}
+
+/** The route's end: the crown, and what the learner can do after the course. */
+function route_goal(c: Course, lang: Lang): string {
+  if (!c.outcomes?.length) return '';
+  const won = done_in(c) === lessons_of(c).length;
+  return `
+      <section class="unit goal${won ? ' won' : ''}">
+        <header class="unit-hd"><i class="unit-n" aria-hidden="true">${CROWN}</i><h3>${esc(t('outcomes'))}</h3></header>
+        <ul class="route-outcomes">${c.outcomes.map((o) => `<li>${math_html(tr(o, lang))}</li>`).join('')}</ul>
+      </section>`;
+}
+
+type UnitState = 'done' | 'next' | 'todo';
+/** Each unit's place on the map: cleared (every lesson done), the next stop (the unit of the lesson to continue with,
+ *  unless it is cleared; else the first not cleared), or still to come. */
+function unit_states(c: Course, go: CourseLesson | undefined): Map<string, UnitState> {
+  const units = visible_units(c);
+  const cleared = (u: (typeof units)[number]) => u.lessons.every((l) => lesson_status(l.id) === 'done');
+  const here = units.find((u) => u.lessons.some((l) => l.id === go?.id));
+  const next = here && !cleared(here) ? here : units.find((u) => !cleared(u));
+  return new Map(units.map((u) => [u.id, cleared(u) ? 'done' : u === next ? 'next' : 'todo']));
+}
+
+/** A drawn course's unit, as a stop of the map above: its number on the route down the left (a check once cleared),
+ *  its name and size beside it, its lessons to the right. */
+function route_unit(c: Course, u: ReturnType<typeof visible_units>[number], i: number, go: CourseLesson | undefined, lang: Lang): string {
+  const before = visible_units(c).slice(0, i).reduce((n, v) => n + v.lessons.length, 0);
+  const st = unit_states(c, go).get(u.id) ?? 'todo';
+  const min = u.lessons.reduce((n, l) => n + l.minutes, 0);
+  return `
+      <section class="unit ${st}" id="unit-${esc(u.id)}">
+        <header class="unit-hd"><i class="unit-n" aria-hidden="true">${st === 'done' ? CHECK : i + 1}</i><h3>${math_html(unit_title(c, u, lang))}</h3><p class="unit-size">${esc(t('course_size', { n: u.lessons.length, d: duration(min) }))}</p></header>
+        <div class="lessons">${u.lessons.map((l, k) => lesson_card(l, lang, before + k + 1, l.id === go?.id)).join('')}</div>
+      </section>`;
 }
 
 const CHECK = '<svg viewBox="0 0 12 12"><path d="M2.8 6.3l2.2 2.2 4.3-4.7"/></svg>';
@@ -260,14 +317,11 @@ function review_line(c: Course): string {
 function milestones(c: Course, go: CourseLesson | undefined, lang: Lang): string {
   const all = lessons_of(c);
   const units = visible_units(c);
-  const cleared = (u: (typeof units)[number]) => u.lessons.every((l) => lesson_status(l.id) === 'done');
-  // the next stop: the unit of the lesson to continue with, unless it is cleared; else the first not cleared
-  const here = units.find((u) => u.lessons.some((l) => l.id === go?.id));
-  const next = here && !cleared(here) ? here : units.find((u) => !cleared(u));
+  const states = unit_states(c, go);
   const won = done_in(c) === all.length;
   const goal = won ? t('map_won') : t('map_goal', { n: all.length });
   return `<ol class="milestones">${units.map((u) => {
-    const st = cleared(u) ? 'done' : u === next ? 'next' : 'todo';
+    const st = states.get(u.id) ?? 'todo';
     const to = u.lessons.find((l) => lesson_status(l.id) !== 'done') ?? u.lessons[0];
     return `<li class="ms ${st}" data-ms="${esc(u.id)}"><a href="${lesson_path(to.id)}" title="${esc(tr(to.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(unit_title(c, u, lang))}</span></a></li>`;
   }).join('')}<li class="goal${won ? ' won' : ''}" data-ms="crown" title="${esc(goal)}" role="img" aria-label="${esc(goal)}">${CROWN}</li></ol>`;
