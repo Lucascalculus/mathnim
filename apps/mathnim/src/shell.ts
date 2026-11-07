@@ -235,11 +235,26 @@ a.nav-ic{text-decoration:none}
 @keyframes art-fade{to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.cover-art .dw{animation:none;stroke-dashoffset:0}.cover-art .fd{animation:none;opacity:1}}
 .course-cover>.backlink{position:absolute;left:max(24px,calc(50vw - 726px));top:18px;margin:0}
-.cover-text{position:absolute;left:20.9%;top:48.5%;transform:translateY(-50%);width:42%;display:flex;flex-direction:column;gap:6px}
+.cover-text{position:absolute;left:var(--cx,20.9%);top:var(--cy,48.5%);transform:translateY(-50%);width:var(--cw,42%);display:flex;flex-direction:column;gap:6px}
 .cover-text .hero-meta{font-size:clamp(14px,.95vw,17px)}
 .course-cover h1{font-size:clamp(40px,4.7vw,84px);line-height:.98;letter-spacing:-.035em;font-weight:700;margin:6px 0 0}
+.course-cover h1>b{display:block;font-weight:inherit;text-wrap:balance}
+.course-cover h1:has(>b.long){font-size:clamp(36px,3.9vw,68px)}
 .course-cover h1>span{display:block;font-weight:300;color:#44464d;letter-spacing:-.03em}
 .course-cover .hero-go{margin-top:clamp(12px,1.55vw,24px)}
+/* the start on a cover: not a black block but the course's colour, lightly: its words in it on a wash of it, a fine
+   edge, an arrow that steps on as the pointer comes */
+.course-cover .hero-go .mn-btn.primary{display:inline-flex;align-items:center;gap:10px;padding:11px 18px 11px 20px;border-radius:999px;background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 9%,var(--mn-bg));border:1px solid color-mix(in srgb,var(--course-accent,var(--mn-accent)) 34%,transparent);color:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 88%,#000);font-weight:600;font-size:15px;transition:background .2s,border-color .2s}
+.course-cover .hero-go .mn-btn.primary::after{content:'→';font-weight:500;transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.course-cover .hero-go .mn-btn.primary:hover{background:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 15%,var(--mn-bg));border-color:color-mix(in srgb,var(--course-accent,var(--mn-accent)) 60%,transparent)}
+.course-cover .hero-go .mn-btn.primary:hover::after{transform:translateX(4px)}
+@media (prefers-reduced-motion:reduce){.course-cover .hero-go .mn-btn.primary::after{transition:none}}
+/* a course of many units: on its cover the map is its dots, only the next stop named (each named on hover) */
+.course-cover .milestones.many .ms:not(.next) a>span{position:absolute;top:26px;left:0;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;background:var(--mn-bg);padding:2px 6px;margin-left:-6px;border-radius:6px}
+.course-cover .milestones.many .ms:not(.next) a:hover>span{opacity:1}
+.course-cover .milestones.many .ms.next a>span{white-space:nowrap}
+/* a course made from slides says so on its cover, quietly */
+.course-cover .gen-tag{margin:10px 0 0;max-width:52ch;font:400 11.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.01em;color:var(--mn-muted);text-transform:none}
 .course-cover .milestones{margin-top:clamp(16px,2.1vw,32px)}
 .course-cover h1 .title-crown{display:inline-block;vertical-align:top;margin:-14px 0 0 4px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-14deg)}
 .course-cover h1 .title-crown svg{display:block;width:40px;height:33px;fill:#F5B400;stroke:#DB9A00;stroke-width:1.8;stroke-linejoin:round;filter:drop-shadow(0 1px 4px rgba(245,180,0,.45))}
@@ -247,7 +262,7 @@ a.nav-ic{text-decoration:none}
    edge, 20.9% of the window, to 84%) and reads as the map's route, a line down the left: what to know first, each
    unit (its number on the line, its name and size, its lessons hung under it), and the crown with what the course
    gives */
-.units-route{margin:64px 0 96px calc(20.9vw - max(24px,50vw - 726px));width:63vw;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:0}
+.units-route{margin:64px 0 96px calc(var(--rl,20.9vw) - max(24px,50vw - 726px));width:var(--rw,63vw);max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:0}
 .units-route .unit{position:relative;padding:0 0 56px 38px}
 .units-route .unit::before{content:'';position:absolute;left:9px;top:26px;bottom:4px;width:2px;background:var(--mn-border)}
 .units-route .unit:last-child::before{display:none}

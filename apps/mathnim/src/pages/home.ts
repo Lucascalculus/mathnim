@@ -15,6 +15,7 @@ import { studio_available } from '../account';
 import { backlink } from '../backlink';
 import { WORLDS, follower, redraw, setup } from '../course_worlds';
 import { draw_lesson_worlds } from '../lesson_worlds';
+import { COVERS, type Cover } from '../covers';
 
 /** About how long: "45 min", "1.5 h". */
 const duration = (min: number) => (min < 60 ? t('minutes', { n: min }) : t('hours', { n: Math.round((min / 60) * 2) / 2 }));
@@ -163,7 +164,11 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   const langs = written.has('zh') && written.has('en') ? '中 / EN' : written.has('zh') ? '中文' : 'EN';
   const still = c.feature?.replace('{lang}', lang);
   // (a course drawn for its own page shows the drawing instead of the moving cover)
-  const cover_box = !c.cover_art && (c.cover_motion || still);
+  // a course with a cover of its own (src/covers) opens on it and reads as a route; the others keep their card
+  const cover = COVERS[c.slug];
+  // (the drawing sets the page's colour when it has one of its own)
+  const tone = cover?.accent ?? c.accent;
+  const cover_box = !cover && (c.cover_motion || still);
   // one quiet line above the title: category · size · languages
   const meta = [
     c.category ? `<b>${esc(tr(c.category, lang))}</b>` : '',
@@ -172,7 +177,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   ].filter(Boolean).join(' · ');
   const text = `
           ${meta ? `<p class="hero-meta">${meta}</p>` : ''}
-          <h1>${c.cover_art ? cover_title(tr(c.title, lang)) : math_html(tr(c.title, lang))}</h1>
+          <h1>${cover ? cover_title(tr(c.title, lang), cover) : math_html(tr(c.title, lang))}</h1>
           ${c.generated ? `<p class="gen-tag">${esc(c.generated.note ? tr(c.generated.note, ui_lang()) : t('gen_tag', { d: c.generated.decks, e: c.generated.exams }))}</p>` : ''}
           ${go ? `<div class="row hero-go">
             <a class="mn-btn primary" href="${lesson_path(go.id)}">${math_html(t(resumed ? 'continue_lesson' : 'start_lesson', { title: tr(go.title, lang) }))}</a>
@@ -180,8 +185,8 @@ export function course_page(root: HTMLElement, route: Route): () => void {
           </div>` : `<p class="hero-coming">${esc(t('course_coming'))}</p>`}`;
   // a course with a drawing of its own opens on it, across the window, its title, start and map in the drawing's
   // clear part; the others in a card with the moving cover beside the title
-  const hero = c.cover_art
-    ? `<section class="course-cover"${accent(c)}>
+  const hero = cover
+    ? `<section class="course-cover" data-cover="${esc(c.slug)}" style="--cx:${cover.at[0]}%;--cy:${cover.at[1]}%;--cw:${cover.at[2]}%;${tone ? `--course-accent:${esc(tone)}` : ''}">${cover.css ? `<style>${cover.css}</style>` : ''}
       <div class="cover-art" aria-hidden="true"></div>
       ${backlink('/', t('all_courses'))}
       <div class="cover-text">${text}
@@ -201,11 +206,11 @@ export function course_page(root: HTMLElement, route: Route): () => void {
     </header>`;
   root.innerHTML = `
     ${hero}
-    ${c.cover_art ? '' : about(c, lang)}
-    <div class="units${c.cover_art ? ' units-route' : ''}"${accent(c)}>${c.cover_art ? route_start(c, lang) : ''}${visible_units(c).map((u, i) => c.cover_art ? route_unit(c, u, i, go, lang) : `
+    ${cover ? '' : about(c, lang)}
+    <div class="units${cover ? ' units-route' : ''}"${cover ? ` style="--rl:${(cover.col ?? [cover.at[0], 100 - cover.at[0]])[0]}vw;--rw:${(cover.col ?? [cover.at[0], 100 - cover.at[0]])[1] - (cover.col ?? [cover.at[0]])[0]}vw;${tone ? `--course-accent:${esc(tone)}` : ''}"` : accent(c)}>${cover ? route_start(c, lang) : ''}${visible_units(c).map((u, i) => cover ? route_unit(c, u, i, go, lang) : `
       <section class="unit"><h3>${math_html(unit_title(c, u, lang))}</h3><div class="lessons">${u.lessons.map((l) => lesson_card(l, lang)).join('')}</div></section>`).join('')}
       ${c.labs ? `<section class="unit" id="labs"><h3>${esc(t('labs'))}</h3>${c.labs.length ? `<div class="lessons labs">${c.labs.map((l) => lab_card(c, l, lang)).join('')}</div>` : `<div class="card muted labs-soon">${esc(t('labs_soon'))}</div>`}</section>` : ''}
-      ${c.cover_art ? route_goal(c, lang) : ''}
+      ${cover ? route_goal(c, lang) : ''}
     </div>`;
   // a lesson with a world of its own (src/worlds/<course>/<lesson>.ts) is drawn as it; the others keep their picture
   draw_lesson_worlds(root, lang);
@@ -214,7 +219,7 @@ export function course_page(root: HTMLElement, route: Route): () => void {
   up_next(root, c);
   const stop_crown = play_crown(root, c);
   const stop_cover = play_cover(root, c);
-  draw_cover_art(root, c);
+  if (cover) draw_cover_art(root, cover);
   return () => {
     stop_cover();
     stop_crown();
@@ -330,7 +335,7 @@ function milestones(c: Course, go: CourseLesson | undefined, lang: Lang, crown =
   const states = unit_states(c, go);
   const won = done_in(c) === all.length;
   const goal = won ? t('map_won') : t('map_goal', { n: all.length });
-  return `<ol class="milestones">${units.map((u) => {
+  return `<ol class="milestones${units.length > 4 ? ' many' : ''}">${units.map((u) => {
     const st = states.get(u.id) ?? 'todo';
     const to = u.lessons.find((l) => lesson_status(l.id) !== 'done') ?? u.lessons[0];
     return `<li class="ms ${st}" data-ms="${esc(u.id)}"><a href="${lesson_path(to.id)}" title="${esc(tr(to.title, lang))}"><i aria-hidden="true">${CHECK}</i><span>${math_html(unit_title(c, u, lang))}</span></a></li>`;
@@ -487,18 +492,19 @@ function play_crown(root: HTMLElement, c: Course): () => void {
 }
 
 /** The title on the cover in two lines, the second light: what is in brackets ("模型预测控制（MPC）"), else the last word. */
-function cover_title(s: string): string {
-  const m = s.match(/^(.*?)\s*[（(]([^（）()]+)[）)]$/) ?? s.match(/^(.*\S)\s+(\S+)$/);
-  return m ? `${math_html(m[1])}<span>${math_html(m[2])}</span>` : math_html(s);
+function cover_title(s: string, cover: Cover): string {
+  const m = cover.split?.(s) ?? s.match(/^(.*?)\s*[（(]([^（）()]+)[）)]$/)?.slice(1) ?? s.match(/^(.*?),\s+(.+)$/)?.slice(1) ?? s.match(/^(.*\S)\s+(\S+)$/)?.slice(1);
+  // (a long first line is set a size down, so it stays on one line)
+  return m ? `${m[0].length > 16 ? '<b class="long">' : '<b>'}${math_html(m[0])}</b><span>${math_html(m[1])}</span>` : math_html(s);
 }
 
 /** A course's own drawing behind its title: loaded with the page, drawn in by CSS (finished at once for reduced motion). */
-function draw_cover_art(root: HTMLElement, c: Course): void {
+function draw_cover_art(root: HTMLElement, cover: Cover): void {
   const box = root.querySelector<HTMLElement>('.cover-art');
-  if (!box || !c.cover_art) return;
-  c.cover_art().then((svg) => {
-    if (box.isConnected) box.innerHTML = svg;
-  }, (e) => console.warn('course cover art', e));
+  if (!box) return;
+  cover.load().then((m) => {
+    if (box.isConnected) box.innerHTML = m.svg();
+  }, (e) => console.warn('course cover', e));
 }
 
 /** The moving cover: play the course's animation once (muted), rest on its last frame, replay on click. */
