@@ -59,7 +59,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: pulled up or tapped, it comes apart block by block (lib/parts.ts). */ parts?: FormulaBlock[]; /** Taken apart in the plane instead of in depth: 'flat' (a card holds its blocks' cards) or 'split' (a card splits into its blocks' cards). */ view?: 'house' | 'flat' | 'split'; /** Symbols coloured as nouns, in the formula and the words: { A: 'hypothesis' }. */ nouns?: Record<string, string> }
+  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: pulled up or tapped, it comes apart block by block (lib/parts.ts). */ parts?: FormulaBlock[]; /** Taken apart in depth, for a lesson's key formula ('3d'), instead of in the plane, a card splitting into its blocks' cards ('split', the default). */ view?: 'split' | '3d'; /** Symbols coloured as nouns, in the formula and the words: { A: 'hypothesis' }. */ nouns?: Record<string, string> }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */

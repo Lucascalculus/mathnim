@@ -40,13 +40,13 @@ export function parse_parts(body: string): { tex: string; parts: PartText[]; nou
 }
 /**
  * A formula taken apart as the page shows it before it can play: the formula, and each block with what it means, its
- * own blocks under it (mount_parts turns it into the engine's). `view` (the fence's word, ```parts flat): 'flat' or
- * 'split' take it apart in the plane; else in depth.
+ * own blocks under it (mount_parts turns it into the engine's). `view` (the fence's word, ```parts 3d): '3d' takes it
+ * apart in depth, for a lesson's key formula; else in the plane.
  */
 export function parts_html(tex: string, parts: PartText[], o: { view?: string; nouns?: Record<string, string> } = {}): string {
   const strip = (ps: PartText[]): unknown[] => ps.map((p) => ({ tex: p.tex, says: p.says, ...(p.parts?.length ? { parts: strip(p.parts) } : {}) }));
   const list = (ps: PartText[]): string => `<dl class="mn-parts-list">${ps.map((p) => `<div><dt>${tex_html(p.tex, false)}</dt><dd>${p.html ?? esc(p.says)}${p.parts?.length ? list(p.parts) : ''}</dd></div>`).join('')}</dl>`;
-  const data = { tex, parts: strip(parts), ...(o.view === 'flat' || o.view === 'split' ? { view: o.view } : {}), ...(o.nouns && Object.keys(o.nouns).length ? { nouns: o.nouns } : {}) };
+  const data = { tex, parts: strip(parts), ...(o.view === '3d' ? { view: o.view } : {}), ...(o.nouns && Object.keys(o.nouns).length ? { nouns: o.nouns } : {}) };
   return `<div class="mn-parts" data-parts="${esc(JSON.stringify(data))}"><div class="mn-parts-tex">${tex_html(tex, true)}</div>${list(parts)}</div>`;
 }
 /** Details folded under the sentence, unfolded like paper (text_wire.ts): a head, and each leaf a sheet. */

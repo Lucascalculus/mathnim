@@ -23,7 +23,7 @@ const LAYERS: FormulaPart[] = [
     { tex: 'P(B)', says: '**evidence** how common $B$ is anyway' }] },
 ];
 
-function make(parts: FormulaPart[] = LAYERS, tex = BAYES, view: PartsView = 'house', w = 700) {
+function make(parts: FormulaPart[] = LAYERS, tex = BAYES, view: PartsView = 'split', w = 700) {
   const fig = parts_figure(tex, parts, { lang: 'en', view, nouns: { A: 'hypothesis', B: 'evidence' } });
   fig.build();
   const H = Math.ceil(fig.layout_for(w, undefined).h);
@@ -65,7 +65,7 @@ describe('finding the blocks', () => {
   });
 });
 
-for (const view of ['house', 'flat', 'split'] as const) describe(`taken apart (${view})`, () => {
+for (const view of ['split', '3d'] as const) describe(`taken apart (${view})`, () => {
   it('put back together, every glyph is where it was typeset (0 px), and the frame is the frame before', () => {
     const { fig, F, W, H } = make(LAYERS, BAYES, view);
     const before = pixels(fig, W, H);
@@ -108,16 +108,16 @@ for (const view of ['house', 'flat', 'split'] as const) describe(`taken apart ($
     // a card with nothing inside: nothing; the card whose inside is shown, or the paper: one layer out
     expect(F.tap(F.middle(F.nodes[3]))).toBeNull();
     // (in the plane the focus's blocks lie on it and cover its middle)
-    if (view === 'house') expect(F.tap(F.middle(together))).toEqual({ open: 1, layer: 1 });
+    if (view === '3d') expect(F.tap(F.middle(together))).toEqual({ open: 1, layer: 1 });
     expect(F.tap([F.box.x + 2, F.box.y + 2])).toEqual({ open: 1, layer: 1 });
     at(F, 1, 0);
     expect(F.tap([F.box.x + 2, F.box.y + 2])).toEqual({ open: 0, layer: 0 });
   });
 });
 
-describe('the house view and the plane', () => {
-  it('house: a layer lifts its blocks, each on its own level; deeper, the focus comes down first and its blocks lift off it', () => {
-    const { F } = make();
+describe('in depth and in the plane', () => {
+  it('3d: a layer lifts its blocks, each on its own level; deeper, the focus comes down first and its blocks lift off it', () => {
+    const { F } = make(LAYERS, BAYES, '3d');
     at(F, 1, 0);
     const z = (n: number) => (F as unknown as { now(): { cards: { node: unknown; z: number }[] } }).now().cards.find((c) => c.node === F.nodes[n])!.z;
     expect(z(0)).toBeGreaterThan(0);
@@ -128,13 +128,13 @@ describe('the house view and the plane', () => {
     expect(z(3)).toBeGreaterThan(z(2));
     expect(z(4)).toBeGreaterThan(z(2));
   });
-  for (const view of ['flat', 'split'] as const) it(`${view}: no camera turn; apart, sibling cards never meet, and every glyph keeps its size`, () => {
-    const { F } = make(LAYERS, BAYES, view);
+  it('split: no camera turn; apart, cards never meet, and every glyph keeps its size', () => {
+    const { F } = make(LAYERS, BAYES, 'split');
     for (let n = 0; n <= F.opens.length; n++) {
       at(F, 1, n);
       const sc = (F as unknown as { now(): { K: { a: number; b: number; c: number; d: number }; cards: { node: { parent: unknown }; rect: number[] }[]; tok: Map<unknown, { box: number[] }> } }).now();
       expect([sc.K.a, Math.abs(sc.K.b), Math.abs(sc.K.c), sc.K.d]).toEqual([1, 0, 0, 1]);
-      const cs = sc.cards.filter((c) => c.node !== F.focus_of(n));
+      const cs = sc.cards;
       for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
         const a = cs[i].rect, b = cs[j].rect;
         expect(a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]).toBe(false);
@@ -175,7 +175,7 @@ describe('the house view and the plane', () => {
 });
 
 describe('formulas of AI, mathematics and physics', () => {
-  for (const view of ['house', 'flat', 'split'] as const) for (const lang of ['en', 'zh'] as const) {
+  for (const view of ['split', '3d'] as const) for (const lang of ['en', 'zh'] as const) {
     it.each(FORMULAS.map((f) => [f.id, f] as const))(`${view}, ${lang}: %s - every block found, every layer's words placed, no leader crossing`, (_id, F) => {
       const loc = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { en: string; zh: string })[lang], ...(p.parts ? { parts: loc(p.parts) } : {}) }));
       const fig = parts_figure(F.tex, loc(F.parts), { lang, view });
@@ -192,7 +192,7 @@ describe('formulas of AI, mathematics and physics', () => {
 // desktop (1440 and 1024 wide), every layer still has room for its words, and nothing apart (a card, a glyph, words) goes
 // into the strip; together, the formula stays in the middle of the column.
 describe('with the lever, at the widths of the column', () => {
-  for (const view of ['house', 'flat', 'split'] as const) for (const lang of ['en', 'zh'] as const) for (const w of [672, 536]) {
+  for (const view of ['split', '3d'] as const) for (const lang of ['en', 'zh'] as const) for (const w of [672, 536]) {
     it.each(FORMULAS.map((f) => [f.id, f] as const))(`${view}, ${lang}, ${w} px: %s`, (_id, F) => {
       const loc = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { en: string; zh: string })[lang], ...(p.parts ? { parts: loc(p.parts) } : {}) }));
       const fig = parts_figure(F.tex, loc(F.parts), { lang, view, lever: true, paper: false });

@@ -1,16 +1,18 @@
-// A formula taken apart (分解的公式; the specimen's gpu/int/explode.js, ported with its look and motion, 2026-11-07). A
-// formula is an assembly, and it can be drawn the way an engineer draws one. Pull it apart (or tap it) and the camera
-// turns to the house view while each block lifts on its own card, straight up along one axis; light from straight
-// above leaves each card's shadow where it sat, so the paper keeps the assembled formula; a leader runs from each card
-// to what it means. Let go and the cards drop back into their shadows, glyph for glyph.
+// A formula taken apart (分解的公式; the specimen's gpu/int/explode.js, ported with its look, 2026-11-07). A formula is an
+// assembly, and it can be drawn the way an engineer draws one: pull it apart (or tap it) and each block moves apart onto
+// its own card, the specimen's card, with a leader to what it means; let go and every glyph goes back where it was set.
 //
 // A block is often several terms that mean one thing (the error, the average over the data), and a block is made of
-// blocks: the parts are a tree, read as a sub-assembly is drawn. A card that holds more is two sheets thick. Tap it
-// and the rest settles back onto the paper, it comes down to the first level, and its own blocks lift off it onto
-// cards above it; tap it again, or the paper, to go back out.
+// blocks: the parts are a tree, read as a sub-assembly is drawn. A card that holds more is two sheets thick.
 //
-// A second view, for comparison (Lucas: 没有3D视角迁移的对照版本): 'flat' keeps the page's own view; the blocks move apart
-// in the plane and become cards, each with its words; a card that holds more comes apart the same way, inside itself.
+// Two views (Lucas, 2026-11-07: 默认用拆分版，3D 版留作可选写法):
+// - 'split', the default: apart in the plane, the glyphs upright where they were set, so the formula still reads as
+//   itself. Tap a card that holds more and it splits into its blocks' cards; the blocks opened before stay as they were,
+//   their words quieter; the paper, to go back out. One row of cards and one set of words at a time.
+// - '3d', for a lesson's key formula: the specimen's motion. The camera turns to the house view while each block lifts
+//   on its own card, straight up along one axis; light from straight above leaves each card's shadow where it sat, so
+//   the paper keeps the assembled formula. Tap a card and the rest settles back onto the paper, it comes down to the
+//   first level, and its own blocks lift off it onto cards above it.
 //
 // For a model to write: the formula, then each block as it is written in the formula with what it means (a name in
 // bold first, if it has one); a block's own blocks indented under it (in a text: a ```parts fence, `piece: meaning`
@@ -48,11 +50,10 @@ export interface PartNode {
   depth: number;
 }
 /**
- * 'house': taken apart in depth, under the house camera (the specimen); 'flat': apart in the plane, a block opened as a
- * card that holds its blocks' cards; 'split': apart in the plane, a block opened by splitting its card into its blocks'
- * cards (no card inside a card).
+ * 'split' (the default): apart in the plane, a block opened by splitting its card into its blocks' cards; '3d': taken
+ * apart in depth, under the house camera (the specimen).
  */
-export type PartsView = 'house' | 'flat' | 'split';
+export type PartsView = 'split' | '3d';
 
 type Rect = [number, number, number, number];
 interface Cam { a: number; b: number; c: number; d: number; hz: number }
@@ -215,7 +216,7 @@ export class Parts extends Thing implements Block {
   private S: Solved | null = null;
   constructor(public tex: string, parts: FormulaPart[], o: { id?: string; size?: number; view?: PartsView; nouns?: Record<string, string>; lever?: boolean } = {}) {
     super({ id: o.id ?? 'parts', role: 'text', z: 5 });
-    this.view = o.view ?? 'house';
+    this.view = o.view ?? 'split';
     this.line = typeset_line(tex);
     if (this.line.error) this.issues.push(`the formula does not typeset: ${this.line.error}`);
     const grow = (ps: FormulaPart[], parent: PartNode | null, scope: Token[]): PartNode[] => {
@@ -318,9 +319,9 @@ export class Parts extends Thing implements Block {
     const w = Math.ceil(Math.max(name ? text_width(name, FN) : 0, ...lines.map((l) => l.width)));
     return { name, lines, w, h: (name ? LH + 1 : 0) + lines.length * LH };
   }
-  /** The plane's measures (px): a card's padding across and down, the gap between cards, an outer card's padding, the move off the axis. */
-  private flat_m(px: number) {
-    return { padx: px * 0.16, pady: px * 0.14, gap: px * 0.5, tp: px * 0.24, v: px * 0.24 };
+  /** The plane's measures (px): a card's padding across and down, the gap between cards, the move off the axis. */
+  private plane_m(px: number) {
+    return { padx: px * 0.16, pady: px * 0.14, gap: px * 0.5, v: px * 0.24 };
   }
 
 
@@ -339,7 +340,7 @@ export class Parts extends Thing implements Block {
     for (const t of this.line.tokens) P.dim.set(t, inF && !inF.has(t) ? 0.3 : 1);
     for (const c of cards) P.under.set(c, F && !split && c !== F ? F : null);
     const cpx = px * 0.16, cpy = px * 0.14, ink = (nd: PartNode) => bounds(nd.tokens.map((t) => P.box.get(t)!));
-    if (this.view === 'house') {
+    if (this.view === '3d') {
       for (const t of this.line.tokens) P.box.set(t, base.get(t)!);
       for (const c of cards) P.rect.set(c, pad(ink(c), cpx, cpy));
       // heights: from the lowest card on screen up, each rises just far enough to clear everything already placed (the
@@ -367,9 +368,8 @@ export class Parts extends Thing implements Block {
     // the plane: the blocks move apart sideways into cards, as the specimen's cards, each with a leader to what it means.
     // Blocks stacked one over another share a column, and in it each row spreads on its own (a numerator's blocks move
     // apart over a denominator kept in the middle); what lies between them moves with them, a bar that spans them
-    // stretches; then they move a little away from the axis. 'flat' opens a block as a card that holds its blocks'
-    // cards; 'split' as its blocks' cards in its place.
-    const M = this.flat_m(px), levels = F && !split ? [[F], F.children] : [cards], inner = levels[levels.length - 1];
+    // stretches; then they move a little away from the axis. A block opened splits into its blocks' cards in its place.
+    const M = this.plane_m(px);
     const glyphs = (nd: PartNode) => bounds(nd.tokens.map((t) => base.get(t)!));
     const side_of = (b: Rect): 1 | -1 | 0 => (b[3] < axis - px * 0.1 ? -1 : b[1] > axis + px * 0.1 ? 1 : 0);
     type Row = { cards: { x0: number; x1: number; s: number; off: number }[]; add: number; pad: number };
@@ -398,7 +398,7 @@ export class Parts extends Thing implements Block {
         return col;
       });
     };
-    const cols = levels.map((lv, i) => columns(lv, i === levels.length - 1 ? M.padx + M.gap / 2 : M.tp + M.gap / 2));
+    const cols = [columns(cards, M.padx + M.gap / 2)];
     // how far a point moves for one column: nothing before it, all its spread after it, inside it by its row
     const in_col = (x: number, col: Col, side: number): number => {
       if (x <= col.x0 + 1e-6) return 0;
@@ -431,18 +431,15 @@ export class Parts extends Thing implements Block {
     };
     for (const t of this.line.tokens) P.box.set(t, moved(t));
     // away from the axis, a little: room for the cards' edges between a numerator, its bar and its denominator
-    for (const c of inner) {
+    for (const c of cards) {
       const sd = side_of(glyphs(c));
       if (sd) for (const t of c.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + sd * M.v, r[2], r[3] + sd * M.v]); }
     }
-    // (a card that holds cards, above the axis - a numerator taken apart - rises clear of its bar, one below drops)
-    const sF = F && !split ? side_of(glyphs(F)) : 0;
-    if (F && sF) for (const t of F.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + sF * M.tp, r[2], r[3] + sF * M.tp]); }
-    for (const c of inner) P.rect.set(c, pad(ink(c), M.padx, M.pady));
+    for (const c of cards) P.rect.set(c, pad(ink(c), M.padx, M.pady));
     // a radical over a card: its roof rises over the card, and its sign grows to meet it
     for (const t of this.line.tokens) {
       if (t.kind !== 'rule' || !(t.key.includes('sqrt') || t.key.includes('root'))) continue;
-      const r = P.box.get(t)!, under = inner.find((c) => !c.tokens.includes(t) && (() => { const g = ink(c); return g[0] >= r[0] - 2 && g[2] <= r[2] + 2 + px; })());
+      const r = P.box.get(t)!, under = cards.find((c) => !c.tokens.includes(t) && (() => { const g = ink(c); return g[0] >= r[0] - 2 && g[2] <= r[2] + 2 + px; })());
       if (!under) continue;
       const cr = P.rect.get(under)!, th = r[3] - r[1], top = cr[1] - th - px * 0.08;
       P.box.set(t, [r[0], top, Math.max(r[2], cr[2] + px * 0.04), top + th]);
@@ -450,7 +447,6 @@ export class Parts extends Thing implements Block {
       const sign = this.line.tokens.find((x) => x.key === '√' && Math.abs(P.box.get(x)![2] - r[0]) < px * 0.6);
       if (sign) { const b = P.box.get(sign)!; P.box.set(sign, [b[0], Math.min(b[1], top), b[2], b[3]]); P.roof.set(sign, under); }
     }
-    if (F && !split) P.rect.set(F, pad(bounds([...F.children.map((c) => P.rect.get(c)!), ink(F)]), M.tp, M.tp));
     for (const c of cards) P.z.set(c, 0);
     for (const t of this.line.tokens) P.tz.set(t, 0);
     return P;
@@ -552,7 +548,7 @@ export class Parts extends Thing implements Block {
   /** The scene at `e` apart, `u` of the way from layer a to layer b, with the camera's origin apart at o1. */
   private scene(S: Solved, e: number, a: number, b: number, u: number, o1 = S.o1): Scene {
     e = clamp01(e);
-    const oc = smooth(Math.min(1, e * 1.15)), lift = smooth((e - 0.08) / 0.92), uu = smooth(u), house = this.view === 'house';
+    const oc = smooth(Math.min(1, e * 1.15)), lift = smooth((e - 0.08) / 0.92), uu = smooth(u), house = this.view === '3d';
     const K = cam(house ? oc : 0), o: XY = [mix(S.o0[0], o1[0], oc), mix(S.o0[1], o1[1], oc)];
     const A = S.poses[a] ?? S.poses[0], B = S.poses[b] ?? S.poses[0];
     const tok: Scene['tok'] = new Map();
@@ -585,14 +581,14 @@ export class Parts extends Thing implements Block {
     for (const c of sc.cards) {
       if (c.alpha < 0.05) continue;
       add(c.node, this.card_poly(S, sc, c));
-      if (this.view === 'house' && c.z - c.rest > 1) add(c.node, grow_poly(quad(sc.K, sc.o, c.rect, c.rest), 4), { socket: true });
+      if (this.view === '3d' && c.z - c.rest > 1) add(c.node, grow_poly(quad(sc.K, sc.o, c.rect, c.rest), 4), { socket: true });
     }
     for (const r of sc.tok.values()) add(r.on, quad(sc.K, sc.o, r.box, r.z), { glyph: true, roof: r.roof });
     return out;
   }
   /** A card's edge as seen (px): its thickness under the house camera; in the plane, the same card seen a little from the front. */
   private edge(S: Solved, sc: Scene): number {
-    return S.px * 0.07 * (this.view === 'house' ? sc.K.hz : 0.62);
+    return S.px * 0.07 * (this.view === '3d' ? sc.K.hz : 0.62);
   }
   /** A card's outline on screen, its edge (two sheets for one that holds more) included. */
   private card_poly(S: Solved, sc: Scene, c: Card): XY[] {
@@ -603,7 +599,7 @@ export class Parts extends Thing implements Block {
   // ---------------------------------------------------------------- the words: places all round, kept off every card,
   // glyph and each other; leaders straight, never crossing. Depth-first over the blocks, nearest places first.
   private place(S: Solved, n: number, o1: XY, H: number): Map<PartNode, Label> {
-    const P = S.poses[n], W = S.w - S.aside, house = this.view === 'house';
+    const P = S.poses[n], W = S.w - S.aside, house = this.view === '3d';
     const SC = LEADER_E.map((e) => this.scene(S, e, n, n, 1, o1)), OB = SC.map((sc) => this.keep_clear(S, sc));
     const face = (sc: Scene, nd: PartNode) => sc.cards.find((c) => c.node === nd)?.face ?? null;
     // (a leader leaves its own card, and the cards it lies on: never another card, never a glyph)
@@ -784,28 +780,41 @@ export class Parts extends Thing implements Block {
     g.restore();
   }
   // shadows: drawn once per card size and blur (never computed while it moves), then laid on the paper as it is seen
-  private shadows = new Map<string, CanvasImageSource>();
-  private shadow_sprite(w: number, h: number, blur: number): { img: CanvasImageSource; m: number } {
-    const m = Math.ceil(blur * 2 + 2), key = `${Math.round(w)}x${Math.round(h)}|${blur}`;
-    let img = this.shadows.get(key);
-    if (!img) {
-      const s = 2, c = make_canvas((Math.round(w) + 2 * m) * s, (Math.round(h) + 2 * m) * s), g = c.getContext('2d') as unknown as CanvasRenderingContext2D;
-      g.scale(s, s);
+  // (a shadow is one blurred box per blur, made once and drawn to any card's size in nine pieces: the corners as they
+  // are, the edges and the middle stretched. Nothing is made while the cards move.)
+  private shadows = new Map<number, { img: CanvasImageSource; m: number }>();
+  private shadow_sprite(blur: number): { img: CanvasImageSource; m: number } {
+    let s = this.shadows.get(blur);
+    if (!s) {
+      // a box 2m + 2 across with m all round: its middle is the full shadow, its corners every corner's
+      const m = Math.ceil(blur * 2 + 2), b = 2 * m + 2, T = b + 2 * m, k = 2;
+      const c = make_canvas(T * k, T * k), g = c.getContext('2d') as unknown as CanvasRenderingContext2D;
+      g.scale(k, k);
       // (the shadow of a box drawn far to the left, cast back into the sprite: a blur every canvas has)
       g.shadowColor = 'rgba(26,27,31,1)';
-      g.shadowBlur = blur * 2 * s;
-      g.shadowOffsetX = 10000 * s;
+      g.shadowBlur = blur * 2 * k;
+      g.shadowOffsetX = 10000 * k;
       g.fillStyle = '#000';
-      g.fillRect(m - 10000, m, Math.round(w), Math.round(h));
-      img = c as unknown as CanvasImageSource;
-      if (this.shadows.size > 64) this.shadows.clear();
-      this.shadows.set(key, img);
+      g.fillRect(m - 10000, m, b, b);
+      s = { img: c as unknown as CanvasImageSource, m };
+      this.shadows.set(blur, s);
     }
-    return { img, m };
+    return s;
+  }
+  /** The shadow of the box r (px, in the current transform) with this blur. */
+  private shade(g: CanvasRenderingContext2D, r: Rect, blur: number): void {
+    const { img, m } = this.shadow_sprite(blur), k = 2, C = 2 * m, T = 4 * m + 2;
+    const W = r[2] - r[0] + 2 * m, H = r[3] - r[1] + 2 * m, x0 = r[0] - m, y0 = r[1] - m;
+    const cx = Math.min(C, W / 2), cy = Math.min(C, H / 2), sv = [0, C, C + 2, T];
+    const dx = [x0, x0 + cx, x0 + W - cx, x0 + W], dy = [y0, y0 + cy, y0 + H - cy, y0 + H];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const w = dx[i + 1] - dx[i], h = dy[j + 1] - dy[j];
+      if (w > 0.01 && h > 0.01) g.drawImage(img, sv[i] * k, sv[j] * k, (sv[i + 1] - sv[i]) * k, (sv[j + 1] - sv[j]) * k, dx[i], dy[j], w, h);
+    }
   }
   private shadow(g: CanvasRenderingContext2D, S: Solved, sc: Scene, c: Card): void {
-    const K = sc.K, r = c.rect, w = r[2] - r[0], h = r[3] - r[1];
-    if (this.view === 'house') {
+    const K = sc.K, r = c.rect;
+    if (this.view === '3d') {
       const dz = c.z - c.rest;
       if (dz < 0.5) return;
       // straight under the card: sharper when low, softer as it rises; and the socket it returns to
@@ -815,9 +824,8 @@ export class Parts extends Thing implements Block {
       g.transform(K.a, K.b, K.c, K.d, 0, 0);
       for (const [blur, wt] of [[1, 1 - t], [8, t]] as const) {
         if (wt < 0.01) continue;
-        const s = this.shadow_sprite(w, h, blur);
         g.globalAlpha = a * wt * 1.6;
-        g.drawImage(s.img, r[0] - s.m, r[1] - s.m, w + 2 * s.m, h + 2 * s.m);
+        this.shade(g, r, blur);
       }
       g.restore();
       g.save();
@@ -831,11 +839,10 @@ export class Parts extends Thing implements Block {
     }
     // (in the plane a card lies on the paper, a soft shadow under it)
     if (c.alpha < 0.01) return;
-    const s = this.shadow_sprite(w, h, 4);
     g.save();
     g.globalAlpha = 0.12 * c.alpha;
     g.translate(sc.o[0], sc.o[1] + this.edge(S, sc) + 1);
-    g.drawImage(s.img, r[0] - s.m, r[1] - s.m, w + 2 * s.m, h + 2 * s.m);
+    this.shade(g, r, 4);
     g.restore();
   }
   private card(g: CanvasRenderingContext2D, S: Solved, sc: Scene, c: Card): void {
@@ -942,7 +949,8 @@ function poly(g: CanvasRenderingContext2D, q: XY[]): void {
 }
 
 /**
- * A figure of one formula taken apart. `view`: 'house' (in depth, the specimen's) or 'flat' (in the plane). `tour`:
+ * A figure of one formula taken apart. `view`: 'split' (in the plane, the default) or '3d' (in depth, the specimen's).
+ * `lever`: keep a strip at the right for the page's lever (mount_parts). `tour`:
  * its script takes it apart and goes through every layer and back (a gallery's demo, a video); else it waits together
  * for a hand.
  */
@@ -996,29 +1004,20 @@ const bayes_parts = (lang: Lang): FormulaPart[] => {
 };
 const BAYES_NOUNS = { A: 'hypothesis', B: 'evidence' };
 define_thing({
-  name: 'parts', says: t('a formula taken apart like an exploded drawing: each block (one symbol or several terms) lifts on its own card with what it means; a card that holds more comes apart in turn', '像工程分解图一样拆开的公式：每一块（一个符号或几项）升到自己的卡片上，引线指向它的意思；装着更多的卡片可以再拆开'),
+  name: 'parts', says: t('a formula taken apart block by block: each block (one symbol or several terms) moves apart onto its own card with a leader to what it means; a card that holds more splits into its blocks\' cards when it is opened', '一块一块拆开的公式：每一块（一个符号或几项）移开到自己的卡片上，引线指向它的意思；装着更多的卡片点开后分裂成几张卡片'),
   zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'int/explode',
-  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, view: 'house' | 'flat' | 'split', nouns: { A: 'hypothesis' } })",
+  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, nouns: { A: 'hypothesis' } })",
   rules: ['each block as it is written in the formula; several terms that mean one thing are one block', "a block's own blocks are its next layer: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)', 'a name in bold first when the block has one (**prior**), then what it means in plain words'],
   accept: t('together again, every glyph is where it was typeset (0 px); no leader crosses another, a glyph or words, at every amount where leaders show; every block found inside the block it belongs to', '合上后每个字形回到排版位置（误差 0 px）；引线显示的每个时刻都互不相交，也不穿过字形或文字；每一块都在它所属的块里找到'),
   demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS }),
   source: 'packages/engine/src/lib/parts.ts',
 });
 define_thing({
-  name: 'parts_flat', says: t('the same formula taken apart in the plane, for comparison: the blocks move apart and become cards with what each means; a card that holds more comes apart inside itself', '同一个公式在平面里拆开（对照版）：各块移开、变成卡片并显示意思；装着更多的卡片在自己里面再分开'),
-  zones: ['figure', 'text'], maturity: 'experiment', since: '0.3.0', from: 'int/explode',
-  syntax: "parts_figure(tex, parts, { lang, view: 'flat' })",
-  rules: ['as parts, in the plane: no camera turn'],
+  name: 'parts_3d', says: t('the same, taken apart in depth for a lesson\'s key formula: the camera turns and each block lifts on its own card like an exploded drawing, its shadow left where it sat; a card that holds more comes down and its blocks lift off it', '同一个公式在纵深里拆开，用于一课里最关键的公式：镜头转过去，每一块像工程分解图一样升到自己的卡片上，影子留在原处；装着更多的卡片落下，它的几块再从它上面升起'),
+  zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'int/explode',
+  syntax: "parts_figure(tex, parts, { lang, view: '3d' })",
+  rules: ['as parts; one per lesson at most, for the formula the lesson is about'],
   accept: t('as parts', '同 parts'),
-  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: 'flat' }),
-  source: 'packages/engine/src/lib/parts.ts',
-});
-define_thing({
-  name: 'parts_split', says: t('the same formula taken apart in the plane, a card splitting into its blocks\' cards when it is opened (no card inside a card)', '同一个公式在平面里拆开：点开一张卡片，它分裂成几张卡片（卡片里不套卡片）'),
-  zones: ['figure', 'text'], maturity: 'experiment', since: '0.3.0', from: 'int/explode',
-  syntax: "parts_figure(tex, parts, { lang, view: 'split' })",
-  rules: ['as parts, in the plane; opening a block replaces its card with its blocks\' cards'],
-  accept: t('as parts', '同 parts'),
-  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: 'split' }),
+  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: '3d' }),
   source: 'packages/engine/src/lib/parts.ts',
 });

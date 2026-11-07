@@ -196,7 +196,7 @@ export type Block =
   | { type: 'p'; text: L10n }
   | { type: 'list'; items: L10n[]; ordered?: boolean }
   /** A displayed formula (TeX, shared by both languages). */
-  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: pulled up or tapped, it comes apart block by block (lib/parts.ts). */ parts?: FormulaBlock[]; /** Taken apart in the plane instead of in depth: 'flat' (a card holds its blocks' cards) or 'split' (a card splits into its blocks' cards). */ view?: 'house' | 'flat' | 'split'; /** Symbols coloured as nouns, in the formula and the words: { A: 'hypothesis' }. */ nouns?: Record<string, string> }
+  | { type: 'math'; tex: string; label?: string; /** Its blocks and what each means, each block's own blocks its next layer: pulled up or tapped, it comes apart block by block (lib/parts.ts). */ parts?: FormulaBlock[]; /** Taken apart in depth, for a lesson's key formula ('3d'), instead of in the plane, a card splitting into its blocks' cards ('split', the default). */ view?: 'split' | '3d'; /** Symbols coloured as nouns, in the formula and the words: { A: 'hypothesis' }. */ nouns?: Record<string, string> }
   /** Code with a copy button; `tabs` offers alternative spellings (e.g. PyTorch / TRL); `label` names this block's own tab. */
   | { type: 'code'; lang: string; code: string; caption?: L10n; label?: string; tabs?: { label: string; lang: string; code: string }[] }
   /** A static image from the app's public folder (SVG preferred), redrawn rather than copied; `credit` names the source. */
@@ -211,7 +211,7 @@ export type Block =
    * for text-only readers. Unlike `visual` it is not a manim-web scene: it can be any small interaction (chips, fields, sliders, tables).
    */
   | { type: 'frame'; src: string; params?: Record<string, unknown>; height?: number; alt: L10n; caption?: L10n }
-  | { type: 'callout'; kind: 'note' 
+  | { type: 'callout'; kind: 'note' | '
 ```
 
 ## Visuals
@@ -577,9 +577,8 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `cases` (`development`) | stable | a family of cases in transparent ink: where they agree, the ink is deepest | `P.add(new Cases((i) => secant(i), { id, role, count: 12, upto }))` | develop/tangent | `engine/src/lib/cases.ts` |
 | `trail` | stable | time as matter: equal-time ghosts of the past (spacing is speed), the future dashed | `P.add(new Trail({ sim, xy: (s) => [s[0], s[1]] }, { every: 1 / 12, ahead: 1 }))` | int/time | `engine/src/lib/trail.ts` |
 | `gap` | stable | how far off, drawn as a distance with its size in words | `P.add(new Gap(a, b, { shown, text: () => '0.4 m short' }))` | — | `engine/src/lib/guess.ts` |
-| `parts` | stable | a formula taken apart like an exploded drawing: each block (one symbol or several terms) lifts on its own card with what it means; a card that holds more comes apart in turn | `parts_figure(tex, [{ tex: 'P(B\\mid A)\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, view: 'house' \| 'flat' \| 'split', nouns: { A: 'hypothesis' } })` | int/explode | `engine/src/lib/parts.ts` |
-| `parts_flat` | experiment | the same formula taken apart in the plane, for comparison: the blocks move apart and become cards with what each means; a card that holds more comes apart inside itself | `parts_figure(tex, parts, { lang, view: 'flat' })` | int/explode | `engine/src/lib/parts.ts` |
-| `parts_split` | experiment | the same formula taken apart in the plane, a card splitting into its blocks' cards when it is opened (no card inside a card) | `parts_figure(tex, parts, { lang, view: 'split' })` | int/explode | `engine/src/lib/parts.ts` |
+| `parts` | stable | a formula taken apart block by block: each block (one symbol or several terms) moves apart onto its own card with a leader to what it means; a card that holds more splits into its blocks' cards when it is opened | `parts_figure(tex, [{ tex: 'P(B\\mid A)\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, nouns: { A: 'hypothesis' } })` | int/explode | `engine/src/lib/parts.ts` |
+| `parts_3d` | stable | the same, taken apart in depth for a lesson's key formula: the camera turns and each block lifts on its own card like an exploded drawing, its shadow left where it sat; a card that holds more comes down and its blocks lift off it | `parts_figure(tex, parts, { lang, view: '3d' })` | int/explode | `engine/src/lib/parts.ts` |
 | `plot` | stable | a plane with axes, where marks are drawn in the data's own coordinates | `fig.plot({ id, x: [x0, x1], y: [y0, y1], x_ticks, y_ticks, aspect })` | — | `engine/src/kernel/kinds.ts` |
 | `path` | stable | a curve or polyline; it can draw itself on (upto) and carry arrowheads along it | `P.add(new Path(() => pts, { id, role: 'noun:…', upto, heads }))` | — | `engine/src/kernel/kinds.ts` |
 | `region` | stable | a filled area: a set, a constraint, what is allowed | `P.add(new Region(() => pts, { id, role }))` | — | `engine/src/kernel/kinds.ts` |
@@ -637,7 +636,7 @@ Every piece an author can use, registered where it is written (`packages/engine/
 | `computed` | stable | a number computed from the ones the learner drags | `{{= 2.5*n}}` | int/tangle | `present/src/markup/builtin.ts` |
 | `why` | stable | a claim with its chain of reasons, each opened on demand | ````why … ```` | int/why | `present/src/markup/builtin.ts` |
 | `steps` | stable | a derivation written line by line, every line checked | ````steps … ```` | rare/algebra | `present/src/markup/builtin.ts` |
-| `parts` | stable | a formula taken apart like an exploded drawing: pulled up or tapped, each block lifts on its own card with what it means; a card that holds more comes apart in turn | ````parts … ``` (```parts flat or ```parts split: apart in the plane)` | int/explode | `present/src/markup/builtin.ts` |
+| `parts` | stable | a formula taken apart block by block: pulled up or tapped, each block moves apart onto its own card with what it means; a card that holds more splits into its blocks' cards in turn | ````parts … ``` (```parts 3d: in depth, for the one formula a lesson is about)` | int/explode | `present/src/markup/builtin.ts` |
 | `details` | stable | more, folded under the sentence, for who wants it | ````details Title … ```` | motion/fold | `present/src/markup/builtin.ts` |
 | `footnote` | stable | a source, on glass beside its mark | `[^key]` | motion/condense | `present/src/markup/builtin.ts` |
 | `prose` | stable | TeX, emphasis, code and links in any sentence | ``$inline TeX$`, `$$display TeX$$`, `**bold**` (the one key idea), `*italic*`, `` `code` ``, `[text](https://…)`` | — | `present/src/markup/builtin.ts` |

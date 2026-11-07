@@ -73,19 +73,28 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   const canvas = document.createElement('canvas');
   stage.append(canvas);
   el.prepend(stage);
-  const w = Math.max(220, Math.round(el.clientWidth || 360)), dpr = Math.min(2, typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1);
-  const p = new FigurePlayer(fig, canvas, { audio: false, size: { w, dpr }, label: lang === 'zh' ? '公式' : 'formula' });
+  const width = () => Math.max(220, Math.round(el.clientWidth || 360));
+  let W = width();
+  const dpr = Math.min(2, typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1);
+  const p = new FigurePlayer(fig, canvas, { audio: false, size: { w: W, dpr }, label: lang === 'zh' ? '公式' : 'formula' });
   await p.load();
-  canvas.style.width = `${canvas.width / dpr}px`;
-  canvas.style.height = `${canvas.height / dpr}px`;
+  // the canvas as laid out: as tall as everything drawn apart, and where the formula ends while together
+  let H = 0, band = 0;
+  const sized = () => {
+    canvas.style.width = `${canvas.width / dpr}px`;
+    canvas.style.height = `${canvas.height / dpr}px`;
+    H = canvas.height / dpr;
+    band = F.bands().bottom;
+  };
+  sized();
   el.classList.add('mn-parts-live');
   // (a frame whenever something it shows changes)
   p.start_live();
   // together, only the formula shows; apart, the stage opens to what is drawn (the text around steps aside)
-  const H = canvas.height / dpr, band = F.bands().bottom;
   let opened = false;
-  const show = (open: boolean) => { if (open !== opened) { opened = open; stage.style.height = `${open ? H : band}px`; } };
-  stage.style.height = `${band}px`;
+  const fit_stage = () => { stage.style.height = `${opened ? H : band}px`; };
+  const show = (open: boolean) => { if (open !== opened) { opened = open; fit_stage(); } };
+  fit_stage();
   // (on the canvas too, for the tools that drive the page headlessly: page_shots)
   (canvas as HTMLCanvasElement & { mn_parts?: typeof F }).mn_parts = F;
   canvas.setAttribute('role', 'button');
@@ -156,8 +165,11 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   el.append(lever);
   // (in the strip the figure keeps for it at the right of the stage, as the specimen's handle: inside the column, off
   // the margin, nothing drawn under it)
-  const room = F.lever_room();
-  if (room) lever.style.left = `${room.x + (room.w - 36) / 2}px`;
+  const place_lever = () => {
+    const room = F.lever_room();
+    if (room) lever.style.left = `${room.x + (room.w - 36) / 2}px`;
+  };
+  place_lever();
   let gap = 20, top = 0;
   function build(): void {
     for (const x of [...lever.querySelectorAll('.mn-lever-stop')]) x.remove();
@@ -238,7 +250,7 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
 
   // ---- the hand on the formula: pull it up to go in, push it down to come out; a tap takes it apart, opens the card
   // it lands on, or goes back out
-  const reach = Math.min(200, Math.max(120, H * 0.4));
+  let reach = Math.min(200, Math.max(120, H * 0.4));
   canvas.addEventListener('pointerdown', (e) => press(e, reach, canvas));
   canvas.addEventListener('pointermove', (e) => {
     if (drag(e)) { if (grab?.moved) canvas.style.cursor = 'grabbing'; return; }
@@ -263,4 +275,28 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go_to(i < stops() - 1 ? i + 1 : 0); }
     else if (e.key === 'Escape' && i > 0) go_to(i - 1);
   });
+
+  // ---- the column's width changes (a window made narrower or wider): laid out again for it, at the place it was
+  if (typeof ResizeObserver === 'undefined') return;
+  let raf = 0;
+  const ro = new ResizeObserver(() => {
+    if (!el.isConnected) return ro.disconnect();
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const w2 = width();
+      if (Math.abs(w2 - W) < 2) return;
+      W = w2;
+      p.opts.size = { w: W, dpr };
+      if (!p.fit()) return;
+      p.draw(true);
+      sized();
+      place_lever();
+      build();
+      place_bead();
+      fit_stage();
+      reach = Math.min(200, Math.max(120, H * 0.4));
+    });
+  });
+  ro.observe(el);
 }
