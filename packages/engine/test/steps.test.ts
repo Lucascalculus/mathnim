@@ -619,3 +619,23 @@ describe('the tutor: answers as it writes them read, typeset, match and check', 
     expect(big.issues.join()).toMatch(/too much at once/);
   });
 });
+
+// A system written one equation to a line, then solved (the live tutor, 2026-11-07): the second equation is given, not
+// derived from the first, and is not reported as losing its solutions; the solving is checked as before.
+describe('check_steps: a system given one equation to a line', () => {
+  it('the lines before the first reason are given; the rest is checked', () => {
+    const lines = [
+      { tex: '4x_1 + 3x_2 = 240', why: null }, { tex: '2x_1 + x_2 = 100', why: null },
+      { tex: 'x_2 = 100 - 2x_1', why: 'rearrange the second equation' },
+      { tex: '4x_1 + 3(100 - 2x_1) = 240', why: 'substitute into the first' },
+      { tex: '4x_1 + 300 - 6x_1 = 240', why: 'expand the bracket' },
+      { tex: '-2x_1 = -60', why: 'subtract 300 from both sides' },
+    ];
+    const v = check_steps(lines).verdicts;
+    expect(v.find((x) => x.line === 2)).toMatchObject({ status: 'unchecked', message: 'given' });
+    expect(v.filter((x) => x.status === 'error')).toEqual([]);
+    // (a slip after the givens is still caught)
+    const bad = check_steps([...lines.slice(0, 5), { tex: '-2x_1 = -50', why: 'subtract 300 from both sides' }]).verdicts;
+    expect(bad.find((x) => x.line === 6)?.status).toBe('error');
+  });
+});

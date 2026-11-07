@@ -185,6 +185,8 @@ export interface VisualAnswer {
 }
 
 /** One question's card and what is known while it is being answered. */
+/** Visuals that draw a formula's lines or blocks: not chosen beside words that already hold a steps or parts block. */
+const FORMULA_VISUALS = new Set(['formula_steps', 'substitute_point']);
 interface Card {
   question: string;
   t0: number;
@@ -511,6 +513,12 @@ export class AskPanel {
       route = decide(null, e);
     }
     c.timing.plan = performance.now() - c.t0;
+    // (a derivation or a formula taken apart is drawn in the words themselves, the engine's own: a formula visual
+    // chosen beside it would show the same lines twice)
+    if (route.kind === 'visual' && FORMULA_VISUALS.has(route.visual.name)) {
+      const x = await Promise.race([c.fast, new Promise<null>((r) => setTimeout(() => r(null), 20000))]);
+      if (x && /```\s*(?:steps|parts)\b/.test(x.text)) route = { kind: 'none' };
+    }
     if (route.kind === 'none') {
       // the words are the answer: no picture, and no placeholder ever shown for one
       const x = await c.fast;

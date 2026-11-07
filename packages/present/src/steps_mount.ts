@@ -67,7 +67,10 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   const d = JSON.parse(el.dataset.parts ?? '{}') as { tex: string; parts: FormulaPart[]; view?: PartsView; nouns?: Record<string, string> };
   const fig = parts_figure(d.tex, d.parts, { lang, paper: false, view: d.view, nouns: d.nouns, lever: true });
   const F = fig.formula;
-  if (F.issues.length) { el.dataset.issues = F.issues.join(' | '); return; }
+  // (a block that is nowhere in the formula is left out, one written under the wrong block is shown where it is: the
+  // formula plays as long as one block was found; else the written list stays)
+  if (F.issues.length || F.notes.length) el.dataset.issues = [...F.issues, ...F.notes].join(' | ');
+  if (!F.roots.length) return;
   const stage = document.createElement('div');
   stage.className = 'mn-parts-stage';
   const canvas = document.createElement('canvas');

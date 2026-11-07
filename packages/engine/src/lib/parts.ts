@@ -219,7 +219,10 @@ export class Parts extends Thing implements Block {
   readonly nodes: PartNode[] = [];
   /** The blocks that have an inside, depth first: layer n (n ≥ 1) shows the inside of opens[n − 1]. */
   readonly opens: PartNode[] = [];
+  /** Blocks that are nowhere in the formula (left out), and a formula that does not typeset. */
   readonly issues: string[] = [];
+  /** Blocks written under a block they are not inside: shown one level up, where they are. */
+  readonly notes: string[] = [];
   readonly view: PartsView;
   /** How far apart (0 together, 1 apart). */
   readonly open: Param<number>;
@@ -240,25 +243,34 @@ export class Parts extends Thing implements Block {
     this.view = o.view ?? 'split';
     this.line = typeset_line(tex);
     if (this.line.error) this.issues.push(`the formula does not typeset: ${this.line.error}`);
-    const grow = (ps: FormulaPart[], parent: PartNode | null, scope: Token[]): PartNode[] => {
-      const taken = new Set<Token>();
-      return ps.flatMap((part) => {
+    // (a block that is not inside the block it was written under - a tutor's slip, ∑_t over m_t - is looked for one
+    // level up, and so on to the whole formula: shown where it is, and noted. Only a block that is nowhere in the
+    // formula is left out.)
+    const grow = (ps: FormulaPart[], parent: PartNode | null, scope: Token[]): { nodes: PartNode[]; lost: { part: FormulaPart; under: PartNode }[] } => {
+      const taken = new Set<Token>(), nodes: PartNode[] = [], lost: { part: FormulaPart; under: PartNode }[] = [];
+      const place = (part: FormulaPart, under: PartNode | null): void => {
         const tokens = this.line.error ? null : find_block(this.line, part.tex, scope, taken);
         if (!tokens) {
-          this.issues.push(parent ? `the block ${part.tex} is not inside ${parent.part.tex}` : `the block ${part.tex} is not in the formula`);
-          return [];
+          if (parent) lost.push({ part, under: under ?? parent });
+          else this.issues.push(`the block ${part.tex} is not in the formula`);
+          return;
         }
+        if (under) this.notes.push(`the block ${part.tex} is not inside ${under.part.tex}: shown beside it`);
         tokens.forEach((t) => taken.add(t));
         const node: PartNode = { part, tokens, children: [], parent, depth: parent ? parent.depth + 1 : 0 };
         this.nodes.push(node);
+        nodes.push(node);
         if (part.parts?.length) {
           this.opens.push(node);
-          node.children = grow(part.parts, node, tokens);
+          const inner = grow(part.parts, node, tokens);
+          node.children = inner.nodes;
+          for (const l of inner.lost) place(l.part, l.under);
         }
-        return [node];
-      });
+      };
+      for (const part of ps) place(part, null);
+      return { nodes, lost };
     };
-    this.roots = grow(parts, null, this.line.tokens);
+    this.roots = grow(parts, null, this.line.tokens).nodes;
     // (a block whose inside was not found does not open)
     for (const n of [...this.opens]) if (!n.children.length) this.opens.splice(this.opens.indexOf(n), 1);
     this.nouns = o.nouns ?? {};
@@ -1036,7 +1048,7 @@ export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang
     for (let i = 0; i < p.opens.length; i++) { seq.push(...go(at, i + 1)); at = i + 1; }
     fig.script(wait(0.8), set(p.open, 1, 'travel', 0.9), wait(2.6), ...seq, ...go(at, 0), set(p.open, 0, 'travel', 0.8));
   }
-  fig.check('every block is in the formula, each inside the block it is part of', () => (p.issues.length ? p.issues.join('; ') : null));
+  fig.check('every block is in the formula, each inside the block it is part of', () => (p.issues.length || p.notes.length ? [...p.issues, ...p.notes].join('; ') : null));
   fig.check('every layer has room for its words', () => (p.missing ? `${p.missing} block(s) have no room for their words` : null));
   fig.check('no leader crosses another, a glyph or words; no words meet', () => {
     const bad: string[] = [];

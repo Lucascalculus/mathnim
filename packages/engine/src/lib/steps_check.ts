@@ -570,8 +570,12 @@ export function check_steps(lines: StepLine[]): { domain: Domain; verdicts: Verd
     });
     return { domain, verdicts };
   }
+  // (the lines before the first with a reason, when a later line has one, are what is given: a system written one
+  // equation to a line does not follow from its first equation, and is not checked as if it did)
+  const first_why = lines.findIndex((l) => !!l.why?.trim());
   for (let i = 1; i < lines.length; i++) {
     const line = i + 1;
+    if (first_why > 1 && i < first_why) { verdicts.push({ line, status: 'unchecked', message: 'given' }); continue; }
     try {
       if (domain === 'logic') { verdicts.push(check_logic(lines[i - 1].tex, lines[i].tex, line)); continue; }
       const A = read_line(lines[i - 1].tex), B = read_line(lines[i].tex);

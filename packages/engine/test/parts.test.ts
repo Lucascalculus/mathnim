@@ -61,7 +61,11 @@ describe('finding the blocks', () => {
   });
   it('a block not in the formula, or not inside its parent, is reported', () => {
     expect(make([{ tex: 'z', says: 'zed' }], 'x + y').F.issues.join(' ')).toContain('not in the formula');
-    expect(make([{ tex: 'x', says: 'ex', parts: [{ tex: 'y', says: 'why' }] }], 'x + y').F.issues.join(' ')).toContain('not inside x');
+    // (one written under a block it is not inside is shown one level up, where it is, and noted)
+    const { F } = make([{ tex: 'x', says: 'ex', parts: [{ tex: 'y', says: 'why' }] }], 'x + y');
+    expect(F.notes.join(' ')).toContain('not inside x');
+    expect(F.issues).toEqual([]);
+    expect(F.roots.map((n) => n.part.tex)).toEqual(['x', 'y']);
   });
 });
 
@@ -242,5 +246,29 @@ describe('the label search, when not every word has room', () => {
       // (generous, for a slow machine: about 0.1 s here)
       expect(performance.now() - t0).toBeLessThan(1500);
     }
+  });
+});
+
+// A tutor's slips (live, 2026-11-07): a sum's terms written under the ∑ instead of under the whole sum, the minus
+// under the fraction it stands before. Each is shown where it is, one level up, and the formula still comes apart.
+describe("a tutor's slips", () => {
+  it('blocks written under the wrong block are shown where they are, and the formula plays', () => {
+    const tex = 'L(\\theta) = -\\frac{1}{Z}\\sum_t m_t \\log p_\\theta(y_t \\mid y_{<t})';
+    const parts: FormulaPart[] = [
+      { tex: 'L(\\theta)', says: '**loss** one number, lower is better' },
+      { tex: '\\frac{1}{Z}\\sum_t m_t \\log p_\\theta(y_t \\mid y_{<t})', says: 'the average surprise over the graded tokens', parts: [
+        { tex: '-', says: 'surprise is minus the log' },
+        { tex: '\\sum_t', says: 'over every token', parts: [
+          { tex: 'm_t', says: '**mask** 1 to learn this token, 0 for context' },
+          { tex: '\\log p_\\theta(y_t \\mid y_{<t})', says: 'how likely the model finds the true token' }] }] },
+    ];
+    const fig = parts_figure(tex, parts, { lang: 'en', lever: true, paper: false });
+    fig.build();
+    fig.layout_for(324, undefined);
+    const F = fig.formula;
+    expect(F.issues).toEqual([]);
+    expect(F.notes.length).toBe(3);
+    expect(F.roots.map((n) => n.part.tex)).toEqual(['L(\\theta)', parts[1].tex, '-']);
+    expect(F.roots[1].children.map((n) => n.part.tex)).toEqual(['\\sum_t', 'm_t', '\\log p_\\theta(y_t \\mid y_{<t})']);
   });
 });
