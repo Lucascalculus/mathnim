@@ -905,9 +905,12 @@ section.r-intro{min-height:100vh;display:flex;flex-direction:column;justify-cont
 h1.r-title{font-size:clamp(56px,9vw,120px);line-height:.95;letter-spacing:-.04em;font-weight:700;margin:0;max-width:none}
 p.r-line{font-size:20px;line-height:1.4;color:#44464d;margin:18px 0 0}
 p.r-line + p.r-line{margin-top:4px;color:#8d9198;font-size:17px}
-/* a hairline between two sections (the parking pages have theirs), and one across the window between two parts */
+/* a hairline between two sections, as the parking pages have theirs */
 .ext main > section + section{margin-top:64px;padding-top:56px;border-top:1px solid rgba(26,27,31,.13)}
-.rmain > * + .part{border-top:1px solid rgba(26,27,31,.16)}
+/* a part opens as a chapter does: a short bar in its colour, its number and name, then its own title */
+.r-open{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin:0 0 18px}
+.r-bar{display:block;width:48px;height:4px;border-radius:2px;background:var(--c,#1a1b1f)}
+.r-kick{display:block;font:500 11px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.2em;text-transform:uppercase;color:#62666d}
 /* a page 0 has no number: its title's subtitle no longer steps in for one */
 .ext section[data-page0] .sub{margin-left:0}
 @media print{ .rmain > * + *{margin-top:0;break-before:page} }
@@ -957,10 +960,9 @@ p.r-line + p.r-line{margin-top:4px;color:#8d9198;font-size:17px}
 .rC-s{display:flex;gap:12px;align-items:center;padding:6px 10px;border-radius:8px;color:var(--rn-ink2)}
 .rC-s:hover{background:color-mix(in srgb,var(--rn-ink) 6%,transparent);color:var(--rn-ink)}
 .rC-s.on{color:var(--rn-ink);font-weight:600}
-.rC-s .rn-num{display:none;flex:none;width:12px;text-align:right;font:600 11px/1 var(--rn-font);font-variant-numeric:tabular-nums;color:var(--c)}
-.rC-s.mini{gap:9px;padding:2.5px 10px 2.5px 23px;font-size:12px;line-height:1.3;color:var(--rn-grey);border-radius:6px}
+.rC-s .rn-num{display:none}
+.rC-s.mini{gap:0;padding:1.5px 10px 1.5px 23px;font-size:12px;line-height:1.25;color:var(--rn-grey);border-radius:6px}
 .rC-s.mini .rn-dot{display:none}
-.rC-s.mini .rn-num{display:block}
 .rC-s.mini:hover{background:transparent;color:var(--rn-ink)}
 @media (prefers-reduced-motion: reduce){ .rC{transition:none} }
 @media print{ .rC{display:none!important} }
@@ -971,7 +973,7 @@ p.r-line + p.r-line{margin-top:4px;color:#8d9198;font-size:17px}
 <div class="rmain" id="top">
 <section class="r-page r-intro" id="intro"><div class="r-kicker">Intro</div><div class="r-cones" aria-hidden="true"><i class="bl"></i><i class="ye"></i><i class="bl"></i><i class="ye"></i></div><h1 class="r-title">Team Bat</h1><p class="r-line">ELEN90095 AI for Robotics</p><p class="r-line">Group project report</p></section>
 <div class="part ext part-cone" id="part-cone" data-label="Driving">
-<main><header><div class="cones"><i class="bl"></i><i class="ye"></i><i class="bl"></i><i class="ye"></i></div>
+<main><div class="r-open"><span class="r-bar"></span><span class="r-kick">Part 1 · Driving</span></div><header><div class="cones"><i class="bl"></i><i class="ye"></i><i class="bl"></i><i class="ye"></i></div>
 <h1>Driving</h1>
 <p class="lead">Team Bat's driving policy: a centreline built from remembered cones, moved around boards by the lidar, followed with Pure Pursuit and a PI speed controller. We also built MPC on the same pipeline and compared the two.</p>
 <div class="stats"><div><b>55/57</b><span>simulated runs completed</span></div><div><b>40%</b><span>less steering activity than MPC</span></div><div><b>0.15 m</b><span>clearance we aim for at boards</span></div><div><b>25 Hz</b><span>one decision every 0.04 s</span></div></div></header>
@@ -1188,7 +1190,7 @@ load(); requestAnimationFrame(tick);
 
 <!-- 01 -->
 <section class="page cover" id="p1">
-  <h1><span lang="en">Parking</span></h1>
+  <div class="r-open"><span class="r-bar"></span><span class="r-kick">Part 2 · Parking</span></div><h1><span lang="en">Parking</span></h1>
   <figure class="stage-wrap" style="margin-inline:0">
     <div class="stage" id="stage">
       <canvas id="stage-c" aria-label="Recorded simulated parking episode"></canvas>
@@ -2201,13 +2203,15 @@ fig(() => ntable($('#t-benches'),
 // ---------- 03 · error budget (report Table 4, §16) ----------
 const BUDGET = [
   ['Wheel speed held after a stop', '20–60', '0.1', 'count encoder ticks'],
+  // (report §13.2: ½·(δ/L)·s² over a 1.5–3 m approach; with the estimate, a rough figure: about 0.1° left)
+  ['Unknown 2° steering trim', '12–48', '≈1–2', 'estimate the trim online'],
   ['Reversing without re-anchoring', '7–9', '0.9', 'lidar re-anchoring'],
   ['Cones 0.2 s late, at 0.3 m/s', '6', '0.4–0.5', 'use the pose at capture time'],
   ['Cone range bias', '5–8', '1', 'add the cone radius'],
   ['Magnetometer heading jumps', '3–5', '0.6–0.9', 'integrate the gyro'],
   ['Tracking error', '2–4', '1–2', 'MPC', 1],
 ];
-const rng = (t) => t.split('–').map(Number).concat(t.includes('–') ? [] : [Number(t)]).slice(0, 2);
+const rng = (t) => { const c = t.replace(/[^0-9.–]/g, ''); return c.split('–').map(Number).concat(c.includes('–') ? [] : [Number(c)]).slice(0, 2); };
 
 // each fix's part of all the error removed (every error's cm added up). Vermilion text, deepest at the top, paler as it gives less
 const mid = (t) => { const r = rng(t); return (r[0] + r[1]) / 2; };
@@ -2227,7 +2231,7 @@ fig(() => ntable($('#t-budget'), ['Source of error', 'Without fix, cm', 'With fi
 // the same shares as one bar, drawn as a disk's usage is: one block per error fixed, as wide as its share of all the
 // error removed, as deep as the table's figure, named inside it (above it, on a leader, when it is too narrow); the
 // estimator's fixes and the controller's under braces
-const BSHORT = ['Wheel speed', 'Reversing', 'Cone delay', 'Cone range', 'Heading', 'Tracking'];
+const BSHORT = ['Wheel speed', 'Steering trim', 'Reversing', 'Cone delay', 'Cone range', 'Heading', 'Tracking'];
 function budget_bar(el) {
   if (!el) return;
   const W = width_of(el), sh = GAIN.map((g) => g / GSUM), gap = 2, n = BUDGET.length, FS = 11.5;
@@ -4815,6 +4819,7 @@ fig(() => { dfig_b(); });
     var names = (R.names || {})[part.id] || [], first = part.querySelector('.num, .pnum');
     var P = { kind: 'part', el: part, label: part.dataset.label, colour: first ? getComputedStyle(first).backgroundColor : '#62666d' };
     P.part = P; P.colour0 = P.colour;
+    part.querySelectorAll('.r-open').forEach(function (o) { o.style.setProperty('--c', P.colour); });   // (its opening's bar)
     part.style.scrollMarginTop = 'var(--sm)';
     parts.push(P); stops.push(P);
     var k = 0;
