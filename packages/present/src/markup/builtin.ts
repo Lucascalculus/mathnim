@@ -92,7 +92,7 @@ define_markup({
 define_markup({
   name: 'parts', form: 'fence', fence: 'parts', order: 60, zones: ['text', 'figure'], maturity: 'stable', since: V, from: 'int/explode', source: SRC,
   says: t('a formula taken apart like an exploded drawing: pulled up or tapped, each block lifts on its own card with what it means; a card that holds more comes apart in turn', '像工程分解图一样拆开的公式：往上拉或点一下，每一块升到自己的卡片上，引线指向它的意思；装着更多的卡片可以再拆开'),
-  syntax: '```parts … ``` (```parts flat: apart in the plane)',
+  syntax: '```parts … ``` (```parts flat or ```parts split: apart in the plane)',
   example: '```parts\nL = \\frac{1}{n}\\sum_i (\\hat y_i - y_i)^2\n\\frac{1}{n}\\sum_i: **average** over all n points\n(\\hat y_i - y_i)^2: point i\'s miss, squared: big misses count far more\n  \\hat y_i - y_i: **miss** prediction minus truth\n```',
   shows: 'the formula; pulled up or tapped, the camera turns and its outer blocks lift onto cards, each with a leader to its name and meaning; tap a card that holds more (two sheets thick) and its own blocks lift off it',
   rules: ['the formula on the first line; then each block as it is written in the formula, a colon, and what it means', 'a block is whatever means one thing: one symbol or several terms (the error, the average, the share of the whole)', 'a block with a name says it first in bold: **prior** belief in A before B', "indent a block two spaces under the block it is part of: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)', 'a line % nouns: A = hypothesis, B = evidence colours those symbols as their nouns, in the formula and in the words'],

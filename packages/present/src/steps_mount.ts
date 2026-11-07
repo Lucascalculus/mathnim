@@ -49,10 +49,11 @@ async function mount_one(el: HTMLElement, lang: Lang): Promise<void> {
 }
 
 /**
- * Turn every formula taken apart under `root` (a ```parts fence, a math block with parts) into the engine's. Pull it
- * up (or tap it) and its blocks come apart onto cards with what each means; let go and a spring takes it the rest of
- * the way, apart or back together, glyph for glyph. Tap a card that holds more to take it apart in turn; tap it again,
- * or the paper, to go back out. One that does not typeset, or whose pieces are not in it, keeps its plain form.
+ * Turn every formula taken apart under `root` (a ```parts fence, a math block with parts) into the engine's. A lever
+ * beside it (the specimen's glass bead on an engraved rail) runs from together, to apart, through each layer on the
+ * way in: drag the bead through them, or tap a stop. The formula answers the hand too: pull it up to go in, push it
+ * down to come out, tap a card that holds more to open it, tap the paper to go back out; a spring finishes every
+ * motion at a stop. One that does not typeset, or whose pieces are not in it, keeps its plain form.
  */
 export async function mount_parts(root: ParentNode, lang: Lang): Promise<void> {
   const els = [...root.querySelectorAll<HTMLElement>('.mn-parts[data-parts]:not([data-live])')];
@@ -82,87 +83,180 @@ async function mount_one_parts(el: HTMLElement, lang: Lang): Promise<void> {
   p.start_live();
   // together, only the formula shows; apart, the stage opens to what is drawn (the text around steps aside)
   const H = canvas.height / dpr, band = F.bands().bottom;
-  const show = (open: boolean) => { stage.style.height = `${open ? H : band}px`; };
-  show(false);
+  let opened = false;
+  const show = (open: boolean) => { if (open !== opened) { opened = open; stage.style.height = `${open ? H : band}px`; } };
+  stage.style.height = `${band}px`;
   // (on the canvas too, for the tools that drive the page headlessly: page_shots)
   (canvas as HTMLCanvasElement & { mn_parts?: typeof F }).mn_parts = F;
   canvas.setAttribute('role', 'button');
   canvas.tabIndex = 0;
-  const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const say = () => canvas.setAttribute('aria-label', F.open.peek() > 0.5 ? (lang === 'zh' ? '拆开的公式；点一张卡片再拆开它' : 'the formula taken apart; tap a card to take it apart in turn') : (lang === 'zh' ? '拆开这个公式' : 'take the formula apart'));
+  const zh = lang === 'zh', still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- where it is: a place on the lever's rail. 0 together, 1 apart (the outermost layer), then each layer on the
+  // path; between two stops, on the way from one to the other
+  let path = F.path_of(0);
+  const stops = () => path.length + 1;
+  const layer_at = (i: number) => path[Math.max(0, Math.min(path.length - 1, i - 1))];
+  const name_at = (i: number) => (i === 0 ? (zh ? '合上' : 'together') : i === 1 ? (zh ? '拆开' : 'apart') : F.layer_name(layer_at(i), lang) ?? '');
+  let at = 0, vel = 0, target = 0, busy = false, crossing = false, last = 0;
+  const apply = () => {
+    if (crossing) return;
+    const q = Math.max(0, Math.min(stops() - 1, at)), j = Math.floor(q), f = q - j;
+    if (q <= 1) { F.open.set(q, true); F.from.set(path[0], true); F.layer.set(path[0], true); F.fade.set(1, true); }
+    else if (f < 1e-4) { F.open.set(1, true); F.from.set(layer_at(j), true); F.layer.set(layer_at(j), true); F.fade.set(1, true); }
+    else { F.open.set(1, true); F.from.set(layer_at(j), true); F.layer.set(layer_at(j + 1), true); F.fade.set(f, true); }
+    show(at > 0.002 || target > 0);
+    place_bead();
+  };
+  // the spring that finishes a motion at a stop (critically damped: it never overshoots into the next layer)
+  const R = 0.62, k = ((2 * Math.PI) / R) ** 2, c = (4 * Math.PI) / R;
+  const step = (t: number) => {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    const n = Math.max(1, Math.ceil(dt * 240));
+    for (let i = 0; i < n; i++) { const h = dt / n; vel += (-k * (at - target) - c * vel) * h; at += vel * h; }
+    if (Math.abs(at - target) < 1e-4 && Math.abs(vel) < 1e-3) { at = target; vel = 0; busy = false; apply(); say(); return; }
+    apply();
+    requestAnimationFrame(step);
+  };
+  const go_to = (i: number, v?: number) => {
+    target = Math.max(0, Math.min(stops() - 1, i));
+    if (v !== undefined) vel = v;
+    if (still) { at = target; vel = 0; apply(); say(); return; }
+    if (!busy) { busy = true; last = performance.now(); requestAnimationFrame(step); }
+  };
+  // to a layer off the path (a card on another branch): straight there, the path redrawn through it
+  const cross_to = (n: number) => {
+    const from = Math.round(F.layer.peek());
+    path = F.path_of(n);
+    build();
+    at = target = path.indexOf(n) + 1;
+    vel = 0;
+    crossing = true;
+    F.from.set(from, true);
+    F.layer.set(n, true);
+    F.fade.set(0, true);
+    place_bead();
+    const done = () => { crossing = false; apply(); say(); };
+    if (still) { F.fade.set(1, true); done(); } else void p.tween(F.fade, 1, 0.8).then(done);
+  };
+  const stop_now = () => Math.round(at);
+
+  // ---- the lever: the specimen's glass bead on an engraved rail, a stop for each place
+  const lever = document.createElement('div');
+  lever.className = 'mn-lever';
+  const rail = document.createElement('div');
+  rail.className = 'mn-lever-rail';
+  const bead = document.createElement('div');
+  bead.className = 'mn-lever-bead';
+  bead.tabIndex = 0;
+  bead.setAttribute('role', 'slider');
+  bead.setAttribute('aria-label', zh ? '公式拆到哪一层' : 'how far the formula is taken apart');
+  lever.append(rail, bead);
+  el.append(lever);
+  let gap = 20, top = 0;
+  function build(): void {
+    for (const x of [...lever.querySelectorAll('.mn-lever-stop')]) x.remove();
+    const n = stops();
+    gap = Math.max(14, Math.min(24, (band - 30) / Math.max(1, n - 1)));
+    top = Math.max(4, (band - gap * (n - 1)) / 2);
+    rail.style.top = `${top}px`;
+    rail.style.height = `${gap * (n - 1)}px`;
+    lever.style.height = `${top * 2 + gap * (n - 1)}px`;
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('button');
+      b.className = 'mn-lever-stop';
+      b.type = 'button';
+      b.style.top = `${top + gap * (n - 1 - i)}px`;
+      b.setAttribute('aria-label', name_at(i));
+      b.innerHTML = `<span class="mn-lever-name"></span>`;
+      b.firstElementChild!.textContent = name_at(i);
+      b.addEventListener('click', (e) => { e.stopPropagation(); go_to(i); });
+      lever.insertBefore(b, bead);
+    }
+    bead.setAttribute('aria-valuemin', '0');
+    bead.setAttribute('aria-valuemax', String(n - 1));
+  }
+  function place_bead(): void {
+    const n = stops(), q = Math.max(-0.1, Math.min(n - 0.9, at));
+    bead.style.top = `${top + gap * (n - 1 - q)}px`;
+    const i = stop_now();
+    for (const [j, x] of [...lever.querySelectorAll<HTMLElement>('.mn-lever-stop')].entries()) x.classList.toggle('here', j === i);
+  }
+  function say(): void {
+    const i = stop_now();
+    bead.setAttribute('aria-valuenow', String(i));
+    bead.setAttribute('aria-valuetext', name_at(i));
+    canvas.setAttribute('aria-label', i > 0 ? (zh ? '拆开的公式；点一张卡片再拆开它' : 'the formula taken apart; tap a card to take it apart in turn') : (zh ? '拆开这个公式' : 'take the formula apart'));
+  }
+  build();
+  place_bead();
   say();
-  // apart or together: a spring (the hand's momentum, when it lets go); once together again, back to the outer layer
-  const settle = (to: number, v = 0) => {
-    show(to > 0.5);
-    if (still) { F.open.set(to, true); }
-    else void p.spring(F.open, to, { v }).then(() => { if (F.open.peek() < 0.01 && !p.springing(F.open)) { F.layer.set(0, true); F.from.set(0, true); F.fade.set(1, true); } });
-    say();
+
+  // ---- the hand on the bead: through the layers, then to the nearest stop, carried on by how fast it moved
+  let grab: { y0: number; a0: number; per: number; last: [number, number][]; moved: boolean } | null = null;
+  const press = (e: PointerEvent, per: number, on: HTMLElement) => {
+    if (e.button !== 0 || crossing) return;
+    busy = false;
+    grab = { y0: e.clientY, a0: at, per, last: [[performance.now(), e.clientY]], moved: false };
+    try { on.setPointerCapture(e.pointerId); } catch { /* (a pointer the browser no longer tracks) */ }
   };
-  // a layer: from the one shown to the next, the cards moving between them
-  const go = (to: { open: number; layer: number }) => {
-    const n = Math.round(F.layer.peek());
-    if (to.open > 0.5 && n !== to.layer) {
-      F.from.set(n, true);
-      F.layer.set(to.layer, true);
-      F.fade.set(0, true);
-      if (still) F.fade.set(1, true);
-      else void p.tween(F.fade, 1, 0.8);
-    }
-    if ((F.open.peek() > 0.5) !== (to.open > 0.5) || p.springing(F.open)) settle(to.open);
-    say();
+  const drag = (e: PointerEvent) => {
+    if (!grab) return false;
+    if (Math.abs(e.clientY - grab.y0) > 4) grab.moved = true;
+    if (!grab.moved) return true;
+    lever.classList.add('on');
+    at = Math.max(-0.06, Math.min(stops() - 0.94, grab.a0 + (grab.y0 - e.clientY) / grab.per));
+    target = Math.round(at);
+    apply();
+    grab.last.push([performance.now(), e.clientY]);
+    if (grab.last.length > 5) grab.last.shift();
+    return true;
   };
-  // the hand: pull the formula up to take it apart, push it down to put it back; a tap takes it apart, or goes into
-  // the card it lands on, or out
-  let drag: { y0: number; e0: number; moved: boolean; last: [number, number][] } | null = null;
-  const reach = () => Math.min(260, Math.max(120, H * 0.45));
-  canvas.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    drag = { y0: e.clientY, e0: F.open.peek(), moved: false, last: [[performance.now(), e.clientY]] };
-    canvas.setPointerCapture(e.pointerId);
+  const release = () => {
+    const g = grab!;
+    grab = null;
+    lever.classList.remove('on');
+    // (held still before letting go: no momentum)
+    const a = g.last[0], b = g.last[g.last.length - 1], v = b[0] > a[0] && performance.now() - b[0] < 90 ? ((a[1] - b[1]) / (b[0] - a[0])) * 1000 / g.per : 0;
+    // (a flick carries it on, at most one stop)
+    go_to(Math.round(at + Math.max(-1, Math.min(1, v * 0.08))), v);
+  };
+  bead.addEventListener('pointerdown', (e) => press(e, gap, bead));
+  bead.addEventListener('pointermove', (e) => { drag(e); });
+  bead.addEventListener('pointerup', () => { if (grab) { if (grab.moved) release(); else grab = null; } });
+  bead.addEventListener('keydown', (e) => {
+    const i = stop_now(), to = e.key === 'ArrowUp' || e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? stops() - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    go_to(to);
   });
+
+  // ---- the hand on the formula: pull it up to go in, push it down to come out; a tap takes it apart, opens the card
+  // it lands on, or goes back out
+  const reach = Math.min(200, Math.max(120, H * 0.4));
+  canvas.addEventListener('pointerdown', (e) => press(e, reach, canvas));
   canvas.addEventListener('pointermove', (e) => {
-    if (!drag) {
-      // (a card that holds more, or the formula together, answers the hand)
-      const hit = F.open.peek() > 0.5 ? F.block_at(p.point_of(e)) : null;
-      canvas.style.cursor = F.open.peek() < 0.5 || (hit && hit.children.length) ? 'pointer' : 'default';
-      return;
-    }
-    if (Math.abs(e.clientY - drag.y0) > 5) drag.moved = true;
-    if (!drag.moved) return;
-    canvas.style.cursor = 'grabbing';
-    show(true);
-    const v = Math.max(-0.08, Math.min(1.08, drag.e0 + (drag.y0 - e.clientY) / reach()));
-    if (still) F.open.set(Math.max(0, Math.min(1, v)), true);
-    else void p.spring(F.open, v);
-    drag.last.push([performance.now(), e.clientY]);
-    if (drag.last.length > 5) drag.last.shift();
+    if (drag(e)) { if (grab?.moved) canvas.style.cursor = 'grabbing'; return; }
+    // (a card that holds more, or the formula together, answers the hand)
+    const hit = at > 0.5 ? F.block_at(p.point_of(e)) : null;
+    canvas.style.cursor = at < 0.5 || (hit && hit.children.length) ? 'pointer' : 'default';
   });
-  const up = (e: PointerEvent) => {
-    if (!drag) return;
-    const dr = drag;
-    drag = null;
-    if (!dr.moved) {
-      const to = F.tap(p.point_of(e));
-      if (to) go(to);
-      return;
-    }
-    canvas.style.cursor = 'default';
-    // where it goes: where the hand left it, carried on by how fast it was moving
-    const a = dr.last[0], b = dr.last[dr.last.length - 1], vy = b[0] > a[0] ? (a[1] - b[1]) / (b[0] - a[0]) : 0;
-    const to = F.open.peek() + vy * 0.35 > 0.5 ? 1 : 0;
-    settle(to, (vy * 1000) / reach());
-  };
-  canvas.addEventListener('pointerup', up);
-  canvas.addEventListener('pointercancel', () => { if (drag?.moved) settle(F.open.peek() > 0.5 ? 1 : 0); drag = null; });
+  canvas.addEventListener('pointerup', (e) => {
+    if (!grab) return;
+    if (grab.moved) { canvas.style.cursor = 'default'; release(); return; }
+    grab = null;
+    const to = F.tap(p.point_of(e));
+    if (!to) return;
+    if (to.open < 0.5) return go_to(0);
+    const i = path.indexOf(to.layer);
+    if (i >= 0) go_to(i + 1);
+    else cross_to(to.layer);
+  });
+  canvas.addEventListener('pointercancel', () => { if (grab?.moved) release(); grab = null; });
   canvas.addEventListener('keydown', (e) => {
-    const n = Math.round(F.layer.peek()), open = F.open.peek() > 0.5;
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      // together → the outer layer → each inside in turn → together again
-      go(!open ? { open: 1, layer: 0 } : n < F.opens.length ? { open: 1, layer: n + 1 } : { open: 0, layer: n });
-    } else if (e.key === 'Escape' && open) {
-      const f = F.focus_of(n);
-      go(f ? { open: 1, layer: F.layer_of(f) } : { open: 0, layer: 0 });
-    }
+    const i = stop_now();
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go_to(i < stops() - 1 ? i + 1 : 0); }
+    else if (e.key === 'Escape' && i > 0) go_to(i - 1);
   });
 }

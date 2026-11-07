@@ -47,8 +47,12 @@ export interface PartNode {
   parent: PartNode | null;
   depth: number;
 }
-/** 'house': taken apart in depth, under the house camera (the specimen); 'flat': apart in the plane. */
-export type PartsView = 'house' | 'flat';
+/**
+ * 'house': taken apart in depth, under the house camera (the specimen); 'flat': apart in the plane, a block opened as a
+ * card that holds its blocks' cards; 'split': apart in the plane, a block opened by splitting its card into its blocks'
+ * cards (no card inside a card).
+ */
+export type PartsView = 'house' | 'flat' | 'split';
 
 type Rect = [number, number, number, number];
 interface Cam { a: number; b: number; c: number; d: number; hz: number }
@@ -67,9 +71,11 @@ interface Pose {
   dim: Map<Token, number>;
   /** Whose words show; the focus's quietly. */
   says: PartNode[];
+  /** In the plane, a radical's roof and sign raised over a card: that card's leader may pass under them. */
+  roof: Map<Token, PartNode>;
 }
 interface Card { node: PartNode; rect: Rect; z: number; rest: number; alpha: number; under: PartNode | null; face: XY[] }
-interface Scene { K: Cam; o: XY; lift: number; cards: Card[]; tok: Map<Token, { box: Rect; z: number; a: number; on: PartNode | null }> }
+interface Scene { K: Cam; o: XY; lift: number; cards: Card[]; tok: Map<Token, { box: Rect; z: number; a: number; on: PartNode | null; roof?: PartNode }> }
 interface Words { name: string | null; lines: TextLine[]; w: number; h: number }
 interface Label { node: PartNode; x: number; y: number; w: number; h: number; at: XY; quiet: boolean }
 /** The stage solved for one width and language: sizes, where the formula sits together and apart, every layer. */
@@ -167,7 +173,12 @@ export function find_block(L: TexLine, tex: string, scope: Token[], taken: Set<T
     const box = [...out];
     const x0 = Math.min(...box.map((t) => t.box[0])), x1 = Math.max(...box.map((t) => t.box[2]));
     const y0 = Math.min(...box.map((t) => t.box[1])), y1 = Math.max(...box.map((t) => t.box[3]));
-    for (const t of scope) if (t.kind === 'rule' && !taken.has(t) && t.box[0] >= x0 - 0.3 * em && t.box[2] <= x1 + 0.3 * em && t.box[3] >= y0 - 0.2 * em && t.box[1] <= y1 + 0.2 * em) out.add(t);
+    // (a radical's overline goes with its radical sign: what is under the roof is not the root)
+    const sign_of = (r: Token) => scope.find((s) => s.key === '√' && Math.abs(s.box[2] - r.box[0]) < 0.5 * em);
+    for (const t of scope) if (t.kind === 'rule' && !taken.has(t) && t.box[0] >= x0 - 0.3 * em && t.box[2] <= x1 + 0.3 * em && t.box[3] >= y0 - 0.2 * em && t.box[1] <= y1 + 0.2 * em) {
+      const sign = t.key.includes('sqrt') || t.key.includes('root') ? sign_of(t) : null;
+      if (!sign || out.has(sign)) out.add(t);
+    }
     found.push([...out].sort((a, b) => scope.indexOf(a) - scope.indexOf(b)));
   }
   if (!found.length) return null;
@@ -252,6 +263,35 @@ export class Parts extends Thing implements Block {
   layer_of(n: PartNode): number {
     return n.parent ? this.layer_inside(n.parent) : 0;
   }
+  /**
+   * The layers a lever runs through with layer n on it: the outermost, each block opened on the way to n, then on
+   * from n (each time the first of its blocks that holds more).
+   */
+  path_of(n: number): number[] {
+    const out = [0], chain: PartNode[] = [];
+    for (let a = this.focus_of(n); a; a = a.parent) chain.unshift(a);
+    for (const a of chain) out.push(this.layer_inside(a));
+    for (let at = chain.length ? chain[chain.length - 1].children : this.roots; ;) {
+      const next = at.find((c) => c.children.length);
+      if (!next) break;
+      out.push(this.layer_inside(next));
+      at = next.children;
+    }
+    return out;
+  }
+  /** A layer's name: the name of the block it opens (or the first words of what it means); none for the outermost. */
+  layer_name(n: number, lang: Lang): string | null {
+    const F = this.focus_of(n);
+    if (!F) return null;
+    const s = tr(F.part.says, lang).trim(), m = /^\*\*(.+?)\*\*/.exec(s);
+    if (m) return m[1].trim();
+    const plain = tex_as_text(s).replace(/\$/g, '');
+    if (plain.length <= 14) return plain;
+    // (cut at a word when the words have spaces)
+    let cut = plain.slice(0, 14);
+    if (cut.lastIndexOf(' ') > 6) cut = cut.slice(0, cut.lastIndexOf(' '));
+    return `${cut.trimEnd()}…`;
+  }
 
   // ---------------------------------------------------------------- what each block says
   private ink_of(t: Token): string {
@@ -270,20 +310,30 @@ export class Parts extends Thing implements Block {
       else spans.push({ s: tex_as_text(p).replace(/\$/g, ''), color: this.nouns[tex] ? text_color_of(`noun:${this.nouns[tex]}`, look()) : undefined, weight: 500 });
     });
     const FN = font_of('label', { weight: 600 }), FM = font_of('label', { weight: 400 }), LH = Math.round(FM.size * 1.3);
-    const lines = mean ? break_lines(spans, FM, 230) : [];
+    const lines = spans.length ? break_lines(spans, FM, 230) : [];
     const w = Math.ceil(Math.max(name ? text_width(name, FN) : 0, ...lines.map((l) => l.width)));
     return { name, lines, w, h: (name ? LH + 1 : 0) + lines.length * LH };
   }
+  /** The plane's measures (px): a card's padding across and down, the gap between cards, an outer card's padding, the move off the axis. */
+  private flat_m(px: number) {
+    return { padx: px * 0.16, pady: px * 0.14, gap: px * 0.5, tp: px * 0.24, v: px * 0.24 };
+  }
+
 
   // ---------------------------------------------------------------- the poses: each layer fully apart
   private pose(n: number, px: number, base: Map<Token, Rect>, axis: number): Pose {
-    const F = this.focus_of(n), cards = F ? [F, ...F.children] : [...this.roots];
+    const F = this.focus_of(n), split = this.view === 'split';
+    // (split: the blocks shown are the frontier - every block opened on the way to the focus replaced by its blocks)
+    const path: PartNode[] = [];
+    for (let a = F; a; a = a.parent) path.unshift(a);
+    const front = path.reduce<PartNode[]>((cs, p) => cs.flatMap((c) => (c === p ? p.children : [c])), [...this.roots]);
+    const cards = split ? front : F ? [F, ...F.children] : [...this.roots];
     const has = new Map(cards.map((c) => [c, new Set(c.tokens)]));
     const carrier = (t: Token) => cards.filter((c) => has.get(c)!.has(t)).sort((a, b) => b.depth - a.depth)[0] ?? null;
-    const inF = F ? new Set(F.tokens) : null;
-    const P: Pose = { focus: F, cards, rect: new Map(), z: new Map(), under: new Map(), box: new Map(), tz: new Map(), dim: new Map(), says: F ? [F, ...F.children] : [...this.roots] };
+    const inF = F && !split ? new Set(F.tokens) : null;
+    const P: Pose = { focus: F, cards, rect: new Map(), z: new Map(), under: new Map(), box: new Map(), tz: new Map(), dim: new Map(), says: split ? front : F ? [F, ...F.children] : [...this.roots], roof: new Map() };
     for (const t of this.line.tokens) P.dim.set(t, inF && !inF.has(t) ? 0.3 : 1);
-    for (const c of cards) P.under.set(c, F && c !== F ? F : null);
+    for (const c of cards) P.under.set(c, F && !split && c !== F ? F : null);
     const cpx = px * 0.16, cpy = px * 0.14, ink = (nd: PartNode) => bounds(nd.tokens.map((t) => P.box.get(t)!));
     if (this.view === 'house') {
       for (const t of this.line.tokens) P.box.set(t, base.get(t)!);
@@ -310,46 +360,93 @@ export class Parts extends Thing implements Block {
       for (const t of this.line.tokens) { const c = carrier(t); P.tz.set(t, c ? P.z.get(c)! : 0); }
       return P;
     }
-    // flat: the cards of each level move apart sideways (blocks stacked one over another move as one column), what
-    // lies between them moves with them, and a bar that spans them stretches; then up or down, away from the axis
-    const levels = F ? [[F], F.children] : [cards];
-    const s = px * 0.3, v = px * 0.3;
-    const cols = levels.map((lv) => {
-      const rs = lv.map((c) => { const b = bounds(c.tokens.map((t) => base.get(t)!)); return { x0: b[0], x1: b[2], set: new Set(c.tokens) }; }).sort((a, b) => a.x0 - b.x0);
-      const out: { x0: number; x1: number; set: Set<Token> }[] = [];
-      for (const r of rs) {
-        const last = out[out.length - 1];
-        if (last && r.x0 < last.x1 - 0.5) { last.x1 = Math.max(last.x1, r.x1); for (const t of r.set) last.set.add(t); } else out.push({ ...r, set: new Set(r.set) });
+    // the plane: the blocks move apart sideways into cards, as the specimen's cards, each with a leader to what it means.
+    // Blocks stacked one over another share a column, and in it each row spreads on its own (a numerator's blocks move
+    // apart over a denominator kept in the middle); what lies between them moves with them, a bar that spans them
+    // stretches; then they move a little away from the axis. 'flat' opens a block as a card that holds its blocks'
+    // cards; 'split' as its blocks' cards in its place.
+    const M = this.flat_m(px), levels = F && !split ? [[F], F.children] : [cards], inner = levels[levels.length - 1];
+    const glyphs = (nd: PartNode) => bounds(nd.tokens.map((t) => base.get(t)!));
+    const side_of = (b: Rect): 1 | -1 | 0 => (b[3] < axis - px * 0.1 ? -1 : b[1] > axis + px * 0.1 ? 1 : 0);
+    type Row = { cards: { x0: number; x1: number; s: number; off: number }[]; add: number; pad: number };
+    type Col = { x0: number; x1: number; add: number; rows: Map<number, Row>; member: Map<Token, number> };
+    const columns = (lv: PartNode[], s: number): Col[] => {
+      const items = lv.map((c) => { const b = glyphs(c); return { c, x0: b[0], x1: b[2], side: side_of(b) as number }; }).sort((a, b) => a.x0 - b.x0);
+      const groups: { x0: number; x1: number; items: typeof items }[] = [];
+      for (const it of items) {
+        const last = groups[groups.length - 1];
+        if (last && it.x0 < last.x1 - 0.5) { last.x1 = Math.max(last.x1, it.x1); last.items.push(it); } else groups.push({ x0: it.x0, x1: it.x1, items: [it] });
       }
-      return out;
-    });
-    const total = cols.reduce((a, cs) => a + cs.length * 2 * s, 0);
-    // past a column's left edge a point moves by s, past its right edge by s more; a token in a column moves with it
-    const pt = (x: number, c: { x0: number; x1: number }) => (x > c.x0 + 1e-6 ? s : 0) + (x >= c.x1 - 1e-6 ? s : 0);
-    // (a token outside every column moves as one with the smallest block that holds it and no card - the
-    // denominator under a numerator coming apart stays whole - else on its own)
-    const unit_mid = (t: Token): number => {
-      const inside = this.nodes.filter((nd) => nd.tokens.includes(t) && !cards.some((c) => nd.tokens.includes(c.tokens[0]) && c.tokens.every((x) => nd.tokens.includes(x)))).sort((a, b) => b.depth - a.depth)[0];
-      const r = bounds((inside ? inside.tokens : [t]).map((x) => base.get(x)!));
-      return (r[0] + r[2]) / 2;
+      return groups.map((gr) => {
+        const col: Col = { x0: gr.x0, x1: gr.x1, add: 0, rows: new Map(), member: new Map() };
+        const at = new Map<PartNode, { row: Row; k: Row['cards'][number] }>();
+        for (const it of gr.items) {
+          let r = col.rows.get(it.side);
+          if (!r) col.rows.set(it.side, (r = { cards: [], add: 0, pad: 0 }));
+          const k = { x0: it.x0, x1: it.x1, s, off: 0 };
+          r.cards.push(k);
+          at.set(it.c, { row: r, k });
+        }
+        for (const r of col.rows.values()) { r.cards.sort((a, b) => a.x0 - b.x0); let acc = 0; for (const k of r.cards) { k.off = acc + k.s; acc += 2 * k.s; } r.add = acc; }
+        col.add = Math.max(...[...col.rows.values()].map((r) => r.add));
+        for (const r of col.rows.values()) r.pad = (col.add - r.add) / 2;
+        for (const [c, { row, k }] of at) for (const t of c.tokens) col.member.set(t, row.pad + k.off);
+        return col;
+      });
+    };
+    const cols = levels.map((lv, i) => columns(lv, i === levels.length - 1 ? M.padx + M.gap / 2 : M.tp + M.gap / 2));
+    // how far a point moves for one column: nothing before it, all its spread after it, inside it by its row
+    const in_col = (x: number, col: Col, side: number): number => {
+      if (x <= col.x0 + 1e-6) return 0;
+      if (x >= col.x1 - 1e-6) return col.add;
+      const r = col.rows.get(side);
+      if (!r) return col.add / 2;
+      return r.pad + r.cards.reduce((a, k) => a + (x > k.x0 + 1e-6 ? k.s : 0) + (x >= k.x1 - 1e-6 ? k.s : 0), 0);
+    };
+    // (a token outside every card moves as one with the smallest block that holds it and no card - the denominator
+    // under a numerator coming apart stays whole - else on its own)
+    const unit_of = (t: Token): Rect => {
+      const inside = this.nodes.filter((nd) => nd.tokens.includes(t) && !cards.some((c) => c.tokens.every((x) => nd.tokens.includes(x)))).sort((a, b) => b.depth - a.depth)[0];
+      return bounds((inside ? inside.tokens : [t]).map((x) => base.get(x)!));
     };
     const moved = (t: Token): Rect => {
-      const b = base.get(t)!, mid = unit_mid(t);
-      let d0 = -total / 2, d1 = -total / 2;
-      for (const cs of cols) for (const c of cs) {
-        if (c.set.has(t)) { d0 += s; d1 += s; }
-        else if (is_bar(t)) { d0 += pt(b[0], c); d1 += pt(b[2], c); }
-        else { const k = pt(mid, c); d0 += k; d1 += k; }
+      const b = base.get(t)!, u = unit_of(t), mid = (u[0] + u[2]) / 2, sd = side_of(u);
+      let d0 = 0, d1 = 0;
+      for (const cs of cols) {
+        const total = cs.reduce((a, c) => a + c.add, 0);
+        d0 -= total / 2;
+        d1 -= total / 2;
+        for (const c of cs) {
+          const m = c.member.get(t);
+          if (m !== undefined) { d0 += m; d1 += m; }
+          else if (is_bar(t)) { d0 += in_col(b[0], c, sd); d1 += in_col(b[2], c, sd); }
+          else { const v = in_col(mid, c, sd); d0 += v; d1 += v; }
+        }
       }
       return [b[0] + d0, b[1], b[2] + d1, b[3]];
     };
     for (const t of this.line.tokens) P.box.set(t, moved(t));
-    const inner = levels[levels.length - 1];
+    // away from the axis, a little: room for the cards' edges between a numerator, its bar and its denominator
     for (const c of inner) {
-      const b = bounds(c.tokens.map((t) => base.get(t)!)), dy = b[3] < axis - px * 0.1 ? -v : b[1] > axis + px * 0.1 ? v : 0;
-      if (dy) for (const t of c.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + dy, r[2], r[3] + dy]); }
+      const sd = side_of(glyphs(c));
+      if (sd) for (const t of c.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + sd * M.v, r[2], r[3] + sd * M.v]); }
     }
-    for (const c of cards) P.rect.set(c, c === F ? pad(ink(c), cpx * 2, cpy * 2) : pad(ink(c), cpx, cpy));
+    // (a card that holds cards, above the axis - a numerator taken apart - rises clear of its bar, one below drops)
+    const sF = F && !split ? side_of(glyphs(F)) : 0;
+    if (F && sF) for (const t of F.tokens) { const r = P.box.get(t)!; P.box.set(t, [r[0], r[1] + sF * M.tp, r[2], r[3] + sF * M.tp]); }
+    for (const c of inner) P.rect.set(c, pad(ink(c), M.padx, M.pady));
+    // a radical over a card: its roof rises over the card, and its sign grows to meet it
+    for (const t of this.line.tokens) {
+      if (t.kind !== 'rule' || !(t.key.includes('sqrt') || t.key.includes('root'))) continue;
+      const r = P.box.get(t)!, under = inner.find((c) => !c.tokens.includes(t) && (() => { const g = ink(c); return g[0] >= r[0] - 2 && g[2] <= r[2] + 2 + px; })());
+      if (!under) continue;
+      const cr = P.rect.get(under)!, th = r[3] - r[1], top = cr[1] - th - px * 0.08;
+      P.box.set(t, [r[0], top, Math.max(r[2], cr[2] + px * 0.04), top + th]);
+      P.roof.set(t, under);
+      const sign = this.line.tokens.find((x) => x.key === '√' && Math.abs(P.box.get(x)![2] - r[0]) < px * 0.6);
+      if (sign) { const b = P.box.get(sign)!; P.box.set(sign, [b[0], Math.min(b[1], top), b[2], b[3]]); P.roof.set(sign, under); }
+    }
+    if (F && !split) P.rect.set(F, pad(bounds([...F.children.map((c) => P.rect.get(c)!), ink(F)]), M.tp, M.tp));
     for (const c of cards) P.z.set(c, 0);
     for (const t of this.line.tokens) P.tz.set(t, 0);
     return P;
@@ -454,7 +551,7 @@ export class Parts extends Thing implements Block {
     const tok: Scene['tok'] = new Map();
     for (const t of this.line.tokens) {
       const box = mix_rect(S.base.get(t)!, mix_rect(A.box.get(t)!, B.box.get(t)!, uu), lift);
-      tok.set(t, { box, z: mix(A.tz.get(t)!, B.tz.get(t)!, uu) * lift, a: 1 - (1 - mix(A.dim.get(t)!, B.dim.get(t)!, uu)) * lift, on: null });
+      tok.set(t, { box, z: mix(A.tz.get(t)!, B.tz.get(t)!, uu) * lift, a: 1 - (1 - mix(A.dim.get(t)!, B.dim.get(t)!, uu)) * lift, on: null, roof: (uu > 0.5 ? B : A).roof.get(t) });
     }
     const cards: Card[] = [...new Set([...A.cards, ...B.cards])].map((nd) => {
       const closed = pad(bounds(nd.tokens.map((t) => S.base.get(t)!)), S.px * 0.16, S.px * 0.14);
@@ -475,22 +572,25 @@ export class Parts extends Thing implements Block {
     return this.scene(S, read(this.open), Math.round(read(this.from)), Math.round(read(this.layer)), read(this.fade));
   }
   /** What a word or a leader must keep clear of: cards (with their edges), sockets, every glyph. */
-  private keep_clear(S: Solved, sc: Scene): { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean }[] {
-    const out: { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean }[] = [];
-    const add = (node: PartNode | null, poly: XY[], o: { glyph?: boolean; socket?: boolean } = {}) => out.push({ node, poly, bb: poly_bounds(poly), ...o });
+  private keep_clear(S: Solved, sc: Scene): { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean; roof?: PartNode }[] {
+    const out: { node: PartNode | null; poly: XY[]; bb: Rect; glyph?: boolean; socket?: boolean; roof?: PartNode }[] = [];
+    const add = (node: PartNode | null, poly: XY[], o: { glyph?: boolean; socket?: boolean; roof?: PartNode } = {}) => out.push({ node, poly, bb: poly_bounds(poly), ...o });
     for (const c of sc.cards) {
       if (c.alpha < 0.05) continue;
       add(c.node, this.card_poly(S, sc, c));
       if (this.view === 'house' && c.z - c.rest > 1) add(c.node, grow_poly(quad(sc.K, sc.o, c.rect, c.rest), 4), { socket: true });
     }
-    for (const r of sc.tok.values()) add(r.on, quad(sc.K, sc.o, r.box, r.z), { glyph: true });
+    for (const r of sc.tok.values()) add(r.on, quad(sc.K, sc.o, r.box, r.z), { glyph: true, roof: r.roof });
     return out;
   }
-  /** A card's outline on screen, its edge (or the sheet under it) included. */
+  /** A card's edge as seen (px): its thickness under the house camera; in the plane, the same card seen a little from the front. */
+  private edge(S: Solved, sc: Scene): number {
+    return S.px * 0.07 * (this.view === 'house' ? sc.K.hz : 0.62);
+  }
+  /** A card's outline on screen, its edge (two sheets for one that holds more) included. */
   private card_poly(S: Solved, sc: Scene, c: Card): XY[] {
     const two = c.node.children.length > 0;
-    if (this.view === 'house') return hull([...c.face, ...shift(c.face, 0, S.px * 0.07 * sc.K.hz * (two ? 2 : 1))]);
-    return two ? hull([...c.face, ...shift(c.face, 3, 3)]) : c.face;
+    return hull([...c.face, ...shift(c.face, 0, this.edge(S, sc) * (two ? 2 : 1))]);
   }
 
   // ---------------------------------------------------------------- the words: places all round, kept off every card,
@@ -522,7 +622,7 @@ export class Parts extends Thing implements Block {
         for (let k = 0; k < SC.length && clear; k++) {
           const a = anchors[k], a2: XY = [a[0] + (at[0] - a[0]) * 0.02, a[1] + (at[1] - a[1]) * 0.02];
           const sb: Rect = [Math.min(a2[0], at[0]), Math.min(a2[1], at[1]), Math.max(a2[0], at[0]), Math.max(a2[1], at[1])];
-          if (OB[k].some((o) => !o.socket && (o.glyph || !holds(o.node, nd)) && meet(sb, o.bb) && seg_poly(a2, at, o.poly))) clear = false;
+          if (OB[k].some((o) => !o.socket && o.roof !== nd && (o.glyph || !holds(o.node, nd)) && meet(sb, o.bb) && seg_poly(a2, at, o.poly))) clear = false;
         }
         if (!clear) continue;
         // short leaders read best: in the house view level or gently sloped, in the plane straight up or down
@@ -549,7 +649,8 @@ export class Parts extends Thing implements Block {
     // (no way for all of them: as many as fit, nearest first)
     if (!best) { const got: Cand[] = []; for (const nd of order) { const c = cand.get(nd)!.find((x) => ok(x, got)); if (c) got.push(c); } best = got; }
     const placed: Cand[] = best;
-    return new Map(placed.map((c) => [c.node, { node: c.node, x: c.x, y: c.y, w: c.w, h: c.h, at: c.at, quiet: c.node === P.focus }]));
+    const quiet = (nd: PartNode) => (this.view === 'split' ? !!P.focus && nd.parent !== P.focus : nd === P.focus);
+    return new Map(placed.map((c) => [c.node, { node: c.node, x: c.x, y: c.y, w: c.w, h: c.h, at: c.at, quiet: quiet(c.node) }]));
   }
 
   // ---------------------------------------------------------------- reading it
@@ -609,11 +710,11 @@ export class Parts extends Thing implements Block {
     return [...(S.labels[n]?.values() ?? [])].flatMap((lb) => { const c = sc.cards.find((x) => x.node === lb.node); return c ? [{ node: lb.node, a: nearest_on(c.face, lb.at), b: lb.at }] : []; });
   }
   /** Glyphs at `e` apart in layer n, as screen polygons (px, in the figure), with the label boxes: for the checks. */
-  ink_at(e: number, n: number): { glyphs: XY[][]; labels: Box[] } {
+  ink_at(e: number, n: number): { glyphs: XY[][]; roofs: (PartNode | undefined)[]; labels: Box[] } {
     const S = this.S;
-    if (!S) return { glyphs: [], labels: [] };
+    if (!S) return { glyphs: [], roofs: [], labels: [] };
     const sc = this.scene(S, e, n, n, 1);
-    return { glyphs: [...sc.tok.values()].map((r) => quad(sc.K, sc.o, r.box, r.z)), labels: [...(S.labels[n]?.values() ?? [])].map((l) => ({ x: l.x, y: l.y, w: l.w, h: l.h })) };
+    return { glyphs: [...sc.tok.values()].map((r) => quad(sc.K, sc.o, r.box, r.z)), roofs: [...sc.tok.values()].map((r) => r.roof), labels: [...(S.labels[n]?.values() ?? [])].map((l) => ({ x: l.x, y: l.y, w: l.w, h: l.h })) };
   }
   /** Where a token is drawn at `e` apart in layer n (its TeX origin, px in the figure): together, where it was typeset. */
   origin_of(t: Token, e: number, n = 0): XY {
@@ -653,7 +754,14 @@ export class Parts extends Thing implements Block {
       g.restore();
       return;
     }
-    g.translate(r.box[0] - t.box[0] * k, r.box[1] - t.box[1] * k);
+    const bh = b[3] - b[1], sy = bh > 0 ? (r.box[3] - r.box[1]) / bh : 1;
+    if (Math.abs(sy - 1) > 1e-3) {
+      // (stretched from its foot)
+      g.translate(0, r.box[3]);
+      g.scale(1, sy);
+      g.translate(0, -r.box[3]);
+    }
+    g.translate(r.box[0] - t.box[0] * k, r.box[3] - t.box[3] * k);
     g.scale(k, k);
     for (const gl of t.glyphs) {
       if (gl.fill) g.fillStyle = gl.fill;
@@ -709,51 +817,32 @@ export class Parts extends Thing implements Block {
       g.restore();
       return;
     }
+    // (in the plane a card lies on the paper, a soft shadow under it)
     if (c.alpha < 0.01) return;
-    const s = this.shadow_sprite(w, h, 5);
+    const s = this.shadow_sprite(w, h, 4);
     g.save();
-    g.globalAlpha = 0.11 * c.alpha;
-    g.translate(sc.o[0], sc.o[1] + 2);
+    g.globalAlpha = 0.12 * c.alpha;
+    g.translate(sc.o[0], sc.o[1] + this.edge(S, sc) + 1);
     g.drawImage(s.img, r[0] - s.m, r[1] - s.m, w + 2 * s.m, h + 2 * s.m);
     g.restore();
   }
   private card(g: CanvasRenderingContext2D, S: Solved, sc: Scene, c: Card): void {
     const a = c.alpha;
     if (a < 0.001) return;
-    const two = c.node.children.length > 0;
+    const two = c.node.children.length > 0, T = this.edge(S, sc);
     g.save();
-    if (this.view === 'house') {
-      // its edge (two sheets for a card that holds more), then its face
-      const T = S.px * 0.07 * sc.K.hz, edge = hull([...c.face, ...shift(c.face, 0, T * (two ? 2 : 1))]);
-      g.fillStyle = `rgba(226,222,214,${a})`;
-      poly(g, edge);
-      g.fill();
-      g.strokeStyle = GR(0.16 * a);
-      g.lineWidth = 0.75;
-      g.stroke();
-      if (two) { g.strokeStyle = GR(0.12 * a); poly(g, hull([...c.face, ...shift(c.face, 0, T)])); g.stroke(); }
-      g.fillStyle = `rgba(255,255,255,${a})`;
-      poly(g, c.face);
-      g.fill();
-    } else {
-      const [x0, y0, x1, y1] = poly_bounds(c.face), rr = Math.min(6, S.px * 0.14);
-      if (two) {
-        g.fillStyle = `rgba(255,255,255,${a})`;
-        g.strokeStyle = GR(0.14 * a);
-        g.lineWidth = 0.75;
-        g.beginPath();
-        g.roundRect(x0 + 3, y0 + 3, x1 - x0, y1 - y0, rr);
-        g.fill();
-        g.stroke();
-      }
-      g.fillStyle = `rgba(255,255,255,${a})`;
-      g.strokeStyle = GR(0.16 * a);
-      g.lineWidth = 0.75;
-      g.beginPath();
-      g.roundRect(x0, y0, x1 - x0, y1 - y0, rr);
-      g.fill();
-      g.stroke();
-    }
+    // the specimen's card: its edge (two sheets for a card that holds more), then its face
+    const edge = hull([...c.face, ...shift(c.face, 0, T * (two ? 2 : 1))]);
+    g.fillStyle = `rgba(226,222,214,${a})`;
+    poly(g, edge);
+    g.fill();
+    g.strokeStyle = GR(0.16 * a);
+    g.lineWidth = 0.75;
+    g.stroke();
+    if (two) { g.strokeStyle = GR(0.12 * a); poly(g, hull([...c.face, ...shift(c.face, 0, T)])); g.stroke(); }
+    g.fillStyle = `rgba(255,255,255,${a})`;
+    poly(g, c.face);
+    g.fill();
     g.restore();
   }
   private words_of(g: CanvasRenderingContext2D, env: DrawEnv, S: Solved, sc: Scene, lb: Label, alpha: number): void {
@@ -809,8 +898,8 @@ export class Parts extends Thing implements Block {
     // 3. leaders and words, front-on, once the cards are apart (a new layer's as it arrives, the last one's leaving)
     const e = clamp01(read(this.open)), la = clamp01((e - 0.8) / 0.2), a = Math.round(read(this.from)), b = Math.round(read(this.layer)), u = clamp01(read(this.fade));
     if (la > 0) {
-      for (const lb of S.labels[b]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (a === b ? 1 : smooth((u - 0.55) / 0.45)));
-      if (a !== b) for (const lb of S.labels[a]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (1 - smooth(u / 0.35)));
+      for (const lb of S.labels[b]?.values() ?? []) this.words_of(g, env, S, sc, lb, la * (a === b || (S.labels[a]?.has(lb.node) && same_place(S.labels[a].get(lb.node)!, lb)) ? 1 : smooth((u - 0.55) / 0.45)));
+      if (a !== b) for (const lb of S.labels[a]?.values() ?? []) if (!(S.labels[b]?.has(lb.node) && same_place(S.labels[b].get(lb.node)!, lb))) this.words_of(g, env, S, sc, lb, la * (1 - smooth(u / 0.35)));
     }
     // 4. together: a dotted line under each outer block (something is folded here)
     if (e < 0.2) {
@@ -826,6 +915,11 @@ export class Parts extends Thing implements Block {
     }
     g.restore();
   }
+}
+
+/** Words in the same place in two layers (a card that stays as it was keeps its words, without a flicker). */
+function same_place(a: Label, b: Label): boolean {
+  return a.x === b.x && a.y === b.y && a.quiet === b.quiet;
 }
 
 function poly(g: CanvasRenderingContext2D, q: XY[]): void {
@@ -865,7 +959,7 @@ export function parts_figure(tex: string, parts: FormulaPart[], o: { lang?: Lang
         for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (seg_cross(L[i].a, L[i].b, L[j].a, L[j].b)) bad.push(`layer ${n}: leaders of ${L[i].node.part.tex} and ${L[j].node.part.tex} cross`);
         for (const l of L) {
           const a2: XY = [l.a[0] + (l.b[0] - l.a[0]) * 0.02, l.a[1] + (l.b[1] - l.a[1]) * 0.02];
-          if (ink.glyphs.some((q) => seg_poly(a2, l.b, q))) bad.push(`layer ${n}: the leader of ${l.node.part.tex} crosses a glyph`);
+          if (ink.glyphs.some((q, i) => ink.roofs[i] !== l.node && seg_poly(a2, l.b, q))) bad.push(`layer ${n}: the leader of ${l.node.part.tex} crosses a glyph`);
         }
         for (let i = 0; i < ink.labels.length; i++) for (let j = i + 1; j < ink.labels.length; j++) if (poly_cross(box_poly(ink.labels[i]), box_poly(ink.labels[j]))) bad.push(`layer ${n}: words meet`);
       }
@@ -892,7 +986,7 @@ const BAYES_NOUNS = { A: 'hypothesis', B: 'evidence' };
 define_thing({
   name: 'parts', says: t('a formula taken apart like an exploded drawing: each block (one symbol or several terms) lifts on its own card with what it means; a card that holds more comes apart in turn', '像工程分解图一样拆开的公式：每一块（一个符号或几项）升到自己的卡片上，引线指向它的意思；装着更多的卡片可以再拆开'),
   zones: ['figure', 'text'], maturity: 'stable', since: '0.2.1', from: 'int/explode',
-  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, view: 'house' | 'flat', nouns: { A: 'hypothesis' } })",
+  syntax: "parts_figure(tex, [{ tex: 'P(B\\\\mid A)\\\\,P(A)', says: '**joint** how often A and B happen together', parts: [{ tex: 'P(A)', says: '**prior** …' }] }, …], { lang, view: 'house' | 'flat' | 'split', nouns: { A: 'hypothesis' } })",
   rules: ['each block as it is written in the formula; several terms that mean one thing are one block', "a block's own blocks are its next layer: the big picture first, the inside on demand", 'write the formula in the form whose blocks carry the idea (−b/2a ± …, not one bar over everything)', 'a name in bold first when the block has one (**prior**), then what it means in plain words'],
   accept: t('together again, every glyph is where it was typeset (0 px); no leader crosses another, a glyph or words, at every amount where leaders show; every block found inside the block it belongs to', '合上后每个字形回到排版位置（误差 0 px）；引线显示的每个时刻都互不相交，也不穿过字形或文字；每一块都在它所属的块里找到'),
   demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS }),
@@ -905,5 +999,14 @@ define_thing({
   rules: ['as parts, in the plane: no camera turn'],
   accept: t('as parts', '同 parts'),
   demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: 'flat' }),
+  source: 'packages/engine/src/lib/parts.ts',
+});
+define_thing({
+  name: 'parts_split', says: t('the same formula taken apart in the plane, a card splitting into its blocks\' cards when it is opened (no card inside a card)', '同一个公式在平面里拆开：点开一张卡片，它分裂成几张卡片（卡片里不套卡片）'),
+  zones: ['figure', 'text'], maturity: 'experiment', since: '0.3.0', from: 'int/explode',
+  syntax: "parts_figure(tex, parts, { lang, view: 'split' })",
+  rules: ['as parts, in the plane; opening a block replaces its card with its blocks\' cards'],
+  accept: t('as parts', '同 parts'),
+  demo: (lang) => parts_figure(BAYES, bayes_parts(lang), { lang, tour: true, nouns: BAYES_NOUNS, view: 'split' }),
   source: 'packages/engine/src/lib/parts.ts',
 });

@@ -216,7 +216,21 @@ export const CSS = `
 .mn-parts-list>div{display:flex;gap:.5em;align-items:baseline}
 .mn-parts-list dd{margin:0}
 .mn-parts-live>.mn-parts-tex,.mn-parts-live>.mn-parts-list{display:none}
+.mn-parts-live{position:relative}
 .mn-parts-stage{overflow:hidden;transition:height .55s cubic-bezier(.3,.7,.2,1)}
+.mn-lever{position:absolute;top:0;left:calc(100% + 10px);width:36px;touch-action:none;user-select:none;-webkit-user-select:none}
+@media (max-width:820px){.mn-lever{left:auto;right:-6px}}
+.mn-lever-rail{position:absolute;left:17.5px;width:1px;background:rgba(26,27,31,.2)}
+.mn-lever-stop{position:absolute;left:10px;width:16px;height:14px;margin-top:-7px;padding:0;border:0;background:none;cursor:pointer}
+.mn-lever-stop::before{content:'';position:absolute;left:2px;top:6.25px;width:12px;height:1.5px;border-radius:1px;background:rgba(26,27,31,.38)}
+.mn-lever-name{position:absolute;right:22px;top:50%;transform:translateY(-50%);white-space:nowrap;font:500 12px/1.2 var(--mn-sans,-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif);color:#86868B;background:rgba(251,250,247,.92);padding:2px 5px;border-radius:4px;opacity:0;transition:opacity .2s;pointer-events:none}
+.mn-lever-stop.here .mn-lever-name{color:#111113}
+.mn-lever:hover .mn-lever-name,.mn-lever.on .mn-lever-name,.mn-lever:focus-within .mn-lever-name{opacity:1}
+.mn-lever-bead{position:absolute;left:7px;width:22px;height:22px;margin-top:-11px;border-radius:50%;cursor:grab;touch-action:none;
+  background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.98),rgba(255,255,255,.95) 45%,rgba(240,238,234,.97));
+  box-shadow:0 0 0 .75px rgba(26,27,31,.16),0 5px 12px rgba(26,27,31,.14),0 1px 2px rgba(26,27,31,.12),inset 0 -2px 4px rgba(26,27,31,.06)}
+.mn-lever.on .mn-lever-bead{cursor:grabbing}
+.mn-lever-bead:focus-visible{outline:2px solid rgba(37,99,235,.5);outline-offset:2px}
 .mn-parts-stage canvas{display:block;cursor:pointer;touch-action:pan-y}
 .mn-parts-stage .mn-mirror *{pointer-events:none!important}
 /* glass: a pane simply there beside what was tapped (clear, not frosted; nothing animates in) */

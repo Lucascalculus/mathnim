@@ -65,7 +65,7 @@ describe('finding the blocks', () => {
   });
 });
 
-for (const view of ['house', 'flat'] as const) describe(`taken apart (${view})`, () => {
+for (const view of ['house', 'flat', 'split'] as const) describe(`taken apart (${view})`, () => {
   it('put back together, every glyph is where it was typeset (0 px), and the frame is the frame before', () => {
     const { fig, F, W, H } = make(LAYERS, BAYES, view);
     const before = pixels(fig, W, H);
@@ -85,11 +85,12 @@ for (const view of ['house', 'flat'] as const) describe(`taken apart (${view})`,
     expect(F.missing).toBe(0);
     for (let n = 0; n <= F.opens.length; n++) for (const e of [0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1]) {
       const L = F.leaders(e, n), ink = F.ink_at(e, n);
-      expect(L.length).toBe(n === 0 ? 2 : 3);
+      // (split: the blocks shown are every block opened so far, split; else the layer's blocks and the one opened)
+      expect(L.length).toBe(view === 'split' ? [2, 3, 4][n] : n === 0 ? 2 : 3);
       for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) expect(seg_cross(L[i].a, L[i].b, L[j].a, L[j].b)).toBe(false);
       for (const l of L) {
         const a2: XY = [l.a[0] + (l.b[0] - l.a[0]) * 0.02, l.a[1] + (l.b[1] - l.a[1]) * 0.02];
-        for (const q of ink.glyphs) expect(seg_poly(a2, l.b, q)).toBe(false);
+        ink.glyphs.forEach((q, i) => { if (ink.roofs[i] !== l.node) expect(seg_poly(a2, l.b, q)).toBe(false); });
       }
       const box = (b: { x: number; y: number; w: number; h: number }): XY[] => [[b.x, b.y], [b.x + b.w, b.y], [b.x + b.w, b.y + b.h], [b.x, b.y + b.h]];
       for (let i = 0; i < ink.labels.length; i++) for (let j = i + 1; j < ink.labels.length; j++) expect(poly_cross(box(ink.labels[i]), box(ink.labels[j]))).toBe(false);
@@ -127,8 +128,8 @@ describe('the house view and the plane', () => {
     expect(z(3)).toBeGreaterThan(z(2));
     expect(z(4)).toBeGreaterThan(z(2));
   });
-  it('flat: no camera turn; apart, sibling cards never meet, and every glyph keeps its size', () => {
-    const { F } = make(LAYERS, BAYES, 'flat');
+  for (const view of ['flat', 'split'] as const) it(`${view}: no camera turn; apart, sibling cards never meet, and every glyph keeps its size`, () => {
+    const { F } = make(LAYERS, BAYES, view);
     for (let n = 0; n <= F.opens.length; n++) {
       at(F, 1, n);
       const sc = (F as unknown as { now(): { K: { a: number; b: number; c: number; d: number }; cards: { node: { parent: unknown }; rect: number[] }[]; tok: Map<unknown, { box: number[] }> } }).now();
@@ -143,6 +144,20 @@ describe('the house view and the plane', () => {
         expect(Math.abs(r[2] - r[0] - (t.box[2] - t.box[0]) * k)).toBeLessThan(1e-6);
       }
     }
+  });
+  it('split: opening a card splits it into its blocks\' cards, the blocks opened before staying as they were', () => {
+    const { F } = make(LAYERS, BAYES, 'split');
+    const shown = (n: number) => { at(F, 1, n); return (F as unknown as { now(): { cards: { node: { part: FormulaPart } }[] } }).now().cards.map((c) => c.node.part.tex).sort(); };
+    expect(shown(0)).toEqual([LAYERS[0].tex, LAYERS[1].tex].sort());
+    expect(shown(1)).toEqual([LAYERS[0].tex, LAYERS[1].parts![0].tex, LAYERS[1].parts![1].tex].sort());
+    expect(shown(2)).toEqual([LAYERS[0].tex, LAYERS[1].parts![0].parts![0].tex, LAYERS[1].parts![0].parts![1].tex, LAYERS[1].parts![1].tex].sort());
+  });
+  it('a lever runs through the layers on the way to one and on from it, each with its name', () => {
+    const { F } = make();
+    expect(F.path_of(0)).toEqual([0, 1, 2]);
+    expect(F.path_of(2)).toEqual([0, 1, 2]);
+    expect([1, 2].map((n) => F.layer_name(n, 'en'))).toEqual(['the share of…', 'how often A…']);
+    expect(F.layer_name(0, 'en')).toBeNull();
   });
   it('the mirror reads the formula and the blocks of the layer shown', () => {
     const { F } = make();
@@ -160,7 +175,7 @@ describe('the house view and the plane', () => {
 });
 
 describe('formulas of AI, mathematics and physics', () => {
-  for (const view of ['house', 'flat'] as const) for (const lang of ['en', 'zh'] as const) {
+  for (const view of ['house', 'flat', 'split'] as const) for (const lang of ['en', 'zh'] as const) {
     it.each(FORMULAS.map((f) => [f.id, f] as const))(`${view}, ${lang}: %s - every block found, every layer's words placed, no leader crossing`, (_id, F) => {
       const loc = (ps: FormulaPart[]): FormulaPart[] => ps.map((p) => ({ tex: p.tex, says: (p.says as { en: string; zh: string })[lang], ...(p.parts ? { parts: loc(p.parts) } : {}) }));
       const fig = parts_figure(F.tex, loc(F.parts), { lang, view });
