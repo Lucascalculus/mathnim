@@ -1,8 +1,8 @@
 // Glass (凝结玻璃; specimen fx 'condense'): a pane that answers a tap. It is simply there, a pane of clear glass beside
-// what was tapped, with what it says on it: no animation in, nothing computed while it is open (no droplets, no blur:
-// Lucas, 2026-11-07, "直接浮现…不要实时算高斯模糊"). It is glass because it is held by your hand: tap anywhere else,
-// or Esc, and it is gone. Clear, not frosted. Used for a source behind a footnote marker; open to any short answer to
-// a tap.
+// what was tapped, with what it says on it: no animation in, nothing computed while it is open (no droplets: Lucas,
+// 2026-11-07, "直接浮现…不要实时算高斯模糊"). Frosted by the browser's compositor, so the text behind gives way to what
+// it says (later the same day: "玻璃后面的模糊不够"). It is glass because it is held by your hand: tap anywhere else,
+// or Esc, and it is gone. Used for a source behind a footnote marker; open to any short answer to a tap.
 //
 //   condense(html, { x, y }, anchor_rect)   →  { el, close() }
 import { define_effect, t } from '@mathnim/engine';
