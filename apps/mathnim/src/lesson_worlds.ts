@@ -25,8 +25,8 @@ export const say = (st: WorldState, en: string, zh: string): string => (st.lang 
 const FILES = import.meta.glob<{ default: LessonWorld }>(['./worlds/*/*.ts', '!./worlds/*/_*.ts']);
 const BY_LESSON = new Map(Object.entries(FILES).map(([path, load]) => [path.replace(/^.*\/([^/]+)\.ts$/, '$1'), load]));
 
-/** Every lesson that has a world of its own (for the worlds sheet, worlds.html). */
-export const world_ids = (): string[] => [...BY_LESSON.keys()].sort();
+/** Every lesson that has a world of its own, or those of one course's folder (for the worlds sheet, worlds.html). */
+export const world_ids = (folder?: string): string[] => Object.keys(FILES).filter((p) => !folder || p.startsWith(`./worlds/${folder}/`)).map((p) => p.replace(/^.*\/([^/]+)\.ts$/, '$1')).sort();
 /** Whether a lesson has a world of its own. */
 export const has_world = (lesson_id: string): boolean => BY_LESSON.has(lesson_id);
 /** A lesson's world (loaded when first asked for). */
