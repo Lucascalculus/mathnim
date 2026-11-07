@@ -1,6 +1,6 @@
 {
   "name": "@mathnim/look",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Mathium look: the design system as data (colours, nouns, type scale, spacing, role materials, motion intents, layout rules, taste rules). Changing the look never touches a lesson.",
   "type": "module",
   "main": "src/index.ts",

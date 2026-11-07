@@ -19,7 +19,7 @@ import type { ScenePlayer } from 'manim-web/ext/player';
 import { is_engine_ui, make_ui, type StagePlayer, type StageUI } from '@mathnim/core';
 import type { Scene } from 'manim-web';
 import { type EventLog } from '@mathnim/core';
-import { CueGuide, Narrator, define_ui, drag_hint, inject_styles, math_html, t, ui_lang } from '@mathnim/present';
+import { CueGuide, Narrator, define_ui, drag_hint, inject_styles, math_html, partial_math_html, t, ui_lang } from '@mathnim/present';
 import { get_visual, type Params } from '@mathnim/visuals';
 import { ask, type AskResult, type AskStatus } from '../pipeline';
 import { explain, type Explanation } from '../tutor';
@@ -74,12 +74,10 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.mn-wait{animation:none}}
 `;
 let injected = false;
+/** What the tutor writes is read as a model writes it: a letter in bold (**x**) is a symbol (math.ts). */
+const ANSWER = { bold_symbols: true };
+const answer_html = (s: string) => math_html(s, ANSWER);
 
-/** math_html for text that is still streaming in: an unfinished $...$ stays hidden until it closes. */
-function partial_math_html(s: string): string {
-  const n = (s.match(/\$/g) ?? []).length;
-  return math_html(n % 2 ? s.slice(0, s.lastIndexOf('$')) : s);
-}
 const secs = (ms?: number) => (ms === undefined ? '–' : `${(ms / 1000).toFixed(1)} s`);
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 // the panel's strings, in the learner's interface language (one dictionary with the lesson view's, see @mathnim/present i18n)
@@ -290,7 +288,7 @@ export class AskPanel {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'mn-chip';
-    b.innerHTML = math_html(text); // (suggestions and follow-ups may hold TeX)
+    b.innerHTML = answer_html(text); // (suggestions and follow-ups may hold TeX)
     b.onclick = () => void this.ask(text, this.o.extra?.());
     return b;
   }
@@ -350,6 +348,8 @@ export class AskPanel {
     status.setAttribute('aria-live', 'polite');
     const text = document.createElement('div');
     text.className = 'mn-answer-text';
+    // (a passage of it can be selected and asked about, as the lesson's own words can: see LessonView)
+    text.dataset.askable = '';
     const say_row = document.createElement('div');
     say_row.className = 'mn-say-row';
     const picture = document.createElement('div');
@@ -390,13 +390,13 @@ export class AskPanel {
           },
           on_text: (a) => {
             status.textContent = '';
-            text.innerHTML = partial_math_html(a);
+            text.innerHTML = partial_math_html(a, ANSWER);
           },
         }).then(
           (x) => {
             c.timing.text_first = x.ms_first;
             c.timing.text_done = x.ms_done;
-            text.innerHTML = math_html(x.text);
+            text.innerHTML = answer_html(x.text);
             c.spoken.text = x.text;
             this.read_button(c);
             this.history.push({ q: question, a: x.text });
@@ -485,10 +485,10 @@ export class AskPanel {
     await new Promise((res) => setTimeout(res, 350));
     c.status.textContent = '';
     for (let n = 0; n < r.text.length; n += 4) {
-      c.text.innerHTML = partial_math_html(r.text.slice(0, n));
+      c.text.innerHTML = partial_math_html(r.text.slice(0, n), ANSWER);
       await new Promise((res) => setTimeout(res, 16));
     }
-    c.text.innerHTML = math_html(r.text);
+    c.text.innerHTML = answer_html(r.text);
     c.status.remove();
     c.spoken.text = r.text;
     this.read_button(c);
@@ -563,7 +563,7 @@ export class AskPanel {
     const caption = document.createElement('div');
     caption.className = 'mn-caption-text';
     const caption_md = p.caption || t('ask_watch');
-    caption.innerHTML = math_html(caption_md);
+    caption.innerHTML = answer_html(caption_md);
     c.spoken.caption = p.caption;
     const controls = document.createElement('div');
     controls.className = 'mn-actions';
@@ -571,7 +571,7 @@ export class AskPanel {
     if (p.check) {
       const q = document.createElement('div');
       q.className = 'mn-quick-check';
-      q.innerHTML = `<b>${t('ask_quick_check')}</b> ${math_html(p.check.question)}` + (p.check.answer ? `<details><summary>${t('ask_answer')}</summary>${math_html(p.check.answer)}</details>` : '');
+      q.innerHTML = `<b>${t('ask_quick_check')}</b> ${answer_html(p.check.question)}` + (p.check.answer ? `<details><summary>${t('ask_answer')}</summary>${answer_html(p.check.answer)}</details>` : '');
       c.picture.append(q);
     }
     c.picture.append(controls);
@@ -597,10 +597,10 @@ export class AskPanel {
       if (x) {
         // the text finished after the picture: complete the timings
         d.querySelector('div')!.innerHTML = `${c.backend.name}: ${this.text_timing(c)}${t('ask_picture_in', { t: secs(c.timing.picture) })}`;
-        if (c.diagnosis) d.insertAdjacentHTML('beforeend', `<div>${t('ask_read_as', { d: math_html(c.diagnosis) })}</div>`);
+        if (c.diagnosis) d.insertAdjacentHTML('beforeend', `<div>${t('ask_read_as', { d: answer_html(c.diagnosis) })}</div>`);
       } else {
         // no text answer: the caption has to do
-        c.text.innerHTML = math_html(caption_md);
+        c.text.innerHTML = answer_html(caption_md);
         caption.innerHTML = '';
         c.spoken = { text: caption_md, caption: '' };
         this.read_button(c);
@@ -671,14 +671,14 @@ export class AskPanel {
     status.remove();
     if (!spoken) {
       // no fast answer (offline, or it failed): the scene's explanation is the answer
-      text.innerHTML = math_html(r.explanation);
+      text.innerHTML = answer_html(r.explanation);
       c.spoken.text = r.explanation;
       this.read_button(c);
       this.history.push({ q: c.question, a: r.explanation });
     }
     const h = document.createElement('h3');
     const badge = r.verified ? `<span class="mn-badge ok">${t('ask_checked')}</span>` : `<span class="mn-badge warn">${t('ask_unverified')}</span>`;
-    h.innerHTML = `${math_html(r.title)} ${badge}`;
+    h.innerHTML = `${answer_html(r.title)} ${badge}`;
     const canvas = document.createElement('canvas');
     canvas.className = 'mn-answer';
     canvas.width = 1280;
@@ -691,7 +691,7 @@ export class AskPanel {
     const caption = document.createElement('div');
     caption.className = 'mn-caption-text';
     if (spoken) {
-      caption.innerHTML = math_html(r.explanation);
+      caption.innerHTML = answer_html(r.explanation);
       c.spoken.caption = r.explanation;
     }
     picture.append(h, stage, caption, controls);
@@ -700,7 +700,7 @@ export class AskPanel {
     this.details(c, [
       `${r.provider}: ${spoken ? this.text_timing(c) : ''}${t('ask_picture_in', { t: secs(c.timing.picture) })}, ${t('ask_attempts', { n: r.attempts, s: r.attempts === 1 ? '' : 's' })}`,
       why ? `${t('ask_from_scratch', { why })}${fallback?.detail ? ` (${esc(fallback.detail.slice(0, 160))})` : ''}${after?.plan ? t('ask_plan_in', { p: after.plan.calls.map((x) => secs(x.ms)).join(' + ') }) : ''}` : '',
-      c.diagnosis ? t('ask_read_as', { d: math_html(c.diagnosis) }) : '',
+      c.diagnosis ? t('ask_read_as', { d: answer_html(c.diagnosis) }) : '',
       ...(r.check_results.length ? [t('ask_recomputed', { a: r.check_results.filter((x) => x.ok).length, b: r.check_results.length }), ...r.check_results.map((x) => `${x.ok ? '✓' : '✗'} ${x.label}: ${x.value}${x.ok ? '' : t('ask_computed', { g: x.got })}`)] : []),
     ]);
     this.o.log?.emit({ verb: 'interacted', lesson: this.o.lesson ?? 'ask', object: 'answer', data: { question: c.question, provider: r.provider, verified: r.verified, attempts: r.attempts, ...c.timing, diagnosis: c.diagnosis, ...(after ? { picture: 'freeform', fallback: fallback?.reason } : {}) } });
@@ -769,12 +769,12 @@ export async function draw_saved(body: HTMLElement, pic: SavedPicture): Promise<
   stage.append(canvas);
   const caption = document.createElement('div');
   caption.className = 'mn-caption-text';
-  caption.innerHTML = pic.caption ? math_html(pic.caption) : '';
+  caption.innerHTML = pic.caption ? answer_html(pic.caption) : '';
   const controls = document.createElement('div');
   controls.className = 'mn-actions';
   if ('code' in pic) {
     const h = document.createElement('h3');
-    h.innerHTML = math_html(pic.title);
+    h.innerHTML = answer_html(pic.title);
     picture.append(h);
   }
   picture.append(stage, caption, controls);

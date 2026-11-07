@@ -66,6 +66,11 @@ export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', 
 export interface MarkupOptions {
   /** HTML for a footnote reference [^key] (e.g. a numbered link); without it the marker is dropped. */
   footnote?: (key: string) => string;
+  /**
+   * A single letter in bold is a symbol, set as math (**x** is how a model writes the vector $\mathbf{x}$): for the
+   * tutor's answers, not a lesson's text (where **D**ialogue may spell an acronym).
+   */
+  bold_symbols?: boolean;
 }
 
 /** Only web, mail, in-page and relative links (never javascript: and the like). */
@@ -116,14 +121,27 @@ function tex_html(tex: string, display: boolean): string {
 const CJK_CLOSE = /^[，。、；：！？）」』”’》〉】…—·%]+/;
 const CJK_OPEN = /[（「『“‘《〈【]+$/;
 
-/** HTML for text containing $inline$ and $$display$$ TeX; **bold**, *italic*, `code` and [links](url) are supported. */
-/** Bold that contains math (**the rank of $BA$ is at most $r$**) spans several prose pieces: marked first, closed at the end. */
-const B_OPEN = '\u0001', B_CLOSE = '\u0002';
-const mark_bold_math = (chunk: string): string =>
-  chunk.includes('**') && chunk.includes('$') ? chunk.replace(/\*\*(?=\S)([^*]*?\$[^*]*?\S)\*\*/g, `${B_OPEN}$1${B_CLOSE}`) : chunk;
-
 /** "\$" is a literal dollar in prose (it starts no math); inside math it stays TeX's own \$. */
 const DOLLAR = '\u0004';
+/**
+ * A formula stands in the prose as one private mark (M0 index M1) while the light markup is read, so markup that
+ * runs over a formula (**the rank of $BA$ is at most $r$**) or a star inside one (**$x^*$ is optimal**) reads right.
+ */
+const M0 = '\uE000', M1 = '\uE001';
+const FORMULA = /\$\$([^$]+)\$\$|\$([^$]+)\$/g;
+/**
+ * \( \) and \[ \] (as models often write TeX) become $ $ and $$ $$; only outside the formulas already in dollars,
+ * where TeX's own \\[2pt] lives.
+ */
+function dollar_delimiters(chunk: string): string {
+  if (!chunk.includes('\\(') && !chunk.includes('\\[')) return chunk;
+  return chunk
+    .split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g)
+    .map((p, i) => (i % 2 ? p : p.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex: string) => '$$' + tex + '$$').replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex: string) => '$' + tex + '$')))
+    .join('');
+}
+// (the marks around a formula, as classes: what may sit before it, what after it)
+const PLACED = new RegExp(`(${CJK_OPEN.source.slice(0, -1)})?${M0}(\\d+)${M1}(${CJK_CLOSE.source.slice(1)})?`, 'g');
 
 /**
  * A ```steps block (a derivation, one TeX line per step, `% words` for what was done) becomes a column of displayed
@@ -178,6 +196,7 @@ function lift_definitions(text: string, o: MarkupOptions, out: string[]): string
 }
 
 let depth = 0;
+/** HTML for text containing $inline$ and $$display$$ TeX (or \( \) and \[ \]); **bold**, *italic*, `code` and [links](url) are supported. */
 export function math_html(text: string, o: MarkupOptions = {}): string {
   // (the numbers of one text share their names: a computed number shows its value from the ones written before it)
   if (!depth) tangle_reset();
@@ -240,30 +259,37 @@ function prose_math_html(text: string, o: MarkupOptions = {}): string {
     .split(/(`[^`\n]+`)/g)
     .map((chunk) => {
       if (/^`[^`\n]+`$/.test(chunk)) return `<code>${esc(chunk.slice(1, -1))}</code>`;
-      const parts = mark_bold_math(chunk.replaceAll('\\$', DOLLAR)).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
-      const out: string[] = [];
-      for (let i = 0; i < parts.length; i++) {
-        const m = /^\$\$([^$]+)\$\$$|^\$([^$]+)\$$/.exec(parts[i]);
-        if (!m) {
-          out.push(prose_html(parts[i], o));
-          continue;
-        }
-        let html = tex_html((m[1] ?? m[2]).replaceAll(DOLLAR, '\\$'), !!m[1]);
-        if (!m[1]) {
-          // inline math: glue the punctuation around it so the line cannot break between them
-          const before = CJK_OPEN.exec(parts[i - 1] ?? '')?.[0] ?? '';
-          const after = CJK_CLOSE.exec(parts[i + 1] ?? '')?.[0] ?? '';
-          if (before || after) {
-            if (before) out[out.length - 1] = prose_html(parts[i - 1].slice(0, -before.length), o);
-            if (after) parts[i + 1] = parts[i + 1].slice(after.length);
-            html = `<span class="mn-nowrap">${esc(before)}${html}${esc(after)}</span>`;
-          }
-        }
-        out.push(html);
-      }
-      return out.join('').replaceAll(B_OPEN, '<b>').replaceAll(B_CLOSE, '</b>').replaceAll(DOLLAR, '$');
+      const formulas: { tex: string; display: boolean }[] = [];
+      const mark = (tex: string, display: boolean) => `${M0}${formulas.push({ tex, display }) - 1}${M1}`;
+      const prose = dollar_delimiters(chunk.replaceAll('\\$', DOLLAR))
+        .replace(FORMULA, (_m, d: string | undefined, i: string | undefined) => mark(d ?? i!, d !== undefined))
+        // a symbol set in bold (**x**: a vector, as a model writes it) is math, as $\mathbf{x}$ would be
+        .replace(o.bold_symbols ? /\*\*([A-Za-z])\*\*(?![A-Za-z])/g : /(?!)/g, (_m, s: string) => mark(`\\mathbf{${s}}`, false));
+      return prose_html(prose, o)
+        // inline math glues the punctuation around it, so the line cannot break between them
+        .replace(PLACED, (_m, before: string | undefined, k: string, after: string | undefined) => {
+          const f = formulas[+k], html = tex_html(f.tex.replaceAll(DOLLAR, '\\$'), f.display);
+          return !f.display && (before || after) ? `<span class="mn-nowrap">${before ?? ''}${html}${after ?? ''}</span>` : `${before ?? ''}${html}${after ?? ''}`;
+        })
+        .replaceAll(DOLLAR, '$');
     })
     .join('');
+}
+
+/**
+ * Text still streaming in: a formula not yet closed ($…, $$…, \(…, \[…) stays hidden until it closes, and a bold not
+ * yet closed shows its words without the stars (they come in a moment).
+ */
+export function partial_math_html(s: string, o: MarkupOptions = {}): string {
+  const masked = s.replace(/\\\$/g, '  ').replace(/\$\$[^$]+\$\$|\$[^$]+\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]/g, (m) => ' '.repeat(m.length));
+  const open = masked.search(/\$|\\\(|\\\[/);
+  // (the end may be half of something: the backslash of \( or \[, one star of two)
+  const cut = (open >= 0 ? masked.slice(0, open) : masked).replace(/\\$|(?<!\*)\*$/, '').length;
+  let shown = s.slice(0, cut);
+  // a bold whose closing stars have not come: its opening stars wait with them
+  const stars = [...masked.slice(0, cut).matchAll(/\*\*/g)];
+  if (stars.length % 2) shown = shown.slice(0, stars[stars.length - 1].index) + shown.slice(stars[stars.length - 1].index + 2);
+  return math_html(shown, o);
 }
 /** A displayed formula (TeX source, no dollars). */
 export function display_math_html(tex: string): string {

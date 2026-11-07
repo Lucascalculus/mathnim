@@ -107,7 +107,7 @@ function context(v: unknown): AskContext | undefined {
   return {
     lesson: opt(c.lesson, 400), step: opt(c.step, 300), on_screen: opt(c.on_screen, 6000), learner: opt(c.learner, 600),
     misconceptions: strs(c.misconceptions, 8, 300), recent, level: opt(c.level, 200), language: opt(c.language, 40),
-    learner_language: opt(c.learner_language, 40), topics: strs(c.topics, 12, 60), selected: opt(c.selected, 1200), unanswered: c.unanswered === true || undefined,
+    learner_language: opt(c.learner_language, 40), topics: strs(c.topics, 12, 60), selected: opt(c.selected, 1200), selected_in: c.selected_in === 'answer' ? 'answer' : undefined, unanswered: c.unanswered === true || undefined,
     figure: figure(c.figure),
   };
 }

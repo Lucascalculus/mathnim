@@ -61,6 +61,7 @@ define_ui({
   chat_intro: { en: 'Ask about the step on screen, or select a sentence on the page and ask about it.', zh: '问问屏幕上的这一步；也可以先在页面上选中一句话，再问它。' },
   chat_unquote: { en: 'Remove the passage', zh: '去掉这段引用' },
   explain_passage: { en: 'What does this passage mean?', zh: '这段话是什么意思？' },
+  explain_quote: { en: 'What does “{q}” mean?', zh: '“{q}”是什么意思？' },
   ask_ai: { en: 'Ask the tutor', zh: '问 AI' },
   ask_short: { en: 'Ask', zh: '提问' },
   ask_more: { en: 'Ask more', zh: '追问' },

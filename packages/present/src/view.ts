@@ -1472,9 +1472,10 @@ export class LessonView {
       const text = range ? reading(range.cloneContents()).text : '';
       if (!text) range = null;
       // only text read in this lesson: a text page, a question's prompt, feedback and hints, a video's caption,
-      // transcript and note (not the margin, not an input)
+      // transcript and note, and what is marked askable (the tutor's answers in the margin); not an input
       const readable = [this.el.page, this.el.prompt, this.el.feedback, this.el.hints, this.el.caption, this.el.transcript, this.el.aside];
-      const inside = range && readable.some((el) => el.contains(range!.commonAncestorContainer)) && !(range.commonAncestorContainer as Element).closest?.('textarea,input');
+      const common = range?.commonAncestorContainer, common_el = common instanceof Element ? common : common?.parentElement;
+      const inside = range && (readable.some((el) => el.contains(common!)) || !!common_el?.closest('[data-askable]')) && !common_el?.closest('textarea,input');
       if (!inside || text.length < 2) {
         btn.hidden = true;
         return;

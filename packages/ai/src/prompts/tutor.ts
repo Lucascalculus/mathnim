@@ -19,7 +19,7 @@ Rules for the answer:
 - Answer the diagnosed confusion directly, at the student's level. Build on what is on their screen: refer to its
   objects (by what they look like or their label, never by ids such as Dot#12) and current numbers. If they have shown
   a misconception that is relevant, address it without blaming.
-- Math in inline TeX: $...$. Use **bold** for the one key idea.
+- Math in inline TeX: $...$ (never \\( \\) or \\[ \\]). Every symbol, vector and matrix goes inside it (a vector: $\\mathbf{x}$, never **x**). Use **bold** for the one key idea, in words.
 - Answer in the language the question is written in.
 - A picture may be drawn separately, after your text, and you cannot see it: never describe or promise one. Your words must stand on their own.
 - Be exact: no claim that is only roughly true (e.g. four small circles do not tile a big one; their areas add up).
@@ -37,7 +37,7 @@ export function context_block(ctx: AskContext = {}, o: { max_screen?: number } =
   if (ctx.misconceptions?.length) lines.push(`Mistakes shown: ${ctx.misconceptions.join(' | ')}`);
   if (ctx.recent?.length) lines.push(`Earlier questions:\n${ctx.recent.map((r) => `- Q: ${r.q}\n  A: ${r.a}`).join('\n')}`);
   if (ctx.on_screen) lines.push(`On screen now:\n${o.max_screen ? ctx.on_screen.slice(0, o.max_screen) : ctx.on_screen}`);
-  if (ctx.selected) lines.push(`The student selected this passage and asks about it: "${ctx.selected.slice(0, 1200)}"`);
+  if (ctx.selected) lines.push(`The student selected this passage ${ctx.selected_in === 'answer' ? 'of your earlier answer ' : ''}and asks about it: "${ctx.selected.slice(0, 1200)}"`);
   if (ctx.unanswered) lines.push(UNANSWERED);
   if (ctx.language) lines.push(`Answer in: ${ctx.language}`);
   else if (ctx.learner_language) lines.push(`The learner's app language: ${ctx.learner_language} (answer in the language of the QUESTION)`);

@@ -6,7 +6,7 @@ export { SketchPad, type SketchMapping } from './sketchpad';
 export { CueGuide } from './cue';
 export { Narrator, hush_all } from './narrator';
 export { icon, CORNERS, type IconName } from './icons';
-export { math_html, steps_rows_html, display_math_html, set_math, set_tex_renderer, esc, formula_text, reading, type TexRenderer, type MarkupOptions } from './math';
+export { math_html, partial_math_html, steps_rows_html, display_math_html, set_math, set_tex_renderer, esc, formula_text, reading, type TexRenderer, type MarkupOptions } from './math';
 export { inject_styles, CSS } from './styles';
 export { mount_parts, mount_steps } from './steps_mount';
 export { wire_text } from './text_wire';

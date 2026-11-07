@@ -24,6 +24,8 @@ export interface AskContext {
   topics?: string[];
   /** A passage the student selected on the page and asks about. */
   selected?: string;
+  /** Where that passage is: one of the tutor's own answers (else the page). */
+  selected_in?: 'answer';
   /** The step is a question the student has not answered yet: help them understand it without giving the answer away. */
   unanswered?: boolean;
   /** The figure on screen, when the tutor may act in it (acts.ts): its things and what the learner can move. */
